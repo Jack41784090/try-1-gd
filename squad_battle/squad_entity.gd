@@ -1,0 +1,339 @@
+extends RefCounted
+class_name SquadEntity
+
+const Types = preload("res://squad_battle/types.gd")
+
+var player_id: int
+var entity_name: String
+var stats: Types.EntityBaseStats
+var team: String
+
+var changeable_stats: Dictionary = {
+	"HP": 0.0,
+	"STA": 0.0,
+	"ORG": 0.0,
+	"POS": 0.0,
+	"MAG": 0.0,
+	"LOC": Types.SquadEntityInSquadLocation.Front
+}
+
+var weapon
+var armour
+var logic
+
+var is_retreating: bool = false
+var innate_skills: Array = []
+var temporary_skills: Array = []
+var status_effects: Array = []
+
+func _init(config: Dictionary):
+	player_id = config.get("player_id", 0)
+	entity_name = config.get("name", "Unknown")
+	team = config.get("team", "")
+	stats = config.get("stats", Types.EntityBaseStats.new())
+	
+	changeable_stats["HP"] = get_ceiling_changeable_stat("HP")
+	changeable_stats["STA"] = get_ceiling_changeable_stat("STA")
+	changeable_stats["ORG"] = get_ceiling_changeable_stat("ORG")
+	changeable_stats["POS"] = get_ceiling_changeable_stat("POS")
+	changeable_stats["MAG"] = get_ceiling_changeable_stat("MAG")
+	changeable_stats["LOC"] = config.get("starting_location", Types.SquadEntityInSquadLocation.Front)
+	
+	if config.has("weapon"):
+		weapon = config["weapon"]
+	else:
+		weapon = load("res://squad_battle/weapon.gd").new().unarmed()
+	
+	if config.has("armour"):
+		armour = config["armour"]
+	else:
+		armour = load("res://squad_battle/armour.gd").new().unprotected()
+	
+	innate_skills = config.get("innate_skills", [])
+
+func set_logic(new_logic):
+	logic = new_logic
+
+func new_round_reset():
+	is_retreating = false
+
+func is_dead() -> bool:
+	return get_changeable_stat_num("HP") <= 0
+
+func get_armour():
+	return armour
+
+func calculate_reality_value(reality: Types.Reality) -> float:
+	match reality:
+		Types.Reality.HP:
+			return (stats.endurance * 5) + (stats.siz * 2)
+		Types.Reality.Force:
+			return (stats.strength * 2) + (stats.spd * 1) + (stats.siz * 1)
+		Types.Reality.Guts:
+			return stats.wil * stats.fai
+		Types.Reality.Mana:
+			return (stats.int_stat * 3) + (stats.spr * 2) + (stats.fai * 1)
+		Types.Reality.Spirituality:
+			return (stats.spr * 2) + (stats.fai * 2) + (stats.wil * 1)
+		Types.Reality.Divinity:
+			return (stats.fai * 3) + (stats.wil * 2) + (stats.cha * 1)
+		Types.Reality.Precision:
+			return (stats.dex * 2) + (stats.acr * 1) + (stats.spd * 1)
+		Types.Reality.Maneuver:
+			return (stats.acr * 2) + (stats.spd * 2) + (stats.dex * 1)
+		Types.Reality.Convince:
+			return (stats.cha * 2) + (stats.beu * 1) + (stats.int_stat * 1)
+		Types.Reality.Bravery:
+			return (stats.wil * 2) + (stats.endurance * 1) + (stats.fai * 1)
+		_:
+			print("Warning: Reality value for ", reality, " not found")
+			return 0
+
+func get_ceiling_changeable_stat(property: String) -> float:
+	match property:
+		"HP":
+			return calculate_reality_value(Types.Reality.HP)
+		"ORG":
+			return calculate_reality_value(Types.Reality.Guts)
+		"LOC":
+			return Types.SquadEntityInSquadLocation.Back
+		_:
+			return 100.0
+
+func get_floor_changeable_stat(property: String) -> float:
+	match property:
+		"LOC":
+			return Types.SquadEntityInSquadLocation.Front
+		_:
+			return 0.0
+
+func mod_changeable_stat(property: String, by: float) -> Types.EntityChange:
+	return set_changeable_stat(property, get_changeable_stat_num(property) + by)
+
+func set_changeable_stat(property: String, to: float) -> Types.EntityChange:
+	var old_value = changeable_stats[property]
+	var new_value = clamp(to, get_floor_changeable_stat(property), get_ceiling_changeable_stat(property))
+	changeable_stats[property] = new_value
+	
+	return Types.EntityChange.new(property, old_value, new_value)
+
+func get_changeable_stat_num(property: String) -> float:
+	return changeable_stats[property]
+
+func heal(num: float):
+	if num < 0 or is_dead():
+		return null
+	return mod_changeable_stat("HP", num)
+
+func boost(num: float):
+	if num < 0 or is_dead():
+		return null
+	return mod_changeable_stat("ORG", num)
+
+func deorg_after_damage(dm: float, source: int) -> Array:
+	if dm <= 0:
+		return []
+	if is_dead():
+		return []
+	
+	var affected = player_id
+	var base_damage_deorg = -(dm * 1.5)
+	var close_to_death_deorg = -(get_changeable_stat_num("HP") / get_ceiling_changeable_stat("HP")) * 10
+	var changes: Array = [
+		Types.EntityUpdate.new(source, affected, mod_changeable_stat("ORG", base_damage_deorg + close_to_death_deorg))
+	]
+	
+	if get_changeable_stat_num("ORG") <= 0:
+		if not is_retreating:
+			is_retreating = true
+			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat("LOC", 1)))
+			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat("ORG", calculate_reality_value(Types.Reality.Guts) * 0.1)))
+	
+	return changes
+
+func recover() -> Array:
+	if is_dead():
+		return []
+	var recover_updates: Array = []
+	recover_updates.append(mod_changeable_stat("HP", 3))
+	recover_updates.append(mod_changeable_stat("ORG", 5))
+	return recover_updates
+
+func damage(num: float, source: int) -> Array:
+	if is_dead():
+		return []
+	
+	var old_hp = get_changeable_stat_num("HP")
+	var affected = player_id
+	
+	if num <= 0:
+		return [Types.EntityUpdate.new(source, affected, Types.EntityChange.new("HP", old_hp, old_hp))]
+	else:
+		var updates = [Types.EntityUpdate.new(source, affected, mod_changeable_stat("HP", -num))]
+		
+		if get_changeable_stat_num("HP") == 0:
+			updates.append(Types.EntityUpdate.new(source, affected, Types.EntityChange.new("DIE", -1, -1)))
+		else:
+			for u in deorg_after_damage(num, source):
+				updates.append(u)
+		
+		return updates
+
+func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
+	if is_dead():
+		return []
+	
+	print("[", entity_name, "] Deciding action...")
+	var updates: Array = []
+	var updated_logic = logic.update_situation({
+		"entity": self,
+		"our_squad": our_squad,
+		"enemy_squad": enemy_squad
+	})
+	
+	var chosen_action = updated_logic.choose_action()
+	print("[", entity_name, "] || Chose action: ", chosen_action)
+	
+	match chosen_action:
+		Types.SquadEntityAction.ATTACK:
+			var attack_result = action_attack(updated_logic)
+			if attack_result:
+				for eu in attack_result:
+					updates.append(eu)
+		
+		Types.SquadEntityAction.FORWARD:
+			for eu in action_forward(updated_logic):
+				updates.append(eu)
+		
+		Types.SquadEntityAction.HEAL:
+			var heal_result = action_heal(updated_logic)
+			if heal_result:
+				for eu in heal_result:
+					updates.append(eu)
+		
+		Types.SquadEntityAction.IDLE:
+			for c in action_idle():
+				updates.append(Types.EntityUpdate.new(player_id, player_id, c))
+		
+		Types.SquadEntityAction.RETREAT:
+			print("[", entity_name, "] retreating!")
+			for eu in action_retreat():
+				updates.append(eu)
+			updates.append(Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("RETREAT", -1, -1)))
+		
+		Types.SquadEntityAction.CAPITULATE:
+			print("[", entity_name, "] capitulating!")
+			for eu in action_capitulate():
+				updates.append(eu)
+	
+	return updates
+
+func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
+	if is_dead():
+		return []
+	
+	print("[", entity_name, "] Deciding reaction...")
+	var updates: Array = []
+	var updated_logic = logic.update_situation({
+		"entity": self,
+		"our_squad": our_squad,
+		"enemy_squad": enemy_squad
+	})
+	
+	var chosen_reaction = updated_logic.choose_reaction()
+	print("[", entity_name, "] || Chose reaction: ", chosen_reaction)
+	
+	match chosen_reaction:
+		Types.SquadEntityAction.ATTACK:
+			var attack_result = action_attack(updated_logic)
+			if attack_result:
+				for eu in attack_result:
+					updates.append(eu)
+		
+		Types.SquadEntityAction.FORWARD:
+			for eu in action_forward(updated_logic):
+				updates.append(eu)
+		
+		Types.SquadEntityAction.HEAL:
+			var heal_result = action_heal(updated_logic)
+			if heal_result:
+				for eu in heal_result:
+					updates.append(eu)
+		
+		Types.SquadEntityAction.IDLE:
+			for c in action_idle():
+				updates.append(Types.EntityUpdate.new(player_id, player_id, c))
+		
+		Types.SquadEntityAction.RETREAT:
+			print("[", entity_name, "] retreating!")
+			for eu in action_retreat():
+				updates.append(eu)
+			updates.append(Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("RETREAT", -1, -1)))
+		
+		Types.SquadEntityAction.CAPITULATE:
+			print("[", entity_name, "] capitulating!")
+			for eu in action_capitulate():
+				updates.append(eu)
+	
+	return updates
+
+func action_attack(logic_obj):
+	var one_clash = logic_obj.choose_clash()
+	if one_clash:
+		return one_clash.commit()
+	else:
+		print("[", entity_name, "] Cannot find target")
+	return null
+
+func action_forward(_logic_obj) -> Array:
+	return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat("LOC", -1))]
+
+func action_heal(logic_obj):
+	var physical_heal = 5
+	var spirit_heal = 7
+	var sameline_allies = logic_obj.get_same_line_allies()
+	
+	if sameline_allies and sameline_allies.size() > 0:
+		var ally = sameline_allies[randi() % sameline_allies.size()]
+		var updates: Array = []
+		var h = ally.heal(physical_heal)
+		var b = ally.boost(spirit_heal)
+		
+		if h:
+			updates.append(Types.EntityUpdate.new(player_id, ally.player_id, h))
+		if b:
+			updates.append(Types.EntityUpdate.new(player_id, ally.player_id, b))
+		
+		return updates
+	return null
+
+func action_retreat() -> Array:
+	if not is_retreating:
+		is_retreating = true
+		return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat("LOC", 1))]
+	return []
+
+func action_capitulate() -> Array:
+	return [Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("LEAVE", -1, -1))]
+
+func action_idle() -> Array:
+	return recover()
+
+func get_available_skills() -> Array:
+	var skills = innate_skills.duplicate()
+	if weapon:
+		skills.append_array(weapon.get_weapon_skills(self))
+	skills.append_array(temporary_skills)
+	return skills
+
+func get_skills_for_purpose(_purpose: String) -> Array:
+	return get_available_skills()
+
+func add_innate_skill(skill):
+	innate_skills.append(skill)
+
+func add_temporary_skill(skill):
+	temporary_skills.append(skill)
+
+func remove_temporary_skill(skill_id: String):
+	temporary_skills = temporary_skills.filter(func(s): return s.id != skill_id)
