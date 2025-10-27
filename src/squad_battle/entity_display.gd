@@ -70,7 +70,7 @@ func update_stat(property: Types.EntityChangeable, old_val: float, new_val: floa
 			_handle_proc()
 
 # === Private update handlers ===
-
+# region 
 func _update_hp_visual() -> void:
 	var hp = entity_data.get_changeable_stat_num(Types.EntityChangeable.HP)
 	var max_hp = entity_data.get_ceiling_changeable_stat(Types.EntityChangeable.HP)
@@ -93,7 +93,10 @@ func _update_info_label() -> void:
 	
 	info_label.text = "HP: %.0f/%.0f\nORG: %.0f\nLOC: %d" % [hp, max_hp, org, loc]
 
+# endregion
+
 # === Change handlers with animations ===
+# region 
 
 func _handle_hp_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] HP: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
@@ -165,3 +168,5 @@ func _handle_proc() -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite, "modulate", Color(1.5, 1.5, 1.5), 0.1)
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
+
+# endregion
