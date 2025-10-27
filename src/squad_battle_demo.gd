@@ -2,6 +2,7 @@ extends Node2D
 
 const Types = preload("res://src/squad_battle/types.gd")
 
+var gui: SquadBattleGraphics
 var battle: SquadBattle
 var delay_between_rounds: float = 2.0
 var current_round_timer: float = 0.0
@@ -92,6 +93,7 @@ func setup_battle():
 	}
 	
 	battle = SquadBattle.new(battle_config)
+	gui = SquadBattleGraphics.new(battle)
 
 func _process(delta: float) -> void:
 	if not is_running:
@@ -126,12 +128,14 @@ func process_round():
 	var updates = battle.squad_actions()
 	
 	for update in updates:
-		if update.change.property == "LEAVE":
+		if update.change.property == Types.EntityChangeable.CAPITULATE:
 			var entity = battle.get_entity_by_id(update.affected)
 			if entity:
 				last_round_capitulated.append(entity)
 	
 	battle.squad_recoveries()
+
+	gui.process_updates(updates)
 	
 	print("")
 
@@ -155,10 +159,10 @@ func update_display():
 			info += "  Squad: %s (%d entities)\n" % [squad.squad_name, squad.entities.size()]
 			
 			for entity in squad.entities:
-				var hp = entity.get_changeable_stat_num("HP")
-				var max_hp = entity.get_ceiling_changeable_stat("HP")
-				var org = entity.get_changeable_stat_num("ORG")
-				var loc = entity.get_changeable_stat_num("LOC")
+				var hp = entity.get_changeable_stat_num(Types.EntityChangeable.HP)
+				var max_hp = entity.get_ceiling_changeable_stat(Types.EntityChangeable.HP)
+				var org = entity.get_changeable_stat_num(Types.EntityChangeable.ORG)
+				var loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC)
 				info += "    - %s: HP %.0f/%.0f, ORG %.0f, LOC %d\n" % [entity.entity_name, hp, max_hp, org, loc]
 		
 		info += "\n"
