@@ -95,53 +95,8 @@ func damage_calculation():
 	
 	print("  → Target HP After: %.2f" % target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP))
 	print("[OneClash] Emitting TargetTookDamage signal")
-	var emit_result = StatusEffectEventBus.emitSignal(StatusEffectEventBus.Signals.TargetTookDamage)
-	assert(emit_result == OK, "Failed to emit TargetTookDamage signal, error code: %d" % emit_result)
-
-func apply_effect(effect: Dictionary, target, _damage_dealt: float) -> Array:
-	var effect_updates: Array = []
-	var effect_type = effect.get("effect", {}).get("type", "")
-	
-	print("[OneClash] Applying Effect: %s" % effect_type)
-	
-	match effect_type:
-		"Damage":
-			var damage_effect = effect.get("effect", {})
-			var calculation = damage_effect.get("calculation", {})
-			var damage_amount = 0.0
-			
-			match calculation.get("type", "Flat"):
-				"Flat":
-					damage_amount = damage_effect.get("amount", 0.0)
-					print("  → Flat Damage: %.2f" % damage_amount)
-				"StatScaling":
-					var stat = calculation.get("stat")
-					var percent = calculation.get("percent", 0.0)
-					if stat != null:
-						var stat_value = attacker.calculate_reality_value(stat)
-						damage_amount = stat_value * percent
-						print("  → Stat Scaling: %s × %.2f%% = %.2f" % [stat, percent * 100, damage_amount])
-			
-			if damage_amount > 0:
-				print("  → Dealing %.2f damage to %s" % [damage_amount, target.entity_name])
-				var dmg_updates = target.damage(damage_amount, attacker.player_id)
-				for u in dmg_updates:
-					effect_updates.append(u)
-		
-		"Heal":
-			var heal_amount = effect.get("effect", {}).get("amount", 0.0)
-			print("  → Healing %.2f to %s" % [heal_amount, target.entity_name])
-			var heal_change = target.heal(heal_amount)
-			if heal_change:
-				effect_updates.append(SquadBattleTypes.EntityUpdate.new(attacker.player_id, target.player_id, heal_change))
-		
-		"ApplyStatusEffect":
-			print("  → ApplyStatusEffect not yet implemented")
-		
-		"ModifyStat":
-			print("  → ModifyStat not yet implemented")
-	
-	return effect_updates
+	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.TargetTookDamage, dm)
+	# assert(emit_result == OK, "Failed to emit TargetTookDamage signal, error code: %d" % emit_result)
 
 func cleanup() -> Array:
 	print("[OneClash] Cleanup - Total updates: %d" % updates.size())
@@ -169,6 +124,9 @@ func commit() -> Array:
 	if skill and skill.effects.size() > 0:
 		print("[OneClash] Setting up skill effect connections...")
 		for effect in skill.effects:
+			if effect.affected == null:
+				assert(effect.targeting in ["self", "target"], "Invalid targeting type: %s" % effect.targeting)
+				effect.affected = targeted if effect.targeting == "target" else attacker
 			effect.setup_connections()
 	
 	#subscribe_existing_status_effects_to_event_bus()
