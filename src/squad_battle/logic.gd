@@ -6,7 +6,7 @@ const Types = preload("res://src/squad_battle/types.gd")
 var entity
 var situation
 var context: Dictionary
-var logic_specific_skills: Array = []
+var logic_specific_skills: Array[Skill] = []
 
 func _init(initial_context: Dictionary):
 	context = initial_context
@@ -132,8 +132,8 @@ func choose_clash_skill() -> Skill:
 	if clash_skills.size() == 0:
 		return get_default_attack()
 	
-	var chosen = clash_skills[randi() % clash_skills.size()]
-	print("Chosen clash skill: ", chosen["name"], " (", chosen["id"], ")")
+	var chosen: Skill = clash_skills[randi() % clash_skills.size()]
+	print("Chosen clash skill: %s" % str(chosen))
 	return chosen
 
 func get_default_attack() -> Skill:
@@ -367,29 +367,20 @@ class FrontlineLogic extends SquadLogic:
 		super._init(ctx)
 		
 		logic_specific_skills = [
-			{
-				"id": "frontline-default",
-				"name": "Frontline Strike",
-				"effects": [
+			Skill.new("Frontline Strike", [
+				SkillEffect.new(
+					"FrontlineStrikeEffect1",
+					entity,
+					null,
+					ClashCommonTypes.CommitType.Damage,
+					[StatusEffectEventBus.Signals.OnBasicAttackHit],
 					{
-						"name": "FrontlineStrikeEffect1",
-						"affected": "target",
-						"original_source": entity.player_id,
-						"affected_id": -1,
-						"trigger": "OnBasicAttackHit",
-						"effect": {
-							"type": "Damage",
-							"damage_type": "Physical",
-							"calculation": {
-								"type": "StatScaling",
-								"stat": Types.Reality.Force,
-								"percent": 0.10
-							}
-						},
-						"duration": 0
+						"calculationType": ClashCommonTypes.CalculationType.StatScaling,
+						"value": 0.10,
+						"damage_type": SquadBattleTypes.Reality.Force,
 					}
-				]
-			}
+				)
+			])
 		]
 	
 	func forward_if_brave():
