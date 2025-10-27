@@ -14,17 +14,31 @@ const _signals: Dictionary = {
 	Signals.TargetTookDamage: "_target_took_damage"
 }
 
+func _get_signal_name(signal_enum: Signals) -> String:
+	match signal_enum:
+		Signals.HelloWorld: return "HelloWorld"
+		Signals.TargetTookDamage: return "TargetTookDamage"
+		_: return "Unknown_%d" % signal_enum
+
 func emitSignal(nameOFSignal: Signals, ...args: Array):
-	#print(_signals.get(nameOFSignal))
-	#print("Emitting signal: " % str(nameOFSignal) ) #% " with " % str(args))
-	self.emit_signal(_signals.get(nameOFSignal), args)
+	print("  [EventBus] Emitting signal: %s with %d args" % [_get_signal_name(nameOFSignal), args.size()])
+	var signal_name = _signals.get(nameOFSignal)
+	
+	# Use emit_signal with proper argument spreading
+	if args.size() == 0:
+		return self.emit_signal(signal_name)
+	elif args.size() == 1:
+		return self.emit_signal(signal_name, args[0])
+	else:
+		# For multiple args, use callv to spread them
+		return self.callv("emit_signal", [signal_name] + args)
 
 func Connect(nameOfSignal: Signals, function):
-	#print("Connected: " % str(nameOfSignal)) # % " with " % str(function))
-	self.connect(_signals.get(nameOfSignal), function)
+	print("  [EventBus] Connected: %s" % _get_signal_name(nameOfSignal))
+	return self.connect(_signals.get(nameOfSignal), function)
 
 func Disconnect(nameOfSignal: Signals, function):
-	#print("Disconnected: " % str(nameOfSignal) ) #% " with " % str(function))
+	print("  [EventBus] Disconnected: %s" % _get_signal_name(nameOfSignal))
 	self.disconnect(_signals.get(nameOfSignal), function)
 
 # #button.gd
