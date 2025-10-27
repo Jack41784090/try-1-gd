@@ -19,35 +19,114 @@ func _init(
 	_source: SquadEntity = null,
 	_affected: SquadEntity = null,
 	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect):
-	if _name == '':
-		return;
-
-	name = _name;
-	source = _source;
-	affected = _affected;
-	commitType = _commitType;
-	match commitType:
-		ClashCommonTypes.CommitType.ApplyStatusEffect:
-			assert(statusEffectToAddID != null, "ApplyStatusEffect has no status effect set")
-		_:
-			pass
 	
-	for t in triggers:
-		StatusEffectEventBus.Connect(t, commit)
+	print("  [SkillEffect._init] Called with _name='%s'" % _name)
+	print("    → @export name is currently: '%s'" % name)
+	print("    → @export triggers array size: %d" % triggers.size())
+	
+	if _name == '':
+		print("    ✗ Empty _name parameter - assuming resource loading")
+		print("    → Will skip manual initialization, @export vars will be set by resource loader")
+		# At this point, @export variables are NOT yet loaded from the .tres file
+		# They will be set AFTER _init() completes
+		return
+	else:
+		print("    ✓ Non-empty _name - manual initialization")
+		name = _name;
+		source = _source;
+		affected = _affected;
+		commitType = _commitType;
+	
+	# match commitType:
+	# 	ClashCommonTypes.CommitType.ApplyStatusEffect:
+	# 		assert(statusEffectToAddID != null, "ApplyStatusEffect has no status effect set")
+	# 	_:
+	# 		pass
+	
+	# # This loop will only run if programmatically created, not when loaded from resource
+	# print("    → Attempting to subscribe %d triggers..." % triggers.size())
+	# for t in triggers:
+	# 	print("      → Subscribing to trigger: %s" % StatusEffectEventBus._signals.get(t))
+	# 	StatusEffectEventBus.Connect(t, commit)
 	pass
 
-func commit() -> Array[SquadBattleTypes.EntityUpdate]:
-	print("[SkE] " % resource_name)
-	match commitType:
-		ClashCommonTypes.CommitType.ApplyStatusEffect:
-			print("Applying SE: " % statusEffectToAddID.name % " for " % affected.entity_name)
-		ClashCommonTypes.CommitType.Damage:
-			print("Damaging: " % value % " for " % affected.entity_name)
-		ClashCommonTypes.CommitType.Heal:
-			print("Healing: " % value % " for " % affected.entity_name)
-		_:
-			assert(false, "Unknown commit type: " % commitType);
+func setup_connections() -> void:
+	"""Call this after the resource is loaded to connect triggers to the event bus."""
+	print("  [SkillEffect] Setting up connections for '%s'" % name)
+	print("    → Effect type: %s" % _get_commit_type_name(commitType))
+	print("    → Triggers to connect: %d" % triggers.size())
 	
 	for t in triggers:
+		var signal_name = _format_trigger_name(t)
+		print("      → Connecting to signal: %s" % signal_name)
+		var _result = StatusEffectEventBus.Connect(t, commit)
+		print("      → Connection result: %s" % _result)
+
+func _format_trigger_name(trigger) -> String:
+	match trigger:
+		StatusEffectEventBus.Signals.HelloWorld: return "HelloWorld"
+		StatusEffectEventBus.Signals.TargetTookDamage: return "TargetTookDamage"
+		_: return "Signal_%d" % trigger
+
+func _get_commit_type_name(type: ClashCommonTypes.CommitType) -> String:
+	match type:
+		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
+		ClashCommonTypes.CommitType.Damage: return "Damage"
+		ClashCommonTypes.CommitType.Heal: return "Heal"
+		_: return "Unknown"
+
+func _format_triggers(trigger_array: Array) -> String:
+	if trigger_array.is_empty():
+		return "None"
+	var names = []
+	for t in trigger_array:
+		match t:
+			StatusEffectEventBus.Signals.HelloWorld: names.append("HelloWorld")
+			StatusEffectEventBus.Signals.TargetTookDamage: names.append("TargetTookDamage")
+			_: names.append("Signal_%d" % t)
+	return ", ".join(names)
+
+func commit() -> Array[SquadBattleTypes.EntityUpdate]:
+	print("    [SkillEffect] Committing '%s'" % name)
+	
+	var updates: Array[SquadBattleTypes.EntityUpdate] = []
+	
+	match commitType:
+		ClashCommonTypes.CommitType.ApplyStatusEffect:
+			if statusEffectToAddID and affected:
+				print("      → Applying status '%s' to %s" % [statusEffectToAddID.name, affected.entity_name])
+				affected.status_effects.append(statusEffectToAddID)
+				print("      → %s now has %d status effects" % [affected.entity_name, affected.status_effects.size()])
+			else:
+				print("      ✗ Cannot apply status: missing effect or target")
+		
+		ClashCommonTypes.CommitType.Damage:
+			if affected and source:
+				print("      → Dealing %.2f damage to %s" % [value, affected.entity_name])
+				var damage_updates = affected.damage(value, source.player_id)
+				for u in damage_updates:
+					updates.append(u)
+					print("      → Update: %s" % u)
+			else:
+				print("      ✗ Cannot deal damage: missing source or target")
+		
+		ClashCommonTypes.CommitType.Heal:
+			if affected and source:
+				print("      → Healing %.2f to %s" % [value, affected.entity_name])
+				var heal_change = affected.heal(value)
+				if heal_change:
+					var update = SquadBattleTypes.EntityUpdate.new(source.player_id, affected.player_id, heal_change)
+					updates.append(update)
+					print("      → Update: %s" % update)
+			else:
+				print("      ✗ Cannot heal: missing source or target")
+		
+		_:
+			print("      ✗ Unknown commit type: %d" % commitType)
+	
+	# Disconnect triggers after commit
+	for t in triggers:
 		StatusEffectEventBus.Disconnect(t, commit)
-	return [];
+	
+	print("    [SkillEffect] Commit complete - %d updates generated" % updates.size())
+	return updates
