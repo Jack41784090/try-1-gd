@@ -124,7 +124,7 @@ func readjust_weapon():
 	
 	return null
 
-func choose_clash_skill() -> Dictionary:
+func choose_clash_skill() -> Skill:
 	var clash_skills = []
 	clash_skills.append_array(entity.get_skills_for_purpose("clash"))
 	clash_skills.append_array(logic_specific_skills)
@@ -136,24 +136,8 @@ func choose_clash_skill() -> Dictionary:
 	print("Chosen clash skill: ", chosen["name"], " (", chosen["id"], ")")
 	return chosen
 
-func get_default_attack() -> Dictionary:
-	return {
-		"id": "basic-attack",
-		"name": "Basic Attack",
-		"effects": [{
-			"name": "basic-attack",
-			"affected": "target",
-			"trigger": "OnBasicAttackHit",
-			"original_source": entity.player_id,
-			"affected_id": -1,
-			"duration": 0,
-			"effect": {
-				"type": "Damage",
-				"damage_type": "Physical",
-				"amount": 1
-			}
-		}]
-	}
+func get_default_attack() -> Skill:
+	return Skill.new("Basic Attack", [	])
 
 func choose_weapon():
 	return entity.weapon
@@ -465,11 +449,11 @@ class FrontlineLogic extends SquadLogic:
 			return null
 		
 		var target = targets[randi() % targets.size()]
-		return OneClash.new({
-			"attacker": entity,
-			"defender": target,
-			"skill": choose_clash_skill()
-		})
+		return OneClash.new(
+			entity,
+			target,
+			choose_clash_skill()
+		)
 
 class ArcherLogic extends SquadLogic:
 	func _init(ctx: Dictionary):
@@ -523,9 +507,8 @@ class ArcherLogic extends SquadLogic:
 			return null
 		
 		var target = targets[randi() % targets.size()]
-		return OneClash.new({
-			"attacker": entity,
-			"defender": target,
-			"skill": choose_clash_skill()
-		})
-
+		return OneClash.new(
+			entity,
+			target,
+			choose_clash_skill()
+		)
