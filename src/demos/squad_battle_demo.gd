@@ -17,12 +17,12 @@ func _ready() -> void:
 	print("Squad Battle Demo Started!")
 
 func setup_battle():
-	var entity_stats1 = Types.EntityBaseStats.new("warrior1", 15, 12, 10, 10, 12, 8, 8, 10, 9, 8, 12, 14)
-	var entity_stats2 = Types.EntityBaseStats.new("warrior2", 14, 11, 9, 11, 11, 9, 7, 9, 8, 9, 11, 13)
-	var entity_stats3 = Types.EntityBaseStats.new("mage1", 8, 10, 8, 9, 9, 16, 14, 12, 10, 11, 13, 10)
+	var entity_stats1 = EntityBaseStats.new("warrior1", 15, 12, 10, 10, 12, 8, 8, 10, 9, 8, 12, 14)
+	var entity_stats2 = EntityBaseStats.new("warrior2", 14, 11, 9, 11, 11, 9, 7, 9, 8, 9, 11, 13)
+	var entity_stats3 = EntityBaseStats.new("mage1", 8, 10, 8, 9, 9, 16, 14, 12, 10, 11, 13, 10)
 	
-	var entity_stats4 = Types.EntityBaseStats.new("goblin1", 12, 10, 11, 12, 10, 6, 6, 7, 6, 7, 9, 11)
-	var entity_stats5 = Types.EntityBaseStats.new("goblin2", 11, 9, 10, 11, 9, 6, 5, 6, 7, 6, 8, 10)
+	var entity_stats4 = EntityBaseStats.new("goblin1", 12, 10, 11, 12, 10, 6, 6, 7, 6, 7, 9, 11)
+	var entity_stats5 = EntityBaseStats.new("goblin2", 11, 9, 10, 11, 9, 6, 5, 6, 7, 6, 8, 10)
 	
 	var squad1_config = {
 		"name": "Heroes Front",
