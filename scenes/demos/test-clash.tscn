@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddvy8wgss22o2"]
+
+[ext_resource type="Script" uid="uid://bdpkhoh02b4q8" path="res://src/demos/test_clash.gd" id="1_ce3iy"]
+
+[node name="TestClash" type="Node"]
+script = ExtResource("1_ce3iy")
