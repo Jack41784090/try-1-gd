@@ -9,4 +9,5 @@ enum CommitType {
 
 enum CalculationType {
 	Flat,
+	StatScaling
 }
