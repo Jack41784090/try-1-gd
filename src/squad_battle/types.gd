@@ -67,6 +67,11 @@ class EntityChange:
 	var from: float
 	var to: float
 	var metadata: Dictionary = {}
+
+	func _to_string() -> String:
+		return "EntityChange(property=%s, from=%f, to=%f, metadata=%s)" % [
+			EntityChangeable.keys()[property]
+			, from, to, metadata]
 	
 	func _init(p_property: EntityChangeable, p_from: float, p_to: float, p_metadata: Dictionary = {}):
 		property = p_property
@@ -79,6 +84,10 @@ class EntityUpdate:
 	var affected: int
 	var change: EntityChange
 	var done: bool = false
+	
+	func _to_string() -> String:
+		return "EntityUpdate(source=%d, affected=%d, change=%s, done=%s)" % [source, affected, change.to_string(), done]
+		
 	
 	func _init(p_source: int, p_affected: int, p_change: EntityChange):
 		source = p_source
