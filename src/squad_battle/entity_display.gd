@@ -130,10 +130,8 @@ func _handle_loc_change(old_val: float, new_val: float) -> void:
 	_update_position_visual()
 	_update_info_label()
 	
-	# Animate position change (GUI will update actual position)
-	var tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.5, 0.2)
-	tween.tween_property(self, "modulate:a", 1.0, 0.2)
+	# Note: Actual position is animated by the GUI via _animate_position_change()
+	# We just update visual indicators here (z-index, etc.)
 
 func _handle_death() -> void:
 	print("[Display %s] ☠️ DIED" % entity_data.entity_name)

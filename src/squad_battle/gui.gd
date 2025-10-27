@@ -3,88 +3,107 @@ class_name SquadBattleGraphics
 
 const Types = preload("res://src/squad_battle/types.gd")
 const EntityDisplayScene = preload("res://scenes/entity.tscn")
-const EntityDisplay = preload("res://src/squad_battle/entity_display.gd")
 
 var battle: SquadBattle
 
-# Maps player_id -> EntityDisplay node
-# This allows quick lookup when routing updates
 var entity_displays: Dictionary = {}
 
-# Layout configuration
-const TEAM_SPACING = 600.0  # Horizontal space between teams
-const SQUAD_SPACING = 300.0  # Vertical space between squads
-const LOCATION_SPACING = 100.0  # Depth spacing (front/middle/back)
-const ENTITY_SPACING = 80.0  # Space between entities in same position
+const TEAM_SPACING = 600.0
+const SQUAD_SPACING = 300.0
+const LOCATION_SPACING = 100.0
+const ENTITY_SPACING = 80.0
+
+const WAIT_SEC_BETWEEN_ANIMATION: float = .1
 
 func _init(_battle: SquadBattle) -> void:
 	battle = _battle
+	print("[GUI] Initialized with battle. Teams: ", battle.teams_and_squads.keys())
 
-## Called after this node is added to the scene tree
-## Spawns all entity displays
 func _ready() -> void:
+	print("[GUI] _ready() called - starting entity spawn")
 	_spawn_all_entities()
+	print("[GUI] Entity spawn complete. Total displays: ", entity_displays.size())
 
-## Spawn visual representations for all entities in the battle
 func _spawn_all_entities() -> void:
+	print("[GUI] Spawning entities from battle data...")
 	var team_index = 0
 	
 	for team_name in battle.teams_and_squads.keys():
 		var squads: Array = battle.teams_and_squads[team_name]
+		print("[GUI]   Team '%s' (index %d): %d squads" % [team_name, team_index, squads.size()])
 		var squad_index = 0
 		
 		for squad: Squad in squads:
+			print("[GUI]     Squad '%s' (index %d): %d entities" % [squad.squad_name, squad_index, squad.entities.size()])
 			for entity: SquadEntity in squad.entities:
 				_spawn_entity_display(entity, team_name, team_index, squad_index)
 			squad_index += 1
 		
 		team_index += 1
 
-## Instantiate and position a single entity display
 func _spawn_entity_display(entity: SquadEntity, _team_name: String, team_index: int, squad_index: int) -> void:
+	print("[GUI]       Spawning '%s' (ID:%d) at team_idx=%d, squad_idx=%d" % [entity.entity_name, entity.player_id, team_index, squad_index])
 	var display: EntityDisplay = EntityDisplayScene.instantiate()
 	
-	# Calculate position based on team, squad, and location
 	display.position = _calculate_position(entity, team_index, squad_index)
+	print("[GUI]       Position calculated: ", display.position)
 	
-	# Add to scene first (so nodes are ready)
 	add_child(display)
 	
-	# Then setup with data
 	display.setup(entity)
-	
-	# Store reference for later updates
 	entity_displays[entity.player_id] = display
 	
-	print("Spawned display for entity: ", entity.entity_name, " at ", display.position)
+	print("[GUI]       ✓ Display added to tree and setup complete")
 
-## Calculate screen position for an entity based on its team, squad, and location
 func _calculate_position(entity: SquadEntity, team_index: int, squad_index: int) -> Vector2:
 	var pos = Vector2()
-	
-	# Team determines horizontal side (left vs right)
-	# Team 0 on left, Team 1 on right
 	pos.x = 200.0 + (team_index * TEAM_SPACING)
-	
-	# Squad determines vertical row
 	pos.y = 200.0 + (squad_index * SQUAD_SPACING)
-	
-	# Location within squad (Front/Middle/Back) affects depth
 	var location = entity.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
-	pos.x += (location - 1) * LOCATION_SPACING  # Front is closer to center
-	
-	# Add some offset based on entity index to prevent overlap
-	# (In a real game, you'd track how many entities are at this position)
+	pos.x += (location - 1) * LOCATION_SPACING
 	pos.y += (entity.player_id % 3) * ENTITY_SPACING
-	
 	return pos
 
-## Route a stat change to the appropriate entity display
+## Update an entity's position when their LOC changes
+## Finds the entity in the battle data and recalculates position
+func _update_entity_position(player_id: int) -> void:
+	print("[GUI] Updating position for entity ID %d" % player_id)
+	var display = entity_displays.get(player_id)
+	if not display:
+		print("[GUI]   ⚠️ Display not found in entity_displays!")
+		return
+	
+	# Find the entity's team and squad indices
+	var team_index = 0
+	for team_name in battle.teams_and_squads.keys():
+		var squads: Array = battle.teams_and_squads[team_name]
+		var squad_index = 0
+		
+		for squad: Squad in squads:
+			for entity: SquadEntity in squad.entities:
+				if entity.player_id == player_id:
+					# Found it! Calculate new position and animate
+					var old_pos = display.position
+					var new_pos = _calculate_position(entity, team_index, squad_index)
+					print("[GUI]   Moving from %s to %s" % [old_pos, new_pos])
+					_animate_position_change(display, new_pos)
+					return
+			squad_index += 1
+		team_index += 1
+	
+	print("[GUI]   ⚠️ Entity ID %d not found in battle data!" % player_id)
+
+## Smoothly animate an entity display to a new position
+func _animate_position_change(display: EntityDisplay, new_position: Vector2) -> void:
+	print("[GUI]   Animating position change over " % str(WAIT_SEC_BETWEEN_ANIMATION) % " seconds")
+	var tween = create_tween()
+	tween.tween_property(display, "position", new_position, WAIT_SEC_BETWEEN_ANIMATION).set_ease(Tween.EASE_IN_OUT)
+
+# region _handle helpers (deprecated)
 func _handle_hp_change(update: Types.EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " HP changed from ", change.from, " to ", change.to)
 	
-	# Route to visual display
 	var display = entity_displays.get(update.affected)
 	if display:
 		display.update_stat(Types.EntityChangeable.HP, change.from, change.to)
@@ -125,11 +144,10 @@ func _handle_loc_change(update: Types.EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " LOC changed from ", change.from, " to ", change.to)
 	
-	# Update visual position when location changes
 	var display = entity_displays.get(update.affected)
 	if display:
 		display.update_stat(Types.EntityChangeable.LOC, change.from, change.to)
-		# TODO: Could update display.position here for visual movement
+		_update_entity_position(update.affected)
 
 func _handle_die_change(update: Types.EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
@@ -170,35 +188,14 @@ func _handle_proc_change(update: Types.EntityUpdate) -> void:
 	var display = entity_displays.get(update.affected)
 	if display:
 		display.update_stat(Types.EntityChangeable.PROC, change.from, change.to)
+# endregion
 
 func process_updates(updates: Array[Types.EntityUpdate]) -> void:
+	if updates.size() > 0:
+		print("[GUI] Processing %d updates..." % updates.size())
+	
 	for update in updates:
-		var change: Types.EntityChange = update.change
-		match change.property:
-			Types.EntityChangeable.HP:
-				_handle_hp_change(update)
-			Types.EntityChangeable.STA:
-				_handle_sta_change(update)
-			Types.EntityChangeable.ORG:
-				_handle_org_change(update)
-			Types.EntityChangeable.POS:
-				_handle_pos_change(update)
-			Types.EntityChangeable.MAG:
-				_handle_mag_change(update)
-			Types.EntityChangeable.LOC:
-				_handle_loc_change(update)
-			Types.EntityChangeable.DIE:
-				_handle_die_change(update)
-			Types.EntityChangeable.CAPITULATE:
-				_handle_capitulate_change(update)
-			Types.EntityChangeable.CLINK:
-				_handle_clink_change(update)
-			Types.EntityChangeable.DODGE:
-				_handle_dodge_change(update)
-			Types.EntityChangeable.PROC:
-				_handle_proc_change(update)
-			_:
-				assert(false, "Unhandled EntityChangeable type in GUI: " % change.property)
-
-			
-			
+		var display = entity_displays.get(update.affected)
+		if display: display.update_stat(update.change.property, update.change.from, update.change.to)
+		if update.change.property == Types.EntityChangeable.LOC: _update_entity_position(update.affected)
+		await get_tree().create_timer(WAIT_SEC_BETWEEN_ANIMATION).timeout
