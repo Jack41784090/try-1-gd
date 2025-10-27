@@ -133,25 +133,7 @@ func squad_actions() -> Array[Types.EntityUpdate]:
 	
 	print("--- Round ", round_count, " Updates ---")
 	for update in updates:
-		var change_str = ""
-		
-		match update.change.property:
-			Types.EntityChangeable.HP, Types.EntityChangeable.ORG:
-				change_str = "%s %s -> %s" % [update.change.property, update.change.from, update.change.to]
-			Types.EntityChangeable.DIE, Types.EntityChangeable.CAPITULATE:
-				change_str = update.change.property
-			Types.EntityChangeable.LOC:
-				change_str = "LOC %s -> %s" % [update.change.from, update.change.to]
-			Types.EntityChangeable.CLINK:
-				change_str = "CLINK! %s failed to pierce %s" % [update.source, update.affected]
-			Types.EntityChangeable.DODGE:
-				change_str = "DODGE! %s misses %s" % [update.source, update.affected]
-			Types.EntityChangeable.PROC:
-				var display = update.change.metadata.get("display", "-")
-				change_str = "PROC! %s -%s-> on %s; V: %s -> %s" % [update.source, display, update.affected, update.change.from, update.change.to]
-		
-		print("  - ", update.source, " -> ", update.affected, ": ", change_str)
-	
+		print(update)
 	print("------------------------------")
 	return updates
 
