@@ -9,12 +9,12 @@ var stats: Types.EntityBaseStats
 var team: String
 
 var changeable_stats: Dictionary = {
-	"HP": 0.0,
-	"STA": 0.0,
-	"ORG": 0.0,
-	"POS": 0.0,
-	"MAG": 0.0,
-	"LOC": Types.SquadEntityInSquadLocation.Front
+	Types.EntityChangeable.HP: 0.0,
+	Types.EntityChangeable.STA: 0.0,
+	Types.EntityChangeable.ORG: 0.0,
+	Types.EntityChangeable.POS: 0.0,
+	Types.EntityChangeable.MAG: 0.0,
+	Types.EntityChangeable.LOC: Types.SquadEntityInSquadLocation.Front
 }
 
 var weapon
@@ -32,12 +32,12 @@ func _init(config: Dictionary):
 	team = config.get("team", "")
 	stats = config.get("stats", Types.EntityBaseStats.new())
 	
-	changeable_stats["HP"] = get_ceiling_changeable_stat("HP")
-	changeable_stats["STA"] = get_ceiling_changeable_stat("STA")
-	changeable_stats["ORG"] = get_ceiling_changeable_stat("ORG")
-	changeable_stats["POS"] = get_ceiling_changeable_stat("POS")
-	changeable_stats["MAG"] = get_ceiling_changeable_stat("MAG")
-	changeable_stats["LOC"] = config.get("starting_location", Types.SquadEntityInSquadLocation.Front)
+	changeable_stats[Types.EntityChangeable.HP] = get_ceiling_changeable_stat(Types.EntityChangeable.HP)
+	changeable_stats[Types.EntityChangeable.STA] = get_ceiling_changeable_stat(Types.EntityChangeable.STA)
+	changeable_stats[Types.EntityChangeable.ORG] = get_ceiling_changeable_stat(Types.EntityChangeable.ORG)
+	changeable_stats[Types.EntityChangeable.POS] = get_ceiling_changeable_stat(Types.EntityChangeable.POS)
+	changeable_stats[Types.EntityChangeable.MAG] = get_ceiling_changeable_stat(Types.EntityChangeable.MAG)
+	changeable_stats[Types.EntityChangeable.LOC] = config.get("starting_location", Types.SquadEntityInSquadLocation.Front)
 	
 	if config.has("weapon"):
 		weapon = config["weapon"]
@@ -58,7 +58,7 @@ func new_round_reset():
 	is_retreating = false
 
 func is_dead() -> bool:
-	return get_changeable_stat_num("HP") <= 0
+	return get_changeable_stat_num(Types.EntityChangeable.HP) <= 0
 
 func get_armour():
 	return armour
@@ -89,46 +89,46 @@ func calculate_reality_value(reality: Types.Reality) -> float:
 			print("Warning: Reality value for ", reality, " not found")
 			return 0
 
-func get_ceiling_changeable_stat(property: String) -> float:
+func get_ceiling_changeable_stat(property: Types.EntityChangeable) -> float:
 	match property:
-		"HP":
+		Types.EntityChangeable.HP:
 			return calculate_reality_value(Types.Reality.HP)
-		"ORG":
+		Types.EntityChangeable.ORG:
 			return calculate_reality_value(Types.Reality.Guts)
-		"LOC":
+		Types.EntityChangeable.LOC:
 			return Types.SquadEntityInSquadLocation.Back
 		_:
 			return 100.0
 
-func get_floor_changeable_stat(property: String) -> float:
+func get_floor_changeable_stat(property: Types.EntityChangeable) -> float:
 	match property:
-		"LOC":
+		Types.EntityChangeable.LOC:
 			return Types.SquadEntityInSquadLocation.Front
 		_:
 			return 0.0
 
-func mod_changeable_stat(property: String, by: float) -> Types.EntityChange:
+func mod_changeable_stat(property: Types.EntityChangeable, by: float) -> Types.EntityChange:
 	return set_changeable_stat(property, get_changeable_stat_num(property) + by)
 
-func set_changeable_stat(property: String, to: float) -> Types.EntityChange:
+func set_changeable_stat(property: Types.EntityChangeable, to: float) -> Types.EntityChange:
 	var old_value = changeable_stats[property]
 	var new_value = clamp(to, get_floor_changeable_stat(property), get_ceiling_changeable_stat(property))
 	changeable_stats[property] = new_value
 	
 	return Types.EntityChange.new(property, old_value, new_value)
 
-func get_changeable_stat_num(property: String) -> float:
+func get_changeable_stat_num(property: Types.EntityChangeable) -> float:
 	return changeable_stats[property]
 
 func heal(num: float):
 	if num < 0 or is_dead():
 		return null
-	return mod_changeable_stat("HP", num)
+	return mod_changeable_stat(Types.EntityChangeable.HP, num)
 
 func boost(num: float):
 	if num < 0 or is_dead():
 		return null
-	return mod_changeable_stat("ORG", num)
+	return mod_changeable_stat(Types.EntityChangeable.ORG, num)
 
 func deorg_after_damage(dm: float, source: int) -> Array:
 	if dm <= 0:
@@ -138,16 +138,16 @@ func deorg_after_damage(dm: float, source: int) -> Array:
 	
 	var affected = player_id
 	var base_damage_deorg = -(dm * 1.5)
-	var close_to_death_deorg = -(get_changeable_stat_num("HP") / get_ceiling_changeable_stat("HP")) * 10
+	var close_to_death_deorg = -(get_changeable_stat_num(Types.EntityChangeable.HP) / get_ceiling_changeable_stat(Types.EntityChangeable.HP)) * 10
 	var changes: Array = [
-		Types.EntityUpdate.new(source, affected, mod_changeable_stat("ORG", base_damage_deorg + close_to_death_deorg))
+		Types.EntityUpdate.new(source, affected, mod_changeable_stat(Types.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
 	
-	if get_changeable_stat_num("ORG") <= 0:
+	if get_changeable_stat_num(Types.EntityChangeable.ORG) <= 0:
 		if not is_retreating:
 			is_retreating = true
-			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat("LOC", 1)))
-			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat("ORG", calculate_reality_value(Types.Reality.Guts) * 0.1)))
+			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat(Types.EntityChangeable.LOC, 1)))
+			changes.append(Types.EntityUpdate.new(affected, affected, mod_changeable_stat(Types.EntityChangeable.ORG, calculate_reality_value(Types.Reality.Guts) * 0.1)))
 	
 	return changes
 
@@ -155,24 +155,26 @@ func recover() -> Array:
 	if is_dead():
 		return []
 	var recover_updates: Array = []
-	recover_updates.append(mod_changeable_stat("HP", 3))
-	recover_updates.append(mod_changeable_stat("ORG", 5))
+	recover_updates.append(mod_changeable_stat(Types.EntityChangeable.HP, 3))
+	recover_updates.append(mod_changeable_stat(Types.EntityChangeable.ORG, 5))
 	return recover_updates
 
 func damage(num: float, source: int) -> Array:
 	if is_dead():
 		return []
 	
-	var old_hp = get_changeable_stat_num("HP")
+	var old_hp = get_changeable_stat_num(Types.EntityChangeable.HP)
 	var affected = player_id
 	
 	if num <= 0:
-		return [Types.EntityUpdate.new(source, affected, Types.EntityChange.new("HP", old_hp, old_hp))]
+		return [Types.EntityUpdate.new(source, affected, Types.EntityChange.new(Types.EntityChangeable.HP, old_hp, old_hp))]
 	else:
-		var updates = [Types.EntityUpdate.new(source, affected, mod_changeable_stat("HP", -num))]
+		var updates = [Types.EntityUpdate.new(source, affected, mod_changeable_stat(Types.EntityChangeable.HP, -num))]
 		
-		if get_changeable_stat_num("HP") == 0:
-			updates.append(Types.EntityUpdate.new(source, affected, Types.EntityChange.new("DIE", -1, -1)))
+		if get_changeable_stat_num(Types.EntityChangeable.HP) == 0:
+			updates.append(
+				Types.EntityUpdate.new(source, affected,
+				Types.EntityChange.new(Types.EntityChangeable.DIE, -1, -1)))
 		else:
 			for u in deorg_after_damage(num, source):
 				updates.append(u)
@@ -219,7 +221,6 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 			print("[", entity_name, "] retreating!")
 			for eu in action_retreat():
 				updates.append(eu)
-			updates.append(Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("RETREAT", -1, -1)))
 		
 		Types.SquadEntityAction.CAPITULATE:
 			print("[", entity_name, "] capitulating!")
@@ -268,7 +269,6 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 			print("[", entity_name, "] retreating!")
 			for eu in action_retreat():
 				updates.append(eu)
-			updates.append(Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("RETREAT", -1, -1)))
 		
 		Types.SquadEntityAction.CAPITULATE:
 			print("[", entity_name, "] capitulating!")
@@ -286,7 +286,7 @@ func action_attack(logic_obj):
 	return null
 
 func action_forward(_logic_obj) -> Array:
-	return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat("LOC", -1))]
+	return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat(Types.EntityChangeable.LOC, -1))]
 
 func action_heal(logic_obj):
 	var physical_heal = 5
@@ -310,11 +310,11 @@ func action_heal(logic_obj):
 func action_retreat() -> Array:
 	if not is_retreating:
 		is_retreating = true
-		return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat("LOC", 1))]
+		return [Types.EntityUpdate.new(player_id, player_id, mod_changeable_stat(Types.EntityChangeable.LOC, 1))]
 	return []
 
 func action_capitulate() -> Array:
-	return [Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new("LEAVE", -1, -1))]
+	return [Types.EntityUpdate.new(player_id, player_id, Types.EntityChange.new(Types.EntityChangeable.CAPITULATE, -1, -1))]
 
 func action_idle() -> Array:
 	return recover()
