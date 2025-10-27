@@ -188,7 +188,7 @@ func choose_action() -> int:
 	match my_location:
 		Types.SquadEntityInSquadLocation.Back:
 			if entity.get_changeable_stat_num("ORG") == 0:
-				return Types.SquadEntityAction.IDLE
+				return Types.SquadEntityAction.CAPITULATE
 	
 	var heal_result = heal_others_if_around()
 	if heal_result != null:
@@ -377,3 +377,155 @@ class AdjustWeaponTestLogic extends SquadLogic:
 		if result != null:
 			return result
 		return Types.SquadEntityAction.IDLE
+
+class FrontlineLogic extends SquadLogic:
+	func _init(ctx: Dictionary):
+		super._init(ctx)
+		
+		logic_specific_skills = [
+			{
+				"id": "frontline-default",
+				"name": "Frontline Strike",
+				"effects": [
+					{
+						"name": "FrontlineStrikeEffect1",
+						"affected": "target",
+						"original_source": entity.player_id,
+						"affected_id": -1,
+						"trigger": "OnBasicAttackHit",
+						"effect": {
+							"type": "Damage",
+							"damage_type": "Physical",
+							"calculation": {
+								"type": "StatScaling",
+								"stat": Types.Reality.Force,
+								"percent": 0.10
+							}
+						},
+						"duration": 0
+					}
+				]
+			}
+		]
+	
+	func forward_if_brave():
+		if entity.get_changeable_stat_num("LOC") == Types.SquadEntityInSquadLocation.Front:
+			return null
+		
+		var current_org = entity.get_changeable_stat_num("ORG")
+		var max_org = entity.get_ceiling_changeable_stat("ORG")
+		
+		if current_org / max_org > 0.5:
+			return Types.SquadEntityAction.FORWARD
+		
+		return null
+	
+	func choose_action() -> int:
+		var my_location = situation.my_location()
+		
+		match my_location:
+			Types.SquadEntityInSquadLocation.Front:
+				return Types.SquadEntityAction.ATTACK
+			_:
+				var forward_result = forward_if_brave()
+				if forward_result != null:
+					return forward_result
+				return super.choose_action()
+	
+	func choose_reaction() -> int:
+		return choose_action()
+	
+	func choose_clash():
+		var unwrapped = situation.unwrap()
+		var my_location = unwrapped["my_location"]
+		var frontline_enemy = unwrapped.get("frontline_enemy")
+		var midline_enemy = unwrapped.get("midline_enemy")
+		var backline_enemy = unwrapped.get("backline_enemy")
+		
+		var weapon = choose_weapon()
+		var available_locs = weapon.get_range_at_location(my_location)
+		
+		var targets: Array = []
+		for loc in available_locs:
+			match loc:
+				Types.SquadEntityInSquadLocation.Front:
+					if frontline_enemy:
+						for e in frontline_enemy:
+							targets.append(e)
+				Types.SquadEntityInSquadLocation.Middle:
+					if midline_enemy:
+						for e in midline_enemy:
+							targets.append(e)
+				Types.SquadEntityInSquadLocation.Back:
+					if backline_enemy:
+						for e in backline_enemy:
+							targets.append(e)
+		
+		if targets.size() == 0:
+			return null
+		
+		var target = targets[randi() % targets.size()]
+		return OneClash.new({
+			"attacker": entity,
+			"defender": target,
+			"skill": choose_clash_skill()
+		})
+
+class ArcherLogic extends SquadLogic:
+	func _init(ctx: Dictionary):
+		super._init(ctx)
+		logic_specific_skills = []
+	
+	func retreat_if_frontline_holds():
+		var line_ahead = is_line_ahead_of_me()
+		
+		if not line_ahead and situation.my_location() != Types.SquadEntityInSquadLocation.Back:
+			return Types.SquadEntityAction.RETREAT
+		
+		return null
+	
+	func choose_action() -> int:
+		var retreat_result = retreat_if_frontline_holds()
+		if retreat_result != null:
+			return retreat_result
+		return super.choose_action()
+	
+	func choose_reaction() -> int:
+		return choose_action()
+	
+	func choose_clash():
+		var unwrapped = situation.unwrap()
+		var my_location = unwrapped["my_location"]
+		var frontline_enemy = unwrapped.get("frontline_enemy")
+		var midline_enemy = unwrapped.get("midline_enemy")
+		var backline_enemy = unwrapped.get("backline_enemy")
+		
+		var weapon = choose_weapon()
+		var available_locs = weapon.get_range_at_location(my_location)
+		
+		var targets: Array = []
+		for loc in available_locs:
+			match loc:
+				Types.SquadEntityInSquadLocation.Front:
+					if frontline_enemy:
+						for e in frontline_enemy:
+							targets.append(e)
+				Types.SquadEntityInSquadLocation.Middle:
+					if midline_enemy:
+						for e in midline_enemy:
+							targets.append(e)
+				Types.SquadEntityInSquadLocation.Back:
+					if backline_enemy:
+						for e in backline_enemy:
+							targets.append(e)
+		
+		if targets.size() == 0:
+			return null
+		
+		var target = targets[randi() % targets.size()]
+		return OneClash.new({
+			"attacker": entity,
+			"defender": target,
+			"skill": choose_clash_skill()
+		})
+

@@ -81,10 +81,33 @@ delay_between_rounds = 5.0  # Slower
 ### Try Different AI Logic
 ```gdscript
 # In entity config:
+"logic_type": "frontline"       # Aggressive melee fighter with special strike
+"logic_type": "archer"          # Defensive ranged fighter, retreats if exposed
 "logic_type": "absurd"          # Always moves forward, retreats on reaction
 "logic_type": "adjust_weapon"   # Optimizes weapon range
 "logic_type": "default"         # Standard tactical behavior
 ```
+
+## New Features
+
+### Frontline Logic
+- Best for melee warriors on the front line
+- Automatically attacks when in front position
+- Moves forward if morale is above 50%
+- Special "Frontline Strike" ability deals bonus damage based on Force stat
+
+### Archer Logic  
+- Best for ranged units in back positions
+- Automatically retreats if front line is breached
+- Stays safe in back ranks while attacking
+- Perfect for support and ranged DPS units
+
+### Combat System (OneClash)
+The new combat resolution system includes:
+- **Hit Roll**: Determines if attack connects
+- **Pierce Roll**: Determines if armor is penetrated
+- **Damage Calculation**: Final damage with skill effects
+- **Skill Effects**: Special abilities that trigger on hit (like Frontline Strike)
 
 ## Project Structure
 

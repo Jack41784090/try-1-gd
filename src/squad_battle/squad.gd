@@ -17,6 +17,10 @@ func _init(config: Dictionary):
 		
 		var logic
 		match logic_type:
+			"frontline":
+				logic = SquadLogic.FrontlineLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
+			"archer":
+				logic = SquadLogic.ArcherLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
 			"absurd":
 				logic = SquadLogic.AbsurdLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
 			"adjust_weapon":

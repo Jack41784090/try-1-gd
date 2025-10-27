@@ -33,7 +33,7 @@ func setup_battle():
 				"stats": entity_stats1,
 				"team": "heroes",
 				"starting_location": Types.SquadEntityInSquadLocation.Front,
-				"logic_type": "default"
+				"logic_type": "frontline"
 			},
 			{
 				"player_id": 2,
@@ -41,7 +41,7 @@ func setup_battle():
 				"stats": entity_stats2,
 				"team": "heroes",
 				"starting_location": Types.SquadEntityInSquadLocation.Front,
-				"logic_type": "default"
+				"logic_type": "frontline"
 			}
 		]
 	}
@@ -56,7 +56,7 @@ func setup_battle():
 				"stats": entity_stats3,
 				"team": "heroes",
 				"starting_location": Types.SquadEntityInSquadLocation.Back,
-				"logic_type": "default"
+				"logic_type": "archer"
 			}
 		]
 	}

@@ -20,9 +20,10 @@ squad_battle/
 ├── squad_entity.gd       # Entity class with combat methods
 ├── weapon.gd             # Weapon system with damage calculations
 ├── armour.gd             # Armour system with resistances
-├── logic.gd              # AI decision-making logic
+├── logic.gd              # AI decision-making logic (includes Frontline & Archer)
 ├── squad.gd              # Squad management
-└── squad_battle.gd       # Battle system coordinator
+├── squad_battle.gd       # Battle system coordinator
+└── one_clash.gd          # Combat resolution system
 
 squad_battle_demo.gd      # Demo script showcasing the system
 squad_battle_demo.tscn    # Demo scene
@@ -66,7 +67,11 @@ AI decision-making system:
 - Base `Logic` class with situation awareness
 - `choose_action()` - Decides what to do during turn
 - `choose_reaction()` - Responds to enemy actions
-- Specialized subclasses: `AbsurdLogic`, `AdjustWeaponTestLogic`
+- Specialized subclasses:
+  - `AbsurdLogic` - Always moves forward, always retreats on reaction
+  - `AdjustWeaponTestLogic` - Optimizes position based on weapon range
+  - **`FrontlineLogic`** - Aggressive frontline fighter with special strike ability
+  - **`ArcherLogic`** - Ranged fighter that retreats if frontline falls
 
 ### Squad (squad.gd)
 Manages a group of entities:
@@ -74,6 +79,13 @@ Manages a group of entities:
 - Round-based actions
 - Recovery between rounds
 - Squad-level combat coordination
+
+### OneClash (one_clash.gd)
+Combat resolution system:
+- Hit/pierce roll system
+- Damage calculation
+- Skill effect application
+- Status effect management
 
 ### SquadBattle (squad_battle.gd)
 Top-level battle coordinator:
@@ -84,6 +96,26 @@ Top-level battle coordinator:
 - Update logging
 
 ## Migration Notes
+
+### New Features in This Update
+
+**Frontline Logic System:**
+- Aggressive AI that prioritizes attacking from the front line
+- Special "Frontline Strike" skill that deals 10% of Force stat as extra damage
+- Automatically advances if morale (ORG) is above 50%
+- Chooses targets within weapon range intelligently
+
+**Archer Logic System:**
+- Defensive AI that maintains rear position
+- Automatically retreats if front line is breached
+- Targets enemies within weapon range
+- Ideal for ranged support units
+
+**OneClash Combat System:**
+- Two-phase attack resolution: hit roll → pierce roll → damage
+- Skill effect application on successful hits
+- Support for stat-scaling damage (e.g., 10% of Force stat)
+- Foundation for status effects and buffs
 
 ### TypeScript → GDScript Changes
 
@@ -118,18 +150,34 @@ Top-level battle coordinator:
 # Create entity stats
 var stats = Types.EntityBaseStats.new("warrior", 15, 12, 10, 10, 12, 8, 8, 10, 9, 8, 12, 14)
 
-# Create squad configuration
+# Create squad configuration with Frontline logic
 var squad_config = {
-    "name": "Heroes",
+    "name": "Frontline Warriors",
     "team": "heroes",
     "entities": [
         {
             "player_id": 1,
-            "name": "Hero 1",
+            "name": "Knight",
             "stats": stats,
             "team": "heroes",
             "starting_location": Types.SquadEntityInSquadLocation.Front,
-            "logic_type": "default"
+            "logic_type": "frontline"  # Uses aggressive frontline AI
+        }
+    ]
+}
+
+# Create archer squad with Archer logic
+var archer_squad = {
+    "name": "Archers",
+    "team": "heroes",
+    "entities": [
+        {
+            "player_id": 2,
+            "name": "Archer",
+            "stats": archer_stats,
+            "team": "heroes",
+            "starting_location": Types.SquadEntityInSquadLocation.Back,
+            "logic_type": "archer"  # Uses defensive archer AI
         }
     ]
 }
@@ -137,7 +185,7 @@ var squad_config = {
 # Create battle configuration
 var battle_config = {
     "teams": {
-        "heroes": [squad_config],
+        "heroes": [squad_config, archer_squad],
         "monsters": [enemy_squad_config]
     }
 }
@@ -152,6 +200,20 @@ while not battle.check_victory():
     var updates = battle.squad_actions()
     battle.squad_recoveries()
 ```
+
+## Available Logic Types
+
+- **`"default"`** - Standard tactical behavior (heal, adjust position, idle)
+- **`"frontline"`** - Aggressive melee fighter
+  - Always attacks from front position
+  - Moves forward if morale > 50%
+  - Special strike ability (+10% Force damage)
+- **`"archer"`** - Defensive ranged fighter
+  - Retreats if front line falls
+  - Stays in back positions
+  - Targets enemies within range
+- **`"absurd"`** - Test AI (always forward/retreat)
+- **`"adjust_weapon"`** - Position optimizer based on weapon range
 
 ## Running the Demo
 
