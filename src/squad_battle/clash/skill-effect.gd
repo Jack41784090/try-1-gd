@@ -1,14 +1,15 @@
 ## SkillEffects go along with Skill. Always commits the moment a Skill a committed. If commit fails, it wouldn't stay in the queue of statuses within the entity.
 class_name SkillEffect extends Resource
 
-@export var source: SquadEntity
-@export var affected: SquadEntity
+
 @export var name: String
+@export var source: SquadEntity
+@export var affected: SquadEntity; @export var targeting = "target"  # "self" or "target"
 @export var commitType: ClashCommonTypes.CommitType
 @export var triggers: Array[StatusEffectEventBus.Signals]
 
 # ApplyStatusEffect
-@export var statusEffectToAddID: StatusEffect = null
+@export var statusEffectToApply: StatusEffect = null
 
 # Damage or Heal
 @export var calculationType: ClashCommonTypes.CalculationType
@@ -18,7 +19,10 @@ func _init(
 	_name: String = '',
 	_source: SquadEntity = null,
 	_affected: SquadEntity = null,
-	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect):
+	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect,
+	_triggers: Array[StatusEffectEventBus.Signals] = [],
+	_additional_data: Dictionary = {}
+) -> void:
 	
 	print("  [SkillEffect._init] Called with _name='%s'" % _name)
 	print("    → @export name is currently: '%s'" % name)
@@ -34,12 +38,22 @@ func _init(
 		print("    ✓ Non-empty _name - manual initialization")
 		name = _name;
 		source = _source;
-		affected = _affected;
+		affected = _affected if _affected != null else (source if targeting == "self" else null);
 		commitType = _commitType;
+		triggers = _triggers;
+		match commitType:
+			ClashCommonTypes.CommitType.ApplyStatusEffect:
+				statusEffectToApply = _additional_data.get('statusEffectToApply', null)
+				assert(statusEffectToApply != null, "ApplyStatusEffect has no status effect set")
+			ClashCommonTypes.CommitType.Damage, ClashCommonTypes.CommitType.Heal:
+				calculationType = _additional_data.get('calculationType', ClashCommonTypes.CalculationType.Flat)
+				value = _additional_data.get('value', 0.0)
+			_:
+				pass
 	
 	# match commitType:
 	# 	ClashCommonTypes.CommitType.ApplyStatusEffect:
-	# 		assert(statusEffectToAddID != null, "ApplyStatusEffect has no status effect set")
+	# 		assert(statusEffectToApply != null, "ApplyStatusEffect has no status effect set")
 	# 	_:
 	# 		pass
 	
@@ -93,9 +107,9 @@ func commit() -> Array[SquadBattleTypes.EntityUpdate]:
 	
 	match commitType:
 		ClashCommonTypes.CommitType.ApplyStatusEffect:
-			if statusEffectToAddID and affected:
-				print("      → Applying status '%s' to %s" % [statusEffectToAddID.name, affected.entity_name])
-				affected.status_effects.append(statusEffectToAddID)
+			if statusEffectToApply and affected:
+				print("      → Applying status '%s' to %s" % [statusEffectToApply.name, affected.entity_name])
+				affected.status_effects.append(statusEffectToApply)
 				print("      → %s now has %d status effects" % [affected.entity_name, affected.status_effects.size()])
 			else:
 				print("      ✗ Cannot apply status: missing effect or target")
