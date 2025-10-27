@@ -94,6 +94,8 @@ func setup_battle():
 	
 	battle = SquadBattle.new(battle_config)
 	gui = SquadBattleGraphics.new(battle)
+	# Important: Add GUI to scene tree so it can spawn visual entities
+	add_child(gui)
 
 func _process(delta: float) -> void:
 	if not is_running:
