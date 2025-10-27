@@ -95,7 +95,8 @@ func damage_calculation():
 	
 	print("  → Target HP After: %.2f" % target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP))
 	print("[OneClash] Emitting TargetTookDamage signal")
-	StatusEffectEventBus.emitSignal(StatusEffectEventBus.Signals.TargetTookDamage)
+	var emit_result = StatusEffectEventBus.emitSignal(StatusEffectEventBus.Signals.TargetTookDamage)
+	assert(emit_result == OK, "Failed to emit TargetTookDamage signal, error code: %d" % emit_result)
 
 func apply_effect(effect: Dictionary, target, _damage_dealt: float) -> Array:
 	var effect_updates: Array = []
@@ -152,8 +153,23 @@ func commit() -> Array:
 	print("[OneClash] CLASH START")
 	print("  Attacker: %s (ID: %d)" % [attacker.entity_name, attacker.player_id])
 	print("  Target: %s (ID: %d)" % [targeted.entity_name, targeted.player_id])
-	print("  Skill: %s" % skill.name if skill else "None")
+	if skill:
+		print("  Skill: %s" % skill.name)
+		print("  → Skill has %d effect(s)" % skill.effects.size())
+		for i in range(skill.effects.size()):
+			var effect = skill.effects[i]
+			print("    %d. %s (Type: %s)" % [i + 1, effect.name, _get_effect_type_name(effect)])
+			if effect.triggers.size() > 0:
+				print("       Triggers on: %s" % _format_triggers(effect.triggers))
+	else:
+		print("  Skill: None")
 	print("═══════════════════════════════════════════════════")
+	
+	# Setup skill effect connections (must be done after resource loading completes)
+	if skill and skill.effects.size() > 0:
+		print("[OneClash] Setting up skill effect connections...")
+		for effect in skill.effects:
+			effect.setup_connections()
 	
 	#subscribe_existing_status_effects_to_event_bus()
 	#subscribe_new_skill_status_effects_to_event_bus()
@@ -174,3 +190,23 @@ func commit() -> Array:
 	print("[OneClash] ✓ Clash completed successfully")
 	print("═══════════════════════════════════════════════════\n")
 	return cleanup()
+
+func _get_effect_type_name(effect: SkillEffect) -> String:
+	if not effect:
+		return "Unknown"
+	match effect.commitType:
+		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
+		ClashCommonTypes.CommitType.Damage: return "Damage"
+		ClashCommonTypes.CommitType.Heal: return "Heal"
+		_: return "Unknown"
+
+func _format_triggers(trigger_array: Array) -> String:
+	if trigger_array.is_empty():
+		return "None"
+	var names = []
+	for t in trigger_array:
+		match t:
+			StatusEffectEventBus.Signals.HelloWorld: names.append("HelloWorld")
+			StatusEffectEventBus.Signals.TargetTookDamage: names.append("TargetTookDamage")
+			_: names.append("Signal_%d" % t)
+	return ", ".join(names)
