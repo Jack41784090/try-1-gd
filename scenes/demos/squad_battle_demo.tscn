@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cmfdo2hfxsqn0"]
 
-[ext_resource type="Script" uid="uid://dy60h2bqs8wb3" path="res://src/demos/squad_battle_demo.gd" id="1_wnc3q"]
+[ext_resource type="Script" uid="uid://ckwcn3f825q0y" path="res://src/demos/squad_battle_demo.gd" id="1_wnc3q"]
 
 [node name="SquadBattleDemo" type="Node2D"]
 script = ExtResource("1_wnc3q")
@@ -14,7 +14,6 @@ offset_bottom = 648.0
 color = Color(0.121569, 0.121569, 0.121569, 1)
 
 [node name="UILayer" type="CanvasLayer" parent="."]
-layer = 1
 
 [node name="InfoLabel" type="Label" parent="UILayer"]
 offset_left = 6.0
