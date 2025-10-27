@@ -52,6 +52,7 @@ script = ExtResource("1_4mhqn")
 source = SubResource("Resource_g17ov")
 affected = SubResource("Resource_8jeej")
 name = "TestSkE1"
+triggers = Array[int]([1])
 statusEffectToAddID = SubResource("Resource_5oao5")
 metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
 
