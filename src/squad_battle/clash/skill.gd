@@ -10,6 +10,9 @@ class_name Skill extends Resource
 @export var name: String;
 @export var effects: Array[SkillEffect]
 
+func _to_string() -> String:
+	return "Skill(name=%s, effects=%d)" % [name, effects.size()]
+
 func _init(
 	_name: String = '',
 	_effects: Array[SkillEffect] = [],
