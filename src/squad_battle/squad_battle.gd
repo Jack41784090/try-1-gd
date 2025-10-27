@@ -64,7 +64,7 @@ func choose_weighted_enemy_squad(current_team_name: String):
 		for squad in enemy_squads:
 			var total_hp = 0.0
 			for entity in squad.entities:
-				total_hp += entity.get_changeable_stat_num("HP")
+				total_hp += entity.get_changeable_stat_num(Types.EntityChangeable.HP)
 			
 			var avg_hp = total_hp / max(squad.entities.size(), 1)
 			weights.append(max(1, 100 - avg_hp))
@@ -92,7 +92,7 @@ func check_team_strength(team_name: String) -> float:
 	if teams_and_squads.has(team_name):
 		for squad in teams_and_squads[team_name]:
 			for entity in squad.entities:
-				strength += entity.get_changeable_stat_num("HP")
+				strength += entity.get_changeable_stat_num(Types.EntityChangeable.HP)
 	
 	return strength
 
@@ -117,8 +117,8 @@ func squad_recoveries():
 			if squad.get_last_attacked_at_round() < round_count:
 				squad.recovery()
 
-func squad_actions() -> Array:
-	var updates: Array = []
+func squad_actions() -> Array[Types.EntityUpdate]:
+	var updates: Array[Types.EntityUpdate] = []
 	
 	for team_name in teams_and_squads:
 		var squads = teams_and_squads[team_name]
@@ -136,17 +136,17 @@ func squad_actions() -> Array:
 		var change_str = ""
 		
 		match update.change.property:
-			"HP", "ORG":
+			Types.EntityChangeable.HP, Types.EntityChangeable.ORG:
 				change_str = "%s %s -> %s" % [update.change.property, update.change.from, update.change.to]
-			"DIE", "RETREAT", "LEAVE":
+			Types.EntityChangeable.DIE, Types.EntityChangeable.CAPITULATE:
 				change_str = update.change.property
-			"LOC":
+			Types.EntityChangeable.LOC:
 				change_str = "LOC %s -> %s" % [update.change.from, update.change.to]
-			"CLINK":
+			Types.EntityChangeable.CLINK:
 				change_str = "CLINK! %s failed to pierce %s" % [update.source, update.affected]
-			"DODGE":
+			Types.EntityChangeable.DODGE:
 				change_str = "DODGE! %s misses %s" % [update.source, update.affected]
-			"PROC":
+			Types.EntityChangeable.PROC:
 				var display = update.change.metadata.get("display", "-")
 				change_str = "PROC! %s -%s-> on %s; V: %s -> %s" % [update.source, display, update.affected, update.change.from, update.change.to]
 		
@@ -161,7 +161,7 @@ func remove_dead_entities():
 		for squad in squads:
 			var entities_to_remove = []
 			for i in range(squad.entities.size()):
-				if squad.entities[i].get_changeable_stat_num("HP") == 0:
+				if squad.entities[i].get_changeable_stat_num(Types.EntityChangeable.HP) == 0:
 					entities_to_remove.append(i)
 			
 			for i in range(entities_to_remove.size() - 1, -1, -1):

@@ -3,7 +3,7 @@ class_name OneClash
 
 const Types = preload("res://src/squad_battle/types.gd")
 
-var updates: Array = []
+var updates: Array[Types.EntityUpdate] = []
 var attacker
 var targets: Array = []
 var defender
@@ -69,7 +69,7 @@ func roll_for_hit() -> bool:
 		updates.append(Types.EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
-			Types.EntityChange.new("DODGE", -1, -1)
+			Types.EntityChange.new(Types.EntityChangeable.DODGE, -1, -1)
 		))
 	
 	return roll_offence_hit > roll_defence_hit
@@ -88,7 +88,7 @@ func roll_for_pierce() -> bool:
 		updates.append(Types.EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
-			Types.EntityChange.new("CLINK", -1, -1)
+			Types.EntityChange.new(Types.EntityChangeable.CLINK, -1, -1)
 		))
 	
 	return roll_offence_hit > roll_defence_hit

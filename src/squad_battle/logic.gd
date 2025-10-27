@@ -19,7 +19,7 @@ func update_situation(new_context: Dictionary):
 	return self
 
 func get_same_line_allies() -> Array:
-	var my_location = entity.get_changeable_stat_num("LOC") as int
+	var my_location = entity.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
 	if context["our_squad"].has(my_location):
 		return context["our_squad"][my_location]
 	return []
@@ -164,7 +164,7 @@ func choose_reaction() -> int:
 	
 	match my_location:
 		Types.SquadEntityInSquadLocation.Back:
-			if entity.get_changeable_stat_num("ORG") == 0:
+			if entity.get_changeable_stat_num(Types.EntityChangeable.ORG) == 0:
 				return Types.SquadEntityAction.CAPITULATE
 	
 	var retreat_result = retreat_if_outnumbered()
@@ -187,7 +187,7 @@ func choose_action() -> int:
 	
 	match my_location:
 		Types.SquadEntityInSquadLocation.Back:
-			if entity.get_changeable_stat_num("ORG") == 0:
+			if entity.get_changeable_stat_num(Types.EntityChangeable.ORG) == 0:
 				return Types.SquadEntityAction.CAPITULATE
 	
 	var heal_result = heal_others_if_around()
@@ -211,7 +211,7 @@ class Situation:
 		context = ctx
 	
 	func my_location() -> int:
-		return context["entity"].get_changeable_stat_num("LOC") as int
+		return context["entity"].get_changeable_stat_num(Types.EntityChangeable.LOC) as int
 	
 	func get_effective_lines(is_ally: bool) -> Array:
 		var lines = [Types.SquadEntityInSquadLocation.Front, 
@@ -409,11 +409,11 @@ class FrontlineLogic extends SquadLogic:
 		]
 	
 	func forward_if_brave():
-		if entity.get_changeable_stat_num("LOC") == Types.SquadEntityInSquadLocation.Front:
+		if entity.get_changeable_stat_num(Types.EntityChangeable.LOC) == Types.SquadEntityInSquadLocation.Front:
 			return null
 		
-		var current_org = entity.get_changeable_stat_num("ORG")
-		var max_org = entity.get_ceiling_changeable_stat("ORG")
+		var current_org = entity.get_changeable_stat_num(Types.EntityChangeable.ORG)
+		var max_org = entity.get_ceiling_changeable_stat(Types.EntityChangeable.ORG)
 		
 		if current_org / max_org > 0.5:
 			return Types.SquadEntityAction.FORWARD

@@ -41,7 +41,7 @@ func get_all_entities() -> Dictionary:
 	var result = {}
 	
 	for entity in entities:
-		var loc = entity.get_changeable_stat_num("LOC") as int
+		var loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
 		
 		if not result.has(loc):
 			result[loc] = []
@@ -57,9 +57,9 @@ func recovery():
 func get_last_attacked_at_round() -> int:
 	return last_round_received_attack
 
-func squad_attack(enemy_squad: Squad, round_count: int) -> Array:
+func squad_attack(enemy_squad: Squad, round_count: int) -> Array[Types.EntityUpdate]:
 	print("[Squad:", squad_name, "] ⚔️ [", enemy_squad.squad_name, "]")
-	var updates_after_attack: Array = []
+	var updates_after_attack: Array[Types.EntityUpdate] = []
 	
 	last_round_received_attack = round_count
 	
@@ -95,7 +95,7 @@ func act_idle():
 	print("[Squad:", squad_name, "] idling")
 	return null
 
-func round(enemy_squads: Array, round_count: int) -> Array:
+func round(enemy_squads: Array, round_count: int) -> Array[Types.EntityUpdate]:
 	print("[Squad:", squad_name, "] --- Round ", round_count, " ---")
 	
 	for entity in entities:
