@@ -21,8 +21,8 @@ var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
 
 
 var is_retreating: bool = false
-var innate_skills: Array = []
-var temporary_skills: Array = []
+var innate_skills: Array[Skill] = []
+var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
 
 func _init(config: Dictionary = {}):
@@ -30,26 +30,25 @@ func _init(config: Dictionary = {}):
 	# The @export variables will be set by the resource loader
 	if config.is_empty():
 		return
-		
-	player_id = config.get("player_id", 0)
-	entity_name = config.get("name", "Unknown")
-	team = config.get("team", "")
-	stats = config.get("stats", EntityBaseStats.new())
-	
+	else:
+		player_id = config.get("player_id", 0)
+		entity_name = config.get("name", "Unknown")
+		team = config.get("team", "")
+		stats = config.get("stats", EntityBaseStats.new())
+		if config.has("weapon"):
+			weapon = config["weapon"]
+		if config.has("armour"):
+			armour = config["armour"]
+		innate_skills = config.get("innate_skills", [] as Array[Skill])
+		changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
+		initialise_changeables()
+
+func initialise_changeables():
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
 	changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG)
 	changeable_stats[SquadBattleTypes.EntityChangeable.POS] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.POS)
 	changeable_stats[SquadBattleTypes.EntityChangeable.MAG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.MAG)
-	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	
-	if config.has("weapon"):
-		weapon = config["weapon"]
-	
-	if config.has("armour"):
-		armour = config["armour"]
-	
-	innate_skills = config.get("innate_skills", [])
 
 func set_logic(new_logic):
 	logic = new_logic
@@ -319,14 +318,14 @@ func action_capitulate() -> Array:
 func action_idle() -> Array:
 	return recover()
 
-func get_available_skills() -> Array:
+func get_available_skills() -> Array[Skill]:
 	var skills = innate_skills.duplicate()
 	if weapon:
 		skills.append_array(weapon.get_weapon_skills(self))
 	skills.append_array(temporary_skills)
 	return skills
 
-func get_skills_for_purpose(_purpose: String) -> Array:
+func get_skills_for_purpose(_purpose: String) -> Array[Skill]:
 	return get_available_skills()
 
 func add_innate_skill(skill):
