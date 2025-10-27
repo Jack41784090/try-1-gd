@@ -1,7 +1,7 @@
 extends RefCounted
 class_name OneClash
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var updates: Array = []
 var attacker

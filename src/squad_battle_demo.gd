@@ -1,6 +1,6 @@
 extends Node2D
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var battle: SquadBattle
 var delay_between_rounds: float = 2.0

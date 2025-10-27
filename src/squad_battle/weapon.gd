@@ -1,7 +1,7 @@
 extends RefCounted
 class_name SquadWeapon
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var hit_bonus: float
 var penetration_bonus: float

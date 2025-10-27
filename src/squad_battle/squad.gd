@@ -1,7 +1,7 @@
 extends RefCounted
 class_name Squad
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var team: String = ""
 var entities: Array = []

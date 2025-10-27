@@ -1,7 +1,7 @@
 extends RefCounted
 class_name SquadEntity
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var player_id: int
 var entity_name: String
@@ -42,12 +42,12 @@ func _init(config: Dictionary):
 	if config.has("weapon"):
 		weapon = config["weapon"]
 	else:
-		weapon = load("res://squad_battle/weapon.gd").new().unarmed()
+		weapon = load("res://src/squad_battle/weapon.gd").new().unarmed()
 	
 	if config.has("armour"):
 		armour = config["armour"]
 	else:
-		armour = load("res://squad_battle/armour.gd").new().unprotected()
+		armour = load("res://src/squad_battle/armour.gd").new().unprotected()
 	
 	innate_skills = config.get("innate_skills", [])
 

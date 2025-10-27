@@ -1,7 +1,7 @@
 extends RefCounted
 class_name SquadLogic
 
-const Types = preload("res://squad_battle/types.gd")
+const Types = preload("res://src/squad_battle/types.gd")
 
 var entity
 var situation
