@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=13 format=3 uid="uid://c4yoqgfg85jxf"]
+
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_4mhqn"]
+[ext_resource type="Script" uid="uid://ddi7ny723tg4q" path="res://src/squad_battle/squad_entity.gd" id="2_uhrsj"]
+[ext_resource type="Script" uid="uid://b0wwb8nmkkq4d" path="res://src/squad_battle/clash/status-effect.gd" id="2_wwlr3"]
+[ext_resource type="Script" uid="uid://cgcyolsjmofbs" path="res://src/squad_battle/squad_entity_bstats.gd" id="3_8oe4h"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="3_uhrsj"]
+
+[sub_resource type="Resource" id="Resource_3h2bn"]
+script = ExtResource("3_8oe4h")
+metadata/_custom_type_script = "uid://cgcyolsjmofbs"
+
+[sub_resource type="Resource" id="Resource_8jeej"]
+script = ExtResource("2_uhrsj")
+player_id = 10
+entity_name = "E2"
+stats = SubResource("Resource_3h2bn")
+team = "2"
+metadata/_custom_type_script = "uid://ddi7ny723tg4q"
+
+[sub_resource type="Resource" id="Resource_k41uc"]
+script = ExtResource("3_8oe4h")
+metadata/_custom_type_script = "uid://cgcyolsjmofbs"
+
+[sub_resource type="Resource" id="Resource_g17ov"]
+script = ExtResource("2_uhrsj")
+player_id = 2
+entity_name = "E1"
+stats = SubResource("Resource_k41uc")
+team = "1"
+metadata/_custom_type_script = "uid://ddi7ny723tg4q"
+
+[sub_resource type="Resource" id="Resource_4mhqn"]
+script = ExtResource("1_4mhqn")
+source = SubResource("Resource_g17ov")
+affected = SubResource("Resource_8jeej")
+name = "TestSkE1-Bleed-DMG"
+commitType = 1
+triggers = Array[int]([1])
+value = 1.0
+metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
+
+[sub_resource type="Resource" id="Resource_5oao5"]
+script = ExtResource("2_wwlr3")
+name = "TestSkE1-Bleed"
+duration = 2
+effects = Array[ExtResource("1_4mhqn")]([SubResource("Resource_4mhqn")])
+metadata/_custom_type_script = "uid://b0wwb8nmkkq4d"
+
+[sub_resource type="Resource" id="Resource_mg8wf"]
+script = ExtResource("1_4mhqn")
+source = SubResource("Resource_g17ov")
+affected = SubResource("Resource_8jeej")
+name = "TestSkE1"
+statusEffectToAddID = SubResource("Resource_5oao5")
+metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
+
+[resource]
+script = ExtResource("3_uhrsj")
+name = "Test Skill"
+effects = Array[ExtResource("1_4mhqn")]([SubResource("Resource_mg8wf")])
+metadata/_custom_type_script = "uid://dj6uoycgck8di"
