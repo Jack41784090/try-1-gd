@@ -85,7 +85,7 @@ func _update_entity_position(player_id: int) -> void:
 					var old_pos = display.position
 					var new_pos = _calculate_position(entity, team_index, squad_index)
 					print("[GUI]   Moving from %s to %s" % [old_pos, new_pos])
-					_animate_position_change(display, new_pos)
+					await _animate_position_change(display, new_pos)
 					return
 			squad_index += 1
 		team_index += 1
@@ -97,9 +97,10 @@ func _animate_position_change(display: EntityDisplay, new_position: Vector2) -> 
 	print("[GUI]   Animating position change over " % str(WAIT_SEC_BETWEEN_ANIMATION) % " seconds")
 	var tween = create_tween()
 	tween.tween_property(display, "position", new_position, WAIT_SEC_BETWEEN_ANIMATION).set_ease(Tween.EASE_IN_OUT)
+	await tween.finished
 
-# region _handle helpers (deprecated)
-func _handle_hp_change(update: Types.EntityUpdate) -> void:
+#region _handle helpers (deprecated)
+func _handle_hp_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " HP changed from ", change.from, " to ", change.to)
 	
@@ -180,21 +181,22 @@ func _handle_dodge_change(update: EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.DODGE, change.from, change.to)
 
-func _handle_proc_change(update: Types.EntityUpdate) -> void:
+func _handle_proc_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " PROC changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
 		display.update_stat(Types.EntityChangeable.PROC, change.from, change.to)
-# endregion
+#endregion
 
-func process_updates(updates: Array[Types.EntityUpdate]) -> void:
+func process_updates(updates: Array[EntityUpdate]) -> void:
 	if updates.size() > 0:
 		print("[GUI] Processing %d updates..." % updates.size())
 	
 	for update in updates:
 		var display = entity_displays.get(update.affected)
-		if display: display.update_stat(update.change.property, update.change.from, update.change.to)
-		if update.change.property == Types.EntityChangeable.LOC: _update_entity_position(update.affected)
-		await get_tree().create_timer(WAIT_SEC_BETWEEN_ANIMATION).timeout
+		assert(display, "Display not found for entity ID %d" % update.affected)
+		await update.commit(display)
+		if update.change.property == Types.EntityChangeable.LOC:
+			await _update_entity_position(update.affected)
