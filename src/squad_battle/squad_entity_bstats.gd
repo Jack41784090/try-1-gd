@@ -14,10 +14,12 @@ class_name EntityBaseStats extends Resource
 @export var wil: float
 @export var endurance: float
 	
-func _init(p_id: String = "", p_str: float = 10, p_dex: float = 10, p_acr: float = 10,
-		p_spd: float = 10, p_siz: float = 10, p_int: float = 10, p_spr: float = 10,
-		p_fai: float = 10, p_cha: float = 10, p_beu: float = 10, p_wil: float = 10,
-		p_end: float = 10):
+func _init(
+	p_id: String = "",
+	p_str: float= 1, p_dex: float= 1, p_acr: float= 1,
+	p_spd: float= 1, p_siz: float= 1, p_int: float= 1, p_spr: float= 1,
+	p_fai: float= 1, p_cha: float= 1, p_beu: float= 1, p_wil: float= 1,
+	p_end: float= 1):
 	#id = p_id
 	strength = p_str
 	dex = p_dex
