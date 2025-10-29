@@ -1,5 +1,4 @@
-extends Node2D
-class_name SquadBattleGraphics
+class_name SquadBattleGraphicsNode extends Node2D
 
 const Types = preload("res://src/squad_battle/types.gd")
 const EntityDisplayScene = preload("res://scenes/entity.tscn")
