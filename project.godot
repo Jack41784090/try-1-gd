@@ -17,4 +17,4 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-StatusEffectEventBus="*res://src/StatusEffectEventBus.gd"
+StatusEffectEventBus="*res://src/singletons/StatusEffectEventBus.gd"
