@@ -1,8 +1,7 @@
 extends Node2D
 
-const Types = preload("res://src/squad_battle/types.gd")
 
-var gui: SquadBattleGraphics
+var gui: SquadBattleGraphicsNode
 var battle: SquadBattle
 var delay_between_rounds: float = 2.0
 var current_round_timer: float = 0.0
@@ -15,14 +14,18 @@ func _ready() -> void:
 	setup_battle()
 	is_running = true
 	print("Squad Battle Demo Started!")
+	process_round()
 
 func setup_battle():
-	var entity_stats1 = EntityBaseStats.new("warrior1", 15, 12, 10, 10, 12, 8, 8, 10, 9, 8, 12, 14)
-	var entity_stats2 = EntityBaseStats.new("warrior2", 14, 11, 9, 11, 11, 9, 7, 9, 8, 9, 11, 13)
-	var entity_stats3 = EntityBaseStats.new("mage1", 8, 10, 8, 9, 9, 16, 14, 12, 10, 11, 13, 10)
+	var entity_stats1 = EntityBaseStats.new()
+	var entity_stats2 = EntityBaseStats.new()
+	var entity_stats3 = EntityBaseStats.new()
+	var entity_stats4 = EntityBaseStats.new()
 	
-	var entity_stats4 = EntityBaseStats.new("goblin1", 12, 10, 11, 12, 10, 6, 6, 7, 6, 7, 9, 11)
-	var entity_stats5 = EntityBaseStats.new("goblin2", 11, 9, 10, 11, 9, 6, 5, 6, 7, 6, 8, 10)
+	var entity_stats5 = EntityBaseStats.new()
+	var entity_stats6 = EntityBaseStats.new()
+	var entity_stats7 = EntityBaseStats.new()
+	var entity_stats8 = EntityBaseStats.new()
 	
 	var squad1_config = {
 		"name": "Heroes Front",
@@ -33,7 +36,7 @@ func setup_battle():
 				"name": "Sir Galahad",
 				"stats": entity_stats1,
 				"team": "heroes",
-				"starting_location": Types.SquadEntityInSquadLocation.Front,
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
 				"logic_type": "frontline"
 			},
 			{
@@ -41,23 +44,24 @@ func setup_battle():
 				"name": "Sir Lancelot",
 				"stats": entity_stats2,
 				"team": "heroes",
-				"starting_location": Types.SquadEntityInSquadLocation.Front,
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
 				"logic_type": "frontline"
-			}
-		]
-	}
-	
-	var squad2_config = {
-		"name": "Heroes Back",
-		"team": "heroes",
-		"entities": [
+			},
 			{
 				"player_id": 3,
-				"name": "Merlin",
+				"name": "Sir Percival",
 				"stats": entity_stats3,
 				"team": "heroes",
-				"starting_location": Types.SquadEntityInSquadLocation.Back,
-				"logic_type": "archer"
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
+				"logic_type": "frontline"
+			},
+			{
+				"player_id": 4,
+				"name": "Sir Gawain",
+				"stats": entity_stats4,
+				"team": "heroes",
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
+				"logic_type": "frontline"
 			}
 		]
 	}
@@ -67,48 +71,63 @@ func setup_battle():
 		"team": "monsters",
 		"entities": [
 			{
-				"player_id": 4,
+				"player_id": 5,
 				"name": "Grubnak",
-				"stats": entity_stats4,
+				"stats": entity_stats5,
 				"team": "monsters",
-				"starting_location": Types.SquadEntityInSquadLocation.Front,
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
 				"logic_type": "default"
 			},
 			{
-				"player_id": 5,
+				"player_id": 6,
 				"name": "Snaggletooth",
-				"stats": entity_stats5,
+				"stats": entity_stats6,
 				"team": "monsters",
-				"starting_location": Types.SquadEntityInSquadLocation.Front,
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
 				"logic_type": "default"
+			},
+			{
+				"player_id": 7,
+				"name": "Blightfang",
+				"stats": entity_stats7,
+				"team": "heroes",
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
+				"logic_type": "frontline"
+			},
+			{
+				"player_id": 8,
+				"name": "Snaggletooth2",
+				"stats": entity_stats8,
+				"team": "heroes",
+				"starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front,
+				"logic_type": "frontline"
 			}
 		]
 	}
 	
 	var battle_config = {
 		"teams": {
-			"heroes": [squad1_config, squad2_config],
+			"heroes": [squad1_config],
 			"monsters": [squad3_config]
 		}
 	}
 	
 	battle = SquadBattle.new(battle_config)
-	gui = SquadBattleGraphics.new(battle)
-	# Important: Add GUI to scene tree so it can spawn visual entities
+	gui = SquadBattleGraphicsNode.new(battle)
 	add_child(gui)
 
-func _process(delta: float) -> void:
-	if not is_running:
-		return
+# func _process(delta: float) -> void:
+# 	if not is_running:
+# 		return
 	
-	current_round_timer += delta
+# 	current_round_timer += delta
 	
-	if current_round_timer >= delay_between_rounds:
-		current_round_timer = 0.0
-		process_round()
-		update_display()
+# 	if current_round_timer >= delay_between_rounds:
+# 		current_round_timer = 0.0
+# 		await process_round()
+# 		update_display()
 
-func process_round():
+func process_round() -> void:
 	if battle.check_victory():
 		print("=== BATTLE ENDED ===")
 		print_winner()
@@ -130,15 +149,16 @@ func process_round():
 	var updates = battle.squad_actions()
 	
 	for update in updates:
-		if update.change.property == Types.EntityChangeable.CAPITULATE:
+		if update.change.property == SquadBattleTypes.EntityChangeable.CAPITULATE:
 			var entity = battle.get_entity_by_id(update.affected)
 			if entity:
 				last_round_capitulated.append(entity)
 	
 	battle.squad_recoveries()
 
-	gui.process_updates(updates)
-	
+	# Wait for all animations to complete before continuing
+	await gui.process_updates(updates)
+	process_round()
 	print("")
 
 func print_winner():
@@ -161,10 +181,10 @@ func update_display():
 			info += "  Squad: %s (%d entities)\n" % [squad.squad_name, squad.entities.size()]
 			
 			for entity in squad.entities:
-				var hp = entity.get_changeable_stat_num(Types.EntityChangeable.HP)
-				var max_hp = entity.get_ceiling_changeable_stat(Types.EntityChangeable.HP)
-				var org = entity.get_changeable_stat_num(Types.EntityChangeable.ORG)
-				var loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC)
+				var hp = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+				var max_hp = entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+				var org = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
+				var loc = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
 				info += "    - %s: HP %.0f/%.0f, ORG %.0f, LOC %d\n" % [entity.entity_name, hp, max_hp, org, loc]
 		
 		info += "\n"
