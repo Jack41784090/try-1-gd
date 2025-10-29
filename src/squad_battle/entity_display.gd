@@ -5,7 +5,6 @@ class_name EntityDisplay
 ## This class handles all graphics, animations, and UI for a single entity
 ## It references the data but doesn't modify it - it only displays it
 
-const Types = preload("res://src/squad_battle/types.gd")
 
 # Reference to the data model
 var entity_data: SquadEntity
@@ -41,62 +40,61 @@ func refresh_display() -> void:
 
 ## Called when a stat changes - updates only what's needed
 ## This is the main entry point for the GUI to update this display
-func update_stat(property: Types.EntityChangeable, old_val: float, new_val: float) -> void:
+func update_stat(property: SquadBattleTypes.EntityChangeable, old_val: float, new_val: float) -> void:
 	if not entity_data:
 		return
 	
 	match property:
-		Types.EntityChangeable.HP:
+		SquadBattleTypes.EntityChangeable.HP:
 			_handle_hp_change(old_val, new_val)
-		Types.EntityChangeable.STA:
+		SquadBattleTypes.EntityChangeable.STA:
 			_handle_sta_change(old_val, new_val)
-		Types.EntityChangeable.ORG:
+		SquadBattleTypes.EntityChangeable.ORG:
 			_handle_org_change(old_val, new_val)
-		Types.EntityChangeable.POS:
+		SquadBattleTypes.EntityChangeable.POS:
 			_handle_pos_change(old_val, new_val)
-		Types.EntityChangeable.MAG:
+		SquadBattleTypes.EntityChangeable.MAG:
 			_handle_mag_change(old_val, new_val)
-		Types.EntityChangeable.LOC:
+		SquadBattleTypes.EntityChangeable.LOC:
 			_handle_loc_change(old_val, new_val)
-		Types.EntityChangeable.DIE:
+		SquadBattleTypes.EntityChangeable.DIE:
 			_handle_death()
-		Types.EntityChangeable.CAPITULATE:
+		SquadBattleTypes.EntityChangeable.CAPITULATE:
 			_handle_capitulate()
-		Types.EntityChangeable.CLINK:
+		SquadBattleTypes.EntityChangeable.CLINK:
 			_handle_clink()
-		Types.EntityChangeable.DODGE:
+		SquadBattleTypes.EntityChangeable.DODGE:
 			_handle_dodge()
-		Types.EntityChangeable.PROC:
+		SquadBattleTypes.EntityChangeable.PROC:
 			_handle_proc()
 
-# === Private update handlers ===
-# region 
+#region Private update handlers
+
 func _update_hp_visual() -> void:
-	var hp = entity_data.get_changeable_stat_num(Types.EntityChangeable.HP)
-	var max_hp = entity_data.get_ceiling_changeable_stat(Types.EntityChangeable.HP)
+	var hp = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var max_hp = entity_data.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	var hp_percent = hp / max_hp if max_hp > 0.0 else 0.0
 	
 	# Tint sprite based on HP (red when low)
 	sprite.modulate = Color(1.0, hp_percent, hp_percent)
 
 func _update_position_visual() -> void:
-	var loc = entity_data.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
+	var loc = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 	# Position is handled by GUI's _calculate_position
 	# But we can update visual indicators here (e.g., z-index)
 	z_index = -loc  # Front entities appear on top
 
 func _update_info_label() -> void:
-	var hp = entity_data.get_changeable_stat_num(Types.EntityChangeable.HP)
-	var max_hp = entity_data.get_ceiling_changeable_stat(Types.EntityChangeable.HP)
-	var org = entity_data.get_changeable_stat_num(Types.EntityChangeable.ORG)
-	var loc = entity_data.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
+	var hp = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var max_hp = entity_data.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	var org = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
+	var loc = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 	
 	info_label.text = "HP: %.0f/%.0f\nORG: %.0f\nLOC: %d" % [hp, max_hp, org, loc]
 
-# endregion
+#endregion
 
-# === Change handlers with animations ===
-# region 
+#region Change handlers with animations
 
 func _handle_hp_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] HP: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
@@ -167,4 +165,4 @@ func _handle_proc() -> void:
 	tween.tween_property(sprite, "modulate", Color(1.5, 1.5, 1.5), 0.1)
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
 
-# endregion
+#endregion
