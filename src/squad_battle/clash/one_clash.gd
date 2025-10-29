@@ -1,6 +1,6 @@
 class_name OneClash extends Resource
 
-var updates: Array[SquadBattleTypes.EntityUpdate] = []
+var updates: Array[EntityUpdate] = []
 
 @export var affecteds: Array[SquadEntity] = []
 @export var attacker: SquadEntity
@@ -40,7 +40,7 @@ func roll_for_hit() -> bool:
 	
 	if roll_defence_hit >= roll_offence_hit:
 		print("  ✗ DODGED!")
-		updates.append(SquadBattleTypes.EntityUpdate.new(
+		updates.append(EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
 			SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1)
@@ -66,7 +66,7 @@ func roll_for_pierce() -> bool:
 	
 	if roll_defence_hit >= roll_offence_hit:
 		print("  ✗ BLOCKED! (Clink)")
-		updates.append(SquadBattleTypes.EntityUpdate.new(
+		updates.append(EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
 			SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.CLINK, -1, -1)

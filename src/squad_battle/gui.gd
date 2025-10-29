@@ -107,7 +107,7 @@ func _handle_hp_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.HP, change.from, change.to)
 
-func _handle_sta_change(update: Types.EntityUpdate) -> void:
+func _handle_sta_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " STA changed from ", change.from, " to ", change.to)
 	
@@ -115,7 +115,7 @@ func _handle_sta_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.STA, change.from, change.to)
 
-func _handle_org_change(update: Types.EntityUpdate) -> void:
+func _handle_org_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " ORG changed from ", change.from, " to ", change.to)
 	
@@ -123,7 +123,7 @@ func _handle_org_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.ORG, change.from, change.to)
 
-func _handle_pos_change(update: Types.EntityUpdate) -> void:
+func _handle_pos_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " POS changed from ", change.from, " to ", change.to)
 	
@@ -131,7 +131,7 @@ func _handle_pos_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.POS, change.from, change.to)
 
-func _handle_mag_change(update: Types.EntityUpdate) -> void:
+func _handle_mag_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " MAG changed from ", change.from, " to ", change.to)
 	
@@ -139,7 +139,7 @@ func _handle_mag_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.MAG, change.from, change.to)
 
-func _handle_loc_change(update: Types.EntityUpdate) -> void:
+func _handle_loc_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " LOC changed from ", change.from, " to ", change.to)
 	
@@ -148,7 +148,7 @@ func _handle_loc_change(update: Types.EntityUpdate) -> void:
 		display.update_stat(Types.EntityChangeable.LOC, change.from, change.to)
 		_update_entity_position(update.affected)
 
-func _handle_die_change(update: Types.EntityUpdate) -> void:
+func _handle_die_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " DIE changed from ", change.from, " to ", change.to)
 	
@@ -156,7 +156,7 @@ func _handle_die_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.DIE, change.from, change.to)
 
-func _handle_capitulate_change(update: Types.EntityUpdate) -> void:
+func _handle_capitulate_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " CAPITULATE changed from ", change.from, " to ", change.to)
 	
@@ -164,7 +164,7 @@ func _handle_capitulate_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.CAPITULATE, change.from, change.to)
 
-func _handle_clink_change(update: Types.EntityUpdate) -> void:
+func _handle_clink_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " CLINK changed from ", change.from, " to ", change.to)
 	
@@ -172,7 +172,7 @@ func _handle_clink_change(update: Types.EntityUpdate) -> void:
 	if display:
 		display.update_stat(Types.EntityChangeable.CLINK, change.from, change.to)
 
-func _handle_dodge_change(update: Types.EntityUpdate) -> void:
+func _handle_dodge_change(update: EntityUpdate) -> void:
 	var change: Types.EntityChange = update.change
 	print("Entity ", update.affected, " DODGE changed from ", change.from, " to ", change.to)
 	

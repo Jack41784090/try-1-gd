@@ -100,10 +100,10 @@ func _format_triggers(trigger_array: Array) -> String:
 			_: names.append("Signal_%d" % t)
 	return ", ".join(names)
 
-func commit() -> Array[SquadBattleTypes.EntityUpdate]:
+func commit() -> Array[EntityUpdate]:
 	print("    [SkillEffect] Committing '%s'" % name)
 	
-	var updates: Array[SquadBattleTypes.EntityUpdate] = []
+	var updates: Array[EntityUpdate] = []
 	
 	match commitType:
 		ClashCommonTypes.CommitType.ApplyStatusEffect:
@@ -129,7 +129,7 @@ func commit() -> Array[SquadBattleTypes.EntityUpdate]:
 				print("      → Healing %.2f to %s" % [value, affected.entity_name])
 				var heal_change = affected.heal(value)
 				if heal_change:
-					var update = SquadBattleTypes.EntityUpdate.new(source.player_id, affected.player_id, heal_change)
+					var update = EntityUpdate.new(source.player_id, affected.player_id, heal_change)
 					updates.append(update)
 					print("      → Update: %s" % update)
 			else:

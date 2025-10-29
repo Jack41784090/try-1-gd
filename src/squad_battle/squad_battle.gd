@@ -117,8 +117,8 @@ func squad_recoveries():
 			if squad.get_last_attacked_at_round() < round_count:
 				squad.recovery()
 
-func squad_actions() -> Array[Types.EntityUpdate]:
-	var updates: Array[Types.EntityUpdate] = []
+func squad_actions() -> Array[EntityUpdate]:
+	var updates: Array[EntityUpdate] = []
 	
 	for team_name in teams_and_squads:
 		var squads = teams_and_squads[team_name]

@@ -139,14 +139,14 @@ func deorg_after_damage(dm: float, source: int) -> Array:
 	var base_damage_deorg = -(dm * 1.5)
 	var close_to_death_deorg = -(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) / get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)) * 10
 	var changes: Array = [
-		SquadBattleTypes.EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
+		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
 	
 	if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG) <= 0:
 		if not is_retreating:
 			is_retreating = true
-			changes.append(SquadBattleTypes.EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
-			changes.append(SquadBattleTypes.EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
+			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
 	
 	return changes
 
@@ -166,13 +166,13 @@ func damage(num: float, source: int) -> Array:
 	var affected = player_id
 	
 	if num <= 0:
-		return [SquadBattleTypes.EntityUpdate.new(source, affected, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp))]
+		return [EntityUpdate.new(source, affected, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp))]
 	else:
-		var updates = [SquadBattleTypes.EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num))]
+		var updates = [EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num))]
 		
 		if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) == 0:
 			updates.append(
-				SquadBattleTypes.EntityUpdate.new(source, affected,
+				EntityUpdate.new(source, affected,
 				SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1)))
 		else:
 			for u in deorg_after_damage(num, source):
@@ -214,7 +214,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		
 		SquadBattleTypes.SquadEntityAction.IDLE:
 			for c in action_idle():
-				updates.append(SquadBattleTypes.EntityUpdate.new(player_id, player_id, c))
+				updates.append(EntityUpdate.new(player_id, player_id, c))
 		
 		SquadBattleTypes.SquadEntityAction.RETREAT:
 			print("[", entity_name, "] retreating!")
@@ -262,7 +262,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		
 		SquadBattleTypes.SquadEntityAction.IDLE:
 			for c in action_idle():
-				updates.append(SquadBattleTypes.EntityUpdate.new(player_id, player_id, c))
+				updates.append(EntityUpdate.new(player_id, player_id, c))
 		
 		SquadBattleTypes.SquadEntityAction.RETREAT:
 			print("[", entity_name, "] retreating!")
@@ -285,7 +285,7 @@ func action_attack(logic_obj):
 	return null
 
 func action_forward(_logic_obj) -> Array:
-	return [SquadBattleTypes.EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, -1))]
+	return [EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, -1))]
 
 func action_heal(logic_obj):
 	var physical_heal = 5
@@ -299,9 +299,9 @@ func action_heal(logic_obj):
 		var b = ally.boost(spirit_heal)
 		
 		if h:
-			updates.append(SquadBattleTypes.EntityUpdate.new(player_id, ally.player_id, h))
+			updates.append(EntityUpdate.new(player_id, ally.player_id, h))
 		if b:
-			updates.append(SquadBattleTypes.EntityUpdate.new(player_id, ally.player_id, b))
+			updates.append(EntityUpdate.new(player_id, ally.player_id, b))
 		
 		return updates
 	return null
@@ -309,11 +309,11 @@ func action_heal(logic_obj):
 func action_retreat() -> Array:
 	if not is_retreating:
 		is_retreating = true
-		return [SquadBattleTypes.EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1))]
+		return [EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1))]
 	return []
 
 func action_capitulate() -> Array:
-	return [SquadBattleTypes.EntityUpdate.new(player_id, player_id, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.CAPITULATE, -1, -1))]
+	return [EntityUpdate.new(player_id, player_id, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.CAPITULATE, -1, -1))]
 
 func action_idle() -> Array:
 	return recover()
