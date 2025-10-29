@@ -5,6 +5,11 @@ class_name EntityDisplay
 ## This class handles all graphics, animations, and UI for a single entity
 ## It references the data but doesn't modify it - it only displays it
 
+## Signal emitted when an animation completes
+## Used to await visual updates in async code
+signal animation_completed
+
+# const Types = preload("res://src/squad_battle/types.gd")
 
 # Reference to the data model
 var entity_data: SquadEntity
@@ -105,23 +110,31 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.1)
 	tween.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.1)
+	
+	# Emit signal when animation completes
+	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_sta_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] STA: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
 	_update_info_label()
+	# No animation, emit on next frame so await can set up listener
+	animation_completed.emit.call_deferred()
 
 func _handle_org_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] ORG: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
 	_update_info_label()
 	# Could show morale indicator
+	animation_completed.emit.call_deferred()
 
 func _handle_pos_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] POS: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
 	_update_info_label()
+	animation_completed.emit.call_deferred()
 
 func _handle_mag_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] MAG: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
 	_update_info_label()
+	animation_completed.emit.call_deferred()
 
 func _handle_loc_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] LOC: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
@@ -130,6 +143,7 @@ func _handle_loc_change(old_val: float, new_val: float) -> void:
 	
 	# Note: Actual position is animated by the GUI via _animate_position_change()
 	# We just update visual indicators here (z-index, etc.)
+	animation_completed.emit.call_deferred()
 
 func _handle_death() -> void:
 	print("[Display %s] ☠️ DIED" % entity_data.entity_name)
@@ -139,10 +153,14 @@ func _handle_death() -> void:
 	tween.tween_property(sprite, "rotation", PI * 2, 0.5)
 	tween.parallel().tween_property(sprite, "modulate:a", 0.0, 0.5)
 	tween.parallel().tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.5)
+	
+	# Emit when death animation completes
+	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_capitulate() -> void:
 	print("[Display %s] 🏳️ CAPITULATED" % entity_data.entity_name)
 	sprite.modulate = Color(0.5, 0.5, 0.5, 0.5)
+	animation_completed.emit.call_deferred()
 
 func _handle_clink() -> void:
 	print("[Display %s] ⚔️ CLINK (blocked)" % entity_data.entity_name)
@@ -150,6 +168,7 @@ func _handle_clink() -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.05)
 	tween.tween_property(sprite, "modulate", sprite.modulate, 0.05)
+	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_dodge() -> void:
 	print("[Display %s] 💨 DODGE" % entity_data.entity_name)
@@ -157,6 +176,7 @@ func _handle_dodge() -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "position:x", position.x + 20, 0.1)
 	tween.tween_property(self, "position:x", position.x, 0.1)
+	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_proc() -> void:
 	print("[Display %s] ✨ PROC (skill triggered)" % entity_data.entity_name)
@@ -164,5 +184,6 @@ func _handle_proc() -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite, "modulate", Color(1.5, 1.5, 1.5), 0.1)
 	tween.tween_property(sprite, "modulate", Color.WHITE, 0.1)
+	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 #endregion
