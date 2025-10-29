@@ -22,3 +22,4 @@ func _init(
 	name = _name;
 	effects = _effects;
 	pass
+
