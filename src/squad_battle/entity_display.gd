@@ -18,6 +18,7 @@ var entity_data: SquadEntity
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var name_label: Label = $Name
 @onready var info_label: Label = $INFO
+@onready var damage_num_origin: Node2D = $DamageNumberOrigin
 
 ## Initialize the display with entity data
 ## This is called by the GUI when spawning entities
@@ -105,6 +106,9 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	print("[Display %s] HP: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
 	_update_hp_visual()
 	_update_info_label()
+
+	var change = new_val - old_val
+	DamageNumbersManager.DisplayDamageNumber(change, damage_num_origin.global_position)
 	
 	# Animate HP change
 	var tween = create_tween()
