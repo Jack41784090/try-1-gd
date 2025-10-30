@@ -1,8 +1,7 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=13 format=3 uid="uid://c4yoqgfg85jxf"]
+[gd_resource type="Resource" script_class="Skill" load_steps=10 format=3 uid="uid://c4yoqgfg85jxf"]
 
 [ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_4mhqn"]
 [ext_resource type="Script" uid="uid://ddi7ny723tg4q" path="res://src/squad_battle/squad_entity.gd" id="2_uhrsj"]
-[ext_resource type="Script" uid="uid://b0wwb8nmkkq4d" path="res://src/squad_battle/clash/status-effect.gd" id="2_wwlr3"]
 [ext_resource type="Script" uid="uid://cgcyolsjmofbs" path="res://src/squad_battle/squad_entity_bstats.gd" id="3_8oe4h"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="3_uhrsj"]
 
@@ -30,30 +29,12 @@ stats = SubResource("Resource_k41uc")
 team = "1"
 metadata/_custom_type_script = "uid://ddi7ny723tg4q"
 
-[sub_resource type="Resource" id="Resource_4mhqn"]
-script = ExtResource("1_4mhqn")
-source = SubResource("Resource_g17ov")
-affected = SubResource("Resource_8jeej")
-name = "TestSkE1-Bleed-DMG"
-commitType = 1
-triggers = Array[int]([1])
-value = 1.0
-metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
-
-[sub_resource type="Resource" id="Resource_5oao5"]
-script = ExtResource("2_wwlr3")
-name = "TestSkE1-Bleed"
-duration = 2
-effects = Array[ExtResource("1_4mhqn")]([SubResource("Resource_4mhqn")])
-metadata/_custom_type_script = "uid://b0wwb8nmkkq4d"
-
 [sub_resource type="Resource" id="Resource_mg8wf"]
 script = ExtResource("1_4mhqn")
+name = "TestSkE1"
 source = SubResource("Resource_g17ov")
 affected = SubResource("Resource_8jeej")
-name = "TestSkE1"
 triggers = Array[int]([1])
-statusEffectToAddID = SubResource("Resource_5oao5")
 metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
 
 [resource]
