@@ -22,3 +22,6 @@ offset_top = -39.0
 offset_right = 59.0
 offset_bottom = 61.0
 text = "NO INFO"
+
+[node name="DamageNumberOrigin" type="Node2D" parent="."]
+position = Vector2(-1, -37)
