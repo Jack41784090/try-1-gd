@@ -19,23 +19,23 @@ func _init() -> void:
 	money_cost = 0.0
 	food_cost = 0
 
-func execute(squad: StrategicSquad, world: World, location: Location) -> StrategyTypes.ActivityResult:
+func execute(squad: StrategicSquad, _world: World, _location: Location) -> StrategyTypes.ActivityResult:
 	var result = StrategyTypes.ActivityResult.new()
 	
 	if destination_id.is_empty():
 		result.add_narrative("No destination set for travel!")
 		return result
 	
-	var destination = world.get_location_by_id(destination_id)
+	var destination = _world.get_location_by_id(destination_id)
 	if not destination:
 		result.add_narrative("Destination not found: %s" % destination_id)
 		return result
 	
-	if not location.is_connected_to(destination_id):
+	if not _location.is_connected_to(destination_id):
 		result.add_narrative("Cannot travel to %s from here." % destination.location_name)
 		return result
 	
-	time_cost = location.calculate_base_travel_time(destination)
+	time_cost = _location.calculate_base_travel_time(destination)
 	if time_cost < 0:
 		result.add_narrative("Invalid travel route.")
 		return result

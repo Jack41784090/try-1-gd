@@ -11,7 +11,7 @@ func _init() -> void:
 	money_cost = 0.0
 	food_cost = 0
 
-func execute(squad: StrategicSquad, world: World, location: Location) -> StrategyTypes.ActivityResult:
+func execute(squad: StrategicSquad, _world: World, _location: Location) -> StrategyTypes.ActivityResult:
 	var result = StrategyTypes.ActivityResult.new()
 	
 	for warrior in squad.warriors:

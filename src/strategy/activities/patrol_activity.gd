@@ -15,12 +15,12 @@ func _init() -> void:
 	money_cost = 0.0
 	food_cost = 0
 
-func execute(squad: StrategicSquad, world: World, location: Location) -> StrategyTypes.ActivityResult:
+func execute(squad: StrategicSquad, _world: World, _location: Location) -> StrategyTypes.ActivityResult:
 	var result = StrategyTypes.ActivityResult.new()
 	
 	var stability_increase = 10.0
-	location.modify_stability(stability_increase)
-	result.add_narrative("Patrolled %s, improving local stability." % location.location_name)
+	_location.modify_stability(stability_increase)
+	result.add_narrative("Patrolled %s, improving local stability." % _location.location_name)
 	
 	var reputation_gain = 5.0
 	squad.modify_karma(reputation_gain)

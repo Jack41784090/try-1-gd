@@ -15,7 +15,7 @@ func _init() -> void:
 	money_cost = 10.0
 	food_cost = 0
 
-func execute(squad: StrategicSquad, world: World, location: Location) -> StrategyTypes.ActivityResult:
+func execute(squad: StrategicSquad, _world: World, _location: Location) -> StrategyTypes.ActivityResult:
 	var result = StrategyTypes.ActivityResult.new()
 	
 	if not squad.spend_money(money_cost):
@@ -23,7 +23,7 @@ func execute(squad: StrategicSquad, world: World, location: Location) -> Strateg
 		return result
 	
 	result.modify_squad_stat("money", -money_cost)
-	result.add_narrative("Spent %.2f gold investigating in %s." % [money_cost, location.location_name])
+	result.add_narrative("Spent %.2f gold investigating in %s." % [money_cost, _location.location_name])
 	
 	var success_chance = 0.6
 	var avg_perception = 0.0

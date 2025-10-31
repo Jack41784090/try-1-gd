@@ -10,7 +10,7 @@ func _init() -> void:
 	location_requirements = []
 	food_cost = 0
 
-func execute(squad: StrategicSquad, world: World, location: Location) -> StrategyTypes.ActivityResult:
+func execute(squad: StrategicSquad, _world: World, _location: Location) -> StrategyTypes.ActivityResult:
 	var result = StrategyTypes.ActivityResult.new()
 	
 	var food_needed = squad.warriors.size()

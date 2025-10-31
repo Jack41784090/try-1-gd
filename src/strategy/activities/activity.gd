@@ -59,8 +59,8 @@ func consume_resources(squad: StrategicSquad) -> bool:
 	
 	return can_afford
 
-static func create_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
-	match activity_type:
+static func create_activity(_activity_type: StrategyTypes.ActivityType) -> Activity:
+	match _activity_type:
 		StrategyTypes.ActivityType.REST:
 			return RestActivity.new()
 		StrategyTypes.ActivityType.DRILL:
@@ -74,6 +74,6 @@ static func create_activity(activity_type: StrategyTypes.ActivityType) -> Activi
 		StrategyTypes.ActivityType.HOLD_MASS:
 			return HoldMassActivity.new()
 		_:
-			push_error("Unknown activity type: %s" % activity_type)
+			push_error("Unknown activity type: %s" % _activity_type)
 			return Activity.new()
 
