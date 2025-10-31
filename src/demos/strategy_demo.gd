@@ -16,13 +16,13 @@ func setup_scenario() -> void:
 	village.type = StrategyTypes.LocationType.VILLAGE
 	village.development = 30
 	village.stability = 80.0
-	village.available_activity_types = [
+	village.set_activity_types([
 		StrategyTypes.ActivityType.REST,
 		StrategyTypes.ActivityType.DRILL,
 		StrategyTypes.ActivityType.TRAVEL,
 		StrategyTypes.ActivityType.HOLD_MASS
-	]
-	village.connected_location_ids = ["town_1"]
+	])
+	village.set_connections(["town_1"])
 	
 	var town = Location.new()
 	town.location_id = "town_1"
@@ -30,15 +30,15 @@ func setup_scenario() -> void:
 	town.type = StrategyTypes.LocationType.TOWN
 	town.development = 60
 	town.stability = 90.0
-	town.available_activity_types = [
+	town.set_activity_types([
 		StrategyTypes.ActivityType.REST,
 		StrategyTypes.ActivityType.DRILL,
 		StrategyTypes.ActivityType.TRAVEL,
 		StrategyTypes.ActivityType.PATROL,
 		StrategyTypes.ActivityType.INVESTIGATE,
 		StrategyTypes.ActivityType.HOLD_MASS
-	]
-	town.connected_location_ids = ["village_1"]
+	])
+	town.set_connections(["village_1"])
 	
 	world.add_location(village)
 	world.add_location(town)
@@ -146,4 +146,3 @@ func _on_activity_executed(activity: Activity, _result: StrategyTypes.ActivityRe
 
 func _on_turn_advanced(turn: int) -> void:
 	print("[EVENT] Turn advanced to %d" % turn)
-

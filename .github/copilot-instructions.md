@@ -285,3 +285,30 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 3. ❌ Don't use `Array[CustomClass]` before CustomClass is defined - will cause compile errors until Godot parses all files
 4. ❌ Don't mix strategic and tactical concerns in same class - keep layers separate
 5. ❌ Don't hardcode magic numbers - use named constants or configuration dictionaries
+6. ❌ **Don't directly assign untyped arrays to typed array properties in Resources** - use helper methods like `set_activity_types()` or explicit casts `as Array[Type]`
+
+### Typed Array Assignment Pattern
+When working with `@export var my_array: Array[CustomType] = []` in Resources:
+
+**❌ Wrong** (causes runtime type errors):
+```gdscript
+location.available_activity_types = [ActivityType.REST, ActivityType.DRILL]
+```
+
+**✅ Better** (explicit cast):
+```gdscript
+location.available_activity_types = [ActivityType.REST, ActivityType.DRILL] as Array[StrategyTypes.ActivityType]
+```
+
+**✅ Best** (helper method):
+```gdscript
+# In the Resource class
+func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
+    available_activity_types.clear()
+    available_activity_types.append_array(types)
+
+# Usage
+location.set_activity_types([ActivityType.REST, ActivityType.DRILL])
+```
+
+**Why?** Godot's Resource system can't infer array types from literals at runtime. Helper methods that accept typed parameters bypass this limitation cleanly.

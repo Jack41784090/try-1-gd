@@ -54,3 +54,22 @@ func reset() -> void:
 	is_unlocked = false
 	is_failed = false
 
+func set_prerequisites(mission_ids: Array[String]) -> void:
+	prerequisite_mission_ids.clear()
+	prerequisite_mission_ids.append_array(mission_ids)
+
+func add_prerequisite(prereq_mission_id: String) -> void:
+	if not prereq_mission_id in prerequisite_mission_ids:
+		prerequisite_mission_ids.append(prereq_mission_id)
+
+func set_postrequisites(mission_ids: Array[String]) -> void:
+	postrequisite_mission_ids.clear()
+	postrequisite_mission_ids.append_array(mission_ids)
+
+func add_postrequisite(postreq_mission_id: String) -> void:
+	if not postreq_mission_id in postrequisite_mission_ids:
+		postrequisite_mission_ids.append(postreq_mission_id)
+
+func add_finish_condition(condition: TriggerCondition) -> void:
+	finish_conditions.append(condition)
+

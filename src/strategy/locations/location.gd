@@ -40,3 +40,19 @@ func calculate_base_travel_time(to_location: Location) -> int:
 func has_activity_type(activity_type: StrategyTypes.ActivityType) -> bool:
 	return activity_type in available_activity_types
 
+func add_activity_type(activity_type: StrategyTypes.ActivityType) -> void:
+	if not has_activity_type(activity_type):
+		available_activity_types.append(activity_type)
+
+func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
+	available_activity_types.clear()
+	available_activity_types.append_array(types)
+
+func add_connection(location_id_to_connect: String) -> void:
+	if not location_id_to_connect in connected_location_ids:
+		connected_location_ids.append(location_id_to_connect)
+
+func set_connections(connections: Array[String]) -> void:
+	connected_location_ids.clear()
+	connected_location_ids.append_array(connections)
+

@@ -1,32 +1,13 @@
-[gd_resource type="Resource" script_class="OneClash" load_steps=9 format=3 uid="uid://b7xwgid0b5ryi"]
+[gd_resource type="Resource" script_class="OneClash" load_steps=6 format=3 uid="uid://b7xwgid0b5ryi"]
 
-[ext_resource type="Script" uid="uid://ddi7ny723tg4q" path="res://src/squad_battle/squad_entity.gd" id="1_g17ov"]
-[ext_resource type="Script" uid="uid://cgcyolsjmofbs" path="res://src/squad_battle/squad_entity_bstats.gd" id="2_3h2bn"]
+[ext_resource type="Script" uid="uid://bb4rmnpqrlelu" path="res://src/squad_battle/entity/index.gd" id="1_g17ov"]
 [ext_resource type="Script" uid="uid://c8yoc6phutak1" path="res://src/squad_battle/clash/one_clash.gd" id="2_8jeej"]
 [ext_resource type="Resource" uid="uid://c4yoqgfg85jxf" path="res://resources/test-skill.tres" id="3_3h2bn"]
 
-[sub_resource type="Resource" id="Resource_k41uc"]
-script = ExtResource("2_3h2bn")
-metadata/_custom_type_script = "uid://cgcyolsjmofbs"
-
 [sub_resource type="Resource" id="Resource_g17ov"]
-script = ExtResource("1_g17ov")
-player_id = 2
-entity_name = "E1"
-stats = SubResource("Resource_k41uc")
-team = "1"
 metadata/_custom_type_script = "uid://ddi7ny723tg4q"
 
-[sub_resource type="Resource" id="Resource_3h2bn"]
-script = ExtResource("2_3h2bn")
-metadata/_custom_type_script = "uid://cgcyolsjmofbs"
-
 [sub_resource type="Resource" id="Resource_8jeej"]
-script = ExtResource("1_g17ov")
-player_id = 10
-entity_name = "E2"
-stats = SubResource("Resource_3h2bn")
-team = "2"
 metadata/_custom_type_script = "uid://ddi7ny723tg4q"
 
 [resource]

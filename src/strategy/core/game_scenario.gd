@@ -20,9 +20,17 @@ var ending_triggered: Ending = null
 func _init(config: Dictionary = {}) -> void:
 	world = config.get("world", World.new())
 	player_squad = config.get("player_squad", StrategicSquad.new())
-	factions = config.get("factions", [])
-	endings = config.get("endings", [])
 	event_manager = EventManager.new()
+	
+	var factions_raw: Array = config.get("factions", [])
+	for faction in factions_raw:
+		if faction is Faction:
+			factions.append(faction)
+	
+	var endings_raw: Array = config.get("endings", [])
+	for ending in endings_raw:
+		if ending is Ending:
+			endings.append(ending)
 	
 	var events: Array = config.get("events", [])
 	for event in events:
@@ -178,4 +186,3 @@ func is_game_ended() -> bool:
 
 func get_ending() -> Ending:
 	return ending_triggered
-
