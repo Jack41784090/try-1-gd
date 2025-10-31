@@ -1,4 +1,4 @@
-extends RefCounted
+extends Resource
 class_name GameScenario
 
 signal activity_executed(activity: Activity, result: StrategyTypes.ActivityResult)
@@ -7,12 +7,12 @@ signal mission_completed(mission: Mission)
 signal ending_reached(ending: Ending)
 signal turn_advanced(turn: int)
 
-var world: World
+@export var world: World
 var player_squad: StrategicSquad
-var factions: Array[Faction] = []
+@export var factions: Array[Faction] = []
 var event_manager: EventManager
-var endings: Array[Ending] = []
-var current_location: Location
+@export var endings: Array[Ending] = []
+@export var current_location: Location
 
 var game_ended: bool = false
 var ending_triggered: Ending = null
@@ -64,7 +64,8 @@ func execute_turn(activity: Activity) -> Dictionary:
 	
 	var context = _build_context(activity)
 	
-	var pre_events = event_manager.check_triggers(StrategyTypes.TriggerWhen.BEFORE_ACTIVITY, context)
+	# Triggered [Events] before the Activity
+	var pre_events = event_manager.get_triggered_game_events(StrategyTypes.TriggerWhen.BEFORE_ACTIVITY, context)
 	for event in pre_events:
 		var event_result = _handle_event(event)
 		turn_summary["pre_events"].append({
@@ -72,6 +73,7 @@ func execute_turn(activity: Activity) -> Dictionary:
 			"result": event_result
 		})
 	
+	# The [Activity] itself executes
 	var activity_result = activity.execute(player_squad, world, current_location)
 	turn_summary["activity_result"] = {
 		"narrative": activity_result.narrative_log,
@@ -79,12 +81,15 @@ func execute_turn(activity: Activity) -> Dictionary:
 		"world_changes": activity_result.world_stat_changes
 	}
 	
+	# Changes of the Activity is applied to the Squad
 	_apply_activity_result(activity_result)
 	activity_executed.emit(activity, activity_result)
 	
+	# Causes new context
 	context = _build_context(activity)
 	
-	var post_events = event_manager.check_triggers(StrategyTypes.TriggerWhen.AFTER_ACTIVITY, context)
+	# Post-Activity [Events] might fire
+	var post_events = event_manager.get_triggered_game_events(StrategyTypes.TriggerWhen.AFTER_ACTIVITY, context)
 	for event in post_events:
 		var event_result = _handle_event(event)
 		turn_summary["post_events"].append({
@@ -92,11 +97,13 @@ func execute_turn(activity: Activity) -> Dictionary:
 			"result": event_result
 		})
 	
+	# [Mission] completions based on changes from Activity, Event results
 	var completed_missions = _check_mission_completion()
 	for mission in completed_missions:
 		turn_summary["missions_completed"].append(mission.mission_name)
 		mission_completed.emit(mission)
 	
+	# Check for [Ending] conditions
 	var ending = _check_ending_conditions()
 	if ending:
 		game_ended = true

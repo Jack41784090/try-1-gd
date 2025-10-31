@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="World" load_steps=6 format=3 uid="uid://b7x8xhqm8n315"]
+
+[ext_resource type="Script" uid="uid://c7brxo8k1l70l" path="res://src/strategy/locations/location.gd" id="1_isety"]
+[ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="2_0wsl6"]
+
+[sub_resource type="Resource" id="Resource_h8tv2"]
+script = ExtResource("1_isety")
+location_id = "1"
+location_name = "village-1"
+connected_location_ids = Array[String](["2"])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_nnhn3"]
+script = ExtResource("1_isety")
+location_id = "2"
+location_name = "road-to-city"
+type = 4
+connected_location_ids = Array[String](["1", "3"])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_l5l6c"]
+script = ExtResource("1_isety")
+location_id = "3"
+location_name = "city-1"
+type = 0
+connected_location_ids = Array[String](["2"])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[resource]
+script = ExtResource("2_0wsl6")
+locations = Array[ExtResource("1_isety")]([SubResource("Resource_h8tv2"), SubResource("Resource_nnhn3"), SubResource("Resource_l5l6c")])
+metadata/_custom_type_script = "uid://c7nmmrwqy6hlh"

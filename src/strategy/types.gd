@@ -99,6 +99,8 @@ class EventChoice:
 		return true
 
 class EventResult extends GenericResult:
+	var event_id: String;
+	var event_name: String;
 	var choices: Array[EventChoice] = []
 	var immediate_effects: Dictionary = {}
 	var dialogue_scene_path: String = ""

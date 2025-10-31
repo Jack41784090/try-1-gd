@@ -13,7 +13,7 @@ func register_events(events: Array[GameEvent]) -> void:
 func clear_events() -> void:
 	registered_events.clear()
 
-func check_triggers(_when: StrategyTypes.TriggerWhen, context: Dictionary) -> Array[GameEvent]:
+func get_triggered_game_events(_when: StrategyTypes.TriggerWhen, context: Dictionary) -> Array[GameEvent]:
 	var triggered_events: Array[GameEvent] = []
 	
 	for event in registered_events:
