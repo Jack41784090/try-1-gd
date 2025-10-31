@@ -13,14 +13,14 @@ func register_events(events: Array[GameEvent]) -> void:
 func clear_events() -> void:
 	registered_events.clear()
 
-func check_triggers(when: StrategyTypes.TriggerWhen, context: Dictionary) -> Array[GameEvent]:
+func check_triggers(_when: StrategyTypes.TriggerWhen, context: Dictionary) -> Array[GameEvent]:
 	var triggered_events: Array[GameEvent] = []
 	
 	for event in registered_events:
-		if event.when_to_trigger != when:
+		if event.when_to_trigger != _when:
 			continue
 		
-		if not event.can_trigger():
+		if not event.can_trigger(context):
 			continue
 		
 		if event.check_conditions(context):
@@ -48,4 +48,3 @@ func trigger_event_by_id(event_id: String, squad: StrategicSquad, world: World) 
 	var result = StrategyTypes.EventResult.new()
 	result.narrative_text = "Event not found: %s" % event_id
 	return result
-

@@ -12,6 +12,11 @@ class_name World
 @export var locations: Array[Location] = []
 @export var turn_count: int = 0
 
+var travel_graph: TravelGraph = null
+
+func _init() -> void:
+	travel_graph = TravelGraph.new()
+
 func modify_global_modifier(modifier: StrategyTypes.GlobalModifier, amount: float) -> void:
 	var key = _modifier_to_key(modifier)
 	global_modifiers[key] = clamp(global_modifiers.get(key, 0.0) + amount, -100.0, 100.0)
@@ -43,6 +48,32 @@ func get_location_by_id(location_id: String) -> Location:
 
 func add_location(location: Location) -> void:
 	locations.append(location)
+	if travel_graph:
+		travel_graph.add_location(location)
+
+func build_travel_graph() -> void:
+	if not travel_graph:
+		travel_graph = TravelGraph.new()
+	for location in locations:
+		travel_graph.add_location(location)
+
+func find_path(from_id: String, to_id: String) -> Array[String]:
+	if not travel_graph:
+		build_travel_graph()
+	return travel_graph.find_path(from_id, to_id)
+
+func calculate_travel_time(from_id: String, to_id: String) -> int:
+	if not travel_graph:
+		build_travel_graph()
+	var path = travel_graph.find_path(from_id, to_id)
+	if path.is_empty():
+		return -1
+	return travel_graph.calculate_path_travel_time(path)
+
+func get_reachable_locations(from_id: String, max_hops: int = -1) -> Array[String]:
+	if not travel_graph:
+		build_travel_graph()
+	return travel_graph.get_all_reachable_locations(from_id, max_hops)
 
 func advance_turn(amount: int = 1) -> void:
 	turn_count += amount

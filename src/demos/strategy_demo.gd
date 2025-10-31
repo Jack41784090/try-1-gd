@@ -22,7 +22,19 @@ func setup_scenario() -> void:
 		StrategyTypes.ActivityType.TRAVEL,
 		StrategyTypes.ActivityType.HOLD_MASS
 	])
-	village.set_connections(["town_1"])
+	village.set_connections(["road_1"])
+	
+	var road = Location.new()
+	road.location_id = "road_1"
+	road.location_name = "Old Trade Road"
+	road.type = StrategyTypes.LocationType.ROAD
+	road.development = 10
+	road.stability = 60.0
+	road.set_activity_types([
+		StrategyTypes.ActivityType.REST,
+		StrategyTypes.ActivityType.TRAVEL
+	])
+	road.set_connections(["village_1", "town_1"])
 	
 	var town = Location.new()
 	town.location_id = "town_1"
@@ -38,10 +50,33 @@ func setup_scenario() -> void:
 		StrategyTypes.ActivityType.INVESTIGATE,
 		StrategyTypes.ActivityType.HOLD_MASS
 	])
-	town.set_connections(["village_1"])
+	town.set_connections(["road_1", "city_1"])
+	
+	var city = Location.new()
+	city.location_id = "city_1"
+	city.location_name = "Königsberg"
+	city.type = StrategyTypes.LocationType.CITY
+	city.development = 100
+	city.stability = 100.0
+	city.set_activity_types([
+		StrategyTypes.ActivityType.REST,
+		StrategyTypes.ActivityType.DRILL,
+		StrategyTypes.ActivityType.PATROL,
+		StrategyTypes.ActivityType.INVESTIGATE,
+		StrategyTypes.ActivityType.HOLD_MASS
+	])
+	city.set_connections(["town_1"])
 	
 	world.add_location(village)
+	world.add_location(road)
 	world.add_location(town)
+	world.add_location(city)
+	world.build_travel_graph()
+	
+	print("=== Travel Graph Built ===")
+	print("Path from Village to City: ", world.find_path("village_1", "city_1"))
+	print("Travel time: ", world.calculate_travel_time("village_1", "city_1"), " turns")
+	print("Reachable from Village (2 hops): ", world.get_reachable_locations("village_1", 2))
 	
 	var squad = StrategicSquad.new()
 	squad.squad_id = "player_squad"
@@ -76,16 +111,36 @@ func setup_scenario() -> void:
 	squad.add_warrior(warrior1)
 	squad.add_warrior(warrior2)
 	
+	var test_faction = Faction.new()
+	test_faction.faction_id = "test_faction"
+	test_faction.faction_name = "Test Faction"
+	
+	var test_mission = Mission.new()
+	test_mission.mission_id = "reach_city"
+	test_mission.mission_name = "Journey to Königsberg"
+	test_mission.description = "Travel to the great city"
+	test_mission.is_unlocked = true
+	var reach_condition = TriggerCondition.new()
+	reach_condition.condition_type = TriggerCondition.ConditionType.LOCATION
+	reach_condition.parameters = {"location_id": "city_1"}
+	test_mission.add_condition(reach_condition)
+	test_mission.set_completion_squad_effect("money", 50.0)
+	test_mission.set_completion_world_effect("end_progression", 10.0)
+	test_mission.add_completion_triggered_event("city_arrival")
+	
+	test_faction.add_mission(test_mission)
+	
 	scenario = GameScenario.new({
 		"world": world,
 		"player_squad": squad,
 		"starting_location_id": "village_1",
-		"factions": [],
+		"factions": [test_faction],
 		"events": [],
 		"endings": []
 	})
 	
 	scenario.activity_executed.connect(_on_activity_executed)
+	scenario.mission_completed.connect(_on_mission_completed)
 	scenario.turn_advanced.connect(_on_turn_advanced)
 
 func run_demo() -> void:
@@ -94,15 +149,23 @@ func run_demo() -> void:
 	var result1 = scenario.execute_turn(rest)
 	print_turn_result(result1)
 	
-	print("\n=== Turn 2: Drill ===")
-	var drill = DrillActivity.new()
-	var result2 = scenario.execute_turn(drill)
+	print("\n=== Turn 2: Travel to Road ===")
+	var travel1 = TravelActivity.new()
+	travel1.destination_id = "road_1"
+	var result2 = scenario.execute_turn(travel1)
 	print_turn_result(result2)
 	
-	print("\n=== Turn 3: Hold Mass ===")
-	var mass = HoldMassActivity.new()
-	var result3 = scenario.execute_turn(mass)
+	print("\n=== Turn 3: Travel to Town ===")
+	var travel2 = TravelActivity.new()
+	travel2.destination_id = "town_1"
+	var result3 = scenario.execute_turn(travel2)
 	print_turn_result(result3)
+	
+	print("\n=== Turn 4: Travel to City (multi-hop) ===")
+	var travel3 = TravelActivity.new()
+	travel3.destination_id = "city_1"
+	var result4 = scenario.execute_turn(travel3)
+	print_turn_result(result4)
 	
 	print("\n=== Current Squad Status ===")
 	print_squad_status()
@@ -124,6 +187,10 @@ func print_turn_result(result: Dictionary) -> void:
 	var squad_changes = activity_result.get("squad_changes", {})
 	if squad_changes.size() > 0:
 		print("  Squad changes: ", squad_changes)
+	
+	var missions_completed = result.get("missions_completed", [])
+	if missions_completed.size() > 0:
+		print("  ✓ Missions completed: ", missions_completed)
 
 func print_squad_status() -> void:
 	print("Squad: ", scenario.player_squad.squad_name)
@@ -143,6 +210,9 @@ func print_squad_status() -> void:
 
 func _on_activity_executed(activity: Activity, _result: StrategyTypes.ActivityResult) -> void:
 	print("[EVENT] Activity '%s' completed" % activity.activity_name)
+
+func _on_mission_completed(mission: Mission) -> void:
+	print("[EVENT] Mission completed: '%s'" % mission.mission_name)
 
 func _on_turn_advanced(turn: int) -> void:
 	print("[EVENT] Turn advanced to %d" % turn)

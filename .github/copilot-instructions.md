@@ -157,6 +157,44 @@ condition.parameters = {
 
 **EventManager**: Checks all registered events each turn, sorts by emergency priority
 
+#### Triggerable Pattern (Base Class)
+Events, Missions, and Endings share a common "check condition then execute" pattern via the `Triggerable` base class.
+
+**Base Class** (`Triggerable` extends `Resource`):
+- `trigger_id: String` - Unique identifier
+- `trigger_name: String` - Display name
+- `conditions: Array[TriggerCondition]` - Conditions to check before triggering
+- `check_conditions(context: Dictionary) -> bool` - Evaluates all conditions
+- `can_trigger(context: Dictionary) -> bool` - Virtual method for additional trigger logic
+- `trigger(squad: StrategicSquad, world: World) -> Dictionary` - Executes and returns result
+- `execute(squad: StrategicSquad, world: World) -> Dictionary` - Virtual method to override
+
+**Signals for Async Execution**:
+- `triggered(result: Dictionary)` - Emitted when trigger fires
+- `execution_started()` - Emitted before execution begins
+- `execution_completed(result: Dictionary)` - Emitted after execution finishes (for async scenes)
+
+**Subclasses**:
+- `GameEvent`: Adds `chance`, `repeats`, `when_to_trigger`, `emergency_priority`
+- `Mission`: Adds prerequisite/postrequisite graph, completion effects, unlock state
+- `Ending`: Adds epilogue scenes, ends the game
+
+**Async Execution Pattern**:
+When a Triggerable requires scene playback (dialogue, battle, cutscene):
+1. Set `requires_async = true` in result dictionary
+2. Set `dialogue_scene_path` or similar scene path field
+3. Emit `triggered` signal but NOT `execution_completed`
+4. External scene manager loads and plays scene
+5. When scene finishes, call `triggerable.complete_async_execution(result)`
+6. This emits `execution_completed` signal
+
+**TriggerableManager**: Unified manager for Events, Missions, and Endings:
+- `register(triggerable: Triggerable)` - Add any triggerable to registry
+- `check_triggers(context: Dictionary, filter: Callable) -> Array[Triggerable]` - Find matching triggerables
+- `trigger_all_matching(squad, world, context, filter) -> Array[Dictionary]` - Execute all matches
+- `get_events()`, `get_missions()`, `get_endings()` - Type-filtered accessors
+- Connects to all triggerable signals for centralized event handling
+
 #### Mission & Faction System
 Missions are objectives organized in dependency graphs per faction.
 
@@ -168,7 +206,55 @@ Missions are objectives organized in dependency graphs per faction.
 
 **Dependency Graph**: `prerequisite_mission_ids` → current mission → `postrequisite_mission_ids`
 
+**Mission Completion Effects** (`completion_effects` Dictionary):
+- `squad_stats: Dictionary` - Modify squad resources (money, food, morale, etc.)
+- `world_stats: Dictionary` - Modify world state (end_progression, global modifiers)
+- `reputation: Dictionary` - Change faction reputation by faction_id
+- `trigger_events: Array[String]` - Event IDs to trigger on completion
+
+**Mission Completion Flow**:
+1. `Mission.check_completion(context)` evaluates finish conditions
+2. `Mission.complete()` called by `Faction.check_mission_completions()`
+3. Returns `StrategyTypes.MissionResult` with all effects
+4. `Faction.update_mission_graph()` unlocks postrequisite missions
+5. Effects applied by GameScenario or calling code
+
 **Faction Reputation**: Tracked per faction, modified by activities and events
+
+#### Location & Travel System
+Locations form an adjacency graph instead of being fully connected.
+
+**Location Connections**:
+- `connected_location_ids: Array[String]` - IDs of adjacent locations
+- `is_connected_to(location_id: String) -> bool` - Check adjacency
+- `add_connection(location_id: String)` - Add bidirectional or directed edge
+- Connections manually configured or procedurally generated
+
+**TravelGraph Helper Class**:
+- `add_location(location: Location)` - Register location in graph
+- `find_path(from_id: String, to_id: String) -> Array[String]` - BFS pathfinding
+- `calculate_path_travel_time(path: Array[String]) -> int` - Sum travel time per segment
+- `get_distance(from_id: String, to_id: String) -> int` - Hop count
+- `get_all_reachable_locations(from_id: String, max_hops: int) -> Array[String]` - BFS with depth limit
+- `is_adjacent(from_id: String, to_id: String) -> bool` - Direct connection check
+
+**Travel Time Calculation** (per segment):
+- Base time: 1 turn
+- ROAD locations: -1 turn (min 1)
+- Low stability (<50): +1 turn
+- Calculated via `Location.calculate_base_travel_time(to_location)`
+
+**TravelActivity Pathfinding**:
+- If destination is adjacent: Travel directly
+- If destination is NOT adjacent: Use `World.find_path()` to get route, travel to first waypoint
+- Each travel action moves one hop along the path
+- Player sees narrative: "Traveled to X, en route to Y (N more steps)"
+
+**World Integration**:
+- `World.travel_graph: TravelGraph` - Maintained automatically
+- `World.add_location(location)` - Adds to both locations array and travel graph
+- `World.build_travel_graph()` - Rebuilds graph from current locations
+- `World.find_path(from, to)`, `World.calculate_travel_time(from, to)`, `World.get_reachable_locations(from)` - Delegate to TravelGraph
 
 #### World State
 Global game state tracking:
