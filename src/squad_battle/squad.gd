@@ -1,7 +1,4 @@
-extends RefCounted
-class_name Squad
-
-const Types = preload("res://src/squad_battle/types.gd")
+class_name Squad extends RefCounted
 
 var team: String = ""
 var entities: Array = []
@@ -41,7 +38,7 @@ func get_all_entities() -> Dictionary:
 	var result = {}
 	
 	for entity in entities:
-		var loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
+		var loc = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 		
 		if not result.has(loc):
 			result[loc] = []
