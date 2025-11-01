@@ -395,27 +395,15 @@ func _on_activity_executed(activity: Activity, result: StrategyTypes.ActivityRes
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)
 
-func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
+func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
 	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
-	
-	# Check if the result has an event chain
-	var chain_path: String = ""
-	
-	if result is StrategyTypes.GenericResult:
-		if result.has_event_chain():
-			chain_path = result.event_chain_path
-	elif result is Dictionary and result.has("event_chain_path"):
-		chain_path = result.get("event_chain_path", "")
-	
-	if not chain_path.is_empty():
-		_queue_event_chain(chain_path)
+	# Note: EventChains are queued from turn_summary in _execute_activity(), not here
+	# This prevents duplicate queuing and timing issues
 
 func _queue_event_chain(chain_path: String) -> void:
 	event_chain_queue.append(chain_path)
 	print("TrainingScreen: Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
-	
-	if not is_playing_chain:
-		_play_next_queued_chain()
+	# Don't auto-play here - let the caller decide when to start playback
 
 func _play_next_queued_chain() -> void:
 	if event_chain_queue.is_empty():
