@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=8 format=3 uid="uid://buuwkm1cvdl0q"]
+
+[ext_resource type="Script" uid="uid://cxdtgpsoaxouu" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://l3g17ogdf3uh" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "We gather now in the sight of the Divine. Bow your heads, brothers."
+background_id = "chapel"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "priest"])
+speaker_name = "Priest"
+line_spoken = "Let us pray for guidance in these troubled times. May faith light our path."
+background_id = "chapel"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "priest"])
+speaker_name = "Squad Leader"
+line_spoken = "In battle we are tested. In prayer we are strengthened. We fight not for glory, but for a higher purpose."
+background_id = "chapel"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["priest"])
+speaker_name = "Priest"
+line_spoken = "Go forth with the blessing of the righteous. May your souls remain pure even as your blades draw blood."
+background_id = "chapel"
+
+[sub_resource type="Resource" id="dialogue_5"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "Amen. Rise, men. The world awaits our service."
+background_id = "chapel"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "hold_mass_activity_chain"
+chain_name = "Holy Observance"
+character_ids = Array[String](["squad_leader", "priest"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5")]

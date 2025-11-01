@@ -76,9 +76,9 @@ func execute_turn(activity: Activity) -> Dictionary:
 	# The [Activity] itself executes
 	var activity_result = activity.execute(player_squad, world, current_location)
 	turn_summary["activity_result"] = {
-		"narrative": activity_result.narrative_log,
 		"squad_changes": activity_result.squad_stat_changes,
-		"world_changes": activity_result.world_stat_changes
+		"world_changes": activity_result.world_stat_changes,
+		"event_chain_path": activity_result.event_chain_path
 	}
 	
 	# Changes of the Activity is applied to the Squad

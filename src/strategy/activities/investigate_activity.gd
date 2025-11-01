@@ -19,11 +19,10 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	var result = StrategyTypes.ActivityResult.new()
 	
 	if not squad.spend_money(money_cost):
-		result.add_narrative("Not enough money to investigate. Need %.2f gold." % money_cost)
+		# Error case - not enough money, no EventChain
 		return result
 	
 	result.modify_squad_stat("money", -money_cost)
-	result.add_narrative("Spent %.2f gold investigating in %s." % [money_cost, _location.location_name])
 	
 	var success_chance = 0.6
 	var avg_perception = 0.0
@@ -36,19 +35,17 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 		avg_perception /= living_warriors.size()
 		success_chance += avg_perception / 100.0
 	
+	# Trigger EventChain for narrative experience
+	result.event_chain_path = "res://resources/event_chains/investigate_activity_chain.tres"
+	
 	if randf() < success_chance:
-		result.add_narrative("Investigation successful! Uncovered valuable information.")
 		if randf() < 0.4:
 			result.trigger_event("mission_unlocked")
-			result.add_narrative("A new mission opportunity revealed!")
 		elif randf() < 0.3:
 			result.trigger_event("location_discovered")
-			result.add_narrative("Discovered a hidden location!")
 	else:
-		result.add_narrative("Investigation yielded no useful results.")
 		if randf() < 0.2:
 			result.trigger_event("investigation_backfire")
-			result.add_narrative("The investigation attracted unwanted attention!")
 	
 	return result
 

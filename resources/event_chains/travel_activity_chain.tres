@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=7 format=3 uid="uid://bw5oakxlgkeri"]
+
+[ext_resource type="Script" uid="uid://cxdtgpsoaxouu" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://l3g17ogdf3uh" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "Pack up. We move out at dawn."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "scout"])
+speaker_name = "Scout"
+line_spoken = "The road ahead looks clear, Captain. No signs of bandits."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "scout"])
+speaker_name = "Squad Leader"
+line_spoken = "Good. Keep your eyes sharp. The world grows stranger by the day."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["scout"])
+speaker_name = "Scout"
+line_spoken = "Aye, sir. I'll range ahead and report back."
+background_id = "road"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "travel_activity_chain"
+chain_name = "On the Road"
+character_ids = Array[String](["squad_leader", "scout"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4")]

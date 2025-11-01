@@ -42,14 +42,13 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	squad.modify_karma(karma_gain)
 	result.modify_squad_stat("karma", karma_gain)
 	
-	result.add_narrative("The squad holds mass. Faithful warriors gain morale, others feel excluded.")
+	# Trigger EventChain for narrative experience
+	result.event_chain_path = "res://resources/event_chains/hold_mass_activity_chain.tres"
 	
 	if randf() < 0.2:
 		result.trigger_event("religious_vision")
-		result.add_narrative("A warrior experiences a religious vision!")
 	elif randf() < 0.15:
 		result.trigger_event("faction_attention")
-		result.add_narrative("Your piety attracts the attention of a religious faction!")
 	
 	return result
 

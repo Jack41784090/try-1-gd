@@ -20,18 +20,18 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	
 	var stability_increase = 10.0
 	_location.modify_stability(stability_increase)
-	result.add_narrative("Patrolled %s, improving local stability." % _location.location_name)
 	
 	var reputation_gain = 5.0
 	squad.modify_karma(reputation_gain)
 	result.modify_squad_stat("karma", reputation_gain)
 	
+	# Trigger EventChain for narrative experience
+	result.event_chain_path = "res://resources/event_chains/patrol_activity_chain.tres"
+	
 	if randf() < 0.25:
 		result.trigger_event("local_crime_discovered")
-		result.add_narrative("Discovered criminal activity during patrol!")
 	elif randf() < 0.15:
 		result.trigger_event("hidden_threat_found")
-		result.add_narrative("Found signs of a hidden threat!")
 	
 	return result
 

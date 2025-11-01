@@ -14,25 +14,20 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	var result = StrategyTypes.ActivityResult.new()
 	
 	var food_needed = squad.warriors.size()
-	if not squad.consume_food(food_needed):
-		result.add_narrative("Not enough food to rest properly. Squad rests poorly.")
-		squad.modify_morale(5.0)
-		result.modify_squad_stat("morale", 5.0)
-		return result
+	# if not squad.consume_food(food_needed):
+	# 	result.add_narrative("Not enough food to rest properly. Squad rests poorly.")
+	# 	squad.modify_morale(5.0)
+	# 	result.modify_squad_stat("morale", 5.0)
+	# 	return result
 	
 	var morale_boost = 20.0
 	squad.modify_morale(morale_boost)
 	result.modify_squad_stat("morale", morale_boost)
 	
-	result.add_narrative("The squad rests and recovers morale. Food consumed: %d" % food_needed)
-	
 	# Trigger EventChain for narrative experience
-	if randf() < 0.5:  # 50% chance to show EventChain
-		result.event_chain_path = "res://resources/event_chains/rest_activity_chain.tres"
+	result.event_chain_path = "res://resources/event_chains/rest_activity_chain.tres"
 	
 	if randf() < 0.3:
 		result.trigger_event("social_gathering")
-		result.add_narrative("Social bonds strengthen during rest.")
 	
 	return result
-

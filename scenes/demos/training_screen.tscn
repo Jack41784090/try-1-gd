@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=4 format=3 uid="uid://dmbcxxfr6jwmu"]
 
-[ext_resource type="Script" uid="uid://cl4l4kc5xhylm" path="res://scenes/demos/training_screen.gd" id="1_w1g7x"]
+[ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://scenes/demos/training_screen.gd" id="1_w1g7x"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_fnhso"]
-[ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="2_l6ifl"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_5lq21"]
 
 [node name="TrainingScreen" type="Control"]
@@ -60,7 +59,6 @@ text = "End Game"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-max_value = 100.0
 value = 90.0
 show_percentage = false
 
@@ -91,12 +89,6 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="HintIcon" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("2_l6ifl")
-
 [node name="DialogueBox" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
 layout_mode = 1
 anchors_preset = 7
@@ -109,7 +101,6 @@ offset_top = -150.0
 offset_right = 400.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
 layout_mode = 2
@@ -122,11 +113,11 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 
 [node name="SpeakerLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.6, 0.2, 1)
 theme_override_font_sizes/font_size = 20
 text = "Speaker"
-visible = false
 
 [node name="DialogueLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -134,24 +125,13 @@ text = "Dialogue goes here"
 autowrap_mode = 2
 
 [node name="AdvancePrompt" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -30.0
-offset_right = -10.0
-offset_bottom = -10.0
-grow_horizontal = 0
-grow_vertical = 0
+visible = false
+layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 14
 text = "Click to continue"
 horizontal_alignment = 2
 vertical_alignment = 2
-visible = false
 
 [node name="StatsPanel" type="GridContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
@@ -188,33 +168,33 @@ alignment = 1
 
 [node name="TrainingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Rest"
 tooltip_text = "Make camp and recover morale"
+text = "Rest"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Drill"
 tooltip_text = "Train to improve combat skills"
+text = "Drill"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Patrol"
 tooltip_text = "Patrol the area and maintain order"
+text = "Patrol"
 
 [node name="NurseButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Investigate"
 tooltip_text = "Gather information and seek opportunities"
+text = "Investigate"
 
 [node name="OutingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Hold Mass"
 tooltip_text = "Lead religious observance"
+text = "Hold Mass"
 
 [node name="RaceButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Travel"
 tooltip_text = "Move to another location"
+text = "Travel"
 
 [node name="BottomNavBar" type="HBoxContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2

@@ -284,11 +284,8 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 func _display_activity_result(result: StrategyTypes.ActivityResult) -> void:
 	var display_text = ""
 	
-	for narrative in result.narrative_log:
-		display_text += narrative + "\n"
-	
 	if result.squad_stat_changes.size() > 0:
-		display_text += "\nSquad Changes:\n"
+		display_text += "Squad Changes:\n"
 		for stat in result.squad_stat_changes:
 			var value = result.squad_stat_changes[stat]
 			display_text += "  %s: %+.1f\n" % [stat, value]

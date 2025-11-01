@@ -60,19 +60,16 @@ enum WarriorAttribute {
 class GenericResult:
 	var squad_stat_changes: Dictionary = {}
 	var world_stat_changes: Dictionary = {}
-	var narrative_text: String = ""
+	var event_chain_path: String = ""
+	var requires_async: bool
+
 	pass
 
 
 class ActivityResult extends  GenericResult:
-	var narrative_log: Array[String] = []
 	var triggered_event_ids: Array[String] = []
 	var combat_initiated: bool = false
 	var location_changed: String = ""
-	var event_chain_path: String = ""
-	
-	func add_narrative(text: String) -> void:
-		narrative_log.append(text)
 	
 	func trigger_event(event_id: String) -> void:
 		triggered_event_ids.append(event_id)
@@ -107,16 +104,11 @@ class EventResult extends GenericResult:
 	var event_name: String;
 	var choices: Array[EventChoice] = []
 	var immediate_effects: Dictionary = {}
-	var dialogue_scene_path: String = ""
-	var event_chain_path: String = ""
 	var auto_resolved: bool = true
 	
 	func add_choice(choice: EventChoice) -> void:
 		choices.append(choice)
 		auto_resolved = false
-	
-	func has_event_chain() -> bool:
-		return not event_chain_path.is_empty()
 
 class TriggerContext:
 	var squad: Resource
@@ -145,15 +137,9 @@ class MissionResult extends GenericResult:
 	var unlocked_missions: Array[String] = []
 	var reputation_changes: Dictionary = {}
 	var triggered_event_ids: Array[String] = []
-	var dialogue_scene_path: String = ""
-	var event_chain_path: String = ""
-	var requires_async: bool = false
 	
 	func _init(p_mission_id: String = "") -> void:
 		mission_id = p_mission_id
-	
-	func add_narrative(text: String) -> void:
-		narrative_text += text + "\n"
 	
 	func trigger_event(event_id: String) -> void:
 		triggered_event_ids.append(event_id)
@@ -174,20 +160,12 @@ class EndingResult extends GenericResult:
 	var ending_id: String;
 	var ending_name: String;
 	var description: String;
-	var epilogue_scene_paths: Array[String];
-	var event_chain_path: String = ""
-	var requires_async: bool
 
 	func _init(config: Dictionary) -> void:
 		ending_id = config.get("ending_id"); assert(ending_id)
 		ending_name = config.get("ending_name", "Unnamed Ending");
 		description = config.get("description", "")
-		narrative_text = config.get("narrative_text", "")
-		epilogue_scene_paths = config.get("epilogue_scene_paths", [] as Array[String])
+		# epilogue_scene_paths = config.get("epilogue_scene_paths", [] as Array[String])
 		event_chain_path = config.get("event_chain_path", "")
-		requires_async = config.get("requires_async", epilogue_scene_paths.size() > 0)
+		requires_async = config.get("requires_async")
 		pass
-	
-	func has_event_chain() -> bool:
-		return not event_chain_path.is_empty()
-	pass

@@ -23,14 +23,12 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	squad.modify_morale(-3.0)
 	result.modify_squad_stat("morale", -3.0)
 	
-	result.add_narrative("The squad trains rigorously, improving combat skills but losing some morale.")
+	# Trigger EventChain for narrative experience
+	result.event_chain_path = "res://resources/event_chains/drill_activity_chain.tres"
 	
 	if randf() < 0.1:
 		result.trigger_event("training_accident")
-		result.add_narrative("A training accident occurs!")
 	elif randf() < 0.15:
 		result.trigger_event("training_breakthrough")
-		result.add_narrative("A warrior has a breakthrough in training!")
 	
 	return result
-
