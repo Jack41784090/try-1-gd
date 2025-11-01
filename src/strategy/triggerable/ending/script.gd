@@ -9,13 +9,13 @@ class_name Ending
 func _init() -> void:
 	super._init()
 
-func trigger(_squad: StrategicSquad = null, _world: World = null) -> StrategyTypes.EndingResult:
+func trigger(_squad: StrategicSquad = null, _world: World = null) -> EndingResult:
 	trigger_id = ending_id
 	trigger_name = ending_name
 	
 	execution_started.emit()
 	
-	var ending_result = StrategyTypes.EndingResult.new({
+	var ending_result = EndingResult.new({
 		"ending_id": ending_id,
 		"ending_name": ending_name,
 		"description": description,
@@ -31,5 +31,5 @@ func trigger(_squad: StrategicSquad = null, _world: World = null) -> StrategyTyp
 	
 	return ending_result
 
-func execute(_squad: StrategicSquad = null, _world: World = null) -> StrategyTypes.EndingResult:
+func execute(_squad: StrategicSquad = null, _world: World = null) -> EndingResult:
 	return trigger(_squad, _world)

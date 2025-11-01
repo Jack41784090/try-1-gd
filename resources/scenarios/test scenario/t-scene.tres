@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="GameScenario" load_steps=9 format=3 uid="uid://h3yr0gy8a0do"]
 
-[ext_resource type="Script" uid="uid://c7brxo8k1l70l" path="res://src/strategy/locations/location.gd" id="1_iqtvy"]
-[ext_resource type="Script" uid="uid://cxnwlg48pw6b" path="res://src/strategy/missions/ending.gd" id="2_0xci1"]
-[ext_resource type="Script" uid="uid://cc5wxu7e8gyp3" path="res://src/strategy/missions/faction.gd" id="3_xdm22"]
+[ext_resource type="Script" path="res://src/strategy/locations/location.gd" id="1_iqtvy"]
+[ext_resource type="Script" path="res://src/strategy/missions/ending.gd" id="2_0xci1"]
+[ext_resource type="Script" path="res://src/strategy/missions/faction.gd" id="3_xdm22"]
 [ext_resource type="Resource" uid="uid://c8g1w3umulj61" path="res://resources/scenarios/test scenario/factions/1/faction1.tres" id="4_vyny8"]
 [ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/game_scenario.gd" id="5_lywjj"]
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="6_2k4hx"]

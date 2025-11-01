@@ -124,11 +124,13 @@ Activities are player actions that consume turns. Base class `Activity` with vir
 
 **Factory Pattern**: `Activity.create_activity(ActivityType)` returns specific subclass
 
-**Result Pattern**: All activities return `StrategyTypes.ActivityResult` with:
-- `narrative_log: Array[String]` - Player-facing text
+**Result Pattern**: All activities return `ActivityResult` (extends `GenericResult`) with:
 - `squad_stat_changes: Dictionary` - Squad resource modifications
 - `world_stat_changes: Dictionary` - World state modifications
 - `triggered_event_ids: Array[String]` - Events to fire
+- `event_chain_path: String` - Path to EventChain resource for VN presentation
+- `requires_async: bool` - Whether result requires async scene playback
+- `location_changed: String` - New location ID if travel occurred
 
 #### Event & Trigger System
 Events are narrative occurrences checked before/after activities.
@@ -158,17 +160,54 @@ condition.parameters = {
 
 **EventManager**: Checks all registered events each turn, sorts by emergency priority
 
+#### Result Type Hierarchy
+All strategic results inherit from `GenericResult` base class (inner class in `StrategyTypes`):
+
+**GenericResult** (base class):
+- `squad_stat_changes: Dictionary` - Modifications to squad resources
+- `world_stat_changes: Dictionary` - Modifications to world state
+- `event_chain_path: String` - Path to EventChain resource for VN presentation
+- `requires_async: bool` - Whether result needs async scene playback
+- `triggered_event_ids: Array[String]` - Event IDs to fire
+- `modify_squad_stat(stat_name: String, value: float)` - Helper to accumulate stat changes
+- `modify_world_stat(stat_name: String, value: float)` - Helper to accumulate stat changes
+- `trigger_event(event_id: String)` - Add event ID to trigger list
+- `has_event_chain() -> bool` - Check if EventChain should be played
+
+**ActivityResult** (extends GenericResult):
+- `location_changed: String` - New location ID if travel occurred
+
+**EventResult** (extends GenericResult):
+- `event_id: String` - Unique event identifier
+- `event_name: String` - Display name
+- `choices: Array[EventChoice]` - Player choices (if not auto-resolved)
+- `immediate_effects: Dictionary` - Effects to apply immediately
+- `auto_resolved: bool` - Whether event auto-resolves or requires player choice
+- `add_choice(choice: EventChoice)` - Add player choice option
+
+**MissionResult** (extends GenericResult):
+- `mission_id: String` - Unique mission identifier
+- `unlocked_missions: Array[String]` - Mission IDs unlocked by completion
+
+**EndingResult** (extends GenericResult):
+- `ending_id: String` - Unique ending identifier
+- `ending_name: String` - Display name
+- `description: String` - Ending description
+
 #### Triggerable Pattern (Base Class)
 Events, Missions, and Endings share a common "check condition then execute" pattern via the `Triggerable` base class.
 
 **Base Class** (`Triggerable` extends `Resource`):
+- Located at `src/strategy/triggerable/script.gd`
 - `trigger_id: String` - Unique identifier
 - `trigger_name: String` - Display name
+- `description: String` - Detailed description
 - `conditions: Array[TriggerCondition]` - Conditions to check before triggering
 - `check_conditions(context: Dictionary) -> bool` - Evaluates all conditions
 - `can_trigger(context: Dictionary) -> bool` - Virtual method for additional trigger logic
-- `trigger(squad: StrategicSquad, world: World) -> Dictionary` - Executes and returns result
-- `execute(squad: StrategicSquad, world: World) -> Dictionary` - Virtual method to override
+- `trigger(squad: StrategicSquad, world: World) -> StrategyTypes.GenericResult` - Executes and returns result
+- `execute(squad: StrategicSquad, world: World) -> Variant` - Virtual method to override
+- `add_condition(condition: TriggerCondition)` - Helper to add conditions
 
 **Signals for Async Execution**:
 - `triggered(result: Dictionary)` - Emitted when trigger fires
@@ -176,25 +215,45 @@ Events, Missions, and Endings share a common "check condition then execute" patt
 - `execution_completed(result: Dictionary)` - Emitted after execution finishes (for async scenes)
 
 **Subclasses**:
-- `GameEvent`: Adds `chance`, `repeats`, `when_to_trigger`, `emergency_priority`
-- `Mission`: Adds prerequisite/postrequisite graph, completion effects, unlock state
-- `Ending`: Adds epilogue scenes, ends the game
+- `GameEvent` (`src/strategy/triggerable/game-event/script.gd`): Adds `event_id`, `event_name`, `event_chain_path`, `chance`, `repeats`, `when_to_trigger`, `emergency_priority`, `times_triggered`
+- `Mission` (`src/strategy/triggerable/mission/script.gd`): Adds `mission_id`, `mission_name`, prerequisite/postrequisite graph, completion effects, unlock state (`is_unlocked`, `is_completed`, `is_failed`)
+- `Ending` (`src/strategy/triggerable/ending/script.gd`): Adds `ending_id`, `ending_name`, `narrative_text`, `epilogue_scene_paths`
+
+**GameEvent Specifics**:
+- `times_triggered: int` - Tracks how many times event has fired
+- `can_trigger()` - Checks repeats limit and random chance before base conditions
+- `trigger()` - Increments `times_triggered`, auto-completes execution if no event_chain_path
+- `increment_trigger_count()`, `reset_trigger_count()` - Manual trigger count management
+
+**Mission Specifics**:
+- `check_unlock(completed_mission_ids: Array[String]) -> bool` - Check if prerequisites met
+- `unlock()` - Mark mission as unlocked
+- `complete() -> MissionResult` - Mark completed, apply effects, unlock postrequisites
+- `fail()` - Mark mission as failed
+- `reset()` - Clear all state flags
+- `check_completion(context: Dictionary) -> bool` - Check if finish conditions met
+- Helper methods: `add_prerequisite()`, `add_postrequisite()`, `set_completion_squad_effect()`, etc.
+
+**Ending Specifics**:
+- `trigger()` - Returns EndingResult, auto-completes if no epilogue scenes
+- `execute()` - Delegates to trigger()
 
 **Async Execution Pattern**:
 When a Triggerable requires scene playback (dialogue, battle, cutscene):
-1. Set `requires_async = true` in result dictionary
-2. Set `dialogue_scene_path` or similar scene path field
+1. Set `requires_async = true` in result object
+2. Set `event_chain_path` or `dialogue_scene_path` field
 3. Emit `triggered` signal but NOT `execution_completed`
 4. External scene manager loads and plays scene
-5. When scene finishes, call `triggerable.complete_async_execution(result)`
-6. This emits `execution_completed` signal
+5. When scene finishes, emit `execution_completed` signal manually
 
 **TriggerableManager**: Unified manager for Events, Missions, and Endings:
-- `register(triggerable: Triggerable)` - Add any triggerable to registry
+- Located at `src/strategy/triggerable/manager.gd`
+- `registered_triggerables: Array[Triggerable]` - All registered triggerables
+- `register(triggerable: Triggerable)` - Add triggerable and connect signals
 - `check_triggers(context: Dictionary, filter: Callable) -> Array[Triggerable]` - Find matching triggerables
-- `trigger_all_matching(squad, world, context, filter) -> Array[Dictionary]` - Execute all matches
-- `get_events()`, `get_missions()`, `get_endings()` - Type-filtered accessors
-- Connects to all triggerable signals for centralized event handling
+- `get_by_id(trigger_id: String) -> Triggerable` - Retrieve by ID
+- `triggerable_fired` signal - Emitted when any triggerable fires
+- Automatically connects to all triggerable signals for centralized event handling
 
 #### Mission & Faction System
 Missions are objectives organized in dependency graphs per faction.
@@ -216,7 +275,7 @@ Missions are objectives organized in dependency graphs per faction.
 **Mission Completion Flow**:
 1. `Mission.check_completion(context)` evaluates finish conditions
 2. `Mission.complete()` called by `Faction.check_mission_completions()`
-3. Returns `StrategyTypes.MissionResult` with all effects
+3. Returns `MissionResult` with all effects
 4. `Faction.update_mission_graph()` unlocks postrequisite missions
 5. Effects applied by GameScenario or calling code
 
@@ -282,6 +341,51 @@ func from_combat_results(updates: Array[EntityUpdate]):
     # Remove casualties from squad
 ```
 
+#### Visual Novel System Components
+Located in `src/strategy/vn/`, provides narrative presentation for activities, events, missions, and endings.
+
+**EventChain** (Resource class at `src/strategy/vn/event_chain.gd`):
+- `chain_id: String` - Unique identifier
+- `chain_name: String` - Display name
+- `character_ids: Array[String]` - All characters appearing in chain
+- `dialogues: Array` - Array of Dialogue resources
+- `_init(config: Dictionary)` - Initialize from dictionary config
+- `set_character_ids(ids: Array[String])` - Helper to set character list
+- `set_dialogues(dialogue_list: Array)` - Helper to set dialogue list
+- `get_dialogue_count() -> int` - Number of dialogues in chain
+- `get_all_character_ids() -> Array[String]` - All unique character IDs
+- `static load_from_json_file(file_path: String) -> EventChain` - Load from JSON file
+- `static load_from_json_string(json_string: String) -> EventChain` - Load from JSON string
+
+**Dialogue** (Resource class at `src/strategy/vn/dialogue.gd`):
+- `on_screen_character_ids: Array[String]` - Characters visible in this dialogue
+- `speaker_name: String` - Who is speaking
+- `line_spoken: String` - The dialogue text
+- `background_id: String` - Background image identifier
+- `triggers: Array` - Trigger effects at specific text positions
+- `_init(config: Dictionary)` - Initialize from dictionary, parses "speak" object format
+- `set_on_screen_character_ids(ids: Array[String])` - Helper to set character list
+- `has_triggers() -> bool` - Check if dialogue has trigger effects
+- `get_trigger_at_position(text_position: String) -> Dictionary` - Get trigger for position
+
+**Dialogue Format**: Supports "speak" object format from JSON:
+```gdscript
+{
+    "on_screen_character_ids": ["char1", "char2"],
+    "background": "bg_id",
+    "speak": {
+        "Character Name": "Dialogue text here",
+        "triggers": [...]
+    }
+}
+```
+
+**EventChain → Result Integration**:
+- Activities, Events, Missions, Endings can set `event_chain_path` in their results
+- `GenericResult.has_event_chain() -> bool` checks if path is set
+- When `event_chain_path` is set, `requires_async = true` should also be set
+- UI layer loads EventChain resource and plays dialogues sequentially
+
 ## Project-Specific Conventions
 
 ### Integrated Visual Novel System
@@ -343,9 +447,11 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 - `src/strategy/`: Strategic campaign layer
 - `src/strategy/core/`: Core strategic classes (World, Squad, Warrior, GameScenario)
 - `src/strategy/activities/`: Activity implementations
-- `src/strategy/events/`: Event and trigger condition system
-- `src/strategy/missions/`: Mission, faction, and ending system
-- `src/strategy/locations/`: Location/travel graph
+- `src/strategy/triggerable/`: Unified triggerable system (base class, manager, condition)
+- `src/strategy/triggerable/game-event/`: GameEvent implementation and result
+- `src/strategy/triggerable/mission/`: Mission implementation and result
+- `src/strategy/triggerable/ending/`: Ending implementation and result
+- `src/strategy/vn/`: Visual novel system (EventChain, Dialogue, VisualNovelComponent)
 - `src/demos/`: Demo implementations
 - `src/singletons/`: Autoloaded event buses
 - `scenes/`: Godot scene files (.tscn)

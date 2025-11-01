@@ -10,7 +10,7 @@ enum ConditionType {
 	TIME,
 	MISSION_STATUS,
 	COMPOUND
-}
+};
 
 @export var condition_type: ConditionType = ConditionType.SQUAD_STATUS
 @export var parameters: Dictionary = {}

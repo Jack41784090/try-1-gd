@@ -37,7 +37,7 @@ func can_trigger(context: Dictionary = {}) -> bool:
 func check_completion(context: Dictionary) -> bool:
 	return can_trigger(context) and check_conditions(context)
 
-func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.MissionResult:
+func trigger(_squad: StrategicSquad, _world: World) -> MissionResult:
 	trigger_id = mission_id
 	trigger_name = mission_name
 	
@@ -63,14 +63,14 @@ func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.MissionResu
 	
 	return result
 
-func execute(_squad: StrategicSquad, _world: World) -> StrategyTypes.MissionResult:
+func execute(_squad: StrategicSquad, _world: World) -> MissionResult:
 	return complete()
 
-func complete() -> StrategyTypes.MissionResult:
+func complete() -> MissionResult:
 	is_completed = true
 	is_unlocked = false
 	
-	var result = StrategyTypes.MissionResult.new(mission_id)
+	var result = MissionResult.new(mission_id)
 	result.unlocked_missions = postrequisite_mission_ids.duplicate()
 	result.narrative_text = "Mission '%s' completed!" % mission_name
 	

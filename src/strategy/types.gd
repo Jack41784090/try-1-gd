@@ -99,16 +99,6 @@ class EventChoice:
 				return false
 		return true
 
-class EventResult extends GenericResult:
-	var event_id: String;
-	var event_name: String;
-	var choices: Array[EventChoice] = []
-	var immediate_effects: Dictionary = {}
-	var auto_resolved: bool = true
-	
-	func add_choice(choice: EventChoice) -> void:
-		choices.append(choice)
-		auto_resolved = false
 
 class TriggerContext:
 	var squad: Resource
@@ -132,26 +122,4 @@ class TriggerContext:
 			"completed_missions": completed_missions
 		}
 
-class MissionResult extends GenericResult:
-	var mission_id: String
-	var unlocked_missions: Array[String] = []
-	
-	func _init(p_mission_id: String = "") -> void:
-		mission_id = p_mission_id
-	
-	func has_event_chain() -> bool:
-		return not event_chain_path.is_empty()
 
-class EndingResult extends GenericResult:
-	var ending_id: String;
-	var ending_name: String;
-	var description: String;
-
-	func _init(config: Dictionary) -> void:
-		ending_id = config.get("ending_id"); assert(ending_id)
-		ending_name = config.get("ending_name", "Unnamed Ending");
-		description = config.get("description", "")
-		# epilogue_scene_paths = config.get("epilogue_scene_paths", [] as Array[String])
-		event_chain_path = config.get("event_chain_path", "")
-		requires_async = config.get("requires_async")
-		pass

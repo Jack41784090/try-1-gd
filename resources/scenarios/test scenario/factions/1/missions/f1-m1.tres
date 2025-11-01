@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Mission" load_steps=3 format=3 uid="uid://cdhxdhnsms6mo"]
 
-[ext_resource type="Script" uid="uid://d3yn8pijg32li" path="res://src/strategy/events/trigger_condition.gd" id="1_mn1hp"]
-[ext_resource type="Script" uid="uid://bc2ykm3n0oeg" path="res://src/strategy/missions/mission.gd" id="2_l3nv7"]
+[ext_resource type="Script" path="res://src/strategy/events/trigger_condition.gd" id="1_mn1hp"]
+[ext_resource type="Script" path="res://src/strategy/missions/mission.gd" id="2_l3nv7"]
 
 [resource]
 script = ExtResource("2_l3nv7")

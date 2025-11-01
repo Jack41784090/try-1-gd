@@ -23,7 +23,7 @@ func can_trigger(context: Dictionary = {}) -> bool:
 	
 	return super.can_trigger(context)
 
-func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
+func trigger(_squad: StrategicSquad, _world: World) -> EventResult:
 	times_triggered += 1
 	trigger_id = event_id
 	trigger_name = event_name
@@ -39,9 +39,9 @@ func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult
 	
 	return result
 
-func execute(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
+func execute(_squad: StrategicSquad, _world: World) -> EventResult:
 	# Override this in subclasses to implement event logic
-	var result = StrategyTypes.EventResult.new()
+	var result = EventResult.new()
 	result.event_id = event_id
 	result.event_name = event_name
 	result.event_chain_path = event_chain_path
