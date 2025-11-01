@@ -6,7 +6,7 @@
             "background": "asset-id"
         },
         {
-            "onscreen-character-ids": [
+            "on_screen_character_ids": [
                 "faust"
             ],
             "speak": {
@@ -18,7 +18,7 @@
             "background": "asset-id"
         },
         {
-            "onscreen-character-ids": [
+            "on_screen_character_ids": [
                 "faust",
                 "wagner"
             ],

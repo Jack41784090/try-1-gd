@@ -371,30 +371,71 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 3. ❌ Don't use `Array[CustomClass]` before CustomClass is defined - will cause compile errors until Godot parses all files
 4. ❌ Don't mix strategic and tactical concerns in same class - keep layers separate
 5. ❌ Don't hardcode magic numbers - use named constants or configuration dictionaries
-6. ❌ **Don't directly assign untyped arrays to typed array properties in Resources** - use helper methods like `set_activity_types()` or explicit casts `as Array[Type]`
+6. ❌ **Don't directly assign untyped arrays to typed array properties** - Always use iterative assignment or helper methods (see below)
+7. ❌ **Don't use `.get()` with default array values for typed arrays** - Returns untyped Array, causing type errors
+8. ❌ **Don't cast Dictionary.get() results to typed arrays** - The cast happens after .get() returns untyped Array
 
-### Typed Array Assignment Pattern
-When working with `@export var my_array: Array[CustomType] = []` in Resources:
+### Typed Array Assignment Pattern (CRITICAL)
+GDScript has strict typed array requirements. **ANY assignment to a typed array variable MUST come from a compatible typed source.**
 
-**❌ Wrong** (causes runtime type errors):
+**The Problem:**
 ```gdscript
-location.available_activity_types = [ActivityType.REST, ActivityType.DRILL]
+var my_array: Array[String] = []
+my_array = config.get("items", [])  # ❌ WRONG: .get() returns untyped Array
+my_array = config.get("items", [] as Array[String])  # ❌ STILL WRONG: Cast happens before .get()
+my_array = config.get("items", []) as Array[String]  # ❌ STILL WRONG: .get() already returned untyped Array
 ```
 
-**✅ Better** (explicit cast):
+**✅ CORRECT Solutions:**
+
+**Method 1: Iterative Assignment (Most Reliable)**
 ```gdscript
-location.available_activity_types = [ActivityType.REST, ActivityType.DRILL] as Array[StrategyTypes.ActivityType]
+var my_array: Array[String] = []
+var raw_data = config.get("items", [])
+if raw_data is Array:
+    for item in raw_data:
+        if item is String:  # Type check each element
+            my_array.append(item)
 ```
 
-**✅ Best** (helper method):
+**Method 2: Helper Method**
 ```gdscript
-# In the Resource class
-func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
-    available_activity_types.clear()
-    available_activity_types.append_array(types)
+# In the class
+func set_items(items: Array[String]) -> void:
+    my_array.clear()
+    my_array.append_array(items)  # append_array from typed param is safe
 
-# Usage
-location.set_activity_types([ActivityType.REST, ActivityType.DRILL])
+# Usage - caller must provide typed array
+var items: Array[String] = ["a", "b", "c"]
+obj.set_items(items)
 ```
 
-**Why?** Godot's Resource system can't infer array types from literals at runtime. Helper methods that accept typed parameters bypass this limitation cleanly.
+**Method 3: Two-step with Clear Intermediate**
+```gdscript
+var temp_array = config.get("items", [])
+var my_array: Array[String] = []
+if temp_array is Array:
+    for val in temp_array:
+        my_array.append(val if val is String else "")
+```
+
+**When Loading from JSON/Dictionary:**
+```gdscript
+# ❌ NEVER do this:
+character_ids = data.get("character_ids", [] as Array[String])
+
+# ✅ ALWAYS do this:
+var raw_ids = data.get("character_ids", [])
+if raw_ids is Array:
+    for id_val in raw_ids:
+        if id_val is String:
+            character_ids.append(id_val)
+```
+
+**Why This Matters:**
+- `Dictionary.get()` always returns untyped Variant
+- Type casts (`as Array[String]`) don't convert, they just assert/fail
+- Godot's type system is strict at assignment boundaries
+- **This error will appear at compile time and break the code completely**
+
+**Golden Rule:** Never directly assign from Dictionary.get(), JSON parsing, or any untyped source to a typed array variable. Always iterate and append with type checking.

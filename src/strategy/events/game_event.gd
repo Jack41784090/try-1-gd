@@ -22,37 +22,28 @@ func can_trigger(context: Dictionary = {}) -> bool:
 	
 	return super.can_trigger(context)
 
-func trigger(squad: StrategicSquad, world: World) -> StrategyTypes.EventResult:
+func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
 	times_triggered += 1
 	trigger_id = event_id
 	trigger_name = event_name
 	
 	execution_started.emit()
-	var result = fire(squad, world)
 	
-	var result_dict = {
+	var result = {
 		"event_id": event_id,
-		"narrative_text": result.narrative_text,
-		"requires_async": not result.auto_resolved or not result.dialogue_scene_path.is_empty(),
-		"choices": result.choices,
-		"immediate_effects": result.immediate_effects,
-		"dialogue_scene_path": result.dialogue_scene_path
+		"event_name": event_name,
+		# "narrative_text": narrative_text,
+		# "requires_async": not result.auto_resolved or not result.dialogue_scene_path.is_empty(),
+		# "choices": result.choices,
+		# "immediate_effects": result.immediate_effects,
+		# "dialogue_scene_path": result.dialogue_scene_path
 	}
 	
-	triggered.emit(result_dict)
+	triggered.emit(result)
 	
 	if result.auto_resolved and result.dialogue_scene_path.is_empty():
-		execution_completed.emit(result_dict)
+		execution_completed.emit(result)
 	
-	return result
-
-func execute(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
-	return fire(_squad, _world)
-
-func fire(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
-	push_error("GameEvent.fire() must be overridden in subclass")
-	var result = StrategyTypes.EventResult.new()
-	result.narrative_text = "Event '%s' fired but has no implementation." % event_name
 	return result
 
 func increment_trigger_count() -> void:

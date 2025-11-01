@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="Dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["faust"])
+speaker_name = "Faust"
+line_spoken = "Ah, Wagner! I have been contemplating the nature of knowledge and power."
+background_id = "library"
+
+[sub_resource type="Resource" id="Dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["faust", "wagner"])
+speaker_name = "Wagner"
+line_spoken = "Master, your dedication to learning is truly inspiring. What have you discovered?"
+background_id = "library"
+
+[sub_resource type="Resource" id="Dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["faust"])
+speaker_name = "Faust"
+line_spoken = "I have learned much, yet I feel I know nothing. The pursuit of truth is endless..."
+background_id = "library"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "test_dialogue_chain"
+character_ids = Array[String](["faust", "wagner"])
+dialogues = Array[Resource]([SubResource("Dialogue_1"), SubResource("Dialogue_2"), SubResource("Dialogue_3")])
