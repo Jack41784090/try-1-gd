@@ -80,6 +80,8 @@ func execute_turn(activity: Activity) -> Dictionary:
 		return false
 	
 	var pre_triggerables = triggerable_manager.check_triggers(context, pre_filter)
+	_sort_triggerables_by_priority(pre_triggerables)
+	
 	for triggerable in pre_triggerables:
 		var result = triggerable.trigger(player_squad, world)
 		turn_summary["pre_triggerables"].append({
@@ -110,6 +112,8 @@ func execute_turn(activity: Activity) -> Dictionary:
 		return false
 	
 	var post_triggerables = triggerable_manager.check_triggers(context, post_filter)
+	_sort_triggerables_by_priority(post_triggerables)
+	
 	for triggerable in post_triggerables:
 		var result = triggerable.trigger(player_squad, world)
 		turn_summary["post_triggerables"].append({
@@ -221,3 +225,18 @@ func is_game_ended() -> bool:
 
 func get_ending() -> Ending:
 	return ending_triggered
+
+func _sort_triggerables_by_priority(triggerables: Array[Triggerable]) -> void:
+	# Sort by emergency_priority if the triggerable is a GameEvent
+	# Lower priority number = higher urgency = plays first
+	triggerables.sort_custom(func(a: Triggerable, b: Triggerable) -> bool:
+		var a_priority = 999
+		var b_priority = 999
+		
+		if a is GameEvent:
+			a_priority = (a as GameEvent).emergency_priority
+		if b is GameEvent:
+			b_priority = (b as GameEvent).emergency_priority
+		
+		return a_priority < b_priority
+	)
