@@ -288,27 +288,24 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	print(turn_summary)
 	
 	# Queue all event chains from pre-triggerables, activity, and post-triggerables
-	# Pre-triggerables
-	for triggerable_data in turn_summary.get("pre_triggerables", []):
-		var result = triggerable_data.get("result")
-		if result is StrategyTypes.GenericResult and result.has_event_chain():
-			_queue_event_chain(result.event_chain_path)
+	_queue_triggerable_chains(turn_summary.get("pre_triggerables", []))
 	
-	# Activity result
 	if current_activity_result and current_activity_result.has_event_chain():
 		_queue_event_chain(current_activity_result.event_chain_path)
 	
-	# Post-triggerables
-	for triggerable_data in turn_summary.get("post_triggerables", []):
-		var result = triggerable_data.get("result")
-		if result is StrategyTypes.GenericResult and result.has_event_chain():
-			_queue_event_chain(result.event_chain_path)
+	_queue_triggerable_chains(turn_summary.get("post_triggerables", []))
 	
-	# If no chains were queued, just update UI
+	# Play queued chains or update UI
 	if event_chain_queue.is_empty():
 		_update_ui()
 	else:
 		_play_next_queued_chain()
+
+func _queue_triggerable_chains(triggerable_list: Array) -> void:
+	for triggerable_data in triggerable_list:
+		var result = triggerable_data.get("result")
+		if result is StrategyTypes.GenericResult and result.has_event_chain():
+			_queue_event_chain(result.event_chain_path)
 
 func _display_activity_result(result: StrategyTypes.ActivityResult) -> void:
 	var display_text = ""
@@ -367,13 +364,13 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	dialogue_label.text = "Travel system requires destination selection UI - not yet implemented in this demo."
+	dialogue_label.text = "Travel system not yet implemented in this demo."
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
 
 func _on_skip_pressed() -> void:
-	for i in range(5):
+	for i in 5:
 		_execute_activity(StrategyTypes.ActivityType.REST)
 
 func _on_short_pressed() -> void:
