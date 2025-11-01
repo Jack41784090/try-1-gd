@@ -42,31 +42,34 @@ layout_mode = 2
 
 [node name="TurnStatus" type="Label" parent="PanelContainer/MainVBox/StatusHeader"]
 layout_mode = 2
-text = "Turn 999"
+text = "Turn 0"
 
 [node name="QualifierStatus" type="Label" parent="PanelContainer/MainVBox/StatusHeader"]
 layout_mode = 2
-text = "Additional Information Regarding the Turn"
+size_flags_horizontal = 3
+text = "Location Info"
 
 [node name="StatusArea" type="HBoxContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
 
 [node name="EndButton" type="Button" parent="PanelContainer/MainVBox/StatusArea"]
 layout_mode = 2
-text = "終了"
+text = "End Game"
 
 [node name="StaminaBar" type="ProgressBar" parent="PanelContainer/MainVBox/StatusArea"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
+max_value = 100.0
 value = 90.0
+show_percentage = false
 
 [node name="ConditionStatus" type="PanelContainer" parent="PanelContainer/MainVBox/StatusArea"]
 layout_mode = 2
 
 [node name="ConditionLabel" type="Label" parent="PanelContainer/MainVBox/StatusArea/ConditionStatus"]
 layout_mode = 2
-text = "絶好調"
+text = "Excellent"
 
 [node name="MainScreenArea" type="TextureRect" parent="PanelContainer/MainVBox"]
 layout_mode = 2
@@ -121,27 +124,27 @@ columns = 6
 
 [node name="SpeedLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "スピード B 666 / 1322"
+text = "Money: 0"
 
 [node name="StaminaLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "スタミナ B 757 / 1326"
+text = "Food: 0"
 
 [node name="PowerLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "パワー B 629 / 1436"
+text = "Tools: 0"
 
 [node name="GutsLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "根性 C 506 / 1300"
+text = "Karma: 0"
 
 [node name="WisdomLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "賢さ C 469 / 1802"
+text = "Warriors: 0"
 
 [node name="SkillPtLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel"]
 layout_mode = 2
-text = "スキルPt 181"
+text = "End Prog: 0"
 
 [node name="ActionButtons" type="HBoxContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
@@ -149,39 +152,44 @@ alignment = 1
 
 [node name="TrainingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Training"
+text = "Rest"
+tooltip_text = "Make camp and recover morale"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Resting"
+text = "Drill"
+tooltip_text = "Train to improve combat skills"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Skills
-"
+text = "Patrol"
+tooltip_text = "Patrol the area and maintain order"
 
 [node name="NurseButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Infirmary"
+text = "Investigate"
+tooltip_text = "Gather information and seek opportunities"
 
 [node name="OutingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Outing"
+text = "Hold Mass"
+tooltip_text = "Lead religious observance"
 
 [node name="RaceButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons"]
 layout_mode = 2
-text = "Racing"
+text = "Travel"
+tooltip_text = "Move to another location"
 
 [node name="BottomNavBar" type="HBoxContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
 
 [node name="SkipButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar"]
 layout_mode = 2
-text = "SKIP"
+text = "Skip 5 Turns (Rest)"
 
 [node name="ShortButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar"]
 layout_mode = 2
-text = "短縮版"
+text = "Show Summary"
 
 [node name="MenuButton" type="TextureButton" parent="PanelContainer/MainVBox/BottomNavBar"]
 layout_mode = 2
