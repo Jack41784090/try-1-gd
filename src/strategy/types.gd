@@ -69,6 +69,7 @@ class ActivityResult extends  GenericResult:
 	var triggered_event_ids: Array[String] = []
 	var combat_initiated: bool = false
 	var location_changed: String = ""
+	var event_chain_path: String = ""
 	
 	func add_narrative(text: String) -> void:
 		narrative_log.append(text)
@@ -81,6 +82,9 @@ class ActivityResult extends  GenericResult:
 	
 	func modify_world_stat(stat_name: String, value: float) -> void:
 		world_stat_changes[stat_name] = world_stat_changes.get(stat_name, 0.0) + value
+	
+	func has_event_chain() -> bool:
+		return not event_chain_path.is_empty()
 
 class EventChoice:
 	var choice_id: String
@@ -104,11 +108,15 @@ class EventResult extends GenericResult:
 	var choices: Array[EventChoice] = []
 	var immediate_effects: Dictionary = {}
 	var dialogue_scene_path: String = ""
+	var event_chain_path: String = ""
 	var auto_resolved: bool = true
 	
 	func add_choice(choice: EventChoice) -> void:
 		choices.append(choice)
 		auto_resolved = false
+	
+	func has_event_chain() -> bool:
+		return not event_chain_path.is_empty()
 
 class TriggerContext:
 	var squad: Resource
@@ -138,6 +146,7 @@ class MissionResult extends GenericResult:
 	var reputation_changes: Dictionary = {}
 	var triggered_event_ids: Array[String] = []
 	var dialogue_scene_path: String = ""
+	var event_chain_path: String = ""
 	var requires_async: bool = false
 	
 	func _init(p_mission_id: String = "") -> void:
@@ -157,12 +166,16 @@ class MissionResult extends GenericResult:
 	
 	func modify_faction_reputation(faction_id: String, value: float) -> void:
 		reputation_changes[faction_id] = reputation_changes.get(faction_id, 0.0) + value
+	
+	func has_event_chain() -> bool:
+		return not event_chain_path.is_empty()
 
 class EndingResult extends GenericResult:
 	var ending_id: String;
 	var ending_name: String;
 	var description: String;
 	var epilogue_scene_paths: Array[String];
+	var event_chain_path: String = ""
 	var requires_async: bool
 
 	func _init(config: Dictionary) -> void:
@@ -171,6 +184,10 @@ class EndingResult extends GenericResult:
 		description = config.get("description", "")
 		narrative_text = config.get("narrative_text", "")
 		epilogue_scene_paths = config.get("epilogue_scene_paths", [] as Array[String])
+		event_chain_path = config.get("event_chain_path", "")
 		requires_async = config.get("requires_async", epilogue_scene_paths.size() > 0)
 		pass
+	
+	func has_event_chain() -> bool:
+		return not event_chain_path.is_empty()
 	pass

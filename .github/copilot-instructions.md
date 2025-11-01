@@ -284,6 +284,20 @@ func from_combat_results(updates: Array[EntityUpdate]):
 
 ## Project-Specific Conventions
 
+### Integrated Visual Novel System
+Activities, Events, Missions, and Endings can trigger EventChains for narrative presentation:
+- **VisualNovelComponent** (RefCounted): Logic class managing EventChain state and progression
+- **TrainingScreen UI Modes**: 
+  - `STRATEGY`: Normal activity selection and stats display
+  - `VISUAL_NOVEL`: EventChain playback with character portraits and dialogue
+- **Result Extensions**: All Result types (`ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`) have:
+  - `event_chain_path: String` - Path to EventChain resource
+  - `has_event_chain() -> bool` - Check if EventChain should be played
+- **UI Integration**: VN elements embedded in main screen, no scene switching required
+- **Flow**: Activity executes → Result with event_chain_path → UI switches to VN mode → Play chain → Return to strategy mode
+
+See `_obsidian/AI-Notes/INTEGRATED_VN_SYSTEM.md` for complete documentation.
+
 ### Comments
 Avoid comments unless Godot documentation (`## Doc comments`)
 

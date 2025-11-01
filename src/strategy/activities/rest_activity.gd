@@ -26,6 +26,10 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	
 	result.add_narrative("The squad rests and recovers morale. Food consumed: %d" % food_needed)
 	
+	# Trigger EventChain for narrative experience
+	if randf() < 0.5:  # 50% chance to show EventChain
+		result.event_chain_path = "res://resources/event_chains/rest_activity_chain.tres"
+	
 	if randf() < 0.3:
 		result.trigger_event("social_gathering")
 		result.add_narrative("Social bonds strengthen during rest.")

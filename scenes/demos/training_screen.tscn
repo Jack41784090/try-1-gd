@@ -76,20 +76,20 @@ layout_mode = 2
 size_flags_vertical = 3
 expand_mode = 1
 
-[node name="Character" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea"]
+[node name="CharacterContainer" type="HBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -50.0
-offset_top = -50.0
-offset_right = 50.0
-offset_bottom = 50.0
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_l6ifl")
+alignment = 1
 
 [node name="HintIcon" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea"]
 layout_mode = 0
@@ -104,18 +104,54 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -100.0
-offset_right = 200.0
+offset_left = -400.0
+offset_top = -150.0
+offset_right = 400.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 0
 
-[node name="DialogueLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer"]
+layout_mode = 2
+
+[node name="SpeakerLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.6, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "Speaker"
+visible = false
+
+[node name="DialogueLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Dialogue goes here"
-horizontal_alignment = 1
-vertical_alignment = 1
 autowrap_mode = 2
+
+[node name="AdvancePrompt" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -30.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 14
+text = "Click to continue"
+horizontal_alignment = 2
+vertical_alignment = 2
+visible = false
 
 [node name="StatsPanel" type="GridContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2

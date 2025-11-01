@@ -1,7 +1,14 @@
 extends Control
 class_name VisualNovelScreen
 
+## @deprecated Use VisualNovelComponent with embedded UI instead
+## 
 ## Visual Novel style screen for displaying EventChain dialogues
+## This standalone screen has been deprecated in favor of the integrated
+## VisualNovelComponent system that embeds VN functionality directly into
+## the main game screen (training_screen.gd).
+##
+## See: res://src/strategy/ui/visual_novel_component.gd for the new implementation
 
 const EventChainClass = preload("res://src/strategy/events/event_chain.gd")
 const DialogueClass = preload("res://src/strategy/events/dialogue.gd")

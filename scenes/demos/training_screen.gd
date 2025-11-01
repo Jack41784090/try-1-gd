@@ -1,7 +1,15 @@
 extends Control
 
-## Strategic Campaign UI Screen
+## Strategic Campaign UI Screen with integrated Visual Novel system
 ## Displays squad state, world info, and allows activity selection
+## Seamlessly transitions to VN mode for EventChain playback
+
+const VisualNovelComponentClass = preload("res://src/strategy/ui/visual_novel_component.gd")
+
+enum UIMode {
+	STRATEGY,      # Normal activity buttons visible
+	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
+}
 
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/TurnStatus
 @onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/QualifierStatus
@@ -9,9 +17,14 @@ extends Control
 @onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StaminaBar
 @onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/ConditionStatus/ConditionLabel
 
-@onready var character_portrait: TextureRect = $PanelContainer/MainVBox/MainScreenArea/Character
+@onready var main_background: TextureRect = $PanelContainer/MainBackground
+@onready var foreground: TextureRect = $PanelContainer/Foreground
+@onready var character_container: HBoxContainer = $PanelContainer/MainVBox/MainScreenArea/CharacterContainer
 @onready var hint_icon: TextureRect = $PanelContainer/MainVBox/MainScreenArea/HintIcon
-@onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/DialogueLabel
+@onready var dialogue_box: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/DialogueBox
+@onready var speaker_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/SpeakerLabel
+@onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
+@onready var advance_prompt: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/AdvancePrompt
 
 @onready var stats_panel: GridContainer = $PanelContainer/MainVBox/StatsPanel
 @onready var money_label: Label = $PanelContainer/MainVBox/StatsPanel/SpeedLabel
@@ -34,10 +47,16 @@ extends Control
 
 var game_scenario: GameScenario
 var current_activity_result: StrategyTypes.ActivityResult = null
+var vn_component: VisualNovelComponentClass
+var ui_mode: UIMode = UIMode.STRATEGY
+var portrait_cache: Dictionary = {}
 
 func _ready() -> void:
+	vn_component = VisualNovelComponentClass.new()
 	_initialize_demo_scenario()
 	_connect_signals()
+	_setup_dialogue_box_input()
+	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
 
 func _initialize_demo_scenario() -> void:
@@ -137,6 +156,14 @@ func _connect_signals() -> void:
 	if game_scenario:
 		game_scenario.activity_executed.connect(_on_activity_executed)
 		game_scenario.turn_advanced.connect(_on_turn_advanced)
+	
+	if vn_component:
+		vn_component.display_updated.connect(_on_vn_display_updated)
+		vn_component.chain_completed.connect(_on_vn_chain_completed)
+
+func _setup_dialogue_box_input() -> void:
+	if dialogue_box:
+		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
 
 func _update_ui() -> void:
 	if not game_scenario:
@@ -248,7 +275,11 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	print("Activity: %s" % turn_summary["activity"])
 	print(turn_summary)
 	
-	_update_ui()
+	# Check if activity result has an EventChain
+	if current_activity_result and current_activity_result.has_event_chain():
+		_play_event_chain(current_activity_result.event_chain_path)
+	else:
+		_update_ui()
 
 func _display_activity_result(result: StrategyTypes.ActivityResult) -> void:
 	var display_text = ""
@@ -337,3 +368,183 @@ func _on_activity_executed(activity: Activity, result: StrategyTypes.ActivityRes
 
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)
+
+## Visual Novel Mode Functions
+
+func _set_ui_mode(mode: UIMode) -> void:
+	ui_mode = mode
+	
+	match mode:
+		UIMode.STRATEGY:
+			_show_strategy_ui()
+		UIMode.VISUAL_NOVEL:
+			_show_vn_ui()
+
+func _show_strategy_ui() -> void:
+	# Show strategy elements
+	if action_buttons:
+		action_buttons.visible = true
+	if stats_panel:
+		stats_panel.modulate.a = 1.0
+	
+	# Hide VN elements
+	if character_container:
+		character_container.visible = false
+	if speaker_label:
+		speaker_label.visible = false
+	if advance_prompt:
+		advance_prompt.visible = false
+	
+	# Restore background textures to normal (TODO: implement background switching)
+	
+	# Reset dialogue box to strategy mode
+	if dialogue_label:
+		dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+func _show_vn_ui() -> void:
+	# Dim strategy elements
+	if action_buttons:
+		action_buttons.visible = false
+	if stats_panel:
+		stats_panel.modulate.a = 0.5
+	
+	# Show VN elements
+	if character_container:
+		character_container.visible = true
+	if speaker_label:
+		speaker_label.visible = true
+	if advance_prompt:
+		advance_prompt.visible = true
+	
+	# Change background textures (TODO: implement background switching)
+	
+	# Set dialogue box to VN mode
+	if dialogue_label:
+		dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+func _play_event_chain(chain_path: String) -> void:
+	if chain_path.is_empty():
+		push_warning("TrainingScreen: Empty event chain path")
+		_set_ui_mode(UIMode.STRATEGY)
+		_update_ui()
+		return
+	
+	if not ResourceLoader.exists(chain_path):
+		push_error("TrainingScreen: EventChain resource not found: %s" % chain_path)
+		dialogue_label.text = "Error: EventChain resource not found"
+		_set_ui_mode(UIMode.STRATEGY)
+		_update_ui()
+		return
+	
+	var chain = load(chain_path)
+	if not chain or not chain is EventChain:
+		push_error("TrainingScreen: Failed to load EventChain from: %s" % chain_path)
+		dialogue_label.text = "Error: Failed to load EventChain"
+		_set_ui_mode(UIMode.STRATEGY)
+		_update_ui()
+		return
+	
+	if chain.get_dialogue_count() == 0:
+		push_warning("TrainingScreen: EventChain '%s' has no dialogues, skipping VN mode" % chain.chain_id)
+		dialogue_label.text = "EventChain has no content (add dialogues to the resource)"
+		_set_ui_mode(UIMode.STRATEGY)
+		_update_ui()
+		return
+	
+	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
+	_set_ui_mode(UIMode.VISUAL_NOVEL)
+	vn_component.load_chain(chain)
+
+func _on_vn_display_updated(dialogue_data: Dictionary) -> void:
+	if dialogue_data.is_empty():
+		return
+	
+	# Update speaker
+	if speaker_label:
+		speaker_label.text = dialogue_data.get("speaker_name", "")
+	
+	# Update dialogue text
+	if dialogue_label:
+		dialogue_label.text = dialogue_data.get("line_spoken", "")
+	
+	# Update background (TODO: switch MainBackground and Foreground textures)
+	var bg_id = dialogue_data.get("background_id", "")
+	_update_vn_background(bg_id)
+	
+	# Update character portraits
+	var char_ids: Array = dialogue_data.get("on_screen_character_ids", [])
+	_update_vn_portraits(char_ids)
+	
+	# Update progress indicator on advance prompt
+	var index = dialogue_data.get("index", 0)
+	var total = dialogue_data.get("total", 0)
+	if advance_prompt:
+		advance_prompt.text = "Click to continue (%d/%d)" % [index + 1, total]
+
+func _update_vn_background(_bg_id: String) -> void:
+	# TODO: Load and set actual background textures to main_background and foreground
+	# For now, just a placeholder comment
+	# Example:
+	# if _bg_id == "camp_evening":
+	#     main_background.texture = load("res://assets/backgrounds/camp_evening.png")
+	#     foreground.texture = load("res://assets/backgrounds/camp_evening_fg.png")
+	pass
+
+func _update_vn_portraits(character_ids: Array) -> void:
+	if not character_container:
+		return
+	
+	# Clear existing portraits
+	for child in character_container.get_children():
+		child.queue_free()
+	
+	# Add portraits for on-screen characters
+	for char_id in character_ids:
+		if char_id is String:
+			var portrait = _get_or_create_portrait(char_id)
+			character_container.add_child(portrait)
+
+func _get_or_create_portrait(character_id: String) -> Control:
+	if portrait_cache.has(character_id):
+		return portrait_cache[character_id].duplicate()
+	
+	# Create placeholder portrait
+	var portrait = ColorRect.new()
+	portrait.custom_minimum_size = Vector2(150, 250)
+	
+	# Different colors for different characters
+	var hash_val = character_id.hash()
+	portrait.color = Color(
+		float(hash_val % 100) / 100.0,
+		float(int(hash_val / 100.0) % 100) / 100.0,
+		float(int(hash_val / 10000.0) % 100) / 100.0,
+		1.0
+	)
+	
+	portrait_cache[character_id] = portrait
+	return portrait.duplicate()
+
+func _on_dialogue_box_clicked(event: InputEvent) -> void:
+	if ui_mode != UIMode.VISUAL_NOVEL:
+		return
+	
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if vn_component:
+				vn_component.advance()
+
+func _on_vn_chain_completed() -> void:
+	print("TrainingScreen: EventChain completed, returning to strategy mode")
+	_set_ui_mode(UIMode.STRATEGY)
+	
+	# Show completion message
+	if current_activity_result:
+		_display_activity_result(current_activity_result)
+	else:
+		dialogue_label.text = "EventChain completed. Choose your next action."
+	
+	_update_ui()
+	
+	# Clear VN state
+	if vn_component:
+		vn_component.reset()

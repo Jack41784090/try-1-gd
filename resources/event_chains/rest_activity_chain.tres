@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "We've been marching for days. The men need rest."
+background_id = "camp_evening"
+triggers = []
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "veteran_soldier"])
+speaker_name = "Veteran Soldier"
+line_spoken = "Aye, Captain. My legs feel like they're made of stone."
+background_id = "camp_evening"
+triggers = []
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "veteran_soldier"])
+speaker_name = "Squad Leader"
+line_spoken = "Set up camp here. We rest until dawn. Post guards and light a fire."
+background_id = "camp_evening"
+triggers = []
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["veteran_soldier"])
+speaker_name = "Veteran Soldier"
+line_spoken = "Right away, sir. The men will be grateful for this."
+background_id = "camp_evening"
+triggers = []
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "rest_activity_chain"
+chain_name = "Rest and Recovery"
+character_ids = Array[String](["squad_leader", "veteran_soldier"])
+dialogues = Array[Resource]([SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4")])
