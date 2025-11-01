@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=6 format=3 uid="uid://bvq8m4xlgkpki"]
+
+[ext_resource type="Script" uid="uid://cxdtgpsoaxouu" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://l3g17ogdf3uh" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["messenger"])
+speaker_name = "Messenger"
+line_spoken = "Commander! A messenger approaches bearing the seal of the local faction."
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["messenger", "squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "Let him through. What news does he bring?"
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["messenger", "squad_leader"])
+speaker_name = "Messenger"
+line_spoken = "The local lords have taken notice of your religious observance. They wish to know if you stand with them... or against them."
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "Tell them we fight for our own cause. But we respect all men of faith."
+background_id = "camp_evening"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "faction_attention_event_chain"
+chain_name = "Faction Attention"
+character_ids = Array[String](["messenger", "squad_leader"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4")]

@@ -62,26 +62,26 @@ class GenericResult:
 	var world_stat_changes: Dictionary = {}
 	var event_chain_path: String = ""
 	var requires_async: bool
-
-	pass
-
-
-class ActivityResult extends  GenericResult:
 	var triggered_event_ids: Array[String] = []
-	var combat_initiated: bool = false
-	var location_changed: String = ""
 	
 	func trigger_event(event_id: String) -> void:
 		triggered_event_ids.append(event_id)
 	
+	func has_event_chain() -> bool:
+		return not event_chain_path.is_empty()
+
 	func modify_squad_stat(stat_name: String, value: float) -> void:
 		squad_stat_changes[stat_name] = squad_stat_changes.get(stat_name, 0.0) + value
 	
 	func modify_world_stat(stat_name: String, value: float) -> void:
 		world_stat_changes[stat_name] = world_stat_changes.get(stat_name, 0.0) + value
-	
-	func has_event_chain() -> bool:
-		return not event_chain_path.is_empty()
+	pass
+
+
+class ActivityResult extends  GenericResult:
+	var location_changed: String = ""
+	func _init() -> void:
+		pass
 
 class EventChoice:
 	var choice_id: String
@@ -135,23 +135,9 @@ class TriggerContext:
 class MissionResult extends GenericResult:
 	var mission_id: String
 	var unlocked_missions: Array[String] = []
-	var reputation_changes: Dictionary = {}
-	var triggered_event_ids: Array[String] = []
 	
 	func _init(p_mission_id: String = "") -> void:
 		mission_id = p_mission_id
-	
-	func trigger_event(event_id: String) -> void:
-		triggered_event_ids.append(event_id)
-	
-	func modify_squad_stat(stat_name: String, value: float) -> void:
-		squad_stat_changes[stat_name] = squad_stat_changes.get(stat_name, 0.0) + value
-	
-	func modify_world_stat(stat_name: String, value: float) -> void:
-		world_stat_changes[stat_name] = world_stat_changes.get(stat_name, 0.0) + value
-	
-	func modify_faction_reputation(faction_id: String, value: float) -> void:
-		reputation_changes[faction_id] = reputation_changes.get(faction_id, 0.0) + value
 	
 	func has_event_chain() -> bool:
 		return not event_chain_path.is_empty()

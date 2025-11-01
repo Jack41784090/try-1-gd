@@ -45,10 +45,9 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	# Trigger EventChain for narrative experience
 	result.event_chain_path = "res://resources/event_chains/hold_mass_activity_chain.tres"
 	
-	if randf() < 0.2:
-		result.trigger_event("religious_vision")
-	elif randf() < 0.15:
-		result.trigger_event("faction_attention")
+	# TEMP: Guarantee chained events for testing
+	result.trigger_event("religious_vision")
+	result.trigger_event("faction_attention")
 	
 	return result
 

@@ -28,10 +28,8 @@ func execute(squad: StrategicSquad, _world: World, _location: Location) -> Strat
 	# Trigger EventChain for narrative experience
 	result.event_chain_path = "res://resources/event_chains/patrol_activity_chain.tres"
 	
-	if randf() < 0.25:
-		result.trigger_event("local_crime_discovered")
-	elif randf() < 0.15:
-		result.trigger_event("hidden_threat_found")
+	# TEMP: Guarantee chained event for testing
+	result.trigger_event("mysterious_stranger")
 	
 	return result
 

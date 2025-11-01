@@ -2,7 +2,7 @@ extends Resource
 class_name GameScenario
 
 signal activity_executed(activity: Activity, result: StrategyTypes.ActivityResult)
-signal event_triggered(event: GameEvent, result: StrategyTypes.EventResult)
+signal triggerable_fired(triggerable: Triggerable, result: Variant)
 signal mission_completed(mission: Mission)
 signal ending_reached(ending: Ending)
 signal turn_advanced(turn: int)
@@ -10,7 +10,7 @@ signal turn_advanced(turn: int)
 @export var world: World
 var player_squad: StrategicSquad
 @export var factions: Array[Faction] = []
-var event_manager: EventManager
+var triggerable_manager: TriggerableManager
 @export var endings: Array[Ending] = []
 @export var current_location: Location
 
@@ -20,7 +20,7 @@ var ending_triggered: Ending = null
 func _init(config: Dictionary = {}) -> void:
 	world = config.get("world", World.new())
 	player_squad = config.get("player_squad", StrategicSquad.new())
-	event_manager = EventManager.new()
+	triggerable_manager = TriggerableManager.new()
 	
 	var factions_raw: Array = config.get("factions", [])
 	for faction in factions_raw:
@@ -31,11 +31,17 @@ func _init(config: Dictionary = {}) -> void:
 	for ending in endings_raw:
 		if ending is Ending:
 			endings.append(ending)
+			triggerable_manager.register(ending)
 	
 	var events: Array = config.get("events", [])
 	for event in events:
 		if event is GameEvent:
-			event_manager.register_event(event)
+			triggerable_manager.register(event)
+	
+	# Register all missions from all factions
+	for faction in factions:
+		for mission in faction.missions:
+			triggerable_manager.register(mission)
 	
 	var starting_location_id = config.get("starting_location_id", "")
 	if not starting_location_id.is_empty():
@@ -44,6 +50,9 @@ func _init(config: Dictionary = {}) -> void:
 	elif world.locations.size() > 0:
 		current_location = world.locations[0]
 		player_squad.set_location(current_location.location_id)
+	
+	# Connect to triggerable_manager signals
+	triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
 
 func execute_turn(activity: Activity) -> Dictionary:
 	if game_ended:
@@ -55,22 +64,28 @@ func execute_turn(activity: Activity) -> Dictionary:
 	
 	var turn_summary = {
 		"activity": activity.activity_name,
-		"pre_events": [],
+		"pre_triggerables": [],
 		"activity_result": {},
-		"post_events": [],
+		"post_triggerables": [],
 		"missions_completed": [],
 		"ending": null
 	}
 	
 	var context = _build_context(activity)
 	
-	# Triggered [Events] before the Activity
-	var pre_events = event_manager.get_triggered_game_events(StrategyTypes.TriggerWhen.BEFORE_ACTIVITY, context)
-	for event in pre_events:
-		var event_result = _handle_event(event)
-		turn_summary["pre_events"].append({
-			"event_name": event.event_name,
-			"result": event_result
+	# Triggered [Events/Missions/etc] before the Activity
+	var pre_filter = func(t: Triggerable) -> bool:
+		if t is GameEvent:
+			return (t as GameEvent).when_to_trigger == StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
+		return false
+	
+	var pre_triggerables = triggerable_manager.check_triggers(context, pre_filter)
+	for triggerable in pre_triggerables:
+		var result = triggerable.trigger(player_squad, world)
+		turn_summary["pre_triggerables"].append({
+			"triggerable_id": triggerable.trigger_id,
+			"triggerable_name": triggerable.trigger_name,
+			"result": result
 		})
 	
 	# The [Activity] itself executes
@@ -88,13 +103,19 @@ func execute_turn(activity: Activity) -> Dictionary:
 	# Causes new context
 	context = _build_context(activity)
 	
-	# Post-Activity [Events] might fire
-	var post_events = event_manager.get_triggered_game_events(StrategyTypes.TriggerWhen.AFTER_ACTIVITY, context)
-	for event in post_events:
-		var event_result = _handle_event(event)
-		turn_summary["post_events"].append({
-			"event_name": event.event_name,
-			"result": event_result
+	# Post-Activity [Events/Missions/etc] might fire
+	var post_filter = func(t: Triggerable) -> bool:
+		if t is GameEvent:
+			return (t as GameEvent).when_to_trigger == StrategyTypes.TriggerWhen.AFTER_ACTIVITY
+		return false
+	
+	var post_triggerables = triggerable_manager.check_triggers(context, post_filter)
+	for triggerable in post_triggerables:
+		var result = triggerable.trigger(player_squad, world)
+		turn_summary["post_triggerables"].append({
+			"triggerable_id": triggerable.trigger_id,
+			"triggerable_name": triggerable.trigger_name,
+			"result": result
 		})
 	
 	# [Mission] completions based on changes from Activity, Event results
@@ -116,16 +137,23 @@ func execute_turn(activity: Activity) -> Dictionary:
 	
 	return turn_summary
 
-func _handle_event(event: GameEvent) -> StrategyTypes.EventResult:
-	var result = event.trigger(player_squad, world)
-	event_triggered.emit(event, result)
-	return result
+func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
+	triggerable_fired.emit(triggerable, result)
 
 func _apply_activity_result(result: StrategyTypes.ActivityResult) -> void:
 	if not result.location_changed.is_empty():
 		var new_location = world.get_location_by_id(result.location_changed)
 		if new_location:
 			current_location = new_location
+			
+	for _event_triggered in result.triggered_event_ids:
+		var e = triggerable_manager.get_by_id(_event_triggered)
+		if e and e is GameEvent:
+			print("GameScenario: Triggering event '%s'" % _event_triggered)
+			(e as GameEvent).trigger(player_squad, world)
+		else:
+			push_warning("GameScenario: Event to trigger not found in TriggerableManager: '%s'" % _event_triggered)
+			print("GameScenario: WARNING - Event '%s' was requested but does not exist" % _event_triggered)
 	
 	for stat_name in result.world_stat_changes:
 		var value = result.world_stat_changes[stat_name]

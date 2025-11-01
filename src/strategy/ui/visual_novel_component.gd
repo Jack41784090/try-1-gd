@@ -45,12 +45,11 @@ func advance() -> void:
 	current_index += 1
 	dialogue_advanced.emit(current_index)
 	
-	print("VisualNovelComponent: Advanced to dialogue %d/%d" % [current_index + 1, current_chain.get_dialogue_count()])
-	
 	if is_complete():
-		print("VisualNovelComponent: EventChain '%s' completed" % current_chain.chain_id)
+		print("VisualNovelComponent: EventChain '%s' completed (showed %d/%d dialogues)" % [current_chain.chain_id, current_index, current_chain.get_dialogue_count()])
 		chain_completed.emit()
 	else:
+		print("VisualNovelComponent: Advanced to dialogue %d/%d" % [current_index + 1, current_chain.get_dialogue_count()])
 		_emit_current_dialogue()
 
 func get_current_dialogue_data() -> Dictionary:

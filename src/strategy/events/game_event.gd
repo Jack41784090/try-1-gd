@@ -3,6 +3,7 @@ class_name GameEvent
 
 @export var event_id: String = ""
 @export var event_name: String = ""
+@export var event_chain_path: String = ""
 @export var chance: float = 100.0
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
 @export var repeats: int = -1
@@ -29,21 +30,23 @@ func trigger(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult
 	
 	execution_started.emit()
 	
-	var result = {
-		"event_id": event_id,
-		"event_name": event_name,
-		# "narrative_text": narrative_text,
-		# "requires_async": not result.auto_resolved or not result.dialogue_scene_path.is_empty(),
-		# "choices": result.choices,
-		# "immediate_effects": result.immediate_effects,
-		# "dialogue_scene_path": result.dialogue_scene_path
-	}
+	var result = execute(_squad, _world)
 	
 	triggered.emit(result)
 	
-	if result.auto_resolved and result.dialogue_scene_path.is_empty():
+	if result.auto_resolved and result.event_chain_path.is_empty():
 		execution_completed.emit(result)
 	
+	return result
+
+func execute(_squad: StrategicSquad, _world: World) -> StrategyTypes.EventResult:
+	# Override this in subclasses to implement event logic
+	var result = StrategyTypes.EventResult.new()
+	result.event_id = event_id
+	result.event_name = event_name
+	result.event_chain_path = event_chain_path
+	result.auto_resolved = event_chain_path.is_empty()
+	result.requires_async = not event_chain_path.is_empty()
 	return result
 
 func increment_trigger_count() -> void:

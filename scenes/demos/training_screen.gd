@@ -50,6 +50,8 @@ var current_activity_result: StrategyTypes.ActivityResult = null
 var vn_component: VisualNovelComponentClass
 var ui_mode: UIMode = UIMode.STRATEGY
 var portrait_cache: Dictionary = {}
+var event_chain_queue: Array[String] = []
+var is_playing_chain: bool = false
 
 func _ready() -> void:
 	vn_component = VisualNovelComponentClass.new()
@@ -128,12 +130,18 @@ func _initialize_demo_scenario() -> void:
 	
 	test_squad.update_aggregate_morale()
 	
+	# Load test events
+	var test_events: Array[GameEvent] = []
+	test_events.append(load("res://resources/generic-events/faction-attention.tres"))
+	test_events.append(load("res://resources/generic-events/religious-vision.tres"))
+	test_events.append(load("res://resources/generic-events/mysterious-stranger.tres"))
+	
 	var scenario_config = {
 		"world": test_world,
 		"player_squad": test_squad,
 		"starting_location_id": city_location.location_id,
 		"factions": [],
-		"events": [],
+		"events": test_events,
 		"endings": []
 	}
 	
@@ -156,6 +164,7 @@ func _connect_signals() -> void:
 	if game_scenario:
 		game_scenario.activity_executed.connect(_on_activity_executed)
 		game_scenario.turn_advanced.connect(_on_turn_advanced)
+		game_scenario.triggerable_fired.connect(_on_triggerable_fired)
 	
 	if vn_component:
 		vn_component.display_updated.connect(_on_vn_display_updated)
@@ -265,6 +274,9 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 		dialogue_label.text = "Cannot execute %s: %s" % [activity.activity_name, reason]
 		return
 	
+	# Clear previous activity result
+	current_activity_result = null
+	
 	var turn_summary = game_scenario.execute_turn(activity)
 	
 	if turn_summary.has("error"):
@@ -275,11 +287,28 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	print("Activity: %s" % turn_summary["activity"])
 	print(turn_summary)
 	
-	# Check if activity result has an EventChain
+	# Queue all event chains from pre-triggerables, activity, and post-triggerables
+	# Pre-triggerables
+	for triggerable_data in turn_summary.get("pre_triggerables", []):
+		var result = triggerable_data.get("result")
+		if result is StrategyTypes.GenericResult and result.has_event_chain():
+			_queue_event_chain(result.event_chain_path)
+	
+	# Activity result
 	if current_activity_result and current_activity_result.has_event_chain():
-		_play_event_chain(current_activity_result.event_chain_path)
-	else:
+		_queue_event_chain(current_activity_result.event_chain_path)
+	
+	# Post-triggerables
+	for triggerable_data in turn_summary.get("post_triggerables", []):
+		var result = triggerable_data.get("result")
+		if result is StrategyTypes.GenericResult and result.has_event_chain():
+			_queue_event_chain(result.event_chain_path)
+	
+	# If no chains were queued, just update UI
+	if event_chain_queue.is_empty():
 		_update_ui()
+	else:
+		_play_next_queued_chain()
 
 func _display_activity_result(result: StrategyTypes.ActivityResult) -> void:
 	var display_text = ""
@@ -365,6 +394,39 @@ func _on_activity_executed(activity: Activity, result: StrategyTypes.ActivityRes
 
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)
+
+func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
+	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
+	
+	# Check if the result has an event chain
+	var chain_path: String = ""
+	
+	if result is StrategyTypes.GenericResult:
+		if result.has_event_chain():
+			chain_path = result.event_chain_path
+	elif result is Dictionary and result.has("event_chain_path"):
+		chain_path = result.get("event_chain_path", "")
+	
+	if not chain_path.is_empty():
+		_queue_event_chain(chain_path)
+
+func _queue_event_chain(chain_path: String) -> void:
+	event_chain_queue.append(chain_path)
+	print("TrainingScreen: Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
+	
+	if not is_playing_chain:
+		_play_next_queued_chain()
+
+func _play_next_queued_chain() -> void:
+	if event_chain_queue.is_empty():
+		is_playing_chain = false
+		_set_ui_mode(UIMode.STRATEGY)
+		_update_ui()
+		return
+	
+	is_playing_chain = true
+	var chain_path = event_chain_queue.pop_front()
+	_play_event_chain(chain_path)
 
 ## Visual Novel Mode Functions
 
@@ -531,17 +593,25 @@ func _on_dialogue_box_clicked(event: InputEvent) -> void:
 				vn_component.advance()
 
 func _on_vn_chain_completed() -> void:
-	print("TrainingScreen: EventChain completed, returning to strategy mode")
-	_set_ui_mode(UIMode.STRATEGY)
-	
-	# Show completion message
-	if current_activity_result:
-		_display_activity_result(current_activity_result)
-	else:
-		dialogue_label.text = "EventChain completed. Choose your next action."
-	
-	_update_ui()
+	print("TrainingScreen: EventChain completed")
 	
 	# Clear VN state
 	if vn_component:
 		vn_component.reset()
+	
+	# Play next chain in queue or return to strategy mode
+	if event_chain_queue.size() > 0:
+		print("TrainingScreen: %d more chains in queue, playing next..." % event_chain_queue.size())
+		_play_next_queued_chain()
+	else:
+		print("TrainingScreen: All chains completed, returning to strategy mode")
+		is_playing_chain = false
+		_set_ui_mode(UIMode.STRATEGY)
+		
+		# Show completion message
+		if current_activity_result:
+			_display_activity_result(current_activity_result)
+		else:
+			dialogue_label.text = "All event chains completed. Choose your next action."
+		
+		_update_ui()

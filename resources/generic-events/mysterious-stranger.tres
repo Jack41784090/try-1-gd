@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GameEvent" load_steps=2 format=3 uid="uid://beutkj7d3y078"]
+
+[ext_resource type="Script" uid="uid://bkg3r6ll1pyjo" path="res://src/strategy/events/game_event.gd" id="1_event"]
+
+[resource]
+script = ExtResource("1_event")
+trigger_id = "mysterious_stranger"
+trigger_name = "Mysterious Stranger"
+description = "A mysterious figure approaches during your patrol, offering unexpected aid."
+event_id = "mysterious_stranger"
+event_name = "Mysterious Stranger"
+event_chain_path = "res://resources/event_chains/mysterious_stranger_event_chain.tres"
+chance = 100.0
+when_to_trigger = 1
+repeats = 2
+emergency_priority = 1
+conditions = []

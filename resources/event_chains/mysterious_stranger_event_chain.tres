@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=6 format=3 uid="uid://dpq7n60mhxrst"]
+
+[ext_resource type="Script" uid="uid://cxdtgpsoaxouu" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://l3g17ogdf3uh" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["veteran_soldier"])
+speaker_name = "Veteran Soldier"
+line_spoken = "Captain! Someone's approaching from the treeline. Doesn't look like trouble, but..."
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["veteran_soldier", "stranger"])
+speaker_name = "Stranger"
+line_spoken = "Peace, soldiers. I mean no harm. I've been watching your patrols. Disciplined work."
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "stranger"])
+speaker_name = "Squad Leader"
+line_spoken = "Who are you? And why have you been watching us?"
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "stranger"])
+speaker_name = "Stranger"
+line_spoken = "Let's just say I'm someone who appreciates good soldiers. Here, take this. You might need it."
+background_id = "camp_evening"
+
+[sub_resource type="Resource" id="dialogue_5"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader"])
+speaker_name = "Squad Leader"
+line_spoken = "Wait! ...He's gone. Strange fellow. But this gold is real enough."
+background_id = "camp_evening"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "mysterious_stranger_event_chain"
+chain_name = "Mysterious Stranger"
+character_ids = Array[String](["veteran_soldier", "squad_leader", "stranger"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5")]

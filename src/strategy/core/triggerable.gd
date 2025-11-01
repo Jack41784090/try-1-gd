@@ -56,7 +56,3 @@ func execute(_squad: StrategicSquad, _world: World) -> Variant:
 
 func add_condition(condition: TriggerCondition) -> void:
 	conditions.append(condition)
-
-
-func complete_async_execution(result: Dictionary) -> void:
-	execution_completed.emit(result)

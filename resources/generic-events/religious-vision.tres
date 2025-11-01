@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GameEvent" load_steps=2 format=3 uid="uid://elsji6c2x167"]
+
+[ext_resource type="Script" uid="uid://bkg3r6ll1pyjo" path="res://src/strategy/events/game_event.gd" id="1_event"]
+
+[resource]
+script = ExtResource("1_event")
+trigger_id = "religious_vision"
+trigger_name = "Religious Vision"
+description = "During prayer, you experience a profound vision that guides your path."
+event_id = "religious_vision"
+event_name = "Religious Vision"
+event_chain_path = "res://resources/event_chains/religious_vision_event_chain.tres"
+chance = 100.0
+when_to_trigger = 1
+repeats = -1
+emergency_priority = 2
+conditions = []
