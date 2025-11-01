@@ -4,6 +4,7 @@
 **CONDOR** is a squad-based narrative strategy game with turn-based tactical combat. The project consists of two major layers:
 1. **Tactical Combat System**: Turn-based squad battles with entity stats, AI logic, weapons, armor, and skill effects
 2. **Strategic Campaign Layer**: Activity-based turn management, event system, mission progression, and faction dynamics
+3. Check additional information about this project in .obsidian/AI-Notes
 
 Originally migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 
