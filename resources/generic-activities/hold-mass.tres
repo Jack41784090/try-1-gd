@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Activity" load_steps=4 format=3 uid="uid://bssy1nd1ydnr4"]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_u5j2o"]
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/triggerable/activity/script.gd" id="2_gt5tr"]
+
+[sub_resource type="GDScript" id="GDScript_u5j2o"]
+
+[resource]
+script = ExtResource("2_gt5tr")
+activity_type = 5
+location_requirements = Array[int]([0, 1, 2, 3])
+base_effects = Dictionary[int, float]({
+0: 10.0
+})
+event_chain_path = "res://resources/event_chains/hold_mass_activity_chain.tres"
+trigger_id = "hold-mass-generic"
+trigger_name = "Hold Mass"
+description = "Conduct a religious ceremony. Effects vary based on warrior religions and morale."
+metadata/_custom_type_script = "uid://bo18gilf28ttd"

@@ -1,7 +1,7 @@
 extends Node
 
 signal activity_started(activity_name: String)
-signal activity_completed(activity_name: String, result: StrategyTypes.ActivityResult)
+signal activity_completed(activity_name: String, result: ActivityResult)
 signal event_fired(event_name: String)
 signal mission_unlocked(mission_name: String)
 signal mission_completed(mission_name: String)

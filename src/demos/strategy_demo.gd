@@ -208,7 +208,7 @@ func print_squad_status() -> void:
 			StrategyTypes.Religion.keys()[warrior.religion]
 		])
 
-func _on_activity_executed(activity: Activity, _result: StrategyTypes.ActivityResult) -> void:
+func _on_activity_executed(activity: Activity, _result: ActivityResult) -> void:
 	print("[EVENT] Activity '%s' completed" % activity.activity_name)
 
 func _on_mission_completed(mission: Mission) -> void:

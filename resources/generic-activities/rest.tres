@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Activity" load_steps=2 format=3 uid="uid://dto2tvlqqylg"]
+
+[ext_resource type="Script" path="res://src/strategy/triggerable/activity/script.gd" id="1_activity"]
+
+[resource]
+script = ExtResource("1_activity")
+trigger_id = "rest-generic"
+trigger_name = "Rest"
+description = "Make camp and allow the squad to recover from the rigors of the road. Essential for maintaining morale."
+activity_type = 0
+time_cost = 1
+location_requirements = Array[int]([])
+base_effects = {
+0: 20.0
+}
+event_chain_path = "res://resources/event_chains/rest_activity_chain.tres"
+resource_costs = {}
+conditions = []

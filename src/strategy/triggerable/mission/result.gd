@@ -1,4 +1,4 @@
-class_name MissionResult extends StrategyTypes.GenericResult
+class_name MissionResult extends GenericResult
 
 var mission_id: String
 var unlocked_missions: Array[String] = []

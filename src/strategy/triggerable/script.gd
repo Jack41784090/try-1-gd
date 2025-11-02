@@ -1,11 +1,12 @@
-extends Resource
-
-class_name Triggerable
+class_name Triggerable extends Resource
 
 @export var trigger_id: String = ""
 @export var trigger_name: String = ""
 @export var description: String = ""
 @export var conditions: Array[TriggerCondition] = []
+@export var trigger_chains: Array[StrategyTypes.TriggerChain] = []
+@export var repeats: int = -1
+@export var emergency_priority: int = 0
 
 signal triggered(result: Dictionary)
 signal execution_started()
@@ -27,7 +28,7 @@ func can_trigger(context: Dictionary) -> bool:
 	return check_conditions(context)
 
 
-func trigger(squad: StrategicSquad, world: World) -> StrategyTypes.GenericResult:
+func trigger(squad: StrategicSquad, world: World) -> GenericResult:
 	execution_started.emit()
 	var result = execute(squad, world)
 	

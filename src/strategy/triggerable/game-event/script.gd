@@ -1,13 +1,10 @@
-extends Triggerable
-class_name GameEvent
+class_name GameEvent extends Triggerable
 
 @export var event_id: String = ""
 @export var event_name: String = ""
 @export var event_chain_path: String = ""
 @export var chance: float = 100.0
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
-@export var repeats: int = -1
-@export var emergency_priority: int = 0
 
 var times_triggered: int = 0
 
@@ -41,12 +38,13 @@ func trigger(_squad: StrategicSquad, _world: World) -> EventResult:
 
 func execute(_squad: StrategicSquad, _world: World) -> EventResult:
 	# Override this in subclasses to implement event logic
-	var result = EventResult.new()
-	result.event_id = event_id
-	result.event_name = event_name
-	result.event_chain_path = event_chain_path
-	result.auto_resolved = event_chain_path.is_empty()
-	result.requires_async = not event_chain_path.is_empty()
+	var result = EventResult.new({
+		"event_id": event_id,
+		"event_name": event_name,
+		"event_chain_path": event_chain_path,
+		"auto_resolved": event_chain_path.is_empty(),
+		"requires_async": not event_chain_path.is_empty()
+	})
 	return result
 
 func increment_trigger_count() -> void:

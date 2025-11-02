@@ -42,6 +42,7 @@ enum LogicalOperator {
 }
 
 enum GlobalModifier {
+	END,
 	METAL,
 	WOOD,
 	WATER,
@@ -56,32 +57,6 @@ enum WarriorAttribute {
 	LEADERSHIP,
 	STEALTH
 }
-
-class GenericResult:
-	var squad_stat_changes: Dictionary = {}
-	var world_stat_changes: Dictionary = {}
-	var event_chain_path: String = ""
-	var requires_async: bool
-	var triggered_event_ids: Array[String] = []
-	
-	func trigger_event(event_id: String) -> void:
-		triggered_event_ids.append(event_id)
-	
-	func has_event_chain() -> bool:
-		return not event_chain_path.is_empty()
-
-	func modify_squad_stat(stat_name: String, value: float) -> void:
-		squad_stat_changes[stat_name] = squad_stat_changes.get(stat_name, 0.0) + value
-	
-	func modify_world_stat(stat_name: String, value: float) -> void:
-		world_stat_changes[stat_name] = world_stat_changes.get(stat_name, 0.0) + value
-	pass
-
-
-class ActivityResult extends  GenericResult:
-	var location_changed: String = ""
-	func _init() -> void:
-		pass
 
 class EventChoice:
 	var choice_id: String
@@ -98,7 +73,6 @@ class EventChoice:
 			if not condition.evaluate(context):
 				return false
 		return true
-
 
 class TriggerContext:
 	var squad: Resource
@@ -123,3 +97,18 @@ class TriggerContext:
 		}
 
 
+
+class TriggerChain extends Resource:
+	var another_trigger: Triggerable
+	var chance: float = 1.0
+
+enum SquadProperty {
+	MOOD,
+	HEALTH,
+	FOOD_SUPPLIES,
+	AMMO_SUPPLIES,
+	FUEL_SUPPLIES,
+	MORALE,
+	DISCIPLINE,
+	EXPERIENCE
+}

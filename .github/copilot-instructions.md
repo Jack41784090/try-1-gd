@@ -59,7 +59,7 @@ The strategic layer invokes combat when needed:
 - Use typed arrays where possible: `Array[EntityUpdate]`, `Array[Warrior]`, `Array[Mission]`, `Array[TriggerCondition]`
 - Dictionary-based configs for initialization (see demo files for patterns)
 - **Prefer typed enums over String**: Use `StrategyTypes.Religion` not `String`, `StrategyTypes.ActivityType` not `String`
-- **Prefer typed classes over Dictionary**: Use `StrategyTypes.ActivityResult` not raw `Dictionary` when structure is known
+- **Prefer typed classes over Dictionary**: Use `ActivityResult` not raw `Dictionary` when structure is known
 
 ### Resource Files (.tres)
 - Store skill/status effect configurations as Godot resources
@@ -205,7 +205,7 @@ Events, Missions, and Endings share a common "check condition then execute" patt
 - `conditions: Array[TriggerCondition]` - Conditions to check before triggering
 - `check_conditions(context: Dictionary) -> bool` - Evaluates all conditions
 - `can_trigger(context: Dictionary) -> bool` - Virtual method for additional trigger logic
-- `trigger(squad: StrategicSquad, world: World) -> StrategyTypes.GenericResult` - Executes and returns result
+- `trigger(squad: StrategicSquad, world: World) -> GenericResult` - Executes and returns result
 - `execute(squad: StrategicSquad, world: World) -> Variant` - Virtual method to override
 - `add_condition(condition: TriggerCondition)` - Helper to add conditions
 

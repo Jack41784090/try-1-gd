@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EventChain" load_steps=5 format=3 uid="uid://cxrap5ylhmnop"]
 
-[ext_resource type="Script" uid="uid://cxdtgpsoaxouu" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
-[ext_resource type="Script" uid="uid://l3g17ogdf3uh" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/vn/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/vn/dialogue.gd" id="2_dialogue"]
 
 [sub_resource type="Resource" id="dialogue_1"]
 script = ExtResource("2_dialogue")

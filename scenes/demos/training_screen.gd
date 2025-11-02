@@ -4,8 +4,6 @@ extends Control
 ## Displays squad state, world info, and allows activity selection
 ## Seamlessly transitions to VN mode for EventChain playback
 
-const VisualNovelComponentClass = preload("res://src/strategy/ui/visual_novel_component.gd")
-
 enum UIMode {
 	STRATEGY,      # Normal activity buttons visible
 	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
@@ -46,15 +44,15 @@ enum UIMode {
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/ShortButton
 
 var game_scenario: GameScenario
-var current_activity_result: StrategyTypes.ActivityResult = null
-var vn_component: VisualNovelComponentClass
+var current_activity_result: ActivityResult = null
+var vn_component: VisualNovelComponent
 var ui_mode: UIMode = UIMode.STRATEGY
 var portrait_cache: Dictionary = {}
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
 
 func _ready() -> void:
-	vn_component = VisualNovelComponentClass.new()
+	vn_component = VisualNovelComponent.new()
 	_initialize_demo_scenario()
 	_connect_signals()
 	_setup_dialogue_box_input()
@@ -136,12 +134,21 @@ func _initialize_demo_scenario() -> void:
 	test_events.append(load("res://resources/generic-events/religious-vision.tres"))
 	test_events.append(load("res://resources/generic-events/mysterious-stranger.tres"))
 	
+	# Load generic activities
+	var test_activities: Array[Activity] = []
+	test_activities.append(load("res://resources/generic-activities/rest.tres"))
+	test_activities.append(load("res://resources/generic-activities/drill.tres"))
+	test_activities.append(load("res://resources/generic-activities/patrol.tres"))
+	test_activities.append(load("res://resources/generic-activities/investigate.tres"))
+	test_activities.append(load("res://resources/generic-activities/hold-mass.tres"))
+	
 	var scenario_config = {
 		"world": test_world,
 		"player_squad": test_squad,
 		"starting_location_id": city_location.location_id,
 		"factions": [],
 		"events": test_events,
+		"activities": test_activities,
 		"endings": []
 	}
 	
@@ -244,8 +251,19 @@ func _update_activity_buttons() -> void:
 	travel_button.disabled = true
 	travel_button.tooltip_text = "Travel system not yet implemented in this demo"
 
+func _get_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
+	# Get activity from triggerable manager by activity_type
+	if not game_scenario or not game_scenario.triggerable_manager:
+		return null
+	
+	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
+		if triggerable is Activity and (triggerable as Activity).activity_type == activity_type:
+			return triggerable as Activity
+	
+	return null
+
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
-	var activity = Activity.create_activity(activity_type)
+	var activity = _get_activity(activity_type)
 	if not activity:
 		return "Unknown activity"
 	
@@ -267,11 +285,15 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	return tooltip
 
 func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
-	var activity = Activity.create_activity(activity_type)
+	var activity = _get_activity(activity_type)
+	
+	if not activity:
+		dialogue_label.text = "Activity not found or not registered in scenario."
+		return
 	
 	if not activity.can_execute(game_scenario.player_squad, game_scenario.current_location):
 		var reason = activity.get_cannot_execute_reason(game_scenario.player_squad, game_scenario.current_location)
-		dialogue_label.text = "Cannot execute %s: %s" % [activity.activity_name, reason]
+		dialogue_label.text = "Cannot execute %s: %s" % [activity.trigger_name, reason]
 		return
 	
 	# Clear previous activity result
@@ -290,24 +312,29 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	# Queue all event chains from pre-triggerables, activity, and post-triggerables
 	_queue_triggerable_chains(turn_summary.get("pre_triggerables", []))
 	
-	if current_activity_result and current_activity_result.has_event_chain():
-		_queue_event_chain(current_activity_result.event_chain_path)
+	# Queue activity event chain from turn_summary
+	var activity_result_data = turn_summary.get("activity_result", {})
+	var activity_event_chain = activity_result_data.get("event_chain_path", "")
+	if not activity_event_chain.is_empty():
+		_queue_event_chain(activity_event_chain)
 	
 	_queue_triggerable_chains(turn_summary.get("post_triggerables", []))
 	
 	# Play queued chains or update UI
 	if event_chain_queue.is_empty():
+		print("No event chains to play, updating UI")
 		_update_ui()
 	else:
+		print("Starting event chain playback...")
 		_play_next_queued_chain()
 
 func _queue_triggerable_chains(triggerable_list: Array) -> void:
 	for triggerable_data in triggerable_list:
 		var result = triggerable_data.get("result")
-		if result is StrategyTypes.GenericResult and result.has_event_chain():
+		if result is GenericResult and result.has_event_chain():
 			_queue_event_chain(result.event_chain_path)
 
-func _display_activity_result(result: StrategyTypes.ActivityResult) -> void:
+func _display_activity_result(result: ActivityResult) -> void:
 	var display_text = ""
 	
 	if result.squad_stat_changes.size() > 0:
@@ -385,9 +412,9 @@ func _on_short_pressed() -> void:
 	
 	dialogue_label.text = summary_text
 
-func _on_activity_executed(activity: Activity, result: StrategyTypes.ActivityResult) -> void:
+func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
 	current_activity_result = result
-	print("Activity executed: %s" % activity.activity_name)
+	print("Activity executed: %s" % activity.trigger_name)
 
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)

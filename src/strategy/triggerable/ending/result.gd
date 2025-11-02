@@ -1,4 +1,4 @@
-class_name EndingResult extends StrategyTypes.GenericResult
+class_name EndingResult extends GenericResult
 
 var ending_id: String;
 var ending_name: String;

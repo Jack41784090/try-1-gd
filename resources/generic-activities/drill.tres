@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Activity" load_steps=4 format=3 uid="uid://dnot34o6jn56r"]
+
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/triggerable/activity/script.gd" id="1_activity"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_mj137"]
+
+[sub_resource type="GDScript" id="GDScript_mj137"]
+
+[resource]
+script = ExtResource("1_activity")
+activity_type = 1
+base_effects = Dictionary[int, float]({
+0: -3.0
+})
+event_chain_path = "res://resources/event_chains/drill_activity_chain.tres"
+trigger_id = "drill-generic"
+trigger_name = "Drill"
+description = "Hone the arts of war. Regular training improves combat readiness at the cost of morale."

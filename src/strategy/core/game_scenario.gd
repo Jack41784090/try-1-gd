@@ -1,7 +1,7 @@
 extends Resource
 class_name GameScenario
 
-signal activity_executed(activity: Activity, result: StrategyTypes.ActivityResult)
+signal activity_executed(activity: Activity, result: ActivityResult)
 signal triggerable_fired(triggerable: Triggerable, result: Variant)
 signal mission_completed(mission: Mission)
 signal ending_reached(ending: Ending)
@@ -41,6 +41,11 @@ func _init(config: Dictionary = {}) -> void:
 		if event is GameEvent:
 			triggerable_manager.register(event)
 	
+	# Register activities
+	for activity in config.get("activities", []):
+		if activity is Activity:
+			triggerable_manager.register(activity)
+	
 	# Set starting location
 	var starting_location_id = config.get("starting_location_id", "")
 	if not starting_location_id.is_empty():
@@ -61,7 +66,7 @@ func execute_turn(activity: Activity) -> Dictionary:
 		return {"error": reason}
 	
 	var turn_summary = {
-		"activity": activity.activity_name,
+		"activity": activity.trigger_name,
 		"pre_triggerables": [],
 		"activity_result": {},
 		"post_triggerables": [],
@@ -69,24 +74,25 @@ func execute_turn(activity: Activity) -> Dictionary:
 		"ending": null
 	}
 	
-	var context = _build_context(activity)
-	
 	# Execute pre and post-activity triggerables
-	turn_summary["pre_triggerables"] = _execute_triggerables(context, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+	turn_summary["pre_triggerables"] = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+	for r in turn_summary["pre_triggerables"]:
+		_apply_result(r["result"])
 	
 	# The [Activity] itself executes
-	var activity_result = activity.execute(player_squad, world, current_location)
+	var activity_result = activity.execute(player_squad, world)
 	turn_summary["activity_result"] = {
 		"squad_changes": activity_result.squad_stat_changes,
 		"world_changes": activity_result.world_stat_changes,
 		"event_chain_path": activity_result.event_chain_path
 	}
-	
-	_apply_activity_result(activity_result)
+	_apply_result(activity_result)
 	activity_executed.emit(activity, activity_result)
 	
 	# Post-activity triggerables with updated context
 	turn_summary["post_triggerables"] = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+	for r in turn_summary["post_triggerables"]:
+		_apply_result(r["result"])
 	
 	# [Mission] completions based on changes from Activity, Event results
 	var completed_missions = _check_mission_completion()
@@ -110,7 +116,7 @@ func execute_turn(activity: Activity) -> Dictionary:
 func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
 	triggerable_fired.emit(triggerable, result)
 
-func _apply_activity_result(result: StrategyTypes.ActivityResult) -> void:
+func _apply_result(result: GenericResult) -> void:
 	if not result.location_changed.is_empty():
 		current_location = world.get_location_by_id(result.location_changed)
 	
@@ -122,8 +128,26 @@ func _apply_activity_result(result: StrategyTypes.ActivityResult) -> void:
 		else:
 			push_warning("GameScenario: Event '%s' not found in TriggerableManager" % event_id)
 	
-	if result.world_stat_changes.has("end_progression"):
-		world.end_progression += result.world_stat_changes["end_progression"]
+	# Apply world stat changes using proper enum key
+	if result.world_stat_changes.has(StrategyTypes.GlobalModifier.END):
+		world.end_progression += result.world_stat_changes[StrategyTypes.GlobalModifier.END]
+	
+	# Apply squad stat changes
+	for stat_key in result.squad_stat_changes:
+		var value = result.squad_stat_changes[stat_key]
+		match stat_key:
+			StrategyTypes.SquadProperty.MORALE:
+				player_squad.modify_morale(value)
+				print("GameScenario: Applied morale change: %+.1f (new: %.1f)" % [value, player_squad.get_morale()])
+			StrategyTypes.SquadProperty.FOOD_SUPPLIES:
+				player_squad.food += int(value)
+				print("GameScenario: Applied food change: %+d (new: %d)" % [int(value), player_squad.food])
+			StrategyTypes.SquadProperty.MOOD:
+				# Mood could map to money or karma depending on design
+				player_squad.money += value
+				print("GameScenario: Applied money change: %+.1f (new: %.1f)" % [value, player_squad.money])
+			_:
+				push_warning("GameScenario: Unhandled squad property: %s" % stat_key)
 
 func _build_context(activity: Activity = null) -> Dictionary:
 	var completed_mission_ids: Array[String] = []
@@ -180,10 +204,14 @@ func _check_ending_conditions() -> Ending:
 func get_available_activities() -> Array[Activity]:
 	var available: Array[Activity] = []
 	
-	for activity_type in current_location.available_activity_types:
-		var activity = Activity.create_activity(activity_type)
-		if activity and activity.can_execute(player_squad, current_location):
-			available.append(activity)
+	# Get all registered activities from triggerable manager
+	for triggerable in triggerable_manager.registered_triggerables:
+		if triggerable is Activity:
+			var activity = triggerable as Activity
+			# Check if activity type is available at current location
+			if activity.activity_type in current_location.available_activity_types:
+				if activity.can_execute(player_squad, current_location):
+					available.append(activity)
 	
 	return available
 

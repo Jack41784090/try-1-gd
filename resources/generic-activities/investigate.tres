@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Activity" load_steps=2 format=3 uid="uid://bnqtc72ulgd3y"]
+
+[ext_resource type="Script" path="res://src/strategy/triggerable/activity/script.gd" id="1_activity"]
+
+[resource]
+script = ExtResource("1_activity")
+trigger_id = "investigate-generic"
+trigger_name = "Investigate"
+description = "Gather intelligence and search for leads. May discover new missions or locations."
+activity_type = 4
+time_cost = 1
+location_requirements = Array[int]([0, 1])
+base_effects = {
+2: 5.0
+}
+event_chain_path = "res://resources/event_chains/investigate_activity_chain.tres"
+resource_costs = {
+2: 10.0
+}
+conditions = []
