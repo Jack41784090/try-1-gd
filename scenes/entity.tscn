@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bv0aqcia3rxpt"]
 
 [ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="1_iiwub"]
-[ext_resource type="Script" uid="uid://dxemloodekbnt" path="res://src/squad_battle/entity_display.gd" id="2_entity_display"]
+[ext_resource type="Script" uid="uid://dxemloodekbnt" path="res://src/squad_battle/entity/display.gd" id="2_entity_display"]
 
 [node name="Entity" type="Node2D"]
 script = ExtResource("2_entity_display")

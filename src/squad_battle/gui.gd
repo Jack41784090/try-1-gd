@@ -1,6 +1,6 @@
 class_name SquadBattleGraphicsNode extends Node2D
 
-const Types = preload("res://src/squad_battle/types.gd")
+# const SquadBattleTypes = preload("res://src/squad_battle/types.gd")
 const EntityDisplayScene = preload("res://scenes/entity.tscn")
 
 var battle: SquadBattle
@@ -58,7 +58,7 @@ func _calculate_position(entity: SquadEntity, team_index: int, squad_index: int)
 	var pos = Vector2()
 	pos.x = 200.0 + (team_index * TEAM_SPACING)
 	pos.y = 200.0 + (squad_index * SQUAD_SPACING)
-	var location = entity.get_changeable_stat_num(Types.EntityChangeable.LOC) as int
+	var location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 	pos.x += (location - 1) * LOCATION_SPACING
 	pos.y += (entity.player_id % 3) * ENTITY_SPACING
 	return pos
@@ -101,93 +101,93 @@ func _animate_position_change(display: EntityDisplay, new_position: Vector2) -> 
 
 #region _handle helpers (deprecated)
 func _handle_hp_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " HP changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.HP, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.HP, change.from, change.to)
 
 func _handle_sta_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " STA changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.STA, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.STA, change.from, change.to)
 
 func _handle_org_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " ORG changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.ORG, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.ORG, change.from, change.to)
 
 func _handle_pos_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " POS changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.POS, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.POS, change.from, change.to)
 
 func _handle_mag_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " MAG changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.MAG, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.MAG, change.from, change.to)
 
 func _handle_loc_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " LOC changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.LOC, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.LOC, change.from, change.to)
 		_update_entity_position(update.affected)
 
 func _handle_die_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " DIE changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.DIE, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.DIE, change.from, change.to)
 
 func _handle_capitulate_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " CAPITULATE changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.CAPITULATE, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.CAPITULATE, change.from, change.to)
 
 func _handle_clink_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " CLINK changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.CLINK, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.CLINK, change.from, change.to)
 
 func _handle_dodge_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " DODGE changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.DODGE, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.DODGE, change.from, change.to)
 
 func _handle_proc_change(update: EntityUpdate) -> void:
-	var change: Types.EntityChange = update.change
+	var change: SquadBattleTypes.EntityChange = update.change
 	print("Entity ", update.affected, " PROC changed from ", change.from, " to ", change.to)
 	
 	var display = entity_displays.get(update.affected)
 	if display:
-		display.update_stat(Types.EntityChangeable.PROC, change.from, change.to)
+		display.update_stat(SquadBattleTypes.EntityChangeable.PROC, change.from, change.to)
 #endregion
 
 func process_updates(updates: Array[EntityUpdate]) -> void:
@@ -198,5 +198,5 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		var display = entity_displays.get(update.affected)
 		assert(display, "Display not found for entity ID %d" % update.affected)
 		await update.commit(display)
-		if update.change.property == Types.EntityChangeable.LOC:
+		if update.change.property == SquadBattleTypes.EntityChangeable.LOC:
 			await _update_entity_position(update.affected)
