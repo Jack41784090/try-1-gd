@@ -12,22 +12,14 @@ func _init(config: Dictionary):
 	
 	for entity_config in entity_configs:
 		var entity = SquadEntity.new(entity_config)
-		var logic_type = entity_config.get("logic_type", "default")
+		# var logic_type = entity_config.get("logic_type", "default")
 		
-		var logic
-		match logic_type:
-			"frontline":
-				logic = SquadLogic.FrontlineLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
-			"archer":
-				logic = SquadLogic.ArcherLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
-			"absurd":
-				logic = SquadLogic.AbsurdLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
-			"adjust_weapon":
-				logic = SquadLogic.AdjustWeaponTestLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
-			_:
-				logic = SquadLogic.new({"entity": entity, "our_squad": {}, "enemy_squad": {}})
-		
-		entity.set_logic(logic)
+		# var logic
+		entity.set_logic(SimplifiedSquadLogic.new({
+			"entity": entity,
+			"our_squad": {},
+			"enemy_squad": {}
+		}))
 		entities.append(entity)
 	
 	squad_name = config.get("name", "Unnamed Squad")
