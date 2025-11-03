@@ -4,7 +4,7 @@ class_name ActionConsideration extends Consideration
 @export var condition_considerations: Array[Consideration] = []
 
 func score(entity, situation, context) -> float:
-    var action_name = SquadBattleTypes.SquadEntityAction.keys()[target_action]
+    var action_name = SquadBattleUtils.get_action_string(target_action)
     print("  [ActionConsideration] Evaluating action: %s (weight=%.2f)" % [action_name, weight])
     
     # Check if all conditions are met

@@ -18,7 +18,7 @@ var changeable_stats: Dictionary = {
 var weapon = SquadWeapon.new()
 var armour = SquadArmour.new()
 # var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
-var logic: SimplifiedLogicConfig.SimplifiedSquadLogic
+var logic: SimplifiedSquadLogic
 
 var is_retreating: bool = false
 var innate_skills: Array[Skill] = []
@@ -203,7 +203,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	})
 	
 	var chosen_action = updated_logic.choose_action()
-	print("[", entity_name, "] || Chose action: ", chosen_action)
+	print("[", entity_name, "] || Chose action: ", SquadBattleUtils.get_action_string(chosen_action))
 	
 	match chosen_action:
 		SquadBattleTypes.SquadEntityAction.ATTACK:

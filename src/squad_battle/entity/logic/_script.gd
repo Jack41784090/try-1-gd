@@ -45,7 +45,7 @@ func _evaluate_best_action() -> SquadBattleTypes.SquadEntityAction:
 			best_action = csdr.target_action
 	
 	print("\n[RESULT] Best Action: %s (score=%.2f)" % [
-		SquadBattleTypes.SquadEntityAction.keys()[best_action], best_score])
+		SquadBattleUtils.get_action_string(best_action), best_score])
 	print("==============================\n")
 	
 	return best_action
