@@ -18,7 +18,7 @@ var changeable_stats: Dictionary = {
 var weapon = SquadWeapon.new()
 var armour = SquadArmour.new()
 # var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
-var logic
+var logic: SimplifiedLogicConfig.SimplifiedSquadLogic
 
 var is_retreating: bool = false
 var innate_skills: Array[Skill] = []

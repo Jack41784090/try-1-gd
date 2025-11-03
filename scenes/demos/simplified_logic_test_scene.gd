@@ -540,7 +540,7 @@ func test_create_custom_configuration() -> void:
 	
 	# Test with logic
 	var context = create_basic_context(entity)
-	var logic = SimplifiedLogicConfig.SimplifiedSquadLogic.new(context, config)
+	var logic = SimplifiedSquadLogic.new(context, config)
 	var chosen_action = logic.choose_action()
 	
 	assert_equal(chosen_action, SquadBattleTypes.SquadEntityAction.RETREAT, 
@@ -571,7 +571,7 @@ func test_scenario_low_hp_retreat() -> void:
 	
 	var config = create_retreat_on_low_hp_config()
 	var context = create_basic_context(entity)
-	var logic = SimplifiedLogicConfig.SimplifiedSquadLogic.new(context, config)
+	var logic = SimplifiedSquadLogic.new(context, config)
 	
 	var action = logic.choose_action()
 	
@@ -600,12 +600,12 @@ func test_scenario_frontline_vs_backline() -> void:
 	
 	# Test frontline
 	var frontline_context = create_basic_context(frontline_entity)
-	var frontline_logic = SimplifiedLogicConfig.SimplifiedSquadLogic.new(frontline_context, config)
+	var frontline_logic = SimplifiedSquadLogic.new(frontline_context, config)
 	var frontline_action = frontline_logic.choose_action()
 	
 	# Test backline
 	var backline_context = create_basic_context(backline_entity)
-	var backline_logic = SimplifiedLogicConfig.SimplifiedSquadLogic.new(backline_context, config)
+	var backline_logic = SimplifiedSquadLogic.new(backline_context, config)
 	var backline_action = backline_logic.choose_action()
 	
 	assert_equal(frontline_action, SquadBattleTypes.SquadEntityAction.ATTACK, 
@@ -639,7 +639,7 @@ func test_scenario_priority_resolution() -> void:
 	config.action_considerations.append(heal_action)
 	
 	var context = create_basic_context(entity)
-	var logic = SimplifiedLogicConfig.SimplifiedSquadLogic.new(context, config)
+	var logic = SimplifiedSquadLogic.new(context, config)
 	var action = logic.choose_action()
 	
 	assert_equal(action, SquadBattleTypes.SquadEntityAction.HEAL, 
