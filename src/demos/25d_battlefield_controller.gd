@@ -37,11 +37,10 @@ const PLACEHOLDER_TEXTURE = preload("res://assets/icon.svg")
 
 
 func _ready() -> void:
-	_setup_test_units()
-
-## NOTE: Background and battlefield ground are now configured directly in the scene file
-## for preview purposes. No runtime generation needed.
-
+	# Don't setup test units by default - let the demo script handle it
+	# Uncomment to see test units in editor:
+	# _setup_test_units()
+	pass
 
 ## Add a unit sprite to a specific row
 ## row_node: The Node3D for the row (front/middle/back)
@@ -183,6 +182,9 @@ func _setup_test_units() -> void:
 	# attacker_tactic.texture = PLACEHOLDER_TEXTURE
 	# defender_portrait.texture = PLACEHOLDER_TEXTURE
 	# defender_tactic.texture = PLACEHOLDER_TEXTURE
+
+## NOTE: Background and battlefield ground are now configured directly in the scene file
+## for preview purposes. No runtime generation needed.
 
 
 ## Clear all units from a row
