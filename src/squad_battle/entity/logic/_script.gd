@@ -68,8 +68,40 @@ func get_default_attack() -> Skill:
 	return Skill.new("Basic Attack", [])
 
 func choose_clash():
-	# Clash targeting can also use considerations if needed
-	return null
+	var unwrapped = situation.unwrap()
+	var my_location = unwrapped["my_location"]
+	var frontline_enemy = unwrapped.get("frontline_enemy")
+	var midline_enemy = unwrapped.get("midline_enemy")
+	var backline_enemy = unwrapped.get("backline_enemy")
+	
+	var weapon = choose_weapon()
+	var available_locs = weapon.get_range_at_location(my_location)
+	
+	var targets: Array = []
+	for loc in available_locs:
+		match loc:
+			SquadBattleTypes.SquadEntityInSquadLocation.Front:
+				if frontline_enemy:
+					for e in frontline_enemy:
+						targets.append(e)
+			SquadBattleTypes.SquadEntityInSquadLocation.Middle:
+				if midline_enemy:
+					for e in midline_enemy:
+						targets.append(e)
+			SquadBattleTypes.SquadEntityInSquadLocation.Back:
+				if backline_enemy:
+					for e in backline_enemy:
+						targets.append(e)
+	
+	if targets.size() == 0:
+		return null
+	
+	var target = targets[randi() % targets.size()]
+	return OneClash.new(
+		entity,
+		target,
+		choose_clash_skill()
+	)
 
 ## REMOVED ENTIRELY:
 # - positioning_policy
