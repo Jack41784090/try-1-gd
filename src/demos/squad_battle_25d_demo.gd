@@ -4,7 +4,7 @@ extends Node3D
 
 var battle: SquadBattle
 var battlefield_controller: d25BattlefieldController
-var entity_sprites: Dictionary = {}  # Maps entity player_id to Sprite3D
+var entity_displays_dict: Dictionary = {}  # Maps entity player_id to EntityDisplay
 var delay_between_rounds: float = 2.0
 var current_round_timer: float = 0.0
 var is_running: bool = false
@@ -159,7 +159,7 @@ func spawn_all_entities() -> void:
 			for entity: SquadEntity in squad.entities:
 				spawn_entity(entity, is_attacker)
 	
-	print("[25D Demo] All entities spawned: %d total" % entity_sprites.size())
+	print("[25D Demo] All entities spawned: %d total" % entity_displays_dict.size())
 
 func spawn_entity(entity: SquadEntity, is_attacker: bool) -> void:
 	var location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
@@ -171,9 +171,9 @@ func spawn_entity(entity: SquadEntity, is_attacker: bool) -> void:
 		return
 	
 	var sprite_index = row_node.get_child_count()
-	var sprite = battlefield_controller.add_unit_to_row(row_node, sprite_index, entity.entity_name)
+	var display = battlefield_controller.add_unit_to_row(row_node, sprite_index, entity.entity_name, entity)
 	
-	entity_sprites[entity.player_id] = sprite
+	entity_displays_dict[entity.player_id] = display
 	
 	# Update all row positions after adding
 	battlefield_controller.update_row_positions(row_node)
@@ -225,97 +225,33 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		print("[25D Demo] Processing %d updates..." % updates.size())
 	
 	for update in updates:
-		var sprite = entity_sprites.get(update.affected)
-		if not sprite:
-			push_warning("[25D Demo] No sprite found for entity ID %d" % update.affected)
+		var display = entity_displays_dict.get(update.affected)
+		if not display:
+			push_warning("[25D Demo] No display found for entity ID %d" % update.affected)
 			continue
 		
-		# Apply update visually
-		await apply_update_to_sprite(update, sprite)
+		# Use EntityDisplay's update_stat method for animations
+		display.update_stat(update.change.property, update.change.from, update.change.to)
+		await display.animation_completed
 		
-		# Handle position changes (LOC changes)
+		# Clean up dead entities after animation completes
+		if update.change.property == SquadBattleTypes.EntityChangeable.DIE:
+			display.queue_free()
+			entity_displays_dict.erase(update.affected)
+		
+		# Handle position changes (LOC changes) - EntityDisplay handles visual update
+		# but we need to move it to the correct row if location changed
 		if update.change.property == SquadBattleTypes.EntityChangeable.LOC:
 			update_entity_position(update.affected)
 
-func apply_update_to_sprite(update: EntityUpdate, sprite: Sprite3D) -> void:
-	var change = update.change
-	
-	match change.property:
-		SquadBattleTypes.EntityChangeable.HP:
-			await animate_hp_change(sprite, change.from, change.to)
-		
-		SquadBattleTypes.EntityChangeable.DIE:
-			await animate_death(sprite)
-		
-		SquadBattleTypes.EntityChangeable.CAPITULATE:
-			animate_capitulate(sprite)
-		
-		SquadBattleTypes.EntityChangeable.DODGE:
-			await animate_dodge(sprite)
-		
-		SquadBattleTypes.EntityChangeable.CLINK:
-			await animate_block(sprite)
-		
-		_:
-			# Default: just log
-			print("[25D Demo] Entity change: %s from %.1f to %.1f" % [change.property, change.from, change.to])
-
-func animate_hp_change(sprite: Sprite3D, old_hp: float, new_hp: float) -> void:
-	var damage = old_hp - new_hp
-	
-	if damage > 0:
-		# Hit animation: flash red and scale pulse
-		var original_modulate = sprite.modulate
-		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color(1.5, 0.5, 0.5), 0.1)
-		tween.tween_property(sprite, "modulate", original_modulate, 0.1)
-		tween.parallel().tween_property(sprite, "scale", Vector3(1.2, 1.2, 1.2), 0.1)
-		tween.tween_property(sprite, "scale", Vector3(1, 1, 1), 0.1)
-		await tween.finished
-	else:
-		# Heal animation: flash green
-		var original_modulate = sprite.modulate
-		var tween = create_tween()
-		tween.tween_property(sprite, "modulate", Color(0.5, 1.5, 0.5), 0.1)
-		tween.tween_property(sprite, "modulate", original_modulate, 0.1)
-		await tween.finished
-
-func animate_death(sprite: Sprite3D) -> void:
-	print("[25D Demo] ☠️ Entity died")
-	var tween = create_tween()
-	tween.tween_property(sprite, "rotation:y", PI * 2, 0.5)
-	tween.parallel().tween_property(sprite, "modulate:a", 0.0, 0.5)
-	tween.parallel().tween_property(sprite, "scale", Vector3(0.5, 0.5, 0.5), 0.5)
-	await tween.finished
-	sprite.queue_free()
-
-func animate_capitulate(sprite: Sprite3D) -> void:
-	print("[25D Demo] 🏳️ Entity capitulated")
-	sprite.modulate = Color(0.5, 0.5, 0.5, 0.5)
-
-func animate_dodge(sprite: Sprite3D) -> void:
-	print("[25D Demo] 💨 Entity dodged")
-	var original_pos = sprite.position
-	var tween = create_tween()
-	tween.tween_property(sprite, "position:z", original_pos.z + 0.5, 0.1)
-	tween.tween_property(sprite, "position:z", original_pos.z, 0.1)
-	await tween.finished
-
-func animate_block(sprite: Sprite3D) -> void:
-	print("[25D Demo] ⚔️ Attack blocked")
-	var original_modulate = sprite.modulate
-	var tween = create_tween()
-	tween.tween_property(sprite, "modulate", Color.WHITE, 0.05)
-	tween.tween_property(sprite, "modulate", original_modulate, 0.05)
-	await tween.finished
 
 func update_entity_position(entity_id: int) -> void:
 	var entity = battle.get_entity_by_id(entity_id)
 	if not entity:
 		return
 	
-	var sprite = entity_sprites.get(entity_id)
-	if not sprite:
+	var display = entity_displays_dict.get(entity_id)
+	if not display:
 		return
 	
 	var new_location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
@@ -329,11 +265,11 @@ func update_entity_position(entity_id: int) -> void:
 		push_error("[25D Demo] Invalid new location %d for entity %s" % [new_location, entity.entity_name])
 		return
 	
-	var current_parent = sprite.get_parent()
+	var current_parent = display.get_parent()
 	if current_parent != new_row:
-		# Move sprite to new row
-		current_parent.remove_child(sprite)
-		new_row.add_child(sprite)
+		# Move display to new row
+		current_parent.remove_child(display)
+		new_row.add_child(display)
 		
 		# Update positions in both rows
 		battlefield_controller.update_row_positions(current_parent)

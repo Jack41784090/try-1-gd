@@ -1,4 +1,6 @@
-class_name d25BattlefieldController extends Node3D
+extends Node3D
+## Controller for 2.5D Battlefield
+## Manages the battlefield ground mesh and dynamic unit positioning
 
 # Configuration - Battlefield fills screen
 const BATTLEFIELD_WIDTH: float = 20.0 # Horizontal span (left-right)
@@ -107,15 +109,14 @@ func _calculate_unit_positions_for_row(row_node: Node3D, opposing_row: Node3D) -
 
 ## Determine team color based on which side the row belongs to
 func _get_team_color_for_row(row_node: Node3D) -> Color:
-	# # Check if row is under AttackerSide or DefenderSide
-	# var parent = row_node.get_parent()
-	# if parent and parent.name == "AttackerSide":
-	# 	return ATTACKER_COLOR
-	# elif parent and parent.name == "DefenderSide":
-	# 	return DEFENDER_COLOR
-	# else:
-	# 	return Color.WHITE # Default if no side found
-	return Color.WHITE
+	# Check if row is under AttackerSide or DefenderSide
+	var parent = row_node.get_parent()
+	if parent and parent.name == "AttackerSide":
+		return ATTACKER_COLOR
+	elif parent and parent.name == "DefenderSide":
+		return DEFENDER_COLOR
+	else:
+		return Color.WHITE # Default if no side found
 
 
 ## Update positions of all units in a row (call when units are added/removed)

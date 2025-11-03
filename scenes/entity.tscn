@@ -1,27 +1,17 @@
-[gd_scene load_steps=3 format=3 uid="uid://bv0aqcia3rxpt"]
+[gd_scene load_steps=2 format=3 uid="uid://bv0aqcia3rxpt"]
 
 [ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="1_iiwub"]
-[ext_resource type="Script" uid="uid://dxemloodekbnt" path="res://src/squad_battle/entity/display.gd" id="2_entity_display"]
 
-[node name="Entity" type="Node2D"]
-script = ExtResource("2_entity_display")
+[node name="Node3D" type="Node3D"]
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite3D" type="Sprite3D" parent="."]
 texture = ExtResource("1_iiwub")
 
-[node name="Name" type="Label" parent="."]
-offset_left = -44.0
-offset_top = -68.0
-offset_right = 44.0
-offset_bottom = -45.0
-text = "Name Here"
+[node name="DamageOrigin" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.44978875, 0)
 
-[node name="INFO" type="Label" parent="."]
-offset_left = -58.0
-offset_top = -39.0
-offset_right = 59.0
-offset_bottom = 61.0
-text = "NO INFO"
+[node name="InfoLayer" type="CanvasLayer" parent="."]
 
-[node name="DamageNumberOrigin" type="Node2D" parent="."]
-position = Vector2(-1, -37)
+[node name="Info" type="Label3D" parent="InfoLayer"]
+
+[node name="Name" type="Label3D" parent="InfoLayer"]

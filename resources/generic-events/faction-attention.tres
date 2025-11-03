@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="GameEvent" load_steps=2 format=3 uid="uid://c7ynaj2kl4pqr"]
 
-[ext_resource type="Script" uid="uid://bkg3r6ll1pyjo" path="res://src/strategy/events/game_event.gd" id="1_event"]
+[ext_resource type="Script" uid="uid://bkg3r6ll1pyjo" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
 
 [resource]
 script = ExtResource("1_event")

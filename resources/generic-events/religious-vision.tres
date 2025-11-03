@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="GameEvent" load_steps=3 format=3 uid="uid://c1mm4dyt6uh7g"]
 
-[ext_resource type="Script" path="res://src/strategy/events/game_event.gd" id="1_event"]
-[ext_resource type="Script" path="res://src/strategy/events/trigger_condition.gd" id="1_x2olr"]
+[ext_resource type="Script" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
+[ext_resource type="Script" path="res://src/strategy/triggerable/conditon.gd" id="1_x2olr"]
 
 [resource]
 script = ExtResource("1_event")
