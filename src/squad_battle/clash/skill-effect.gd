@@ -75,12 +75,10 @@ func setup_connections() -> void:
 		print("      → Connecting to signal: %s" % signal_name)
 		var _result = StatusEffectEventBus.Connect(t, commit)
 		print("      → Connection result: %s" % _result)
+		# OK
 
 func _format_trigger_name(trigger) -> String:
-	match trigger:
-		StatusEffectEventBus.Signals.HelloWorld: return "HelloWorld"
-		StatusEffectEventBus.Signals.TargetTookDamage: return "TargetTookDamage"
-		_: return "Signal_%d" % trigger
+	return StatusEffectEventBus.Signals.keys()[trigger]
 
 func _get_commit_type_name(type: ClashCommonTypes.CommitType) -> String:
 	match type:
@@ -100,7 +98,7 @@ func _format_triggers(trigger_array: Array) -> String:
 			_: names.append("Signal_%d" % t)
 	return ", ".join(names)
 
-func commit() -> Array[EntityUpdate]:
+func commit(_data = null) -> Array[EntityUpdate]:
 	print("    [SkillEffect] Committing '%s'" % name)
 	
 	var updates: Array[EntityUpdate] = []

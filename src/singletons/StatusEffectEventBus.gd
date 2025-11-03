@@ -2,7 +2,7 @@ extends Node2D
 
 signal HelloWorld(val)
 signal TargetTookDamage(val)
-signal OnBasicAttackHit(attacker, target, damage)
+signal OnBasicAttackHit(val)
 
 enum Signals {
 	HelloWorld,
@@ -21,15 +21,12 @@ func _get_signal(signal_enum: Signals) -> Signal:
 func EmitSignal(nameOfSignal: Signals, ...args: Array):
 	var _signal = _get_signal(nameOfSignal)
 	print("  [EventBus] Emitting signal: %s with %d args" % [_signal, args.size()])
-	_signal.emit(args)
-	# Use emit_signal with proper argument spreading
-	# if args.size() == 0:
-	# 	return _signal.emit_signal()
-	# elif args.size() == 1:
-	# 	return _signal.emit_signal(args[0])
-	# else:
-	# 	# For multiple args, use callv to spread them
-	# 	return _signal.callv([_signal] + args)
+	if args.size() == 0:
+		_signal.emit()
+	elif args.size() == 1:
+		_signal.emit(args[0])
+	else:
+		_signal.emit.callv(args)
 
 func Connect(nameOfSignal: Signals, function):
 	var _signal = _get_signal(nameOfSignal)
