@@ -138,6 +138,8 @@ func commit() -> Array:
 		print("═══════════════════════════════════════════════════\n")
 		return cleanup()
 	
+	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
+	
 	var pierce = roll_for_pierce()
 	if not pierce:
 		print("[OneClash] ✗ Clash ended: BLOCKED")

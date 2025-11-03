@@ -3,6 +3,7 @@ class_name SquadBattle
 
 const Types = preload("res://src/squad_battle/types.gd")
 
+
 var teams_and_squads: Dictionary = {}
 var team_names: Array = []
 var round_count: int = -1
@@ -107,7 +108,8 @@ func check_victory() -> bool:
 		else:
 			alive_teams += 1
 	
-	print("Check victory: alive[", alive_teams, "] dead[", dead_teams, "]")
+
+	SBLog.line(0, "Check victory: alive[%d] dead[%d]" % [alive_teams, dead_teams], SBLog.prefix("Battle"))
 	return alive_teams <= 1
 
 func squad_recoveries():
@@ -131,10 +133,11 @@ func squad_actions() -> Array[EntityUpdate]:
 				for update in squad_update:
 					updates.append(update)
 	
-	print("--- Round ", round_count, " Updates ---")
+
+	SBLog.section("Round %d Updates" % round_count, 2, 1, 0)
 	for update in updates:
-		print(update)
-	print("------------------------------")
+		SBLog.line(3, str(update))
+	SBLog.line(2, "End of updates")
 	return updates
 
 func remove_dead_entities():

@@ -1,5 +1,7 @@
 class_name Squad extends RefCounted
 
+# const SBLog = preload("res://src/utils/SBLog.gd")
+
 var team: String = ""
 var entities: Array = []
 var squad_name: String
@@ -47,7 +49,7 @@ func get_all_entities() -> Dictionary:
 	return result
 
 func recovery():
-	print("[Squad:", squad_name, "] offered a recovery")
+	SBLog.line(3, "offered a recovery", SBLog.prefix(self, squad_name))
 	for entity in entities:
 		entity.recover()
 
@@ -55,7 +57,7 @@ func get_last_attacked_at_round() -> int:
 	return last_round_received_attack
 
 func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
-	print("[Squad:", squad_name, "] ⚔️ [", enemy_squad.squad_name, "]")
+	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, SBLog.prefix(self, squad_name))
 	var updates_after_attack: Array[EntityUpdate] = []
 	
 	last_round_received_attack = round_count
@@ -81,7 +83,7 @@ func choose_enemy_squad(enemy_squads: Array):
 	return null
 
 func act_attack_random(targetable_squads: Array, round_count: int):
-	print("[Squad:", squad_name, "] attacking random enemy")
+	SBLog.line(3, "attacking random enemy", SBLog.prefix(self, squad_name))
 	var enemy_squad = choose_enemy_squad(targetable_squads)
 	
 	if enemy_squad:
@@ -89,11 +91,11 @@ func act_attack_random(targetable_squads: Array, round_count: int):
 	return null
 
 func act_idle():
-	print("[Squad:", squad_name, "] idling")
+	SBLog.line(3, "idling", SBLog.prefix(self, squad_name))
 	return null
 
 func round(enemy_squads: Array, round_count: int) -> Array[EntityUpdate]:
-	print("[Squad:", squad_name, "] --- Round ", round_count, " ---")
+	SBLog.section("%s" % squad_name, 2, 1, 0)
 	
 	for entity in entities:
 		entity.new_round_reset()

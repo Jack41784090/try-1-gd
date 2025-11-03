@@ -4,7 +4,7 @@ extends Node3D
 
 var battle: SquadBattle
 var battlefield_controller: d25BattlefieldController
-var entity_displays_dict: Dictionary = {}  # Maps entity player_id to EntityDisplay
+var entity_displays_dict: Dictionary = {} # Maps entity player_id to EntityDisplay
 var delay_between_rounds: float = 2.0
 var current_round_timer: float = 0.0
 var is_running: bool = false
@@ -13,6 +13,10 @@ var last_round_capitulated: Array = []
 # Row mapping: SquadEntityInSquadLocation -> battlefield row
 var attacker_rows: Dictionary = {}
 var defender_rows: Dictionary = {}
+
+# const SBLog = preload("res://src/utils/SBLog.gd")
+
+
 
 func _ready() -> void:
 	# Get battlefield controller reference
@@ -37,7 +41,8 @@ func _ready() -> void:
 	setup_battle()
 	spawn_all_entities()
 	is_running = true
-	print("[25D Demo] Squad Battle Started!")
+	
+	SBLog.section("Squad Battle Started!", 0, 2, 1)
 	await get_tree().create_timer(1.0).timeout
 	process_round()
 
@@ -138,10 +143,10 @@ func setup_battle():
 	}
 	
 	battle = SquadBattle.new(battle_config)
-	print("[25D Demo] Battle initialized with %d teams" % battle.team_names.size())
+	SBLog.line(0, "Battle initialized with %d teams" % battle.team_names.size(), SBLog.prefix("25D Demo"))
 
 func spawn_all_entities() -> void:
-	print("[25D Demo] Spawning all entities to battlefield...")
+	SBLog.line(1, "Spawning all entities to battlefield...", SBLog.prefix("25D Demo"))
 	
 	# Clear test units first
 	battlefield_controller.clear_row(battlefield_controller.attacker_front)
@@ -153,13 +158,14 @@ func spawn_all_entities() -> void:
 	
 	for team_name in battle.teams_and_squads.keys():
 		var squads: Array = battle.teams_and_squads[team_name]
-		var is_attacker = (team_name == "heroes")  # Heroes are attackers (left side)
+		var is_attacker = (team_name == "heroes") # Heroes are attackers (left side)
 		
 		for squad: Squad in squads:
 			for entity: SquadEntity in squad.entities:
 				spawn_entity(entity, is_attacker)
 	
-	print("[25D Demo] All entities spawned: %d total" % entity_displays_dict.size())
+	
+	SBLog.line(1, "All entities spawned: %d total" % entity_displays_dict.size(), SBLog.prefix("25D Demo"))
 
 func spawn_entity(entity: SquadEntity, is_attacker: bool) -> void:
 	var location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
@@ -181,21 +187,25 @@ func spawn_entity(entity: SquadEntity, is_attacker: bool) -> void:
 	if opposing:
 		battlefield_controller.update_row_positions(opposing)
 	
-	print("[25D Demo] Spawned %s (ID:%d) at %s" % [entity.entity_name, entity.player_id, row_node.name])
+	# const SBLog = preload("res://src/utils/SBLog.gd")
+	SBLog.line(2, "Spawned %s (ID:%d) at %s" % [entity.entity_name, entity.player_id, row_node.name], SBLog.prefix("25D Demo"))
 
 func process_round() -> void:
 	if battle.check_victory():
-		print("=== BATTLE ENDED ===")
+		
+		SBLog.section("BATTLE ENDED", 0, 2, 1)
 		print_winner()
 		is_running = false
 		return
 	
 	if battle.round_count >= 50:
-		print("=== MAX ROUNDS REACHED ===")
+		
+		SBLog.section("MAX ROUNDS REACHED", 0, 2, 1)
 		is_running = false
 		return
 	
-	print("\n--- Round ", battle.round_count + 1, " ---")
+	
+	SBLog.section("Round %d" % (battle.round_count + 1), 1, 1, 1)
 	battle.round_count += 1
 	
 	battle.remove_dead_entities()
@@ -222,7 +232,8 @@ func process_round() -> void:
 
 func process_updates(updates: Array[EntityUpdate]) -> void:
 	if updates.size() > 0:
-		print("[25D Demo] Processing %d updates..." % updates.size())
+		
+		SBLog.line(2, "Processing %d updates..." % updates.size(), SBLog.prefix("25D Demo"))
 	
 	for update in updates:
 		var display = entity_displays_dict.get(update.affected)
@@ -275,7 +286,8 @@ func update_entity_position(entity_id: int) -> void:
 		battlefield_controller.update_row_positions(current_parent)
 		battlefield_controller.update_row_positions(new_row)
 		
-		print("[25D Demo] Moved entity %d from %s to %s" % [entity_id, current_parent.name, new_row.name])
+		
+		SBLog.line(2, "Moved entity %d from %s to %s" % [entity_id, current_parent.name, new_row.name], SBLog.prefix("25D Demo"))
 
 func print_winner():
 	for team_name in battle.teams_and_squads:
