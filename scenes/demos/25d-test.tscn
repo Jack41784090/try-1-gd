@@ -1,15 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://6c86cy13tc0b"]
+[gd_scene load_steps=8 format=3 uid="uid://6c86cy13tc0b"]
 
-[ext_resource type="Script" path="res://scenes/demos/25d_battlefield_controller.gd" id="1_battlefield_script"]
+[ext_resource type="Script" uid="uid://cfsk5i0pxgs77" path="res://scenes/demos/25d_battlefield_controller.gd" id="1_battlefield_script"]
+[ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_wjvbm"]
+[ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="3_hxxd1"]
+[ext_resource type="Texture2D" uid="uid://b0yrw1n1rb4fu" path="res://assets/air_cavalry_charge.png" id="4_wfq3d"]
+[ext_resource type="Texture2D" uid="uid://6p2dvlnoq2ra" path="res://assets/hold_fort.png" id="5_at32v"]
+[ext_resource type="Texture2D" uid="uid://v8qmy8s7gxuh" path="res://assets/GER_gotthard_heinrici.png" id="6_1rjlf"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_battlefield"]
+size = Vector3(20, 0.5, 14)
 
 [node name="25dTest" type="Node3D"]
 script = ExtResource("1_battlefield_script")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 8, 12)
-projection = 1
-size = 20.0
-near = 0.05
+transform = Transform3D(1, 0, 0, 0, 0.8660253, 0.50000024, 0, -0.50000024, 0.8660253, 0, 6, 9)
+fov = 45.6
+size = 17.358
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
@@ -17,47 +24,41 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 
-[node name="BackgroundLayer" type="CanvasLayer" parent="."]
-layer = -10
-
-[node name="ParallaxBackground" type="ParallaxBackground" parent="BackgroundLayer"]
-
-[node name="ParallaxLayer" type="ParallaxLayer" parent="BackgroundLayer/ParallaxBackground"]
-motion_scale = Vector2(0.3, 0.3)
-motion_mirroring = Vector2(2048, 0)
-
-[node name="BackgroundSprite" type="Sprite2D" parent="BackgroundLayer/ParallaxBackground/ParallaxLayer"]
-position = Vector2(576, 324)
-scale = Vector2(2, 2)
+[node name="Background3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15)
+pixel_size = 0.02
+billboard = 1
+alpha_cut = 2
+texture = ExtResource("2_wjvbm")
 
 [node name="Battlefield" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.7161875, 0)
 
 [node name="BattlefieldGround" type="MeshInstance3D" parent="Battlefield"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, -0.25, 0)
+mesh = SubResource("BoxMesh_battlefield")
 
 [node name="AttackerSide" type="Node3D" parent="Battlefield"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -6.5452366)
 
 [node name="FrontRow" type="Node3D" parent="Battlefield/AttackerSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
 
 [node name="MiddleRow" type="Node3D" parent="Battlefield/AttackerSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
 
 [node name="BackRow" type="Node3D" parent="Battlefield/AttackerSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 0)
 
 [node name="DefenderSide" type="Node3D" parent="Battlefield"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -6.5452366)
 
 [node name="FrontRow" type="Node3D" parent="Battlefield/DefenderSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 0)
 
 [node name="MiddleRow" type="Node3D" parent="Battlefield/DefenderSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
 
 [node name="BackRow" type="Node3D" parent="Battlefield/DefenderSide"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10
@@ -79,12 +80,14 @@ grow_vertical = 2
 [node name="AttackerPortrait" type="TextureRect" parent="UILayer/TopBar/AttackerPanel"]
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
+texture = ExtResource("3_hxxd1")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="AttackerTactic" type="TextureRect" parent="UILayer/TopBar/AttackerPanel"]
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
+texture = ExtResource("4_wfq3d")
 expand_mode = 1
 stretch_mode = 5
 
@@ -133,11 +136,13 @@ horizontal_alignment = 2
 [node name="DefenderTactic" type="TextureRect" parent="UILayer/TopBar/DefenderPanel"]
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
+texture = ExtResource("5_at32v")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="DefenderPortrait" type="TextureRect" parent="UILayer/TopBar/DefenderPanel"]
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
+texture = ExtResource("6_1rjlf")
 expand_mode = 1
 stretch_mode = 5
