@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ContextConsideration" load_steps=3 format=3 uid="uid://cxl5v0imflrxf"]
+
+[ext_resource type="Script" uid="uid://d2i33dkjonsjp" path="res://src/squad_battle/entity/logic/consideration/context.gd" id="1_chghv"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="2_dfuk1"]
+
+[resource]
+script = ExtResource("1_chghv")
+query_type = 2
+target_location = 1
+action = 3
+metadata/_custom_type_script = "uid://d2i33dkjonsjp"

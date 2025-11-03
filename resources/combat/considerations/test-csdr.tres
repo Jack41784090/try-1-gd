@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="EntityConsideration" load_steps=3 format=3 uid="uid://ch8wlcr0kouk6"]
+
+[ext_resource type="Script" uid="uid://oftv6xlllcor" path="res://src/squad_battle/entity/logic/consideration/entity.gd" id="1_2wqai"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="2_ohx8w"]
+
+[resource]
+script = ExtResource("1_2wqai")
+metadata/_custom_type_script = "uid://oftv6xlllcor"
