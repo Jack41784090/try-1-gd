@@ -12,14 +12,11 @@ func _init(config: Dictionary):
 	
 	for entity_config in entity_configs:
 		var entity = SquadEntity.new(entity_config)
-		# var logic_type = entity_config.get("logic_type", "default")
-		
-		# var logic
 		entity.set_logic(SimplifiedSquadLogic.new({
 			"entity": entity,
 			"our_squad": {},
 			"enemy_squad": {}
-		}))
+		}, LogicFactory.get_logic(LogicFactory.LogicAvailable.Frontline)))
 		entities.append(entity)
 	
 	squad_name = config.get("name", "Unnamed Squad")
