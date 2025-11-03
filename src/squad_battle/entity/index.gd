@@ -17,13 +17,23 @@ var changeable_stats: Dictionary = {
 
 var weapon = SquadWeapon.new()
 var armour = SquadArmour.new()
-var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
-
+# var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
+var logic
 
 var is_retreating: bool = false
 var innate_skills: Array[Skill] = []
 var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
+
+static func quick_dummy():
+	return SquadEntity.new({
+		player_id = 0,
+		entity_name = "Dummy",
+		team = "Dummy",
+		stats = EntityBaseStats.new(),
+		weapon = SquadWeapon.new(),
+		armour = SquadArmour.new()
+	})
 
 func _init(config: Dictionary = {}):
 	# If config is empty, we're being loaded from a resource file
