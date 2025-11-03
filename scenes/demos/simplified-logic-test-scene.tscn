@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0r70g3mm64jd"]
+
+[ext_resource type="Script" uid="uid://qfohgwfkxqem" path="res://scenes/demos/simplified_logic_test_scene.gd" id="1_wog4f"]
+
+[node name="SimplifiedLogicTestScene" type="Node2D"]
+script = ExtResource("1_wog4f")
