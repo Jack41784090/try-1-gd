@@ -1,6 +1,4 @@
-extends Node3D
-## Controller for 2.5D Battlefield
-## Manages the battlefield ground mesh and dynamic unit positioning
+class_name d25BattlefieldController extends Node3D
 
 # Configuration - Battlefield fills screen
 const BATTLEFIELD_WIDTH: float = 20.0 # Horizontal span (left-right)

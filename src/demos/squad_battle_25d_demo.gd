@@ -3,7 +3,7 @@ extends Node3D
 ## Integrates SquadBattle logic with the 2.5D battlefield visualization
 
 var battle: SquadBattle
-var battlefield_controller: Node3D
+var battlefield_controller: d25BattlefieldController
 var entity_sprites: Dictionary = {}  # Maps entity player_id to Sprite3D
 var delay_between_rounds: float = 2.0
 var current_round_timer: float = 0.0
