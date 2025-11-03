@@ -1,6 +1,4 @@
 extends Node3D
-## 2.5D Squad Battle Demo
-## Integrates SquadBattle logic with the 2.5D battlefield visualization
 
 var battle: SquadBattle
 var battlefield_controller: d25BattlefieldController
@@ -10,13 +8,8 @@ var current_round_timer: float = 0.0
 var is_running: bool = false
 var last_round_capitulated: Array = []
 
-# Row mapping: SquadEntityInSquadLocation -> battlefield row
 var attacker_rows: Dictionary = {}
 var defender_rows: Dictionary = {}
-
-# const SBLog = preload("res://src/utils/SBLog.gd")
-
-
 
 func _ready() -> void:
 	# Get battlefield controller reference
@@ -204,7 +197,6 @@ func process_round() -> void:
 		is_running = false
 		return
 	
-	
 	SBLog.section("Round %d" % (battle.round_count + 1), 1, 1, 1)
 	battle.round_count += 1
 	
@@ -254,7 +246,6 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		# but we need to move it to the correct row if location changed
 		if update.change.property == SquadBattleTypes.EntityChangeable.LOC:
 			update_entity_position(update.affected)
-
 
 func update_entity_position(entity_id: int) -> void:
 	var entity = battle.get_entity_by_id(entity_id)
