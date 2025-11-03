@@ -26,7 +26,7 @@ func _suggest_with_utility(entity, situation, context) -> int:
     for action in candidate_actions:
         var score := 0.0
         for c in considerations:
-            score += c.score()
+            score += c.score(entity, situation, context)
         if score > best_score:
             best_score = score
             best_action = action
