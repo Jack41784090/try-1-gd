@@ -7,6 +7,7 @@ const BASE_UNIT_SPACING: float = 1.75
 const UNIT_HEIGHT_OFFSET: float = 1
 const UNIT_PIXEL_SIZE: float = 0.0125
 const PLACEHOLDER_TEXTURE = preload("res://assets/icon.svg")
+const ENTITY_SCENE = preload("res://scenes/entity.tscn")
 
 const MOVE_ANIMATION_DURATION: float = 0.5
 const RECOIL_ANIMATION_DURATION: float = 0.3
@@ -25,11 +26,21 @@ func add_unit_to_row(row_node: Node3D, unit_index: int, unit_name: String = "Uni
 	var unit_node: Node3D
 	
 	if entity:
-		var display = EntityDisplay.new()
+		var display = ENTITY_SCENE.instantiate() as EntityDisplay
 		display.name = "%s_%d" % [unit_name, unit_index]
-		display.setup_programmatic(entity, PLACEHOLDER_TEXTURE, Color.WHITE, UNIT_PIXEL_SIZE)
 		display.position = Vector3(0, UNIT_HEIGHT_OFFSET, 0)
 		row_node.add_child(display)
+		display.setup(entity)
+		
+		if entity.icon:
+			display.sprite.texture = entity.icon
+		display.sprite.pixel_size = UNIT_PIXEL_SIZE
+		
+		var parent = row_node.get_parent()
+		if parent:
+			display.sprite.modulate = Color(1, 0.3, 0.3) if parent.name == "AttackerSide" else Color(0.3, 0.3, 1)
+		
+		display.refresh_display()
 		unit_node = display
 	else:
 		var sprite = Sprite3D.new()
