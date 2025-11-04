@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=8 format=3 uid="uid://cvco6tu0hveri"]
 
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="1_ndrnq"]
-[ext_resource type="Script" path="res://src/squad_battle/entity/logic/config.gd" id="2_augef"]
+[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="2_augef"]
 [ext_resource type="Resource" uid="uid://dj4egph8s0ybi" path="res://resources/combat/considerations/not-at-front-line.tres" id="2_brlwv"]
 [ext_resource type="Script" uid="uid://c42niik2n8dgh" path="res://src/squad_battle/entity/logic/consideration/action.gd" id="3_enja8"]
 [ext_resource type="Resource" uid="uid://cxl5v0imflrxf" path="res://resources/combat/considerations/at-frontline.tres" id="4_gn8a8"]
@@ -10,7 +10,6 @@
 script = ExtResource("3_enja8")
 target_action = 1
 condition_considerations = Array[ExtResource("1_ndrnq")]([ExtResource("2_brlwv")])
-action = 1
 metadata/_custom_type_script = "uid://c42niik2n8dgh"
 
 [sub_resource type="Resource" id="Resource_ymuie"]

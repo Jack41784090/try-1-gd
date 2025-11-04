@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=9 format=3 uid="uid://cdedndmtxq6m8"]
+
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="1_7lgaf"]
+[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="2_brk3j"]
+[ext_resource type="Script" uid="uid://d2i33dkjonsjp" path="res://src/squad_battle/entity/logic/consideration/context.gd" id="2_orytp"]
+[ext_resource type="Script" uid="uid://c42niik2n8dgh" path="res://src/squad_battle/entity/logic/consideration/action.gd" id="3_2feeq"]
+
+[sub_resource type="Resource" id="Resource_booph"]
+script = ExtResource("2_orytp")
+query_type = 2
+target_location = 3
+metadata/_custom_type_script = "uid://d2i33dkjonsjp"
+
+[sub_resource type="Resource" id="Resource_2ev36"]
+script = ExtResource("3_2feeq")
+target_action = 2
+condition_considerations = Array[ExtResource("1_7lgaf")]([SubResource("Resource_booph")])
+metadata/_custom_type_script = "uid://c42niik2n8dgh"
+
+[sub_resource type="Resource" id="Resource_h11hv"]
+script = ExtResource("2_orytp")
+query_type = 2
+target_location = 3
+invert = true
+metadata/_custom_type_script = "uid://d2i33dkjonsjp"
+
+[sub_resource type="Resource" id="Resource_cpnom"]
+script = ExtResource("3_2feeq")
+target_action = 4
+condition_considerations = Array[ExtResource("1_7lgaf")]([SubResource("Resource_h11hv")])
+metadata/_custom_type_script = "uid://c42niik2n8dgh"
+
+[resource]
+script = ExtResource("2_brk3j")
+action_considerations = Array[ExtResource("1_7lgaf")]([SubResource("Resource_2ev36"), SubResource("Resource_cpnom")])
+metadata/_custom_type_script = "uid://bbbgoilqfygt0"
