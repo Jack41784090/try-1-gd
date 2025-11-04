@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ArmorConfig" load_steps=6 format=3 uid="uid://bkwp3mnh5rxjd"]
+
+[ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad_battle/armor/protection-tsl.gd" id="1_prot_tsl"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad_battle/armor/_config-resource.gd" id="2_armor_cfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/weapon/potency-obj.gd" id="2_potency"]
+
+[sub_resource type="Resource" id="Resource_leather_pot"]
+script = ExtResource("2_potency")
+value = 0.3
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_leather_tsl"]
+script = ExtResource("1_prot_tsl")
+Reality = 3
+PotencyList = Array[ExtResource("2_potency")]([SubResource("Resource_leather_pot")])
+metadata/_custom_type_script = "uid://cya1ph2rx5aff"
+
+[resource]
+script = ExtResource("2_armor_cfg")
+armor_name = "Leather Armor"
+defense_bonus = 2.0
+armor_bonus = 5.0
+protection_translation = Array[ExtResource("1_prot_tsl")]([SubResource("Resource_leather_tsl")])
+metadata/_custom_type_script = "uid://cmp8q7xe0kf7r"

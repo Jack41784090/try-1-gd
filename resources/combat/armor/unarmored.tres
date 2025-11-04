@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ArmorConfig" load_steps=6 format=3 uid="uid://cb86jvmr0ptt1"]
+
+[ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad_battle/armor/protection-tsl.gd" id="1_prot_tsl"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad_battle/armor/_config-resource.gd" id="2_armor_cfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/weapon/potency-obj.gd" id="2_potency"]
+
+[sub_resource type="Resource" id="Resource_unarm_pot"]
+script = ExtResource("2_potency")
+value = 0.1
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_unarm_tsl"]
+script = ExtResource("1_prot_tsl")
+Reality = 3
+PotencyList = Array[ExtResource("2_potency")]([SubResource("Resource_unarm_pot")])
+metadata/_custom_type_script = "uid://cya1ph2rx5aff"
+
+[resource]
+script = ExtResource("2_armor_cfg")
+protection_translation = Array[ExtResource("1_prot_tsl")]([SubResource("Resource_unarm_tsl")])
+metadata/_custom_type_script = "uid://cmp8q7xe0kf7r"
