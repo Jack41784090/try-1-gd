@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=8 format=3 uid="uid://wtjmoptcuffo"]
+
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad_battle/weapon/damage-tsl.gd" id="1_7kbrk"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/weapon/potency-obj.gd" id="2_63qs5"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad_battle/weapon/_config-resource.gd" id="2_664yu"]
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad_battle/weapon/weapon-location.gd" id="3_63qs5"]
+[ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/front-to-front.tres" id="5_v1mfc"]
+
+[sub_resource type="Resource" id="Resource_nfhnc"]
+script = ExtResource("2_63qs5")
+value = 0.25
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_5xhdi"]
+script = ExtResource("1_7kbrk")
+Reality = 1
+PotencyList = Array[ExtResource("2_63qs5")]([SubResource("Resource_nfhnc")])
+metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
+
+[resource]
+script = ExtResource("2_664yu")
+damage_translation = Array[ExtResource("1_7kbrk")]([SubResource("Resource_5xhdi")])
+weapon_location_map = Array[ExtResource("3_63qs5")]([ExtResource("5_v1mfc")])
+metadata/_custom_type_script = "uid://bbuqprgu6l833"
