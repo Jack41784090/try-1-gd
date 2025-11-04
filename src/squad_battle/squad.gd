@@ -40,6 +40,9 @@ func get_all_entities() -> Dictionary:
 	var result = {}
 	
 	for entity in entities:
+		if entity.is_dead():
+			continue
+		
 		var loc = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 		
 		if not result.has(loc):
@@ -62,19 +65,18 @@ func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
 	
 	last_round_received_attack = round_count
 	
-	var our_squad_metadata = get_all_entities()
-	var enemy_squad_metadata = enemy_squad.get_all_entities()
-	
 	for our_entity in entities:
+		var our_squad_metadata = get_all_entities()
+		var enemy_squad_metadata = enemy_squad.get_all_entities()
 		var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
 		for result in action_results:
 			updates_after_attack.append(result)
 	
 	SBLog.line(4, "↻ Refreshing positions after actions, before reactions", SBLog.prefix(self, squad_name))
-	our_squad_metadata = get_all_entities()
-	enemy_squad_metadata = enemy_squad.get_all_entities()
 	
 	for enemy_entity in enemy_squad.entities:
+		var our_squad_metadata = get_all_entities()
+		var enemy_squad_metadata = enemy_squad.get_all_entities()
 		var reaction_results = enemy_entity.reaction(enemy_squad_metadata, our_squad_metadata)
 		for result in reaction_results:
 			updates_after_attack.append(result)

@@ -146,6 +146,7 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		await display.animation_completed
 		
 		if update.change.property == SquadBattleTypes.EntityChangeable.DIE:
+			display.visible = false
 			display.queue_free()
 			entity_displays_dict.erase(update.affected)
 		elif update.change.property == SquadBattleTypes.EntityChangeable.LOC:
