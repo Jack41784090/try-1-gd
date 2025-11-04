@@ -1,7 +1,5 @@
 class_name Squad extends RefCounted
 
-# const SBLog = preload("res://src/utils/SBLog.gd")
-
 var team: String = ""
 var entities: Array = []
 var squad_name: String
@@ -9,18 +7,31 @@ var last_round_received_attack: int = -1
 
 func _init(config: Dictionary):
 	var entity_configs = config.get("entities", [])
-	
-	for entity_config in entity_configs:
-		var entity = SquadEntity.new(entity_config)
-		entity.set_logic(SimplifiedSquadLogic.new({
-			"entity": entity,
-			"our_squad": {},
-			"enemy_squad": {}
-		}, LogicFactory.get_logic(LogicFactory.LogicAvailable.Frontline)))
-		entities.append(entity)
-	
 	squad_name = config.get("name", "Unnamed Squad")
 	team = config.get("team", "")
+	var next_player_id = randi() % 1000 + 1
+	
+	for entity_config in entity_configs:
+		var entity: SquadEntity
+		if entity_config is EntityFactory.EntityClasses:
+			entity = EntityFactory.get_entity(entity_config)
+			entity.player_id = next_player_id
+			next_player_id += 1
+			entity.team = team
+			var context = {
+				"entity": entity,
+				"our_squad": {},
+				"enemy_squad": {}
+			}
+			entity.logic = SimplifiedSquadLogic.new(context, entity.logic_config)
+			entity.initialise_changeables()
+		elif entity_config is Dictionary:
+			entity = SquadEntity.new(entity_config)
+		else:
+			push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])
+			continue
+
+		entities.append(entity)
 
 func is_crippled() -> bool:
 	return entities.size() == 0
@@ -58,6 +69,10 @@ func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
 		var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
 		for result in action_results:
 			updates_after_attack.append(result)
+	
+	SBLog.line(4, "↻ Refreshing positions after actions, before reactions", SBLog.prefix(self, squad_name))
+	our_squad_metadata = get_all_entities()
+	enemy_squad_metadata = enemy_squad.get_all_entities()
 	
 	for enemy_entity in enemy_squad.entities:
 		var reaction_results = enemy_entity.reaction(enemy_squad_metadata, our_squad_metadata)
