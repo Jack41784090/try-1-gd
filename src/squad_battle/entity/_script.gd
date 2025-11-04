@@ -1,10 +1,14 @@
 class_name SquadEntity extends Resource
 
 
-@export var player_id: int
 @export var entity_name: String
 @export var stats: EntityBaseStats
-@export var team: String
+@export var logic_config: SimplifiedLogicConfig
+@export var icon: Texture2D
+
+var player_id: int
+var team: String
+var logic: SimplifiedSquadLogic
 
 var changeable_stats: Dictionary = {
 	SquadBattleTypes.EntityChangeable.HP: 0.0,
@@ -18,7 +22,6 @@ var changeable_stats: Dictionary = {
 var weapon = SquadWeapon.new()
 var armour = SquadArmour.new()
 # var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
-var logic: SimplifiedSquadLogic
 
 var is_retreating: bool = false
 var innate_skills: Array[Skill] = []
@@ -45,6 +48,13 @@ func _init(config: Dictionary = {}):
 		entity_name = config.get("name", "Unknown")
 		team = config.get("team", "")
 		stats = config.get("stats", EntityBaseStats.new())
+		var context = {
+			"entity": self,
+			"our_squad": {},
+			"enemy_squad": {}
+		}
+		logic = SimplifiedSquadLogic.new(context, logic_config)
+
 		if config.has("weapon"):
 			weapon = config["weapon"]
 		if config.has("armour"):
@@ -297,24 +307,22 @@ func action_attack(logic_obj):
 func action_forward(_logic_obj) -> Array:
 	return [EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, -1))]
 
-func action_heal(logic_obj):
+func action_heal(logic_obj: SimplifiedSquadLogic):
 	var physical_heal = 5
 	var spirit_heal = 7
-	var sameline_allies = logic_obj.get_same_line_allies()
+
+	var fla = logic_obj.situation.frontline_ally()
+	var ally = fla[randi() % fla.size()]
+	var updates: Array = []
+	var h = ally.heal(physical_heal)
+	var b = ally.boost(spirit_heal)
 	
-	if sameline_allies and sameline_allies.size() > 0:
-		var ally = sameline_allies[randi() % sameline_allies.size()]
-		var updates: Array = []
-		var h = ally.heal(physical_heal)
-		var b = ally.boost(spirit_heal)
-		
-		if h:
-			updates.append(EntityUpdate.new(player_id, ally.player_id, h))
-		if b:
-			updates.append(EntityUpdate.new(player_id, ally.player_id, b))
-		
-		return updates
-	return null
+	if h:
+		updates.append(EntityUpdate.new(player_id, ally.player_id, h))
+	if b:
+		updates.append(EntityUpdate.new(player_id, ally.player_id, b))
+	
+	return updates
 
 func action_retreat() -> Array:
 	if not is_retreating:
