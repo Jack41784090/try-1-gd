@@ -36,29 +36,49 @@ func _ready() -> void:
 	process_round()
 
 func setup_battle():
-	var squad1_config = {
-		"name": "Heroes Squad",
-		"team": "heroes",
-		"entities": [
-			{"player_id": 1, "name": "Sir Galahad", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
-			{"player_id": 2, "name": "Sir Lancelot", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
-			{"player_id": 3, "name": "Sir Percival", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
-			{"player_id": 4, "name": "Sir Gawain", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
-		]
+	# var squad1_config = {
+	# 	"name": "Heroes Squad",
+	# 	"team": "heroes",
+	# 	"entities": [
+	# 		{"player_id": 1, "name": "Sir Galahad", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
+	# 		{"player_id": 2, "name": "Sir Lancelot", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
+	# 		{"player_id": 3, "name": "Sir Percival", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
+	# 		{"player_id": 4, "name": "Sir Gawain", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
+	# 	]
+	# }
+	
+	# var squad2_config = {
+	# 	"name": "Goblins",
+	# 	"team": "monsters",
+	# 	"entities": [
+	# 		{"player_id": 5, "name": "Grubnak", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
+	# 		{"player_id": 6, "name": "Snaggletooth", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
+	# 		{"player_id": 7, "name": "Blightfang", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
+	# 		{"player_id": 8, "name": "Rotclaw", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
+	# 	]
+	# }
+	
+	# var battle_config = {"teams": {"heroes": [squad1_config], "monsters": [squad2_config]}}
+	
+	var battle_config = {
+		"teams": {
+			"heroes": [
+				{
+					"name": "Heroes",
+					"team": "heroes",
+					"entities": [EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Healer]
+				}
+			],
+			"monsters": [
+				{
+					"name": "Monsters",
+					"team": "monsters",
+					"entities": [EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Healer]
+				}
+			]
+		}
 	}
 	
-	var squad2_config = {
-		"name": "Goblins",
-		"team": "monsters",
-		"entities": [
-			{"player_id": 5, "name": "Grubnak", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
-			{"player_id": 6, "name": "Snaggletooth", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
-			{"player_id": 7, "name": "Blightfang", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
-			{"player_id": 8, "name": "Rotclaw", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
-		]
-	}
-	
-	var battle_config = {"teams": {"heroes": [squad1_config], "monsters": [squad2_config]}}
 	battle = SquadBattle.new(battle_config)
 
 func spawn_all_entities() -> void:

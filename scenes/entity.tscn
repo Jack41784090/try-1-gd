@@ -1,10 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://bv0aqcia3rxpt"]
+[gd_scene load_steps=3 format=3 uid="uid://bv0aqcia3rxpt"]
 
+[ext_resource type="Script" uid="uid://c5r77n5yq2yh0" path="res://src/squad_battle/entity/display.gd" id="1_gr72c"]
 [ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="1_iiwub"]
 
 [node name="Node3D" type="Node3D"]
+script = ExtResource("1_gr72c")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
+billboard = 1
 texture = ExtResource("1_iiwub")
 
 [node name="DamageOrigin" type="Node3D" parent="."]
