@@ -1,11 +1,11 @@
 class_name DamageTranslation extends Resource
 
-@export var Reality: SquadBattleTypes.Reality
-@export var PotencyList: Array[PotencyObj]
+@export var reality: SquadBattleTypes.Reality
+@export var potency_list: Array[PotencyObj]
 
 func _to_string() -> String:
-	return "DamageTranslation(Reality=%s, PotencyList=%s)" % [Reality, PotencyList]
+	return "DamageTranslation(reality=%s, potency_list=%s)" % [reality, potency_list]
 
-# func _init(p_Reality: SquadBattleTypes.Reality, p_PotencyList: Array[PotencyObj]):
-# 	Reality = p_Reality
-# 	PotencyList = p_PotencyList
+# func _init(p_Reality: SquadBattleTypes.reality, p_PotencyList: Array[PotencyObj]):
+# 	reality = p_Reality
+# 	potency_list = p_PotencyList
