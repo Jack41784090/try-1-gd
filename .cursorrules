@@ -83,6 +83,10 @@
     {
       "name": "Ignore class not found errors",
       "message": "Don't use preload in Godot script when you see an error with class not found. It takes some time for classes to be found"
+    },
+    {
+      "name": "Don't add comments unless super difficult",
+      "message": "Don't use comments unless the code you're dealing with is a niche workaround or requires additional work in the future, or that a junior developer might not understand the algorithm."
     }
   ]
 }
