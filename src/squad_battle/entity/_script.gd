@@ -1,18 +1,24 @@
 class_name SquadEntity extends Resource
 
 
+#region Init from Resource
 @export var entity_name: String
 @export var stats: EntityBaseStats
-@export var logic_config: SimplifiedLogicConfig
 @export var icon: Texture2D
 
 @export var weapon_class: WeaponFactory.WeaponClasses = WeaponFactory.WeaponClasses.Unarmed
 var weapon: SquadWeapon = null
 
+@export var armor_class: ArmorFactory.ArmorClasses = ArmorFactory.ArmorClasses.Unarmored
+var armor: SquadArmor = null
+
+@export var logic_config: SimplifiedLogicConfig
+var logic: SimplifiedSquadLogic
+#endregion
+
+#region Init after Resource
 var player_id: int
 var team: String
-var logic: SimplifiedSquadLogic
-
 var changeable_stats: Dictionary = {
 	SquadBattleTypes.EntityChangeable.HP: 0.0,
 	SquadBattleTypes.EntityChangeable.STA: 0.0,
@@ -21,9 +27,7 @@ var changeable_stats: Dictionary = {
 	SquadBattleTypes.EntityChangeable.MAG: 0.0,
 	SquadBattleTypes.EntityChangeable.LOC: SquadBattleTypes.SquadEntityInSquadLocation.Front
 }
-
-# var armour = SquadArmour.new()
-# var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
+#endregion
 
 var is_retreating: bool = false
 var innate_skills: Array[Skill] = []
@@ -37,36 +41,71 @@ static func quick_dummy():
 		team = "Dummy",
 		stats = EntityBaseStats.new(),
 		weapon_class = WeaponFactory.WeaponClasses.Unarmed,
-		# armour = SquadArmour.new()
+		armor_class = ArmorFactory.ArmorClasses.Unarmored,
 	})
 
-func _init(config: Dictionary = {}):
-	player_id = config.get("player_id", randi() % 1000 + 1)
-	entity_name = config.get("name", entity_name)
-	team = config.get("team", "")
-	stats = config.get("stats", EntityBaseStats.new())
-	var context = {
-		"entity": self,
-		"our_squad": {},
-		"enemy_squad": {}
-	}
-	logic = SimplifiedSquadLogic.new(context, logic_config)
 
-	if config.has("weapon_class"):
-		weapon_class = config["weapon_class"]
-	weapon = WeaponFactory.get_weapon(weapon_class)
-	# if config.has("armour"):
-	# 	armour = config["armour"]
-	innate_skills = config.get("innate_skills", [] as Array[Skill])
-	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	initialise_changeables()
+func set_player_id(_id):
+	player_id = _id
 
-func initialise_changeables():
+
+func set_team(_team):
+	team = _team
+
+func init_after():
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
 	changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG)
 	changeable_stats[SquadBattleTypes.EntityChangeable.POS] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.POS)
 	changeable_stats[SquadBattleTypes.EntityChangeable.MAG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.MAG)
+
+
+func _init(config: Dictionary = {}):
+	if config.is_empty():
+		return
+	
+	player_id = config.get("player_id", randi() % 1000 + 1)
+	entity_name = config.get("name", entity_name)
+	team = config.get("team", "")
+	stats = config.get("stats", EntityBaseStats.new())
+	logic_config = config.get("logic_config")
+	
+	if config.has("weapon"):
+		weapon = SquadWeapon.new(config["weapon"])
+	else:
+		weapon_class = config.get("weapon_class", WeaponFactory.WeaponClasses.Unarmed)
+		weapon = WeaponFactory.get_weapon(weapon_class)
+	
+	if config.has("armor"):
+		armor = SquadArmor.new(config["armor"])
+	else:
+		armor_class = config.get("armor_class", ArmorFactory.ArmorClasses.Unarmored)
+		armor = ArmorFactory.get_armor(armor_class)
+	armor.set_defender(self)
+	
+	logic = SimplifiedSquadLogic.new({
+		"entity": self,
+		"our_squad": {},
+		"enemy_squad": {}
+	}, logic_config)
+	
+	innate_skills = config.get("innate_skills", [] as Array[Skill])
+	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	init_after()
+
+func init_from_resource():
+	if weapon != null:
+		return
+	
+	weapon = WeaponFactory.get_weapon(weapon_class)
+	armor = ArmorFactory.get_armor(armor_class)
+	armor.set_defender(self)
+	logic = SimplifiedSquadLogic.new({
+		"entity": self,
+		"our_squad": {},
+		"enemy_squad": {}
+	}, logic_config)
+	init_after()
 
 func set_logic(new_logic):
 	logic = new_logic
@@ -77,8 +116,8 @@ func new_round_reset():
 func is_dead() -> bool:
 	return get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) <= 0
 
-# func get_armour():
-# 	return armour
+func get_armour():
+	return armor
 
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
 	match reality:

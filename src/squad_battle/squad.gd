@@ -15,16 +15,10 @@ func _init(config: Dictionary):
 		var entity: SquadEntity
 		if entity_config is EntityFactory.EntityClasses:
 			entity = EntityFactory.get_entity(entity_config)
-			entity.player_id = next_player_id
+			entity.init_from_resource()
+			entity.set_player_id(next_player_id)
 			next_player_id += 1
-			entity.team = team
-			var context = {
-				"entity": entity,
-				"our_squad": {},
-				"enemy_squad": {}
-			}
-			entity.logic = SimplifiedSquadLogic.new(context, entity.logic_config)
-			entity.initialise_changeables()
+			entity.set_team(team)
 		elif entity_config is Dictionary:
 			entity = SquadEntity.new(entity_config)
 		else:
