@@ -15,6 +15,7 @@ script = ExtResource("1_battlefield_script")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8660253, 0.50000024, 0, -0.50000024, 0.8660253, 0, 6, 9)
+projection = 1
 fov = 45.6
 size = 17.358
 
@@ -27,7 +28,6 @@ shadow_enabled = true
 [node name="Background3D" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15)
 pixel_size = 0.02
-billboard = 1
 alpha_cut = 2
 texture = ExtResource("2_wjvbm")
 
