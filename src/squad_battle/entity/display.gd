@@ -26,11 +26,14 @@ var entity_data: SquadEntity
 
 var is_programmatic: bool = false
 
+
+var _debug_id: String = ""
+
 ## Initialize the display with entity data (scene-based mode for old 2D system)
 ## This is called by the GUI when spawning entities from entity.tscn
 func setup(entity: SquadEntity) -> void:
 	entity_data = entity
-	
+	_debug_id = "[Display:%s[%d]]" % [entity.entity_name, entity.player_id]
 
 ## Assign references to child nodes (scene-based mode only)
 ## Refresh all visual elements based on current entity data
@@ -108,7 +111,7 @@ func _update_info_label() -> void:
 #region Change handlers with animations
 
 func _handle_hp_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] HP: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s HP: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	_update_hp_visual()
 	
 	if info_label:
@@ -142,33 +145,33 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_sta_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] STA: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s STA: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	if info_label:
 		_update_info_label()
 	# No animation, emit on next frame so await can set up listener
 	animation_completed.emit.call_deferred()
 
 func _handle_org_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] ORG: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s ORG: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	if info_label:
 		_update_info_label()
 	# Could show morale indicator
 	animation_completed.emit.call_deferred()
 
 func _handle_pos_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] POS: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s POS: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	if info_label:
 		_update_info_label()
 	animation_completed.emit.call_deferred()
 
 func _handle_mag_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] MAG: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s MAG: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	if info_label:
 		_update_info_label()
 	animation_completed.emit.call_deferred()
 
 func _handle_loc_change(old_val: float, new_val: float) -> void:
-	print("[Display %s] LOC: %.1f → %.1f" % [entity_data.entity_name, old_val, new_val])
+	print("%s LOC: %.1f → %.1f" % [_debug_id, old_val, new_val])
 	_update_position_visual()
 	if info_label:
 		_update_info_label()
@@ -178,7 +181,7 @@ func _handle_loc_change(old_val: float, new_val: float) -> void:
 	animation_completed.emit.call_deferred()
 
 func _handle_death() -> void:
-	print("[Display %s] ☠️ DIED" % entity_data.entity_name)
+	print("%s ☠️ DIED" % _debug_id)
 	
 	if not sprite:
 		animation_completed.emit.call_deferred()
@@ -197,13 +200,13 @@ func _handle_death() -> void:
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_capitulate() -> void:
-	print("[Display %s] 🏳️ CAPITULATED" % entity_data.entity_name)
+	print("%s 🏳️ CAPITULATED" % _debug_id)
 	if sprite:
 		sprite.modulate = Color(0.5, 0.5, 0.5, 0.5)
 	animation_completed.emit.call_deferred()
 
 func _handle_clink() -> void:
-	print("[Display %s] ⚔️ CLINK (blocked)" % entity_data.entity_name)
+	print("%s ⚔️ CLINK (blocked)" % _debug_id)
 	
 	if not sprite:
 		animation_completed.emit.call_deferred()
@@ -217,7 +220,7 @@ func _handle_clink() -> void:
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_dodge() -> void:
-	print("[Display %s] 💨 DODGE" % entity_data.entity_name)
+	print("%s 💨 DODGE" % _debug_id)
 	
 	var tween = create_tween()
 	tween.tween_property(self, "position:z", position.z + 0.5, 0.1)
@@ -225,7 +228,7 @@ func _handle_dodge() -> void:
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_proc() -> void:
-	print("[Display %s] ✨ PROC (skill triggered)" % entity_data.entity_name)
+	print("%s ✨ PROC (skill triggered)" % _debug_id)
 	
 	if not sprite:
 		animation_completed.emit.call_deferred()
