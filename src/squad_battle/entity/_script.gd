@@ -6,6 +6,9 @@ class_name SquadEntity extends Resource
 @export var logic_config: SimplifiedLogicConfig
 @export var icon: Texture2D
 
+@export var weapon_class: WeaponFactory.WeaponClasses = WeaponFactory.WeaponClasses.Unarmed
+var weapon: SquadWeapon = null
+
 var player_id: int
 var team: String
 var logic: SimplifiedSquadLogic
@@ -19,8 +22,7 @@ var changeable_stats: Dictionary = {
 	SquadBattleTypes.EntityChangeable.LOC: SquadBattleTypes.SquadEntityInSquadLocation.Front
 }
 
-var weapon = SquadWeapon.new()
-var armour = SquadArmour.new()
+# var armour = SquadArmour.new()
 # var logic = SquadLogic.new({"entity": self, "our_squad": {}, "enemy_squad": {}})
 
 var is_retreating: bool = false
@@ -34,34 +36,30 @@ static func quick_dummy():
 		entity_name = "Dummy",
 		team = "Dummy",
 		stats = EntityBaseStats.new(),
-		weapon = SquadWeapon.new(),
-		armour = SquadArmour.new()
+		weapon_class = WeaponFactory.WeaponClasses.Unarmed,
+		# armour = SquadArmour.new()
 	})
 
 func _init(config: Dictionary = {}):
-	# If config is empty, we're being loaded from a resource file
-	# The @export variables will be set by the resource loader
-	if config.is_empty():
-		return
-	else:
-		player_id = config.get("player_id", 0)
-		entity_name = config.get("name", "Unknown")
-		team = config.get("team", "")
-		stats = config.get("stats", EntityBaseStats.new())
-		var context = {
-			"entity": self,
-			"our_squad": {},
-			"enemy_squad": {}
-		}
-		logic = SimplifiedSquadLogic.new(context, logic_config)
+	player_id = config.get("player_id", randi() % 1000 + 1)
+	entity_name = config.get("name", entity_name)
+	team = config.get("team", "")
+	stats = config.get("stats", EntityBaseStats.new())
+	var context = {
+		"entity": self,
+		"our_squad": {},
+		"enemy_squad": {}
+	}
+	logic = SimplifiedSquadLogic.new(context, logic_config)
 
-		if config.has("weapon"):
-			weapon = config["weapon"]
-		if config.has("armour"):
-			armour = config["armour"]
-		innate_skills = config.get("innate_skills", [] as Array[Skill])
-		changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
-		initialise_changeables()
+	if config.has("weapon_class"):
+		weapon_class = config["weapon_class"]
+	weapon = WeaponFactory.get_weapon(weapon_class)
+	# if config.has("armour"):
+	# 	armour = config["armour"]
+	innate_skills = config.get("innate_skills", [] as Array[Skill])
+	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	initialise_changeables()
 
 func initialise_changeables():
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
@@ -79,8 +77,8 @@ func new_round_reset():
 func is_dead() -> bool:
 	return get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) <= 0
 
-func get_armour():
-	return armour
+# func get_armour():
+# 	return armour
 
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
 	match reality:
