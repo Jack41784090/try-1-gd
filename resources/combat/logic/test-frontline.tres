@@ -20,4 +20,3 @@ metadata/_custom_type_script = "uid://c42niik2n8dgh"
 [resource]
 script = ExtResource("2_augef")
 action_considerations = Array[ExtResource("1_ndrnq")]([SubResource("Resource_lopf3"), SubResource("Resource_ymuie")])
-metadata/_custom_type_script = "uid://6q6t31sdwl35"
