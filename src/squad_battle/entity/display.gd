@@ -19,62 +19,20 @@ signal animation_completed
 var entity_data: SquadEntity
 
 # Visual components (may be created programmatically or from scene)
-var sprite: Sprite3D
-var name_label: Label
-var info_label: Label
-var damage_num_origin: Node3D
+@onready var sprite: Sprite3D = $Sprite3D
+@onready var name_label: Label3D = $InfoLayer/Name
+@onready var info_label: Label3D = $InfoLayer/Info
+@onready var damage_num_origin: Node3D = $DamageOrigin
 
-# Mode detection
 var is_programmatic: bool = false
-
-## Initialize the display with entity data (programmatic mode for 2.5D)
-## texture: The sprite texture to use
-## team_color: Color tint for team identification
-## pixel_size: Scale of the sprite
-func setup_programmatic(entity: SquadEntity, texture: Texture2D, team_color: Color, pixel_size: float = 0.0125) -> void:
-	entity_data = entity
-	is_programmatic = true
-	
-	# Create sprite programmatically
-	sprite = Sprite3D.new()
-	sprite.name = "Sprite3D"
-	sprite.texture = texture
-	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sprite.shaded = true
-	sprite.pixel_size = pixel_size
-	sprite.modulate = team_color
-	add_child(sprite)
-	
-	# Optional: Create damage number origin point
-	damage_num_origin = Node3D.new()
-	damage_num_origin.name = "DamageNumberOrigin"
-	damage_num_origin.position = Vector3(0, 0.5, 0)
-	add_child(damage_num_origin)
-	
-	refresh_display()
 
 ## Initialize the display with entity data (scene-based mode for old 2D system)
 ## This is called by the GUI when spawning entities from entity.tscn
 func setup(entity: SquadEntity) -> void:
 	entity_data = entity
-	is_programmatic = false
 	
-	# Wait for nodes to be ready before refreshing
-	if is_node_ready():
-		_assign_scene_nodes()
-		refresh_display()
-	else:
-		await ready
-		_assign_scene_nodes()
-		refresh_display()
 
 ## Assign references to child nodes (scene-based mode only)
-func _assign_scene_nodes() -> void:
-	sprite = get_node_or_null("Sprite3D")
-	name_label = get_node_or_null("Name")
-	info_label = get_node_or_null("INFO")
-	damage_num_origin = get_node_or_null("DamageNumberOrigin")
-
 ## Refresh all visual elements based on current entity data
 func refresh_display() -> void:
 	if not entity_data:
@@ -125,20 +83,7 @@ func update_stat(property: SquadBattleTypes.EntityChangeable, old_val: float, ne
 #region Private update handlers
 
 func _update_hp_visual() -> void:
-	if not sprite or not entity_data:
-		return
-		
-	var hp = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
-	var max_hp = entity_data.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
-	var hp_percent = hp / max_hp if max_hp > 0.0 else 0.0
-	
-	if is_programmatic:
-		# In 2.5D mode, preserve team color and just dim based on HP
-		var current_color = sprite.modulate
-		sprite.modulate = Color(current_color.r, current_color.g * hp_percent, current_color.b * hp_percent, current_color.a)
-	else:
-		# In 2D mode, tint red when low HP
-		sprite.modulate = Color(1.0, hp_percent, hp_percent)
+	pass
 
 func _update_position_visual() -> void:
 	if not entity_data:
@@ -173,29 +118,27 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	if damage_num_origin:
 		DamageNumbersManager.DisplayDamageNumber(change, damage_num_origin.global_position)
 	
-	# Animate HP change - use Vector3 for 3D, Vector2 for 2D
 	if not sprite:
 		animation_completed.emit.call_deferred()
 		return
 		
 	var tween = create_tween()
-	if is_programmatic:
-		# 3D scaling with color flash
-		var original_modulate = sprite.modulate
-		if change < 0:  # Damage
-			tween.tween_property(sprite, "modulate", Color(1.5, 0.5, 0.5), 0.1)
-			tween.tween_property(sprite, "modulate", original_modulate, 0.1)
-		else:  # Heal
-			tween.tween_property(sprite, "modulate", Color(0.5, 1.5, 0.5), 0.1)
-			tween.tween_property(sprite, "modulate", original_modulate, 0.1)
+	var original_modulate = sprite.modulate
+	
+	if change < 0:
+		tween.tween_property(sprite, "modulate", Color(1.5, 0.5, 0.5), 0.1)
+		tween.tween_property(sprite, "modulate", original_modulate, 0.1)
+	else:
+		tween.tween_property(sprite, "modulate", Color(0.5, 1.5, 0.5), 0.1)
+		tween.tween_property(sprite, "modulate", original_modulate, 0.1)
+	
+	if sprite is Sprite3D:
 		tween.parallel().tween_property(sprite, "scale", Vector3(1.2, 1.2, 1.2), 0.1)
 		tween.tween_property(sprite, "scale", Vector3(1.0, 1.0, 1.0), 0.1)
 	else:
-		# 2D scaling
-		tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.1)
+		tween.parallel().tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.1)
 		tween.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.1)
 	
-	# Emit signal when animation completes
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_sta_change(old_val: float, new_val: float) -> void:
@@ -241,20 +184,16 @@ func _handle_death() -> void:
 		animation_completed.emit.call_deferred()
 		return
 	
-	# Death animation
 	var tween = create_tween()
-	if is_programmatic:
-		# 3D death: spin and fade
+	tween.parallel().tween_property(sprite, "modulate:a", 0.0, 0.5)
+	
+	if sprite is Sprite3D:
 		tween.tween_property(sprite, "rotation:y", PI * 2, 0.5)
-		tween.parallel().tween_property(sprite, "modulate:a", 0.0, 0.5)
 		tween.parallel().tween_property(sprite, "scale", Vector3(0.5, 0.5, 0.5), 0.5)
 	else:
-		# 2D death
 		tween.tween_property(sprite, "rotation", PI * 2, 0.5)
-		tween.parallel().tween_property(sprite, "modulate:a", 0.0, 0.5)
 		tween.parallel().tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.5)
 	
-	# Emit when death animation completes
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_capitulate() -> void:
@@ -280,16 +219,9 @@ func _handle_clink() -> void:
 func _handle_dodge() -> void:
 	print("[Display %s] 💨 DODGE" % entity_data.entity_name)
 	
-	# Quick dash animation
 	var tween = create_tween()
-	if is_programmatic:
-		# 3D dodge: move along Z axis
-		tween.tween_property(self, "position:z", position.z + 0.5, 0.1)
-		tween.tween_property(self, "position:z", position.z, 0.1)
-	else:
-		# 2D dodge: move along X axis
-		tween.tween_property(self, "position:x", position.x + 20, 0.1)
-		tween.tween_property(self, "position:x", position.x, 0.1)
+	tween.tween_property(self, "position:z", position.z + 0.5, 0.1)
+	tween.tween_property(self, "position:z", position.z, 0.1)
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_proc() -> void:
