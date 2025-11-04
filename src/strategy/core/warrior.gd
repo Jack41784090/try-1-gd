@@ -17,7 +17,7 @@ class_name Warrior
 @export var logic_type: String = "frontline"
 
 @export var equipment_weapon: WeaponConfig
-# var equipment_armour: SquadArmour
+@export var equipment_armor: ArmorConfig
 
 var is_dead: bool = false
 var is_injured: bool = false
@@ -25,10 +25,6 @@ var is_injured: bool = false
 func _init() -> void:
 	if not combat_stats:
 		combat_stats = EntityBaseStats.new()
-	# if not equipment_weapon:
-	# 	equipment_weapon = SquadWeapon.new()
-	# if not equipment_armour:
-	# 	equipment_armour = SquadArmour.new()
 
 func modify_morale(amount: float) -> void:
 	morale = clamp(morale + amount, 0.0, 200.0)
@@ -77,7 +73,7 @@ func to_squad_entity(player_id: int, team: String, starting_location: int) -> Sq
 		"team": team,
 		"stats": combat_stats,
 		"weapon": equipment_weapon,
-		# "armour": equipment_armour,
+		"armor": equipment_armor,
 		"starting_location": starting_location,
 		"logic_type": logic_type
 	}
