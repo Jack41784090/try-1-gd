@@ -5,7 +5,7 @@ enum LogicAvailable {
 }
 
 static var pathlib = {
-	"Frontline": "res://resources/combat/logic/test-frontline.tres"
+	"Frontline": "res://resources/combat/logic/logic/test-frontline.tres"
 }
 static var _cached_key = LogicAvailable.keys()
 static func get_logic(_logic: LogicAvailable):
