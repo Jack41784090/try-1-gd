@@ -1,9 +1,9 @@
 class_name d25BattlefieldController extends Node3D
 
 const BATTLEFIELD_WIDTH: float = 20.0
-const BATTLEFIELD_DEPTH: float = 14.0
+const BATTLEFIELD_DEPTH: float = 24.0
 const ROW_SPACING: float = 2.5
-const BASE_UNIT_SPACING: float = 1.75
+const BASE_UNIT_SPACING: float = 3.75
 const UNIT_HEIGHT_OFFSET: float = 1
 const UNIT_PIXEL_SIZE: float = 0.0125
 const PLACEHOLDER_TEXTURE = preload("res://assets/icon.svg")
@@ -187,6 +187,17 @@ func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3
 	
 	var lunge_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
 	await create_tween().tween_property(unit_node, "position", lunge_pos, RECOIL_ANIMATION_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).finished
+
+func animate_clink(unit_node: Node3D) -> void:
+	if not unit_node or not is_instance_valid(unit_node):
+		return
+	
+	var original_pos = unit_node.position
+	var forward_push = original_pos + Vector3(0, 0.1, 0)
+	var tween = create_tween()
+	tween.tween_property(unit_node, "position", forward_push, RECOIL_ANIMATION_DURATION * 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	await tween.finished
 
 func animate_return_to_position(unit_node: Node3D) -> void:
 	if not unit_node or not is_instance_valid(unit_node) or not unit_node.has_meta(META_ORIGINAL_POSITION):
