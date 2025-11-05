@@ -1,9 +1,0 @@
-[gd_scene load_steps=3 format=3 uid="uid://biqok44gmpkp8"]
-
-[ext_resource type="PackedScene" uid="uid://6c86cy13tc0b" path="res://scenes/demos/25d-test.tscn" id="1_battlefield"]
-[ext_resource type="Script" uid="uid://brpxf2b6cbk64" path="res://src/squad_battle/squad-battle-master.gd" id="2_demo_script"]
-
-[node name="SquadBattle25DDemo" type="Node3D"]
-script = ExtResource("2_demo_script")
-
-[node name="25dBattlefield" parent="." instance=ExtResource("1_battlefield")]
