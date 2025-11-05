@@ -1,5 +1,6 @@
 class_name SquadEntity extends Resource
 
+var _debug_id;
 
 #region Init from Resource
 @export var entity_name: String
@@ -17,7 +18,7 @@ var logic: SimplifiedSquadLogic
 #endregion
 
 #region Init after Resource
-var player_id: int
+var player_id: int = -1
 var team: String
 var changeable_stats: Dictionary = {
 	SquadBattleTypes.EntityChangeable.HP: 0.0,
@@ -46,6 +47,7 @@ static func quick_dummy():
 
 
 func set_player_id(_id):
+	_debug_id = "%s[%d]" % [entity_name, _id]
 	player_id = _id
 
 
@@ -53,6 +55,7 @@ func set_team(_team):
 	team = _team
 
 func init_after():
+	_debug_id = "%s[%d]" % [entity_name, player_id]
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
 	changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG)
@@ -142,7 +145,7 @@ func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
 		SquadBattleTypes.Reality.Bravery:
 			return (stats.wil * 2) + (stats.endurance * 1) + (stats.fai * 1)
 		_:
-			print("Warning: Reality value for ", reality, " not found")
+			print("[%s]Warning: Reality value for %s not found" % [_debug_id, reality])
 			return 0
 
 func get_ceiling_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> float:
@@ -163,15 +166,15 @@ func get_floor_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> f
 		_:
 			return 0.0
 
-func mod_changeable_stat(property: SquadBattleTypes.EntityChangeable, by: float) -> SquadBattleTypes.EntityChange:
+func mod_changeable_stat(property: SquadBattleTypes.EntityChangeable, by: float) -> EntityChange:
 	return set_changeable_stat(property, get_changeable_stat_num(property) + by)
 
-func set_changeable_stat(property: SquadBattleTypes.EntityChangeable, to: float) -> SquadBattleTypes.EntityChange:
+func set_changeable_stat(property: SquadBattleTypes.EntityChangeable, to: float) -> EntityChange:
 	var old_value = changeable_stats[property]
 	var new_value = clamp(to, get_floor_changeable_stat(property), get_ceiling_changeable_stat(property))
 	changeable_stats[property] = new_value
 	
-	return SquadBattleTypes.EntityChange.new(property, old_value, new_value)
+	return EntityChange.new(property, old_value, new_value)
 
 func get_changeable_stat_num(property: SquadBattleTypes.EntityChangeable) -> float:
 	return changeable_stats[property]
@@ -226,14 +229,14 @@ func damage(num: float, source: int) -> Array:
 	var affected = player_id
 	
 	if num <= 0:
-		return [EntityUpdate.new(source, affected, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp))]
+		return [EntityUpdate.new(source, affected, EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp))]
 	else:
 		var updates = [EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num))]
 		
 		if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) == 0:
 			updates.append(
 				EntityUpdate.new(source, affected,
-				SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1)))
+				EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1)))
 		else:
 			for u in deorg_after_damage(num, source):
 				updates.append(u)
@@ -244,7 +247,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	if is_dead():
 		return []
 	
-	print("[", entity_name, "] Deciding action...")
+	print("[%s] Deciding action..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
 		"entity": self,
@@ -252,39 +255,18 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		"enemy_squad": enemy_squad
 	})
 	
-	var chosen_action = updated_logic.choose_action()
-	print("[", entity_name, "] || Chose action: ", SquadBattleUtils.get_action_string(chosen_action))
+	var chosen_skill = updated_logic.choose_skill()
+	print("[%s] || Chose skill: %s" % [_debug_id, chosen_skill.name if chosen_skill else "None"])
 	
-	match chosen_action:
-		SquadBattleTypes.SquadEntityAction.ATTACK:
-			var attack_result = action_attack(updated_logic)
-			if attack_result:
-				for eu in attack_result:
-					updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.FORWARD:
-			for eu in action_forward(updated_logic):
+	if chosen_skill:
+		var skill_result = execute_skill(chosen_skill, updated_logic)
+		if skill_result:
+			for eu in skill_result:
 				updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.HEAL:
-			var heal_result = action_heal(updated_logic)
-			if heal_result:
-				for eu in heal_result:
-					updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.IDLE:
-			for c in action_idle():
-				updates.append(EntityUpdate.new(player_id, player_id, c))
-		
-		SquadBattleTypes.SquadEntityAction.RETREAT:
-			print("[", entity_name, "] retreating!")
-			for eu in action_retreat():
-				updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.CAPITULATE:
-			print("[", entity_name, "] capitulating!")
-			for eu in action_capitulate():
-				updates.append(eu)
+	else:
+		print("[%s] || No skill selected, performing idle action" % [_debug_id])
+		for c in recover():
+			updates.append(EntityUpdate.new(player_id, player_id, c))
 	
 	return updates
 
@@ -292,7 +274,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	if is_dead():
 		return []
 	
-	print("[", entity_name, "] Deciding reaction...")
+	print("[%s] Deciding reaction..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
 		"entity": self,
@@ -300,81 +282,90 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		"enemy_squad": enemy_squad
 	})
 	
-	var chosen_reaction = updated_logic.choose_reaction()
-	print("[", entity_name, "] || Chose reaction: ", chosen_reaction)
+	var chosen_skill = updated_logic.choose_skill()
+	print("[%s] || Chose skill for reaction: %s" % [_debug_id, chosen_skill.name if chosen_skill else "None"])
 	
-	match chosen_reaction:
-		SquadBattleTypes.SquadEntityAction.ATTACK:
-			var attack_result = action_attack(updated_logic)
-			if attack_result:
-				for eu in attack_result:
-					updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.FORWARD:
-			for eu in action_forward(updated_logic):
+	if chosen_skill:
+		var skill_result = execute_skill(chosen_skill, updated_logic)
+		if skill_result:
+			for eu in skill_result:
 				updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.HEAL:
-			var heal_result = action_heal(updated_logic)
-			if heal_result:
-				for eu in heal_result:
-					updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.IDLE:
-			for c in action_idle():
-				updates.append(EntityUpdate.new(player_id, player_id, c))
-		
-		SquadBattleTypes.SquadEntityAction.RETREAT:
-			print("[", entity_name, "] retreating!")
-			for eu in action_retreat():
-				updates.append(eu)
-		
-		SquadBattleTypes.SquadEntityAction.CAPITULATE:
-			print("[", entity_name, "] capitulating!")
-			for eu in action_capitulate():
-				updates.append(eu)
-	
-	return updates
-
-func action_attack(logic_obj):
-	var one_clash = logic_obj.choose_clash()
-	if one_clash:
-		return one_clash.commit()
 	else:
-		print("[", entity_name, "] Cannot find target")
-	return null
-
-func action_forward(_logic_obj) -> Array:
-	return [EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, -1))]
-
-func action_heal(logic_obj: SimplifiedSquadLogic):
-	var physical_heal = 5
-	var spirit_heal = 7
-
-	var fla = logic_obj.situation.frontline_ally()
-	var ally = fla[randi() % fla.size()]
-	var updates: Array = []
-	var h = ally.heal(physical_heal)
-	var b = ally.boost(spirit_heal)
-	
-	if h:
-		updates.append(EntityUpdate.new(player_id, ally.player_id, h))
-	if b:
-		updates.append(EntityUpdate.new(player_id, ally.player_id, b))
+		print("[%s] || No skill selected for reaction, doing nothing" % [_debug_id])
 	
 	return updates
 
-func action_retreat() -> Array:
-	if not is_retreating:
-		is_retreating = true
-		return [EntityUpdate.new(player_id, player_id, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1))]
-	return []
+func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
+	if not skill:
+		return []
+	
+	print("[%s] Executing skill: %s" % [_debug_id, skill.name])
+	var updates: Array = []
+	
+	var needs_target = _skill_needs_target(skill)
+	
+	if needs_target:
+		var one_clash = logic_obj.choose_clash_with_skill(skill)
+		if one_clash:
+			var clash_updates = one_clash.commit()
+			for eu in clash_updates:
+				updates.append(eu)
+		else:
+			print("[%s] Cannot find target for skill: %s" % [_debug_id, skill.name])
+	else:
+		updates = _execute_non_target_skill(skill, logic_obj)
+	
+	return updates
 
-func action_capitulate() -> Array:
-	return [EntityUpdate.new(player_id, player_id, SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.CAPITULATE, -1, -1))]
+func _skill_needs_target(skill: Skill) -> bool:
+	if not skill or skill.effects.size() == 0:
+		return true
+	
+	for effect in skill.effects:
+		if effect.targeting == "target":
+			return true
+		if effect.commitType == ClashCommonTypes.CommitType.Damage:
+			return true
+	
+	return false
 
-func action_idle() -> Array:
-	return recover()
+func _execute_non_target_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
+	var updates: Array = []
+	var updates_collector: Array = []
+	
+	for effect in skill.effects:
+		var effect_instance = effect.duplicate()
+		if effect_instance.source == null:
+			effect_instance.source = self
+		if effect_instance.affected == null:
+			if effect_instance.targeting == "self":
+				effect_instance.affected = self
+			else:
+				var unwrapped = logic_obj.situation.unwrap()
+				var allies = []
+				if unwrapped.has("our_squad"):
+					var our_squad = unwrapped["our_squad"]
+					for location in our_squad.values():
+						if location is Array:
+							allies.append_array(location)
+				
+				if allies.size() > 0:
+					effect_instance.affected = allies[randi() % allies.size()]
+				else:
+					effect_instance.affected = self
+		
+		effect_instance.setup_connections(updates_collector)
+		
+		if effect_instance.triggers.size() == 0:
+			var effect_updates = effect_instance.commit()
+			for eu in effect_updates:
+				updates.append(eu)
+	
+	for eu in updates_collector:
+		updates.append(eu)
+	
+	return updates
+
 
 func get_available_skills() -> Array[Skill]:
 	var skills = innate_skills.duplicate()
