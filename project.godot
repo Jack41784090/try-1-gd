@@ -11,7 +11,6 @@ config_version=5
 [application]
 
 config/name="try1"
-run/main_scene="uid://bka61m4w71uwe"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
