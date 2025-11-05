@@ -1,20 +1,31 @@
 [gd_scene load_steps=3 format=3 uid="uid://bv0aqcia3rxpt"]
 
 [ext_resource type="Script" uid="uid://c5r77n5yq2yh0" path="res://src/squad_battle/entity/display.gd" id="1_gr72c"]
-[ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="1_iiwub"]
+[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/landsnecht.png" id="2_gr72c"]
 
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_gr72c")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 billboard = 1
-texture = ExtResource("1_iiwub")
+texture = ExtResource("2_gr72c")
 
 [node name="DamageOrigin" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.44978875, 0)
 
-[node name="InfoLayer" type="CanvasLayer" parent="."]
-
-[node name="Info" type="Label3D" parent="InfoLayer"]
+[node name="InfoLayer" type="Node3D" parent="."]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
 
 [node name="Name" type="Label3D" parent="InfoLayer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4995011, -0.1)
+pixel_size = 0.002
+billboard = 1
+render_priority = 1
+text = "Hello"
+
+[node name="Info" type="Label3D" parent="InfoLayer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09950107, -0.1)
+pixel_size = 0.002
+billboard = 1
+render_priority = 1
+text = "Info HERE"
