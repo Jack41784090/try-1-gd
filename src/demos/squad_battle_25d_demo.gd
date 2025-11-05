@@ -142,6 +142,11 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 			var attacker_display = entity_displays_dict.get(update.source)
 			if attacker_display:
 				battlefield_controller.animate_attack_lunge(attacker_display)
+		elif update.change.property == SquadBattleTypes.EntityChangeable.CLINK:
+			battlefield_controller.animate_clink(display)
+			var attacker_display = entity_displays_dict.get(update.source)
+			if attacker_display:
+				battlefield_controller.animate_attack_lunge(attacker_display)
 		
 		await display.animation_completed
 		
