@@ -89,18 +89,17 @@ func spawn_all_entities() -> void:
 	for team_name in battle.teams_and_squads.keys():
 		var squads: Array = battle.teams_and_squads[team_name]
 		var is_attacker = (team_name == "heroes")
+		var row_map = attacker_rows if is_attacker else defender_rows
 		for squad: Squad in squads:
 			for entity: SquadEntity in squad.entities:
 				var location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
-				var row_map = attacker_rows if is_attacker else defender_rows
 				var row_node: Node3D = row_map.get(location)
-				if row_node:
-					var display = battlefield_controller.add_unit_to_row(row_node, row_node.get_child_count(), entity.entity_name, entity)
-					entity_displays_dict[entity.player_id] = display
-					battlefield_controller.update_row_positions(row_node)
-					var opposing = battlefield_controller._get_opposing_row(row_node)
-					if opposing:
-						battlefield_controller.update_row_positions(opposing)
+				if not row_node:
+					continue
+				
+				var display = battlefield_controller.add_unit_to_row(row_node, row_node.get_child_count(), entity.entity_name, entity)
+				entity_displays_dict[entity.player_id] = display
+				_update_row_positions(row_node)
 
 func process_round() -> void:
 	if battle.check_victory() or battle.round_count >= 50:
@@ -133,20 +132,17 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 	for update in updates:
 		var display = entity_displays_dict.get(update.affected)
 		if not display:
+			push_warning("No display found for entity %d" % update.affected)
 			continue
 		
 		display.update_stat(update.change.property, update.change.from, update.change.to)
 		
 		if update.change.property == SquadBattleTypes.EntityChangeable.HP and update.change.to < update.change.from:
 			battlefield_controller.animate_attack_recoil(display)
-			var attacker_display = entity_displays_dict.get(update.source)
-			if attacker_display:
-				battlefield_controller.animate_attack_lunge(attacker_display)
+			_animate_attacker_lunge(update.source)
 		elif update.change.property == SquadBattleTypes.EntityChangeable.CLINK:
 			battlefield_controller.animate_clink(display)
-			var attacker_display = entity_displays_dict.get(update.source)
-			if attacker_display:
-				battlefield_controller.animate_attack_lunge(attacker_display)
+			_animate_attacker_lunge(update.source)
 		
 		await display.animation_completed
 		
@@ -155,14 +151,30 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 			display.queue_free()
 			entity_displays_dict.erase(update.affected)
 		elif update.change.property == SquadBattleTypes.EntityChangeable.LOC:
-			var entity = battle.get_entity_by_id(update.affected)
-			if entity and display:
-				var new_location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
-				var is_attacker = (entity.team == "heroes")
-				var row_map = attacker_rows if is_attacker else defender_rows
-				var new_row = row_map.get(new_location)
-				if new_row and display.get_parent() != new_row:
-					await battlefield_controller.animate_move_to_row(display, new_row)
+			await _handle_location_change(update.affected, display)
+
+func _animate_attacker_lunge(source_id: int) -> void:
+	var attacker_display = entity_displays_dict.get(source_id)
+	if attacker_display:
+		battlefield_controller.animate_attack_lunge(attacker_display)
+
+func _update_row_positions(row_node: Node3D) -> void:
+	battlefield_controller.update_row_positions(row_node)
+	var opposing = battlefield_controller._get_opposing_row(row_node)
+	if opposing:
+		battlefield_controller.update_row_positions(opposing)
+
+func _handle_location_change(entity_id: int, display: Node3D) -> void:
+	var entity = battle.get_entity_by_id(entity_id)
+	if not entity or not display:
+		return
+	
+	var new_location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
+	var is_attacker = (entity.team == "heroes")
+	var row_map = attacker_rows if is_attacker else defender_rows
+	var new_row = row_map.get(new_location)
+	if new_row and display.get_parent() != new_row:
+		await battlefield_controller.animate_move_to_row(display, new_row)
 
 func print_winner():
 	for team_name in battle.teams_and_squads:
