@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://bxcdova8hc75w"]
 
 [ext_resource type="Script" path="res://src/demos/event_chain_demo.gd" id="1_demo"]
-[ext_resource type="PackedScene" uid="uid://c7kqy4bv6g8i5" path="res://scenes/visual_novel_screen.tscn" id="2_vn_screen"]
-[ext_resource type="Resource" uid="uid://test_event_chain" path="res://resources/test-event-chain.tres" id="3_chain"]
+[ext_resource type="PackedScene" uid="uid://c7kqy4bv6g8i5" path="res://scenes/demos/visual_novel_screen.tscn" id="2_vn_screen"]
+[ext_resource type="Resource" path="res://resources/test-event-chain.tres" id="3_chain"]
 
 [node name="EventChainDemo" type="Node"]
 script = ExtResource("1_demo")
