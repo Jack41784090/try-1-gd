@@ -43,7 +43,7 @@ func roll_for_hit() -> bool:
 		updates.append(EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
-			SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1)
+			EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1)
 		))
 		return false
 	
@@ -69,7 +69,7 @@ func roll_for_pierce() -> bool:
 		updates.append(EntityUpdate.new(
 			attacker.player_id,
 			target.player_id,
-			SquadBattleTypes.EntityChange.new(SquadBattleTypes.EntityChangeable.CLINK, -1, -1)
+			EntityChange.new(SquadBattleTypes.EntityChangeable.CLINK, -1, -1)
 		))
 		return false
 	
@@ -98,12 +98,12 @@ func damage_calculation():
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.TargetTookDamage, dm)
 	# assert(emit_result == OK, "Failed to emit TargetTookDamage signal, error code: %d" % emit_result)
 
-func cleanup() -> Array:
+func cleanup() -> Array[EntityUpdate]:
 	print("[OneClash] Cleanup - Total updates: %d" % updates.size())
-	#remove_destroyed_status_effects()
 	return updates
 
-func commit() -> Array:
+func commit() -> Array[EntityUpdate]:
+	#region debugprints
 	print("\n═══════════════════════════════════════════════════")
 	print("[OneClash] CLASH START")
 	print("  Attacker: %s (ID: %d)" % [attacker.entity_name, attacker.player_id])
@@ -119,21 +119,23 @@ func commit() -> Array:
 	else:
 		print("  Skill: None")
 	print("═══════════════════════════════════════════════════")
+	#endregion
 	
-	# Setup skill effect connections (must be done after resource loading completes)
+	# 1. Setup skill effect connections (must be done after resource loading completes)
 	if skill and skill.effects.size() > 0:
 		print("[OneClash] Setting up skill effect connections...")
 		for effect in skill.effects:
-			if effect.affected == null:
-				assert(effect.targeting in ["self", "target"], "Invalid targeting type: %s" % effect.targeting)
-				effect.affected = targeted if effect.targeting == "target" else attacker
-			if effect.source == null:
-				effect.source = attacker
-			effect.setup_connections(updates)
+			var effect_instance = effect.duplicate()
+			if effect_instance.affected == null:
+				assert(effect_instance.targeting in ["self", "target"], "Invalid targeting type: %s" % effect_instance.targeting)
+				effect_instance.affected = targeted if effect_instance.targeting == "target" else attacker
+			if effect_instance.source == null:
+				effect_instance.source = attacker
+			effect_instance.setup_connections(updates)
 	
-	#subscribe_existing_status_effects_to_event_bus()
-	#subscribe_new_skill_status_effects_to_event_bus()
-	
+
+
+	# 2. Roll for hit
 	var hit = roll_for_hit()
 	if not hit:
 		print("[OneClash] ✗ Clash ended: MISS")
@@ -142,13 +144,17 @@ func commit() -> Array:
 	
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
 	
+	# 3. Roll for pierce
 	var pierce = roll_for_pierce()
 	if not pierce:
 		print("[OneClash] ✗ Clash ended: BLOCKED")
 		print("═══════════════════════════════════════════════════\n")
 		return cleanup()
 	
+	# 4. Calculate damage
 	damage_calculation()
+	
+	# 5. Done
 	print("[OneClash] ✓ Clash completed successfully")
 	print("═══════════════════════════════════════════════════\n")
 	return cleanup()
@@ -172,3 +178,6 @@ func _format_triggers(trigger_array: Array) -> String:
 			StatusEffectEventBus.Signals.TargetTookDamage: names.append("TargetTookDamage")
 			_: names.append("Signal_%d" % t)
 	return ", ".join(names)
+
+func _emit_seeb(_signal: StatusEffectEventBus.Signals):
+	StatusEffectEventBus.EmitSignal(_signal, self)
