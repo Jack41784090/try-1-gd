@@ -4,6 +4,7 @@ enum OP {
     ADD,
     RDC,
     MUL,
+    AVG,
 }
 
 enum DETECTION { 
