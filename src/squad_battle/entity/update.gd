@@ -5,7 +5,7 @@ signal completed
 
 var source: int
 var affected: int
-var change: SquadBattleTypes.EntityChange
+var change: EntityChange
 var done: bool = false
 
 
@@ -13,7 +13,7 @@ func _to_string() -> String:
 	return "EntityUpdate(source=%d, affected=%d, change=%s, done=%s)" % [source, affected, change.to_string(), done]
 
 
-func _init(p_source: int, p_affected: int, p_change: SquadBattleTypes.EntityChange):
+func _init(p_source: int, p_affected: int, p_change: EntityChange):
 	source = p_source
 	affected = p_affected
 	change = p_change
