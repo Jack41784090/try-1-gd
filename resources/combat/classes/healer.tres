@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/squad_battle/entity/_script.gd" id="1_24hxr"]
 [ext_resource type="Texture2D" uid="uid://bubk1q5x1n63h" path="res://assets/healer.png" id="1_wgf35"]
-[ext_resource type="Resource" uid="uid://cdedndmtxq6m8" path="res://resources/combat/logic/stay-backline-heal.tres" id="2_j0mvx"]
+[ext_resource type="Resource" uid="uid://cdedndmtxq6m8" path="res://resources/combat/logic/logic/stay-backline-heal.tres" id="2_j0mvx"]
 [ext_resource type="Script" uid="uid://cd8rsiutj3bsj" path="res://src/squad_battle/entity/bstats.gd" id="4_x2x1t"]
 
 [sub_resource type="Resource" id="Resource_c58rk"]
