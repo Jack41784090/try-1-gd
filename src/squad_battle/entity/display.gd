@@ -16,7 +16,7 @@ signal animation_completed
 # const Types = preload("res://src/squad_battle/types.gd")
 
 # Reference to the data model
-var entity_data: SquadEntity
+var squad_entity: SquadEntity
 
 # Visual components (may be created programmatically or from scene)
 @onready var sprite: Sprite3D = $Sprite3D
@@ -32,22 +32,18 @@ var _debug_id: String = ""
 ## Initialize the display with entity data (scene-based mode for old 2D system)
 ## This is called by the GUI when spawning entities from entity.tscn
 func setup(entity: SquadEntity) -> void:
-	entity_data = entity
+	squad_entity = entity
 	_debug_id = "[Display:%s[%d]]" % [entity.entity_name, entity.player_id]
 
 ## Assign references to child nodes (scene-based mode only)
 ## Refresh all visual elements based on current entity data
 func refresh_display() -> void:
-	if not entity_data:
+	if not squad_entity:
 		return
 	
 	# Update name (only if label exists)
 	if name_label:
-		name_label.text = entity_data.entity_name
-	
-	# Update visual appearance based on stats
-	_update_hp_visual()
-	_update_position_visual()
+		name_label.text = "%s [%s]" % [squad_entity.entity_name, str(squad_entity.player_id)]
 	
 	# Update info label (only if exists - not in programmatic mode)
 	if info_label:
@@ -56,7 +52,7 @@ func refresh_display() -> void:
 ## Called when a stat changes - updates only what's needed
 ## This is the main entry point for the GUI to update this display
 func update_stat(property: SquadBattleTypes.EntityChangeable, old_val: float, new_val: float) -> void:
-	if not entity_data:
+	if not squad_entity:
 		return
 	
 	match property:
@@ -85,24 +81,14 @@ func update_stat(property: SquadBattleTypes.EntityChangeable, old_val: float, ne
 
 #region Private update handlers
 
-func _update_hp_visual() -> void:
-	pass
-
-func _update_position_visual() -> void:
-	if not entity_data:
-		return
-	# Position is handled by GUI's _calculate_position
-	# In 2D mode we could use z_index, but Node3D doesn't have that property
-	# Depth sorting is handled automatically by 3D renderer
-
 func _update_info_label() -> void:
-	if not info_label or not entity_data:
+	if not info_label or not squad_entity:
 		return
 		
-	var hp = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
-	var max_hp = entity_data.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
-	var org = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
-	var loc = entity_data.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
+	var hp = squad_entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var max_hp = squad_entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	var org = squad_entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
+	var loc = squad_entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
 	
 	info_label.text = "HP: %.0f/%.0f\nORG: %.0f\nLOC: %d" % [hp, max_hp, org, loc]
 
@@ -112,7 +98,6 @@ func _update_info_label() -> void:
 
 func _handle_hp_change(old_val: float, new_val: float) -> void:
 	print("%s HP: %.1f → %.1f" % [_debug_id, old_val, new_val])
-	_update_hp_visual()
 	
 	if info_label:
 		_update_info_label()
@@ -172,7 +157,6 @@ func _handle_mag_change(old_val: float, new_val: float) -> void:
 
 func _handle_loc_change(old_val: float, new_val: float) -> void:
 	print("%s LOC: %.1f → %.1f" % [_debug_id, old_val, new_val])
-	_update_position_visual()
 	if info_label:
 		_update_info_label()
 	
