@@ -17,6 +17,9 @@ var updates_collector = null
 @export var calculationType: ClashCommonTypes.CalculationType
 @export var value: float
 
+# ModifyStat
+@export var statProperty: SquadBattleTypes.EntityChangeable
+
 func _init(
 	_name: String = '',
 	_source: SquadEntity = null,
@@ -49,6 +52,9 @@ func _init(
 				assert(statusEffectToApply != null, "ApplyStatusEffect has no status effect set")
 			ClashCommonTypes.CommitType.Damage, ClashCommonTypes.CommitType.Heal:
 				calculationType = _additional_data.get('calculationType', ClashCommonTypes.CalculationType.Flat)
+				value = _additional_data.get('value', 0.0)
+			ClashCommonTypes.CommitType.ModifyStat:
+				statProperty = _additional_data.get('statProperty', SquadBattleTypes.EntityChangeable.HP)
 				value = _additional_data.get('value', 0.0)
 			_:
 				pass
@@ -89,6 +95,7 @@ func _get_commit_type_name(type: ClashCommonTypes.CommitType) -> String:
 		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
 		ClashCommonTypes.CommitType.Damage: return "Damage"
 		ClashCommonTypes.CommitType.Heal: return "Heal"
+		ClashCommonTypes.CommitType.ModifyStat: return "ModifyStat"
 		_: return "Unknown"
 
 func _format_triggers(trigger_array: Array) -> String:
@@ -136,6 +143,25 @@ func commit(_data = null) -> Array[EntityUpdate]:
 					print("      → Update: %s" % update)
 			else:
 				print("      ✗ Cannot heal: missing source or target")
+		
+		ClashCommonTypes.CommitType.ModifyStat:
+			if affected and source:
+				var stat_name = SquadBattleTypes.EntityChangeable.keys()[statProperty]
+				var old_value = affected.get_changeable_stat_num(statProperty)
+				var stat_change: EntityChange
+				
+				if statProperty == SquadBattleTypes.EntityChangeable.LOC and value >= 1.0 and value <= 3.0:
+					var target_loc = int(value)
+					stat_change = affected.set_changeable_stat(statProperty, target_loc)
+				else:
+					stat_change = affected.mod_changeable_stat(statProperty, value)
+				
+				var update = EntityUpdate.new(source.player_id, affected.player_id, stat_change)
+				updates.append(update)
+				print("      → Modifying %s: %.2f → %.2f for %s" % [stat_name, old_value, affected.get_changeable_stat_num(statProperty), affected.entity_name])
+				print("      → Update: %s" % update)
+			else:
+				print("      ✗ Cannot modify stat: missing source or target")
 		
 		_:
 			print("      ✗ Unknown commit type: %d" % commitType)

@@ -5,6 +5,7 @@ enum CommitType {
 	ApplyStatusEffect,
 	Damage,
 	Heal,
+	ModifyStat,
 }
 
 enum CalculationType {
