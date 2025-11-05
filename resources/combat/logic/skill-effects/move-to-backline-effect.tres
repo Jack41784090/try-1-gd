@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillEffect" load_steps=2 format=3 uid="uid://c6n8o9p0q1r2s"]
+
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_effect"]
+
+[resource]
+script = ExtResource("1_effect")
+name = "Move to Backline"
+targeting = "self"
+commitType = 3
+value = 3.0
+statProperty = 5
+

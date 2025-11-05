@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=3 format=3 uid="uid://c3y4n5o6p7q8r"]
+
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_vu7ji"]
+
+[resource]
+script = ExtResource("1_skill")
+name = "Heal Ally"
