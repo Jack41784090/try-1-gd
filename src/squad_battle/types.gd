@@ -62,22 +62,6 @@ enum SquadEntityAction {
 }
 
 
-class EntityChange:
-	var property: EntityChangeable
-	var from: float
-	var to: float
-	var metadata: Dictionary = {}
-
-	func _to_string() -> String:
-		return "EntityChange(property=%s, from=%f, to=%f, metadata=%s)" % [
-			EntityChangeable.keys()[property]
-			, from, to, metadata]
-	
-	func _init(p_property: EntityChangeable, p_from: float, p_to: float, p_metadata: Dictionary = {}):
-		property = p_property
-		from = p_from
-		to = p_to
-		metadata = p_metadata
 
 # class WeaponConfig:
 # 	var hit_bonus: float
