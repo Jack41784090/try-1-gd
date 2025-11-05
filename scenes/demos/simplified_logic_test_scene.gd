@@ -492,7 +492,7 @@ func test_logic_configuration_resources() -> void:
 func test_load_frontline_resource() -> void:
 	start_test("Load test-frontline.tres resource")
 	
-	var logic_conf = load("res://resources/combat/logic/test-frontline.tres") as SimplifiedLogicConfig
+	var logic_conf = load("res://resources/combat/logic/logic/test-frontline.tres") as SimplifiedLogicConfig
 	
 	assert_not_null(logic_conf, "Resource should load successfully")
 	assert_true(logic_conf.action_considerations.size() > 0, "Should have action considerations")
