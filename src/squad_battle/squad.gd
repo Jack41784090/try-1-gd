@@ -53,6 +53,16 @@ func recovery():
 func get_last_attacked_at_round() -> int:
 	return last_round_received_attack
 
+func _format_enemy_positions(metadata: Dictionary) -> String:
+	var parts = []
+	for loc in [1, 2, 3]:
+		if metadata.has(loc):
+			var names = []
+			for e in metadata[loc]:
+				names.append("%s(ID:%d,HP:%.0f)" % [e.entity_name, e.player_id, e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)])
+			parts.append("LOC%d:[%s]" % [loc, ", ".join(names)])
+	return "{%s}" % " ".join(parts)
+
 func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
 	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, SBLog.prefix(self, squad_name))
 	var updates_after_attack: Array[EntityUpdate] = []
@@ -62,6 +72,9 @@ func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
 	for our_entity in entities:
 		var our_squad_metadata = get_all_entities()
 		var enemy_squad_metadata = enemy_squad.get_all_entities()
+		
+		SBLog.line(5, "Entity [%s] acting. Enemy positions: %s" % [our_entity.entity_name, _format_enemy_positions(enemy_squad_metadata)])
+		
 		var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
 		for result in action_results:
 			updates_after_attack.append(result)
