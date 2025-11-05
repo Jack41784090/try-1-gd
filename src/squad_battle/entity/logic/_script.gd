@@ -24,50 +24,41 @@ func update_situation(new_context: Dictionary):
 	return self
 
 
-# ENTIRE positioning logic in one method
-func choose_action() -> SquadBattleTypes.SquadEntityAction:
-	return _evaluate_best_action()
-
-func choose_reaction() -> SquadBattleTypes.SquadEntityAction:
-	return _evaluate_best_action()
-
-func _evaluate_best_action() -> SquadBattleTypes.SquadEntityAction:
-	print("\n=== EVALUATING BEST ACTION ===")
-	var best_action := SquadBattleTypes.SquadEntityAction.IDLE
+func choose_skill() -> Skill:
+	if config.considerations.size() == 0:
+		return get_default_attack()
+	
+	print("\n=== EVALUATING BEST SKILL ===")
+	var best_skill: Skill = null
 	var best_score := -INF
 	
-	for csdr in config.action_considerations:
-		assert(csdr is ActionConsideration, "Invalid consideration type in SimplifiedSquadLogic");
+	for csdr in config.considerations:
 		var score = csdr.score(entity, situation, context)
-
-		if score > 0.0 and score > best_score:
+		
+		if score > 0.0 and score > best_score and csdr.skill != null:
 			best_score = score
-			best_action = csdr.target_action
+			best_skill = csdr.skill
 	
-	print("\n[RESULT] Best Action: %s (score=%.2f)" % [
-		SquadBattleUtils.get_action_string(best_action), best_score])
+	if best_skill:
+		print("\n[RESULT] Best Skill: %s (score=%.2f)" % [best_skill.name, best_score])
+	else:
+		print("\n[RESULT] No valid skill found, using default")
+		best_skill = get_default_attack()
 	print("==============================\n")
 	
-	return best_action
+	return best_skill
 
 # Rest of the interface remains the same
 func choose_weapon():
 	return entity.weapon
 
-func choose_clash_skill() -> Skill:
-	var clash_skills = []
-	clash_skills.append_array(entity.get_skills_for_purpose("clash"))
-	clash_skills.append_array(logic_specific_skills)
-	
-	if clash_skills.size() == 0:
-		return get_default_attack()
-	
-	return clash_skills[randi() % clash_skills.size()]
-
 func get_default_attack() -> Skill:
 	return Skill.new("Basic Attack", [])
 
-func choose_clash():
+func choose_clash() -> OneClash:
+	return choose_clash_with_skill(choose_skill())
+
+func choose_clash_with_skill(selected_skill: Skill) -> OneClash:
 	var unwrapped = situation.unwrap()
 	var my_location = unwrapped["my_location"]
 	var frontline_enemy = unwrapped.get("frontline_enemy")
@@ -100,7 +91,7 @@ func choose_clash():
 	return OneClash.new(
 		entity,
 		target,
-		choose_clash_skill()
+		selected_skill
 	)
 
 ## REMOVED ENTIRELY:
