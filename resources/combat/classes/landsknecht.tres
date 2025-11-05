@@ -7,9 +7,9 @@
 
 [sub_resource type="Resource" id="Resource_waox1"]
 script = ExtResource("4_tyx70")
-strength = 5.0
-dex = 3.0
-acr = 2.0
+strength = 1.25
+dex = 1.1
+acr = 1.1
 spd = 1.0
 siz = 1.0
 int_stat = 1.0
@@ -17,15 +17,15 @@ spr = 1.0
 fai = 1.0
 cha = 1.5
 beu = 1.0
-wil = 2.0
-endurance = 3.0
+wil = 1.5
+endurance = 1.25
 metadata/_custom_type_script = "uid://cd8rsiutj3bsj"
 
 [resource]
 script = ExtResource("3_q2fet")
 entity_name = "Landskneckt"
 stats = SubResource("Resource_waox1")
-logic_config = ExtResource("2_8tqtp")
 icon = ExtResource("1_ly5kv")
 weapon_class = 1
+logic_config = ExtResource("2_8tqtp")
 metadata/_custom_type_script = "uid://r0wxsq4exvco"
