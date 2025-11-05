@@ -127,7 +127,9 @@ func commit() -> Array:
 			if effect.affected == null:
 				assert(effect.targeting in ["self", "target"], "Invalid targeting type: %s" % effect.targeting)
 				effect.affected = targeted if effect.targeting == "target" else attacker
-			effect.setup_connections()
+			if effect.source == null:
+				effect.source = attacker
+			effect.setup_connections(updates)
 	
 	#subscribe_existing_status_effects_to_event_bus()
 	#subscribe_new_skill_status_effects_to_event_bus()

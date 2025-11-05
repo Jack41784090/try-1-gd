@@ -8,6 +8,8 @@ class_name SkillEffect extends Resource
 @export var commitType: ClashCommonTypes.CommitType
 @export var triggers: Array[StatusEffectEventBus.Signals]
 
+var updates_collector = null
+
 # ApplyStatusEffect
 @export var statusEffectToApply: StatusEffect = null
 
@@ -64,8 +66,10 @@ func _init(
 	# 	StatusEffectEventBus.Connect(t, commit)
 	pass
 
-func setup_connections() -> void:
-	"""Call this after the resource is loaded to connect triggers to the event bus."""
+func setup_connections(collector = null) -> void:
+	"""Call this after the resource is loaded to connect triggers to the event bus.
+	If collector is provided, updates from signal-triggered commits will be appended to it."""
+	updates_collector = collector
 	print("  [SkillEffect] Setting up connections for '%s'" % name)
 	print("    → Effect type: %s" % _get_commit_type_name(commitType))
 	print("    → Triggers to connect: %d" % triggers.size())
@@ -139,6 +143,11 @@ func commit(_data = null) -> Array[EntityUpdate]:
 	# Disconnect triggers after commit
 	for t in triggers:
 		StatusEffectEventBus.Disconnect(t, commit)
+	
+	if updates_collector != null:
+		for u in updates:
+			updates_collector.append(u)
+		print("    [SkillEffect] Added %d updates to collector" % updates.size())
 	
 	print("    [SkillEffect] Commit complete - %d updates generated" % updates.size())
 	return updates
