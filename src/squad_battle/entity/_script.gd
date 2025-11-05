@@ -122,11 +122,11 @@ func get_armour():
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
 	match reality:
 		SquadBattleTypes.Reality.HP:
-			return (stats.endurance * 5) + (stats.siz * 2)
+			return 3 + (stats.endurance * 5) * (stats.siz * 2)
 		SquadBattleTypes.Reality.Force:
-			return (stats.strength * 2) + (stats.spd * 1) + (stats.siz * 1)
+			return 1 + (stats.strength * 2) * (stats.spd * 1) * (stats.siz * 1)
 		SquadBattleTypes.Reality.Guts:
-			return stats.wil * stats.fai
+			return 1 + stats.wil * stats.fai
 		SquadBattleTypes.Reality.Mana:
 			return (stats.int_stat * 3) + (stats.spr * 2) + (stats.fai * 1)
 		SquadBattleTypes.Reality.Spirituality:
@@ -194,7 +194,10 @@ func deorg_after_damage(dm: float, source: int) -> Array:
 	
 	var affected = player_id
 	var base_damage_deorg = -(dm * 1.5)
-	var close_to_death_deorg = -(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) / get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)) * 10
+	var current_hp = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var max_hp = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	var hp_percentage = current_hp / max_hp
+	var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
 	var changes: Array = [
 		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
