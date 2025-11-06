@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Consideration" load_steps=7 format=3 uid="uid://lb54vpjtpsxn"]
+
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_s2kaf"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="2_hafkp"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="3_eqgt1"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="4_lv7ug"]
+
+[sub_resource type="Resource" id="Resource_njjoq"]
+script = ExtResource("1_s2kaf")
+metadata/_custom_type_script = "uid://b006sp1fbp8ro"
+
+[sub_resource type="Resource" id="Resource_4ubp3"]
+script = ExtResource("4_lv7ug")
+metadata/_custom_type_script = "uid://dj6uoycgck8di"
+
+[resource]
+script = ExtResource("2_hafkp")
+glances = Array[ExtResource("1_s2kaf")]([SubResource("Resource_njjoq")])
+skill = SubResource("Resource_4ubp3")
+metadata/_custom_type_script = "uid://dsjjbtklokbwv"
