@@ -33,22 +33,21 @@ func _ready() -> void:
 	print("=".repeat(80) + "\n")
 
 # ============================================================================
-# TEST SUITE 1: EntityConsideration Tests
+# TEST SUITE 1: Glance-based Entity Property Tests
 # ============================================================================
 
 func test_entity_considerations() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 1: EntityConsideration")
+	print("TEST SUITE 1: Glance-based Entity Property Tests")
 	print("-".repeat(80) + "\n")
 	
-	# Test HP percentage detection
-	test_entity_hp_percentage_below()
-	test_entity_hp_percentage_above()
-	test_entity_hp_absolute_value()
-	test_entity_location_detection()
+	test_glance_hp_percentage_below()
+	test_glance_hp_percentage_above()
+	test_glance_hp_absolute_value()
+	test_glance_location_detection()
 
-func test_entity_hp_percentage_below() -> void:
-	start_test("EntityConsideration: HP below 30% (percentage)")
+func test_glance_hp_percentage_below() -> void:
+	start_test("Glance: HP below 30% (percentage)")
 	
 	var entity = create_test_entity({
 		"hp": 25.0,
@@ -56,12 +55,18 @@ func test_entity_hp_percentage_below() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	var consideration = EntityConsideration.new()
-	consideration.property = SquadBattleTypes.EntityChangeable.HP
-	consideration.detection = CsdrTypes.DETECTION.BELOW
-	consideration.value = 0.3
-	consideration.percentage = true
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = true
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.BELOW
+	glance.threshold = 0.3
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "self"
 	consideration.weight = 50.0
+	consideration.op = CsdrTypes.OP.ADD
 	
 	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
@@ -70,8 +75,8 @@ func test_entity_hp_percentage_below() -> void:
 	assert_equal(score, 50.0, "Should return weight when HP < 30%")
 	end_test()
 
-func test_entity_hp_percentage_above() -> void:
-	start_test("EntityConsideration: HP above 50% (percentage)")
+func test_glance_hp_percentage_above() -> void:
+	start_test("Glance: HP above 50% (percentage)")
 	
 	var entity = create_test_entity({
 		"hp": 75.0,
@@ -79,12 +84,18 @@ func test_entity_hp_percentage_above() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Middle
 	})
 	
-	var consideration = EntityConsideration.new()
-	consideration.property = SquadBattleTypes.EntityChangeable.HP
-	consideration.detection = CsdrTypes.DETECTION.ABOVE
-	consideration.value = 0.5
-	consideration.percentage = true
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = true
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.ABOVE
+	glance.threshold = 0.5
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "self"
 	consideration.weight = 10.0
+	consideration.op = CsdrTypes.OP.ADD
 	
 	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
@@ -93,8 +104,8 @@ func test_entity_hp_percentage_above() -> void:
 	assert_equal(score, 10.0, "Should return weight when HP > 50%")
 	end_test()
 
-func test_entity_hp_absolute_value() -> void:
-	start_test("EntityConsideration: HP equal to 50 (absolute)")
+func test_glance_hp_absolute_value() -> void:
+	start_test("Glance: HP equal to 50 (absolute)")
 	
 	var entity = create_test_entity({
 		"hp": 50.0,
@@ -102,12 +113,17 @@ func test_entity_hp_absolute_value() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Back
 	})
 	
-	var consideration = EntityConsideration.new()
-	consideration.property = SquadBattleTypes.EntityChangeable.HP
-	consideration.detection = CsdrTypes.DETECTION.EQUAL
-	consideration.value = 50.0
-	consideration.percentage = false
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.EQUAL
+	glance.threshold = 50.0
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "self"
 	consideration.weight = 25.0
+	consideration.op = CsdrTypes.OP.ADD
 	
 	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
@@ -116,8 +132,8 @@ func test_entity_hp_absolute_value() -> void:
 	assert_equal(score, 25.0, "Should return weight when HP equals 50")
 	end_test()
 
-func test_entity_location_detection() -> void:
-	start_test("EntityConsideration: Location detection")
+func test_glance_location_detection() -> void:
+	start_test("Glance: Location detection")
 	
 	var entity = create_test_entity({
 		"hp": 100.0,
@@ -125,12 +141,17 @@ func test_entity_location_detection() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Middle
 	})
 	
-	var consideration = EntityConsideration.new()
-	consideration.property = SquadBattleTypes.EntityChangeable.LOC
-	consideration.detection = CsdrTypes.DETECTION.EQUAL
-	consideration.value = SquadBattleTypes.SquadEntityInSquadLocation.Middle
-	consideration.percentage = false
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.LOC
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.EQUAL
+	glance.threshold = SquadBattleTypes.SquadEntityInSquadLocation.Middle
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "self"
 	consideration.weight = 1.0
+	consideration.op = CsdrTypes.OP.ADD
 	
 	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
@@ -140,247 +161,247 @@ func test_entity_location_detection() -> void:
 	end_test()
 
 # ============================================================================
-# TEST SUITE 2: ContextConsideration Tests
+# TEST SUITE 2: Glance-based Multi-Entity Tests
 # ============================================================================
 
 func test_context_considerations() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 2: ContextConsideration")
+	print("TEST SUITE 2: Glance-based Multi-Entity Tests")
 	print("-".repeat(80) + "\n")
 	
-	test_context_at_specific_location()
-	test_context_at_specific_location_inverted()
-	test_context_allies_at_location()
+	test_glance_enemy_hp_evaluation()
+	test_glance_allies_evaluation()
+	test_glance_average_operation()
 
-func test_context_at_specific_location() -> void:
-	start_test("ContextConsideration: At frontline")
+func test_glance_enemy_hp_evaluation() -> void:
+	start_test("Glance: Evaluate enemy HP using entity_limiter")
 	
-	var entity = create_test_entity({
+	var ally = create_test_entity({
 		"hp": 100.0,
 		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
+		"player_id": 800
+	})
+	var enemy1 = create_test_entity({
+		"hp": 30.0,
+		"max_hp": 100.0,
+		"player_id": 500
+	})
+	var enemy2 = create_test_entity({
+		"hp": 20.0,
+		"max_hp": 100.0,
+		"player_id": 501
 	})
 	
-	var consideration = ContextConsideration.new()
-	consideration.query_type = ContextConsideration.ContextQuery.AT_SPECIFIC_LOCATION
-	consideration.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	consideration.weight = 1.0
-	consideration.invert = false
-	
-	var context = create_basic_context(entity)
+	var context = {
+		"entity": ally,
+		"our_squad": {1: [ally]},
+		"enemy_squad": {1: [enemy1, enemy2]}
+	}
 	var situation = Situation.new(context)
-	var score = consideration.score(entity, situation, context)
 	
-	assert_equal(score, 1.0, "Should return weight when at frontline")
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = true
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.BELOW
+	glance.threshold = 0.5
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "enemies"
+	consideration.weight = 10.0
+	consideration.op = CsdrTypes.OP.ADD
+	
+	var score = consideration.score(ally, situation, context)
+	
+	assert_equal(score, 20.0, "Should sum 2 low HP enemies: 10 + 10")
 	end_test()
 
-func test_context_at_specific_location_inverted() -> void:
-	start_test("ContextConsideration: Not at frontline (inverted)")
+func test_glance_allies_evaluation() -> void:
+	start_test("Glance: Evaluate allies using entity_limiter")
 	
 	var entity = create_test_entity({
 		"hp": 100.0,
 		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Middle
+		"player_id": 800
 	})
-	
-	var consideration = ContextConsideration.new()
-	consideration.query_type = ContextConsideration.ContextQuery.AT_SPECIFIC_LOCATION
-	consideration.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	consideration.weight = 1.0
-	consideration.invert = true
-	
-	var context = create_basic_context(entity)
-	var situation = Situation.new(context)
-	var score = consideration.score(entity, situation, context)
-	
-	assert_equal(score, 1.0, "Should return weight when NOT at frontline")
-	end_test()
-
-func test_context_allies_at_location() -> void:
-	start_test("ContextConsideration: Allies at my location")
-	
-	var entity = create_test_entity({
-		"hp": 100.0,
-		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
-	})
-	
 	var ally1 = create_test_entity({
-		"hp": 100.0,
+		"hp": 50.0,
 		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
+		"player_id": 801
+	})
+	var ally2 = create_test_entity({
+		"hp": 75.0,
+		"max_hp": 100.0,
+		"player_id": 802
 	})
 	
 	var context = {
 		"entity": entity,
-		"our_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Front: [entity, ally1]
-		},
+		"our_squad": {1: [entity, ally1, ally2]},
 		"enemy_squad": {}
 	}
-	
-	var consideration = ContextConsideration.new()
-	consideration.query_type = ContextConsideration.ContextQuery.ALLIES_AT_MY_LOCATION
-	consideration.weight = 1.0
-	
 	var situation = Situation.new(context)
+	
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = false
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "allies"
+	consideration.weight = 1.0
+	consideration.op = CsdrTypes.OP.AVG
+	
 	var score = consideration.score(entity, situation, context)
 	
-	assert_equal(score, 1.0, "Should detect allies at same location")
+	assert_equal(score, 75.0, "Should average ally HP: (100 + 50 + 75) / 3 = 75")
+	end_test()
+
+func test_glance_average_operation() -> void:
+	start_test("Glance: Average operation across multiple entities")
+	
+	var entity = create_test_entity({
+		"hp": 100.0,
+		"max_hp": 100.0,
+		"player_id": 800
+	})
+	var enemy1 = create_test_entity({
+		"hp": 40.0,
+		"max_hp": 100.0,
+		"player_id": 500
+	})
+	var enemy2 = create_test_entity({
+		"hp": 60.0,
+		"max_hp": 100.0,
+		"player_id": 501
+	})
+	
+	var context = {
+		"entity": entity,
+		"our_squad": {1: [entity]},
+		"enemy_squad": {1: [enemy1, enemy2]}
+	}
+	var situation = Situation.new(context)
+	
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = true
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "enemies"
+	consideration.weight = 1.0
+	consideration.op = CsdrTypes.OP.AVG
+	
+	var score = consideration.score(entity, situation, context)
+	
+	assert_equal(score, 0.5, "Should average enemy HP: (0.4 + 0.6) / 2 = 0.5")
 	end_test()
 
 # ============================================================================
-# TEST SUITE 3: SituationConsideration Tests
+# TEST SUITE 3: Glance Chaining Tests
 # ============================================================================
 
 func test_situation_considerations() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 3: SituationConsideration")
+	print("TEST SUITE 3: Glance Chaining Tests")
 	print("-".repeat(80) + "\n")
 	
-	test_situation_outnumbered()
-	test_situation_not_outnumbered()
-	test_situation_allies_in_location()
-	test_situation_enemies_in_location()
+	test_glance_chaining_add()
+	test_glance_chaining_avg()
+	test_glance_multi_glance_consideration()
 
-func test_situation_outnumbered() -> void:
-	start_test("SituationConsideration: Outnumbered (2:1)")
+func test_glance_chaining_add() -> void:
+	start_test("Glance: Chaining with ADD operation")
 	
 	var entity = create_test_entity({
-		"hp": 100.0,
-		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
+		"hp": 50.0,
+		"org": 30.0
 	})
 	
-	var context = create_outnumbered_scenario(entity, 2, 6)
+	var glance2 = Glance.new()
+	glance2.property = SquadBattleTypes.EntityChangeable.ORG
 	
-	var consideration = SituationConsideration.new()
-	consideration.comparison_type = SituationConsideration.ComparisonType.OUTNUMBERED
-	consideration.threshold = 2.0
-	consideration.weight = 100.0
+	var glance1 = Glance.new()
+	glance1.property = SquadBattleTypes.EntityChangeable.HP
+	glance1.additional_glance = glance2
+	glance1.operation_on_other_glance = CsdrTypes.OP.ADD
 	
-	var situation = Situation.new(context)
-	var score = consideration.score(entity, situation, context)
+	var value = glance1.evaluate(entity)
 	
-	assert_equal(score, 100.0, "Should detect outnumbered situation")
+	assert_equal(value, 80.0, "Should return HP + ORG = 80")
 	end_test()
 
-func test_situation_not_outnumbered() -> void:
-	start_test("SituationConsideration: Not outnumbered")
+func test_glance_chaining_avg() -> void:
+	start_test("Glance: Chaining with AVG operation")
 	
 	var entity = create_test_entity({
-		"hp": 100.0,
-		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
+		"hp": 80.0,
+		"org": 40.0
 	})
 	
-	var context = create_outnumbered_scenario(entity, 5, 5)
+	var glance2 = Glance.new()
+	glance2.property = SquadBattleTypes.EntityChangeable.ORG
 	
-	var consideration = SituationConsideration.new()
-	consideration.comparison_type = SituationConsideration.ComparisonType.OUTNUMBERED
-	consideration.threshold = 2.0
-	consideration.weight = 100.0
+	var glance1 = Glance.new()
+	glance1.property = SquadBattleTypes.EntityChangeable.HP
+	glance1.additional_glance = glance2
+	glance1.operation_on_other_glance = CsdrTypes.OP.AVG
 	
-	var situation = Situation.new(context)
-	var score = consideration.score(entity, situation, context)
+	var value = glance1.evaluate(entity)
 	
-	assert_equal(score, 0.0, "Should not detect outnumbered when equal")
+	assert_equal(value, 60.0, "Should return (HP + ORG) / 2 = 60")
 	end_test()
 
-func test_situation_allies_in_location() -> void:
-	start_test("SituationConsideration: Count allies at frontline")
+func test_glance_multi_glance_consideration() -> void:
+	start_test("Consideration: Multiple glances in single consideration")
 	
 	var entity = create_test_entity({
-		"hp": 100.0,
+		"hp": 60.0,
 		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Middle
+		"org": 40.0,
+		"max_org": 100.0
 	})
 	
-	var allies = create_entities_at_location(3, SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	var context = {
-		"entity": entity,
-		"our_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Front: allies,
-			SquadBattleTypes.SquadEntityInSquadLocation.Middle: [entity]
-		},
-		"enemy_squad": {}
-	}
+	var hp_glance = Glance.new()
+	hp_glance.property = SquadBattleTypes.EntityChangeable.HP
+	hp_glance.normalize_as_percentage = true
 	
-	var consideration = SituationConsideration.new()
-	consideration.comparison_type = SituationConsideration.ComparisonType.ALLIES_IN_LOCATION
-	consideration.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	consideration.weight = 10.0
+	var org_glance = Glance.new()
+	org_glance.property = SquadBattleTypes.EntityChangeable.ORG
+	org_glance.normalize_as_percentage = true
 	
+	var consideration = Consideration.new()
+	consideration.glances.append(hp_glance)
+	consideration.glances.append(org_glance)
+	consideration.entity_limiter = "self"
+	consideration.weight = 1.0
+	consideration.op = CsdrTypes.OP.AVG
+	consideration.average_score_between_glances = true
+	
+	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
 	var score = consideration.score(entity, situation, context)
 	
-	assert_equal(score, 30.0, "Should count 3 allies * weight 10 = 30")
-	end_test()
-
-func test_situation_enemies_in_location() -> void:
-	start_test("SituationConsideration: Count enemies at frontline")
-	
-	var entity = create_test_entity({
-		"hp": 100.0,
-		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Back
-	})
-	
-	var enemies = create_entities_at_location(5, SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	var context = {
-		"entity": entity,
-		"our_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Back: [entity]
-		},
-		"enemy_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Front: enemies
-		}
-	}
-	
-	var consideration = SituationConsideration.new()
-	consideration.comparison_type = SituationConsideration.ComparisonType.ENEMIES_IN_LOCATION
-	consideration.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	consideration.weight = 5.0
-	
-	var situation = Situation.new(context)
-	var score = consideration.score(entity, situation, context)
-	
-	assert_equal(score, 25.0, "Should count 5 enemies * weight 5 = 25")
+	assert_equal(score, 0.5, "Should average normalized HP and ORG")
 	end_test()
 
 # ============================================================================
-# TEST SUITE 4: ActionConsideration Tests
+# TEST SUITE 4: Skill-based Consideration Tests
 # ============================================================================
 
 func test_action_considerations() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 4: ActionConsideration")
+	print("TEST SUITE 4: Skill-based Consideration Tests")
 	print("-".repeat(80) + "\n")
 	
-	test_action_no_conditions()
-	test_action_with_met_conditions()
-	test_action_with_unmet_conditions()
-	test_action_with_multiple_conditions()
+	test_skill_consideration_with_condition()
+	test_skill_consideration_no_condition()
+	test_skill_selection_logic()
 
-func test_action_no_conditions() -> void:
-	start_test("ActionConsideration: No conditions (always valid)")
-	
-	var entity = create_test_entity({})
-	var context = create_basic_context(entity)
-	
-	var action_csdr = ActionConsideration.new()
-	action_csdr.target_action = SquadBattleTypes.SquadEntityAction.IDLE
-	action_csdr.weight = 5.0
-	# condition_considerations is already initialized as empty array
-	
-	var situation = Situation.new(context)
-	var score = action_csdr.score(entity, situation, context)
-	
-	assert_equal(score, 5.0, "Should return weight when no conditions")
-	end_test()
-
-func test_action_with_met_conditions() -> void:
-	start_test("ActionConsideration: All conditions met")
+func test_skill_consideration_with_condition() -> void:
+	start_test("Consideration: Skill with HP condition")
 	
 	var entity = create_test_entity({
 		"hp": 20.0,
@@ -388,92 +409,92 @@ func test_action_with_met_conditions() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
+	var heal_skill = Skill.new("Heal", [])
+	
+	var glance = Glance.new()
+	glance.property = SquadBattleTypes.EntityChangeable.HP
+	glance.normalize_as_percentage = true
+	glance.use_comparison = true
+	glance.comparison = CsdrTypes.DETECTION.BELOW
+	glance.threshold = 0.3
+	
+	var consideration = Consideration.new()
+	consideration.glances.append(glance)
+	consideration.entity_limiter = "self"
+	consideration.weight = 50.0
+	consideration.op = CsdrTypes.OP.ADD
+	consideration.skill = heal_skill
+	
 	var context = create_basic_context(entity)
-	
-	# Condition: HP below 30%
-	var hp_condition = EntityConsideration.new()
-	hp_condition.property = SquadBattleTypes.EntityChangeable.HP
-	hp_condition.detection = CsdrTypes.DETECTION.BELOW
-	hp_condition.value = 0.3
-	hp_condition.percentage = true
-	hp_condition.weight = 1.0
-	
-	var action_csdr = ActionConsideration.new()
-	action_csdr.target_action = SquadBattleTypes.SquadEntityAction.RETREAT
-	action_csdr.weight = 50.0
-	action_csdr.condition_considerations.append(hp_condition)
-	
 	var situation = Situation.new(context)
-	var score = action_csdr.score(entity, situation, context)
+	var score = consideration.score(entity, situation, context)
 	
 	assert_equal(score, 50.0, "Should return weight when condition met")
 	end_test()
 
-func test_action_with_unmet_conditions() -> void:
-	start_test("ActionConsideration: Condition not met")
+func test_skill_consideration_no_condition() -> void:
+	start_test("Consideration: Skill without condition (always valid)")
 	
-	var entity = create_test_entity({
-		"hp": 80.0,
-		"max_hp": 100.0,
-		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
-	})
-	
+	var entity = create_test_entity({})
 	var context = create_basic_context(entity)
 	
-	# Condition: HP below 30% (will fail)
-	var hp_condition = EntityConsideration.new()
-	hp_condition.property = SquadBattleTypes.EntityChangeable.HP
-	hp_condition.detection = CsdrTypes.DETECTION.BELOW
-	hp_condition.value = 0.3
-	hp_condition.percentage = true
-	hp_condition.weight = 1.0
+	var attack_skill = Skill.new("Attack", [])
 	
-	var action_csdr = ActionConsideration.new()
-	action_csdr.target_action = SquadBattleTypes.SquadEntityAction.RETREAT
-	action_csdr.weight = 50.0
-	action_csdr.condition_considerations.append(hp_condition)
+	var consideration = Consideration.new()
+	# glances already initialized as empty array
+	consideration.entity_limiter = "self"
+	consideration.weight = 5.0
+	consideration.op = CsdrTypes.OP.ADD
+	consideration.skill = attack_skill
 	
 	var situation = Situation.new(context)
-	var score = action_csdr.score(entity, situation, context)
+	var score = consideration.score(entity, situation, context)
 	
-	assert_equal(score, 0.0, "Should return 0 when condition not met")
+	assert_equal(score, 5.0, "Should return the default weight when no glances (no condition)")
 	end_test()
 
-func test_action_with_multiple_conditions() -> void:
-	start_test("ActionConsideration: Multiple conditions (all must pass)")
+func test_skill_selection_logic() -> void:
+	start_test("SimplifiedSquadLogic: Skill selection with multiple considerations")
 	
 	var entity = create_test_entity({
-		"hp": 20.0,
+		"hp": 25.0,
 		"max_hp": 100.0,
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	var context = create_outnumbered_scenario(entity, 2, 6)
+	var heal_skill = Skill.new("Heal", [])
+	var attack_skill = Skill.new("Attack", [])
 	
-	# Condition 1: HP below 30%
-	var hp_condition = EntityConsideration.new()
-	hp_condition.property = SquadBattleTypes.EntityChangeable.HP
-	hp_condition.detection = CsdrTypes.DETECTION.BELOW
-	hp_condition.value = 0.3
-	hp_condition.percentage = true
-	hp_condition.weight = 1.0
+	var low_hp_glance = Glance.new()
+	low_hp_glance.property = SquadBattleTypes.EntityChangeable.HP
+	low_hp_glance.normalize_as_percentage = true
+	low_hp_glance.use_comparison = true
+	low_hp_glance.comparison = CsdrTypes.DETECTION.BELOW
+	low_hp_glance.threshold = 0.3
 	
-	# Condition 2: Outnumbered
-	var outnumber_condition = SituationConsideration.new()
-	outnumber_condition.comparison_type = SituationConsideration.ComparisonType.OUTNUMBERED
-	outnumber_condition.threshold = 2.0
-	outnumber_condition.weight = 1.0
+	var heal_consideration = Consideration.new()
+	heal_consideration.name = "Heal when low HP"
+	heal_consideration.glances.append(low_hp_glance)
+	heal_consideration.entity_limiter = "self"
+	heal_consideration.weight = 100.0
+	heal_consideration.skill = heal_skill
+	heal_consideration.op = CsdrTypes.OP.ADD
 	
-	var action_csdr = ActionConsideration.new()
-	action_csdr.target_action = SquadBattleTypes.SquadEntityAction.RETREAT
-	action_csdr.weight = 100.0
-	action_csdr.condition_considerations.append(hp_condition)
-	action_csdr.condition_considerations.append(outnumber_condition)
+	var attack_consideration = Consideration.new()
+	attack_consideration.name = "Attack"
+	attack_consideration.weight = 10.0
+	attack_consideration.skill = attack_skill
+	attack_consideration.op = CsdrTypes.OP.ADD
 	
-	var situation = Situation.new(context)
-	var score = action_csdr.score(entity, situation, context)
+	var config = SimplifiedLogicConfig.new()
+	config.considerations.append(heal_consideration)
+	config.considerations.append(attack_consideration)
 	
-	assert_equal(score, 100.0, "Should return weight when all conditions met")
+	var context = create_basic_context(entity)
+	var logic = SimplifiedSquadLogic.new(context, config)
+	var chosen_skill = logic.choose_skill()
+	
+	assert_equal(chosen_skill.name, "Heal", "Should choose Heal skill due to low HP")
 	end_test()
 
 # ============================================================================
@@ -485,26 +506,16 @@ func test_logic_configuration_resources() -> void:
 	print("TEST SUITE 5: Logic Configuration Resources")
 	print("-".repeat(80) + "\n")
 	
-	test_load_frontline_resource()
-	test_load_retreat_resource()
+	test_load_stay_backline_heal_resource()
 	test_create_custom_configuration()
 
-func test_load_frontline_resource() -> void:
-	start_test("Load test-frontline.tres resource")
+func test_load_stay_backline_heal_resource() -> void:
+	start_test("Load stay-backline-heal.tres resource")
 	
-	var logic_conf = load("res://resources/combat/logic/logic/test-frontline.tres") as SimplifiedLogicConfig
+	var logic_conf = load("res://resources/combat/logic/logic/stay-backline-heal.tres") as SimplifiedLogicConfig
 	
 	assert_not_null(logic_conf, "Resource should load successfully")
-	assert_true(logic_conf.action_considerations.size() > 0, "Should have action considerations")
-	end_test()
-
-func test_load_retreat_resource() -> void:
-	start_test("Load example_retreat_if_outnumbered.tres resource")
-	
-	var retreat_csdr = load("res://resources/combat/considerations/example_retreat_if_outnumbered.tres")
-	
-	assert_not_null(retreat_csdr, "Resource should load successfully")
-	assert_true(retreat_csdr is SituationConsideration, "Should be SituationConsideration")
+	assert_true(logic_conf.considerations.size() > 0, "Should have considerations")
 	end_test()
 
 func test_create_custom_configuration() -> void:
@@ -516,35 +527,37 @@ func test_create_custom_configuration() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	# Build configuration
-	var hp_condition = EntityConsideration.new()
-	hp_condition.property = SquadBattleTypes.EntityChangeable.HP
-	hp_condition.detection = CsdrTypes.DETECTION.BELOW
-	hp_condition.value = 0.3
-	hp_condition.percentage = true
-	hp_condition.weight = 1.0
+	var heal_skill = Skill.new("Heal", [])
 	
-	var retreat_action = ActionConsideration.new()
-	retreat_action.target_action = SquadBattleTypes.SquadEntityAction.RETREAT
-	retreat_action.weight = 50.0
-	retreat_action.condition_considerations.append(hp_condition)
+	var hp_glance = Glance.new()
+	hp_glance.property = SquadBattleTypes.EntityChangeable.HP
+	hp_glance.normalize_as_percentage = true
+	hp_glance.use_comparison = true
+	hp_glance.comparison = CsdrTypes.DETECTION.BELOW
+	hp_glance.threshold = 0.3
 	
-	var idle_action = ActionConsideration.new()
-	idle_action.target_action = SquadBattleTypes.SquadEntityAction.IDLE
-	idle_action.weight = 1.0
-	# idle has no conditions, leave empty
+	var heal_consideration = Consideration.new()
+	heal_consideration.glances.append(hp_glance)
+	heal_consideration.entity_limiter = "self"
+	heal_consideration.weight = 50.0
+	heal_consideration.skill = heal_skill
+	heal_consideration.op = CsdrTypes.OP.ADD
+	
+	var attack_skill = Skill.new("Attack", [])
+	var attack_consideration = Consideration.new()
+	attack_consideration.weight = 1.0
+	attack_consideration.skill = attack_skill
+	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
-	config.action_considerations.append(retreat_action)
-	config.action_considerations.append(idle_action)
+	config.considerations.append(heal_consideration)
+	config.considerations.append(attack_consideration)
 	
-	# Test with logic
 	var context = create_basic_context(entity)
 	var logic = SimplifiedSquadLogic.new(context, config)
-	var chosen_action = logic.choose_action()
+	var chosen_skill = logic.choose_skill()
 	
-	assert_equal(chosen_action, SquadBattleTypes.SquadEntityAction.RETREAT, 
-		"Should choose RETREAT when HP low")
+	assert_equal(chosen_skill.name, "Heal", "Should choose Heal when HP low")
 	end_test()
 
 # ============================================================================
@@ -556,12 +569,12 @@ func test_complex_scenarios() -> void:
 	print("TEST SUITE 6: Complex Scenarios")
 	print("-".repeat(80) + "\n")
 	
-	test_scenario_low_hp_retreat()
-	test_scenario_frontline_vs_backline()
+	test_scenario_low_hp_heal()
+	test_scenario_location_based_skills()
 	test_scenario_priority_resolution()
 
-func test_scenario_low_hp_retreat() -> void:
-	start_test("Scenario: Low HP entity should retreat")
+func test_scenario_low_hp_heal() -> void:
+	start_test("Scenario: Low HP entity should use heal skill")
 	
 	var entity = create_test_entity({
 		"hp": 15.0,
@@ -569,53 +582,46 @@ func test_scenario_low_hp_retreat() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	var config = create_retreat_on_low_hp_config()
+	var config = create_heal_on_low_hp_config()
 	var context = create_basic_context(entity)
 	var logic = SimplifiedSquadLogic.new(context, config)
 	
-	var action = logic.choose_action()
+	var skill = logic.choose_skill()
 	
-	assert_equal(action, SquadBattleTypes.SquadEntityAction.RETREAT, 
-		"Entity with 15% HP should retreat")
+	assert_equal(skill.name, "Heal", "Entity with 15% HP should use heal skill")
 	end_test()
 
-func test_scenario_frontline_vs_backline() -> void:
-	start_test("Scenario: Frontline entity attacks, backline moves forward")
+func test_scenario_location_based_skills() -> void:
+	start_test("Scenario: Location-based skill selection")
 	
-	# Frontline entity
 	var frontline_entity = create_test_entity({
 		"hp": 100.0,
 		"max_hp": 100.0,
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	# Backline entity
 	var backline_entity = create_test_entity({
 		"hp": 100.0,
 		"max_hp": 100.0,
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Back
 	})
 	
-	var config = create_position_based_config()
+	var config = create_location_based_config()
 	
-	# Test frontline
 	var frontline_context = create_basic_context(frontline_entity)
 	var frontline_logic = SimplifiedSquadLogic.new(frontline_context, config)
-	var frontline_action = frontline_logic.choose_action()
+	var frontline_skill = frontline_logic.choose_skill()
 	
-	# Test backline
 	var backline_context = create_basic_context(backline_entity)
 	var backline_logic = SimplifiedSquadLogic.new(backline_context, config)
-	var backline_action = backline_logic.choose_action()
+	var backline_skill = backline_logic.choose_skill()
 	
-	assert_equal(frontline_action, SquadBattleTypes.SquadEntityAction.ATTACK, 
-		"Frontline entity should attack")
-	assert_equal(backline_action, SquadBattleTypes.SquadEntityAction.FORWARD, 
-		"Backline entity should move forward")
+	assert_equal(frontline_skill.name, "Attack", "Frontline entity should attack")
+	assert_equal(backline_skill.name, "Move Forward", "Backline entity should move forward")
 	end_test()
 
 func test_scenario_priority_resolution() -> void:
-	start_test("Scenario: Higher weight action wins")
+	start_test("Scenario: Higher weight skill wins")
 	
 	var entity = create_test_entity({
 		"hp": 100.0,
@@ -623,27 +629,27 @@ func test_scenario_priority_resolution() -> void:
 		"location": SquadBattleTypes.SquadEntityInSquadLocation.Front
 	})
 	
-	# Create config with multiple valid actions
-	var attack_action = ActionConsideration.new()
-	attack_action.target_action = SquadBattleTypes.SquadEntityAction.ATTACK
-	attack_action.weight = 10.0
-	# no conditions
+	var attack_skill = Skill.new("Attack", [])
+	var attack_consideration = Consideration.new()
+	attack_consideration.weight = 10.0
+	attack_consideration.skill = attack_skill
+	attack_consideration.op = CsdrTypes.OP.ADD
 	
-	var heal_action = ActionConsideration.new()
-	heal_action.target_action = SquadBattleTypes.SquadEntityAction.HEAL
-	heal_action.weight = 50.0
-	# no conditions
+	var heal_skill = Skill.new("Heal", [])
+	var heal_consideration = Consideration.new()
+	heal_consideration.weight = 50.0
+	heal_consideration.skill = heal_skill
+	heal_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
-	config.action_considerations.append(attack_action)
-	config.action_considerations.append(heal_action)
+	config.considerations.append(attack_consideration)
+	config.considerations.append(heal_consideration)
 	
 	var context = create_basic_context(entity)
 	var logic = SimplifiedSquadLogic.new(context, config)
-	var action = logic.choose_action()
+	var skill = logic.choose_skill()
 	
-	assert_equal(action, SquadBattleTypes.SquadEntityAction.HEAL, 
-		"Should choose HEAL with weight 50 over ATTACK with weight 10")
+	assert_equal(skill.name, "Heal", "Should choose Heal with weight 50 over Attack with weight 10")
 	end_test()
 
 # ============================================================================
@@ -668,12 +674,12 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 	
 	# Prepare entity config with proper parameter names
 	var entity_config = {
-		"player_id": 0,
+		"player_id": config.get("player_id", 0),
 		"name": "Test Entity",
 		"team": "test",
 		"stats": stats,
-		"weapon": SquadWeapon.new(),
-		"armour": SquadArmour.new(),
+		"weapon_class": WeaponFactory.WeaponClasses.Unarmed,
+		"armor_class": ArmorFactory.ArmorClasses.Unarmored,
 		"starting_location": config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	}
 	
@@ -683,20 +689,32 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 		# HP = endurance * 5 + siz * 2
 		# So: endurance = (desired_hp - siz * 2) / 5
 		var desired_max = config["max_hp"]
-		stats.endurance = (desired_max - stats.siz * 2) / 5.0
+		stats.endurance = (desired_max - 3) / (stats.siz * 10)
 	
+	if config.has("max_org"):
+		var desired_max_org = config["max_org"]
+		stats.wil = (desired_max_org - 1) / stats.fai
+
 	var entity = SquadEntity.new(entity_config)
 	
 	# Override HP if specified (after initialise_changeables is called by constructor)
 	if config.has("hp"):
 		entity.changeable_stats[SquadBattleTypes.EntityChangeable.HP] = config["hp"]
+	if config.has("org"):
+		entity.changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = config["org"]
+	if config.has("location"):
+		entity.changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config["location"]
 	
 	return entity
 
 func create_basic_context(entity: SquadEntity) -> Dictionary:
+	var our_squad = {}
+	# var enemy_squad = {}
+
+	our_squad[entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)] = [entity]
 	return {
 		"entity": entity,
-		"our_squad": {},
+		"our_squad": our_squad,
 		"enemy_squad": {}
 	}
 
@@ -725,57 +743,69 @@ func create_entities_at_location(count: int, location: int) -> Array:
 		entities.append(e)
 	return entities
 
-func create_retreat_on_low_hp_config() -> SimplifiedLogicConfig:
-	var hp_condition = EntityConsideration.new()
-	hp_condition.property = SquadBattleTypes.EntityChangeable.HP
-	hp_condition.detection = CsdrTypes.DETECTION.BELOW
-	hp_condition.value = 0.3
-	hp_condition.percentage = true
-	hp_condition.weight = 1.0
+func create_heal_on_low_hp_config() -> SimplifiedLogicConfig:
+	var heal_skill = Skill.new("Heal", [])
 	
-	var retreat_action = ActionConsideration.new()
-	retreat_action.target_action = SquadBattleTypes.SquadEntityAction.RETREAT
-	retreat_action.weight = 100.0
-	retreat_action.condition_considerations.append(hp_condition)
+	var hp_glance = Glance.new()
+	hp_glance.property = SquadBattleTypes.EntityChangeable.HP
+	hp_glance.normalize_as_percentage = true
+	hp_glance.use_comparison = true
+	hp_glance.comparison = CsdrTypes.DETECTION.BELOW
+	hp_glance.threshold = 0.3
 	
-	var idle_action = ActionConsideration.new()
-	idle_action.target_action = SquadBattleTypes.SquadEntityAction.IDLE
-	idle_action.weight = 1.0
-	# no conditions
+	var heal_consideration = Consideration.new()
+	heal_consideration.glances.append(hp_glance)
+	heal_consideration.entity_limiter = "self"
+	heal_consideration.weight = 100.0
+	heal_consideration.skill = heal_skill
+	heal_consideration.op = CsdrTypes.OP.ADD
+	
+	var attack_skill = Skill.new("Attack", [])
+	var attack_consideration = Consideration.new()
+	attack_consideration.weight = 1.0
+	attack_consideration.skill = attack_skill
+	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
-	config.action_considerations.append(retreat_action)
-	config.action_considerations.append(idle_action)
+	config.considerations.append(heal_consideration)
+	config.considerations.append(attack_consideration)
 	
 	return config
 
-func create_position_based_config() -> SimplifiedLogicConfig:
-	# Attack if at frontline
-	var at_frontline = ContextConsideration.new()
-	at_frontline.query_type = ContextConsideration.ContextQuery.AT_SPECIFIC_LOCATION
-	at_frontline.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	at_frontline.weight = 1.0
+func create_location_based_config() -> SimplifiedLogicConfig:
+	var attack_skill = Skill.new("Attack", [])
 	
-	var attack_action = ActionConsideration.new()
-	attack_action.target_action = SquadBattleTypes.SquadEntityAction.ATTACK
-	attack_action.weight = 10.0
-	attack_action.condition_considerations.append(at_frontline)
+	var at_frontline_glance = Glance.new()
+	at_frontline_glance.property = SquadBattleTypes.EntityChangeable.LOC
+	at_frontline_glance.use_comparison = true
+	at_frontline_glance.comparison = CsdrTypes.DETECTION.EQUAL
+	at_frontline_glance.threshold = SquadBattleTypes.SquadEntityInSquadLocation.Front
 	
-	# Move forward if not at frontline
-	var not_at_frontline = ContextConsideration.new()
-	not_at_frontline.query_type = ContextConsideration.ContextQuery.AT_SPECIFIC_LOCATION
-	not_at_frontline.target_location = SquadBattleTypes.SquadEntityInSquadLocation.Front
-	not_at_frontline.weight = 1.0
-	not_at_frontline.invert = true
+	var attack_consideration = Consideration.new()
+	attack_consideration.glances.append(at_frontline_glance)
+	attack_consideration.entity_limiter = "self"
+	attack_consideration.weight = 10.0
+	attack_consideration.skill = attack_skill
+	attack_consideration.op = CsdrTypes.OP.ADD
 	
-	var forward_action = ActionConsideration.new()
-	forward_action.target_action = SquadBattleTypes.SquadEntityAction.FORWARD
-	forward_action.weight = 5.0
-	forward_action.condition_considerations.append(not_at_frontline)
+	var move_forward_skill = Skill.new("Move Forward", [])
+	
+	var not_at_frontline_glance = Glance.new()
+	not_at_frontline_glance.property = SquadBattleTypes.EntityChangeable.LOC
+	not_at_frontline_glance.use_comparison = true
+	not_at_frontline_glance.comparison = CsdrTypes.DETECTION.ABOVE
+	not_at_frontline_glance.threshold = SquadBattleTypes.SquadEntityInSquadLocation.Front
+	
+	var move_forward_consideration = Consideration.new()
+	move_forward_consideration.glances.append(not_at_frontline_glance)
+	move_forward_consideration.entity_limiter = "self"
+	move_forward_consideration.weight = 5.0
+	move_forward_consideration.skill = move_forward_skill
+	move_forward_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
-	config.action_considerations.append(attack_action)
-	config.action_considerations.append(forward_action)
+	config.considerations.append(attack_consideration)
+	config.considerations.append(move_forward_consideration)
 	
 	return config
 
