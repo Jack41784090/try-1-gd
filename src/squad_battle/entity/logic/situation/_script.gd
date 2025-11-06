@@ -21,6 +21,12 @@ func get_effective_lines(is_ally: bool) -> Array:
     
     return result
 
+func get_enemy_squad() -> Dictionary:
+    return context["enemy_squad"]
+
+func get_our_squad() -> Dictionary:
+    return context["our_squad"]
+
 func get_effective_line(is_ally: bool, effective_index: int):
     var effective = get_effective_lines(is_ally)
     if effective_index < effective.size():
