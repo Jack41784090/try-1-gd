@@ -1,35 +1,38 @@
-[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=11 format=3 uid="uid://cdedndmtxq6m8"]
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=10 format=3 uid="uid://cdedndmtxq6m8"]
 
 [ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="1_config"]
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="2_consideration"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
-[ext_resource type="Script" uid="uid://oftv6xlllcor" path="res://src/squad_battle/entity/logic/consideration/entity.gd" id="4_entity_csdr"]
 [ext_resource type="Resource" uid="uid://b2a3c4k5l6i7n" path="res://resources/combat/logic/move-backline-skill.tres" id="5_move_skill"]
 [ext_resource type="Resource" uid="uid://c3y4n5o6p7q8r" path="res://resources/combat/logic/skills/example-heal-skill.tres" id="6_heal_skill"]
 
-[sub_resource type="Resource" id="Resource_csdr_not_back"]
-script = ExtResource("4_entity_csdr")
+[sub_resource type="Resource" id="Resource_glance_not_at_back"]
+script = ExtResource("3_glance")
 property = 5
-value = 3.0
-weight = 20.0
+use_comparison = true
+comparison = 0
+threshold = 3.0
 
 [sub_resource type="Resource" id="Resource_consideration_move"]
 script = ExtResource("2_consideration")
-weight = 20.0
-subcsdr = Array[ExtResource("2_consideration")]([SubResource("Resource_csdr_not_back")])
+name = "Move to Backline"
+weight = 1.5
+glances = Array[ExtResource("3_glance")]([SubResource("Resource_glance_not_at_back")])
+entity_limiter = "self"
 skill = ExtResource("5_move_skill")
 
-[sub_resource type="Resource" id="Resource_csdr_at_back"]
-script = ExtResource("4_entity_csdr")
+[sub_resource type="Resource" id="Resource_glance_at_back"]
+script = ExtResource("3_glance")
 property = 5
-detection = 2
-value = 3.0
-weight = 15.0
+use_comparison = true
+comparison = 2
+threshold = 3.0
 
 [sub_resource type="Resource" id="Resource_consideration_heal"]
 script = ExtResource("2_consideration")
-weight = 15.0
-subcsdr = Array[ExtResource("2_consideration")]([SubResource("Resource_csdr_at_back")])
+name = "Heal at Backline"
+glances = Array[ExtResource("3_glance")]([SubResource("Resource_glance_at_back")])
+entity_limiter = "self"
 skill = ExtResource("6_heal_skill")
 
 [resource]
