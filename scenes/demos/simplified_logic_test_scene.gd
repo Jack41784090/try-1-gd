@@ -423,7 +423,7 @@ func test_skill_consideration_with_condition() -> void:
 	consideration.entity_limiter = "self"
 	consideration.weight = 50.0
 	consideration.op = CsdrTypes.OP.ADD
-	consideration.skill = heal_skill
+	consideration.returning = heal_skill
 	
 	var context = create_basic_context(entity)
 	var situation = Situation.new(context)
@@ -445,7 +445,7 @@ func test_skill_consideration_no_condition() -> void:
 	consideration.entity_limiter = "self"
 	consideration.weight = 5.0
 	consideration.op = CsdrTypes.OP.ADD
-	consideration.skill = attack_skill
+	consideration.returning = attack_skill
 	
 	var situation = Situation.new(context)
 	var score = consideration.score(entity, situation, context)
@@ -477,13 +477,13 @@ func test_skill_selection_logic() -> void:
 	heal_consideration.glances.append(low_hp_glance)
 	heal_consideration.entity_limiter = "self"
 	heal_consideration.weight = 100.0
-	heal_consideration.skill = heal_skill
+	heal_consideration.returning = heal_skill
 	heal_consideration.op = CsdrTypes.OP.ADD
 	
 	var attack_consideration = Consideration.new()
 	attack_consideration.name = "Attack"
 	attack_consideration.weight = 10.0
-	attack_consideration.skill = attack_skill
+	attack_consideration.returning = attack_skill
 	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
@@ -540,13 +540,13 @@ func test_create_custom_configuration() -> void:
 	heal_consideration.glances.append(hp_glance)
 	heal_consideration.entity_limiter = "self"
 	heal_consideration.weight = 50.0
-	heal_consideration.skill = heal_skill
+	heal_consideration.returning = heal_skill
 	heal_consideration.op = CsdrTypes.OP.ADD
 	
 	var attack_skill = Skill.new("Attack", [])
 	var attack_consideration = Consideration.new()
 	attack_consideration.weight = 1.0
-	attack_consideration.skill = attack_skill
+	attack_consideration.returning = attack_skill
 	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
@@ -632,13 +632,13 @@ func test_scenario_priority_resolution() -> void:
 	var attack_skill = Skill.new("Attack", [])
 	var attack_consideration = Consideration.new()
 	attack_consideration.weight = 10.0
-	attack_consideration.skill = attack_skill
+	attack_consideration.returning = attack_skill
 	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var heal_skill = Skill.new("Heal", [])
 	var heal_consideration = Consideration.new()
 	heal_consideration.weight = 50.0
-	heal_consideration.skill = heal_skill
+	heal_consideration.returning = heal_skill
 	heal_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
@@ -757,13 +757,13 @@ func create_heal_on_low_hp_config() -> SimplifiedLogicConfig:
 	heal_consideration.glances.append(hp_glance)
 	heal_consideration.entity_limiter = "self"
 	heal_consideration.weight = 100.0
-	heal_consideration.skill = heal_skill
+	heal_consideration.returning = heal_skill
 	heal_consideration.op = CsdrTypes.OP.ADD
 	
 	var attack_skill = Skill.new("Attack", [])
 	var attack_consideration = Consideration.new()
 	attack_consideration.weight = 1.0
-	attack_consideration.skill = attack_skill
+	attack_consideration.returning = attack_skill
 	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
@@ -785,7 +785,7 @@ func create_location_based_config() -> SimplifiedLogicConfig:
 	attack_consideration.glances.append(at_frontline_glance)
 	attack_consideration.entity_limiter = "self"
 	attack_consideration.weight = 10.0
-	attack_consideration.skill = attack_skill
+	attack_consideration.returning = attack_skill
 	attack_consideration.op = CsdrTypes.OP.ADD
 	
 	var move_forward_skill = Skill.new("Move Forward", [])
@@ -800,7 +800,7 @@ func create_location_based_config() -> SimplifiedLogicConfig:
 	move_forward_consideration.glances.append(not_at_frontline_glance)
 	move_forward_consideration.entity_limiter = "self"
 	move_forward_consideration.weight = 5.0
-	move_forward_consideration.skill = move_forward_skill
+	move_forward_consideration.returning = move_forward_skill
 	move_forward_consideration.op = CsdrTypes.OP.ADD
 	
 	var config = SimplifiedLogicConfig.new()
