@@ -12,7 +12,7 @@ func _to_string() -> String:
 		_cached_keys[property]
 		, from, to, metadata]
 
-func _init(p_property: SquadBattleTypes.EntityChangeable, p_from: float, p_to: float, p_metadata: Dictionary = {}):
+func _init(p_property: SquadBattleTypes.EntityChangeable, p_from: float=-1, p_to: float=-1, p_metadata: Dictionary = {}):
 	property = p_property
 	from = p_from
 	to = p_to

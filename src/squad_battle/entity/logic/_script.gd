@@ -33,11 +33,15 @@ func choose_skill() -> Skill:
 	var best_score := -INF
 	
 	for csdr in config.considerations:
+		if csdr.should_return == Consideration.SkillOrTarget.Target:
+			push_warning("[%s] returns a target, but it should return a skill" % csdr.name)
+			continue
+
 		var score = csdr.score(entity, situation, context)
 		
-		if score > 0.0 and score > best_score and csdr.skill != null:
+		if score > 0.0 and score > best_score and csdr.returning != null:
 			best_score = score
-			best_skill = csdr.skill
+			best_skill = csdr.returning
 	
 	if best_skill:
 		print("\n[RESULT] Best Skill: %s (score=%.2f)" % [best_skill.name, best_score])
@@ -58,36 +62,9 @@ func get_default_attack() -> Skill:
 func choose_clash() -> OneClash:
 	return choose_clash_with_skill(choose_skill())
 
-func choose_clash_with_skill(selected_skill: Skill) -> OneClash:
-	var unwrapped = situation.unwrap()
-	var my_location = unwrapped["my_location"]
-	var frontline_enemy = unwrapped.get("frontline_enemy")
-	var midline_enemy = unwrapped.get("midline_enemy")
-	var backline_enemy = unwrapped.get("backline_enemy")
-	
-	var weapon = choose_weapon()
-	var available_locs = weapon.get_range_at_location(my_location)
-	
-	var targets: Array = []
-	for loc in available_locs:
-		match loc:
-			SquadBattleTypes.SquadEntityInSquadLocation.Front:
-				if frontline_enemy:
-					for e in frontline_enemy:
-						targets.append(e)
-			SquadBattleTypes.SquadEntityInSquadLocation.Middle:
-				if midline_enemy:
-					for e in midline_enemy:
-						targets.append(e)
-			SquadBattleTypes.SquadEntityInSquadLocation.Back:
-				if backline_enemy:
-					for e in backline_enemy:
-						targets.append(e)
-	
-	if targets.size() == 0:
-		return null
-	
-	var target = targets[randi() % targets.size()]
+func choose_clash_with_skill(selected_skill: Skill) -> OneClash:	
+	var target = selected_skill.targeting_consideration.score_then_return(entity, situation, context)
+	assert(target is SquadEntity);
 	return OneClash.new(
 		entity,
 		target,
