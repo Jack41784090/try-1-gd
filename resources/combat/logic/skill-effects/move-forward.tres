@@ -1,8 +1,11 @@
-[gd_resource type="Resource" script_class="SkillEffect" load_steps=2 format=3 uid="uid://b04gp0nduu0d4"]
+[gd_resource type="Resource" script_class="SkillEffectFlat" load_steps=2 format=3 uid="uid://b04gp0nduu0d4"]
 
-[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_kwknl"]
+[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad_battle/clash/skill/ske-flat.gd" id="1_kwknl"]
 
 [resource]
 script = ExtResource("1_kwknl")
-at_signal = Array[int]([0])
-metadata/_custom_type_script = "uid://biism85g1liw5"
+value = -1.0
+property_direct = 5
+name = "Move Forward On Cast"
+triggers = Array[int]([3])
+metadata/_custom_type_script = "uid://dsat7plvbc7li"
