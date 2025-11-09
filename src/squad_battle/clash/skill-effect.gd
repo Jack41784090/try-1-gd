@@ -13,7 +13,7 @@ var _debug_id: String = ""
 @export var stacks: int = 0
 var source: SquadEntity
 var affected: SquadEntity; 
-@export var at_signal: Array[StatusEffectEventBus.Signals]
+@export var triggers: Array[StatusEffectEventBus.Signals]
 
 var updates_collector = null
 
@@ -22,12 +22,12 @@ func set_attacker_and_target(attacker: SquadEntity, target: SquadEntity) -> void
 	affected = target
 
 func setup_connections(collector = null) -> void:
-	"""Call this after the resource is loaded to connect at_signal to the event bus.
+	"""Call this after the resource is loaded to connect triggers to the event bus.
 	If collector is provided, updates from signal-triggered commits will be appended to it."""
 	updates_collector = collector
 	print("%s Setting up connections" % _debug_id)
-	print("    → Triggers to connect: %d" % at_signal.size())
-	print("    → Triggers: %s" % _format_triggers(at_signal))
+	print("    → Triggers to connect: %d" % triggers.size())
+	print("    → Triggers: %s" % _format_triggers(triggers))
 
 func _format_trigger_name(trigger) -> String:
 	return StatusEffectEventBus.Signals.keys()[trigger]
