@@ -8,7 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_a23gq"]
 script = ExtResource("2_consideration")
-skill = ExtResource("6_attack_skill")
+returning = ExtResource("6_attack_skill")
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [sub_resource type="Resource" id="Resource_hgdrh"]
@@ -23,7 +23,7 @@ script = ExtResource("2_consideration")
 weight = 1.25
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_hgdrh")])
 entity_limiter = "self"
-skill = ExtResource("4_58ihr")
+returning = ExtResource("4_58ihr")
 average_score_between_glances = true
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
