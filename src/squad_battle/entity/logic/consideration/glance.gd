@@ -1,6 +1,34 @@
 class_name Glance extends Resource
 
-@export var property: SquadBattleTypes.EntityChangeable
+enum Glanceable {
+	# random
+	RDN,
+
+	# Changeable stats
+	HP,
+	STA,
+	ORG,
+	POS,
+	MAG,
+	LOC,
+
+	# Reality
+	FORCE,
+}
+
+var changeables = [
+	SquadBattleTypes.EntityChangeable.HP,
+	SquadBattleTypes.EntityChangeable.STA,
+	SquadBattleTypes.EntityChangeable.ORG,
+	SquadBattleTypes.EntityChangeable.POS,
+	SquadBattleTypes.EntityChangeable.MAG,
+	SquadBattleTypes.EntityChangeable.LOC,
+]
+var realities = [
+	SquadBattleTypes.Reality.Force,
+]
+
+@export var property: Glanceable
 @export var normalize_as_percentage: bool = false
 @export var use_comparison: bool = false
 @export var comparison: CsdrTypes.DETECTION = CsdrTypes.DETECTION.ABOVE
@@ -10,21 +38,61 @@ class_name Glance extends Resource
 @export var additional_glance: Glance = null
 
 
+func _glanceable_translate(glanceable: Glanceable):
+	match glanceable:
+		Glanceable.RDN:
+			return RandomNumberGenerator.new().randf_range(0.0, threshold)
+		Glanceable.HP:
+			return SquadBattleTypes.EntityChangeable.HP
+		Glanceable.STA:
+			return SquadBattleTypes.EntityChangeable.STA
+		Glanceable.ORG:
+			return SquadBattleTypes.EntityChangeable.ORG
+		Glanceable.POS:
+			return SquadBattleTypes.EntityChangeable.POS
+		Glanceable.MAG:
+			return SquadBattleTypes.EntityChangeable.MAG
+		Glanceable.LOC:
+			return SquadBattleTypes.EntityChangeable.LOC
+		Glanceable.FORCE:
+			return SquadBattleTypes.Reality.Force
+		_:
+			assert(false, "Invalid glanceable: %s" % glanceable)
+
 func _to_string() -> String:
 	return "Glance(property=%s, normalize=%s, comparison=%s)" % [
-		SquadBattleTypes.EntityChangeable.keys()[property] if property >= 0 else "None",
+		Glanceable.keys()[property] if property >= 0 else "None",
 		normalize_as_percentage,
 		use_comparison
 	]
 
+func _get_glanceable_value(entity: SquadEntity, glanceable: Glanceable) -> float:
+	if glanceable in changeables:
+		return entity.get_changeable_stat_num(_glanceable_translate(glanceable))
+	elif glanceable in realities:
+		return entity.calculate_reality_value(_glanceable_translate(glanceable))
+	else:
+		assert(false, "Invalid glanceable: %s" % glanceable)
+	return 0.0
+
+func _get_glanceable_value_max(entity: SquadEntity, glanceable: Glanceable) -> float:
+	if glanceable in changeables:
+		return entity.get_ceiling_changeable_stat(_glanceable_translate(glanceable))
+	elif glanceable in realities:
+		return entity.calculate_reality_value(_glanceable_translate(glanceable))
+	elif glanceable == Glanceable.RDN:
+		return threshold
+	else:
+		assert(false, "Invalid glanceable: %s" % glanceable)
+	return 0.0
 
 func evaluate(entity: SquadEntity) -> float:
-	var value = entity.get_changeable_stat_num(property)
+	var value = _get_glanceable_value(entity, property)
 
 	print("Evaluating glance: %s, value=%s" % [self, value])
 	
 	if normalize_as_percentage:
-		var max_v = entity.get_ceiling_changeable_stat(property)
+		var max_v = _get_glanceable_value_max(entity, property)
 		value = value / max(max_v, 1.0)
 		print("Normalized value: %s [max_v=%s]" % [value, max_v])
 

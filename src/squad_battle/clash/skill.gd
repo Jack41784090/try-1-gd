@@ -9,6 +9,12 @@ class_name Skill extends Resource
 
 @export var name: String;
 @export var effects: Array[SkillEffect]
+@export var targeting_consideration: Consideration
+@export var affected_consideration: Consideration;
+var caster: SquadEntity;
+var target: SquadEntity;
+var situation: Situation;
+var context: Dictionary;
 
 func _to_string() -> String:
 	return "Skill(name=%s, effects=%d)" % [name, effects.size()]
@@ -23,3 +29,8 @@ func _init(
 	effects = _effects;
 	pass
 
+func return_who_to_cast_at() -> SquadEntity:
+	pass
+
+func return_appropriate_skill_effects() -> Array[SkillEffect]:
+	pass

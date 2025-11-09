@@ -1,12 +1,22 @@
 class_name Consideration extends Resource
 
+enum SkillOrTarget {
+	Skill,
+	Target
+}
+
+@export var should_return: SkillOrTarget = SkillOrTarget.Skill
 @export var name: String = ""
 @export var weight: float = 1.0
 @export var op: CsdrTypes.OP = CsdrTypes.OP.ADD
 @export var glances: Array[Glance] = []
 @export var entity_limiter: String = "all"
-@export var skill: Skill = null
+@export var returning: Resource = null
 @export var average_score_between_glances: bool = false
+
+func score_then_return(entity, situation, context):
+	score(entity, situation, context)
+	return returning
 
 func score(entity, situation, context) -> float:
 	return _score_with_glances(entity, situation, context)
@@ -22,12 +32,19 @@ func _score_with_glances(entity, situation, _context) -> float:
 		print("  [Consideration] No glances to evaluate, returning the default weight: %s", weight)
 		return weight
 	
+	# 1. Glance at each entity to evaluate and return a value for each, stored in glance_scores
 	var glance_scores: Array[float] = []
+	var best_score_so_far = -INF;
 	for entity_to_check in entities_to_evaluate:
 		var entity_score = glances.reduce(func(acc: float, glance: Glance): return acc + glance.evaluate(entity_to_check), 0.0)
 		if average_score_between_glances: entity_score = entity_score / glances.size()
 		glance_scores.append(entity_score)
+
+		# 1.5 if the entity score is the highest so far, 
+		if should_return == SkillOrTarget.Target and best_score_so_far < entity_score:
+			returning = entity_to_check
 	
+	# 2. Glance scores is then evaluated into result withr egards to the op variable set in the Consdieration
 	var result: float
 	match op:
 		CsdrTypes.OP.ADD:
@@ -42,11 +59,11 @@ func _score_with_glances(entity, situation, _context) -> float:
 			assert(false, "Unimplemented Operation in Consideration used")
 			result = 0.0
 	
+	# 3. Then the result value is mulitplied by Consideration's weight.
 	result = result * weight
 	print("  [Consideration] %s operation on %d entities, weight=%.2f → %.2f" % [
 		CsdrTypes.OP.keys()[op], entities_to_evaluate.size(), weight, result])
 	return result
-
 
 func _get_entities_to_evaluate(entity, situation) -> Array:
 	var entities: Array = []
