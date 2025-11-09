@@ -1,15 +1,28 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=4 format=3 uid="uid://b2x3m4n5p6q7r"]
+[gd_resource type="Resource" script_class="Skill" load_steps=8 format=3 uid="uid://b2x3m4n5p6q7r"]
 
 [ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_58upd"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glyfu"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="4_fie37"]
 
 [sub_resource type="Resource" id="Resource_ou6p4"]
 script = ExtResource("1_58upd")
 name = "Damage"
-at_signal = Array[int]([3])
 metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
+
+[sub_resource type="Resource" id="Resource_12406"]
+script = ExtResource("3_glyfu")
+metadata/_custom_type_script = "uid://b006sp1fbp8ro"
+
+[sub_resource type="Resource" id="Resource_tv15c"]
+script = ExtResource("4_fie37")
+should_return = 1
+glances = Array[ExtResource("3_glyfu")]([SubResource("Resource_12406")])
+entity_limiter = "enemies"
+metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [resource]
 script = ExtResource("1_skill")
 name = "Example Attack"
 effects = Array[ExtResource("1_58upd")]([SubResource("Resource_ou6p4")])
+targeting_consideration = SubResource("Resource_tv15c")
