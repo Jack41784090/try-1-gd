@@ -44,6 +44,7 @@ func choose_skill() -> Skill:
 			best_skill = csdr.returning
 	
 	if best_skill:
+		best_skill = best_skill.duplicate()
 		print("\n[RESULT] Best Skill: %s (score=%.2f)" % [best_skill.name, best_score])
 	else:
 		print("\n[RESULT] No valid skill found, using default")
