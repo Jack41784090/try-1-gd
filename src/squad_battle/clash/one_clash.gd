@@ -16,12 +16,10 @@ func _init(
 	# The @export variables will be set by the resource loader
 	if _attacker == null and _targeted == null and _skill == null:
 		return
-		
+	
+	skill = _skill
 	attacker = _attacker
 	targeted = _targeted
-	skill = _skill
-	skill.caster = attacker
-	skill.target = targeted
 	affecteds = [_targeted] # todo: change affected based on skill AOE or not
 
 func target_manifestation():
@@ -111,11 +109,13 @@ func commit() -> Array[EntityUpdate]:
 	print("  Attacker: %s (ID: %d)" % [attacker.entity_name, attacker.player_id])
 	print("  Target: %s (ID: %d)" % [targeted.entity_name, targeted.player_id])
 	if skill:
+		skill.caster = attacker
+		skill.target = skill.return_who_to_cast_at()
 		print("  Skill: %s" % skill.name)
 		print("  → Skill has %d effect(s)" % skill.effects.size())
 		for i in range(skill.effects.size()):
 			var effect = skill.effects[i]
-			print("    %d. %s (Type: %s)" % [i + 1, effect.name, _get_effect_type_name(effect)])
+			print("    %d. %s " % [i + 1, effect.name, ])
 			if effect.triggers.size() > 0:
 				print("       Triggers on: %s" % _format_triggers(effect.triggers))
 	else:
@@ -124,14 +124,16 @@ func commit() -> Array[EntityUpdate]:
 	#endregion
 	
 	# 1. Setup skill effect connections (must be done after resource loading completes)
-	if skill and skill.effects.size() > 0:
+	var real_effects = skill.return_appropriate_skill_effects()
+	if skill and real_effects.size() > 0:
 		print("[OneClash] Setting up skill effect connections...")
-		for effect in skill.effects:
-			var effect_instance = effect.duplicate()
-			# if effect_instance.affected == null:
-			# 	effect_instance.affected = effect.targeting_consideration.score_then_return(
-			if effect_instance.source == null:
-				effect_instance.source = attacker
+		for effect in real_effects:
+			var effect_instance = effect
+
+			assert(effect_instance != null, "Effect instance [%s] is null" % effect.name) # if null, check if [return_who_to_cast_at] is called
+			assert(effect_instance.source != null, "Effect source [%s] is null" % effect.name)
+			assert(effect_instance.affected != null, "Effect affected [%s] is null" % effect.name)
+
 			effect_instance.setup_connections(updates)
 
 	# 2. Roll for hit
@@ -158,14 +160,14 @@ func commit() -> Array[EntityUpdate]:
 	print("═══════════════════════════════════════════════════\n")
 	return cleanup()
 
-func _get_effect_type_name(effect: SkillEffect) -> String:
-	if not effect:
-		return "Unknown"
-	match effect.commitType:
-		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
-		ClashCommonTypes.CommitType.Damage: return "Damage"
-		ClashCommonTypes.CommitType.Heal: return "Heal"
-		_: return "Unknown"
+# func _get_effect_type_name(effect: SkillEffect) -> String:
+# 	if not effect:
+# 		return "Unknown"
+# 	match effect.commitType:
+# 		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
+# 		ClashCommonTypes.CommitType.Damage: return "Damage"
+# 		ClashCommonTypes.CommitType.Heal: return "Heal"
+# 		_: return "Unknown"
 
 func _format_triggers(trigger_array: Array) -> String:
 	if trigger_array.is_empty():
