@@ -3,12 +3,15 @@ extends Node2D
 signal HelloWorld(val)
 signal TargetTookDamage(val)
 signal OnBasicAttackHit(val)
+signal OnCastSkill(val)
 
 enum Signals {
 	HelloWorld,
 	
 	TargetTookDamage,
-	OnBasicAttackHit
+	OnBasicAttackHit,
+	OnCastSkill,
+	TestSignal,
 }
 
 func _get_signal(signal_enum: Signals) -> Signal:
@@ -16,6 +19,7 @@ func _get_signal(signal_enum: Signals) -> Signal:
 		Signals.HelloWorld: return HelloWorld
 		Signals.TargetTookDamage: return TargetTookDamage
 		Signals.OnBasicAttackHit: return OnBasicAttackHit
+		Signals.OnCastSkill: return OnCastSkill
 		_: assert(false, "Unknown signal enum: %s" % signal_enum); return HelloWorld  # Fallback
 
 func EmitSignal(nameOfSignal: Signals, ...args: Array):
