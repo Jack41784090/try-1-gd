@@ -92,40 +92,40 @@ func get_raw_weapon_damage(attacker) -> float:
 	
 	return damage
 
-func get_weapon_skills(source: SquadEntity) -> Array[Skill]:
-	return [
-		Skill.new(
-			weapon_name + "-basic-attack",
-			[SkillEffect.new(
-				weapon_name + "-basic-attack",
-				source,
-				null,
-				ClashCommonTypes.CommitType.Damage,
-				[StatusEffectEventBus.Signals.OnBasicAttackHit],
-				{
-					"calculationType": ClashCommonTypes.CalculationType.Flat,
-					"value": 1.0
-				}
-			)]
-		)
-		# {
-		# 	"id": weapon_name + "-basic-attack",
-		# 	"name": weapon_name + " Attack",
-		# 	"effects": [{
-		# 		"name": weapon_name + "-basic-attack",
-		# 		"affected": "target",
-		# 		"trigger": "OnBasicAttackHit",
-		# 		"duration": 0,
-		# 		"original_source": source.player_id,
-		# 		"affected_id": -1,
-		# 		"effect": {
-		# 			"type": "Damage",
-		# 			"damage_type": "Physical",
-		# 			"amount": 1
-		# 		}
-		# 	}]
-		# }
-	]
+# func get_weapon_skills(source: SquadEntity) -> Array[Skill]:
+# 	return [
+# 		Skill.new(
+# 			weapon_name + "-basic-attack",
+# 			[SkillEffect.new(
+# 				weapon_name + "-basic-attack",
+# 				source,
+# 				null,
+# 				ClashCommonTypes.CommitType.Damage,
+# 				[StatusEffectEventBus.Signals.OnBasicAttackHit],
+# 				{
+# 					"calculationType": ClashCommonTypes.CalculationType.Flat,
+# 					"value": 1.0
+# 				}
+# 			)]
+# 		)
+# 		# {
+# 		# 	"id": weapon_name + "-basic-attack",
+# 		# 	"name": weapon_name + " Attack",
+# 		# 	"effects": [{
+# 		# 		"name": weapon_name + "-basic-attack",
+# 		# 		"affected": "target",
+# 		# 		"trigger": "OnBasicAttackHit",
+# 		# 		"duration": 0,
+# 		# 		"original_source": source.player_id,
+# 		# 		"affected_id": -1,
+# 		# 		"effect": {
+# 		# 			"type": "Damage",
+# 		# 			"damage_type": "Physical",
+# 		# 			"amount": 1
+# 		# 		}
+# 		# 	}]
+# 		# }
+# 	]
 
 # func get_state() -> Dictionary:
 # 	var state = {
