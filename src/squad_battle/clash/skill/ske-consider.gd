@@ -8,7 +8,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 	
 	var updates: Array[EntityUpdate] = []
 	
-	for t in at_signal:
+	for t in triggers:
 		StatusEffectEventBus.Disconnect(t, commit)
 	
 	if updates_collector:

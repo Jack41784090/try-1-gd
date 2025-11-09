@@ -30,7 +30,13 @@ func _init(
 	pass
 
 func return_who_to_cast_at() -> SquadEntity:
-	pass
+	var r = targeting_consideration.score_then_return(caster, situation, context)
+	assert(r is SquadEntity)
+	for e in effects:
+		e.set_attacker_and_target(caster, r)
+	return r;
+	# pass
 
 func return_appropriate_skill_effects() -> Array[SkillEffect]:
-	pass
+	return effects # TODO: skill effects will be recursive, instead of the current implementation of following Skill's casted at and caster
+	# pass
