@@ -20,6 +20,8 @@ func _init(
 	attacker = _attacker
 	targeted = _targeted
 	skill = _skill
+	skill.caster = attacker
+	skill.target = targeted
 	affecteds = [_targeted] # todo: change affected based on skill AOE or not
 
 func target_manifestation():
@@ -126,14 +128,11 @@ func commit() -> Array[EntityUpdate]:
 		print("[OneClash] Setting up skill effect connections...")
 		for effect in skill.effects:
 			var effect_instance = effect.duplicate()
-			if effect_instance.affected == null:
-				assert(effect_instance.targeting in ["self", "target"], "Invalid targeting type: %s" % effect_instance.targeting)
-				effect_instance.affected = targeted if effect_instance.targeting == "target" else attacker
+			# if effect_instance.affected == null:
+			# 	effect_instance.affected = effect.targeting_consideration.score_then_return(
 			if effect_instance.source == null:
 				effect_instance.source = attacker
 			effect_instance.setup_connections(updates)
-	
-
 
 	# 2. Roll for hit
 	var hit = roll_for_hit()
