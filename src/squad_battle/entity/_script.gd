@@ -201,7 +201,7 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 	var max_hp = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	var hp_percentage = current_hp / max_hp
 	var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
-	var changes: Array = [
+	var changes: Array[EntityUpdate] = [
 		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
 	
@@ -236,7 +236,7 @@ func damage(num: float, source: int) -> Array[EntityUpdate]:
 			EntityUpdate.new(
 				source, affected,
 				mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num))
-		]
+		] as Array[EntityUpdate]
 		
 		if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) == 0:
 			updates.append(
