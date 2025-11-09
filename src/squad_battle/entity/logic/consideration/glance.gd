@@ -17,15 +17,15 @@ enum Glanceable {
 }
 
 var changeables = [
-	SquadBattleTypes.EntityChangeable.HP,
-	SquadBattleTypes.EntityChangeable.STA,
-	SquadBattleTypes.EntityChangeable.ORG,
-	SquadBattleTypes.EntityChangeable.POS,
-	SquadBattleTypes.EntityChangeable.MAG,
-	SquadBattleTypes.EntityChangeable.LOC,
+	Glanceable.HP,
+	Glanceable.STA,
+	Glanceable.ORG,
+	Glanceable.POS,
+	Glanceable.MAG,
+	Glanceable.LOC,
 ]
 var realities = [
-	SquadBattleTypes.Reality.Force,
+	Glanceable.FORCE,
 ]
 
 @export var property: Glanceable
@@ -37,11 +37,13 @@ var realities = [
 @export var operation_on_other_glance: CsdrTypes.OP = CsdrTypes.OP.ADD
 @export var additional_glance: Glance = null
 
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
 
 func _glanceable_translate(glanceable: Glanceable):
 	match glanceable:
 		Glanceable.RDN:
-			return RandomNumberGenerator.new().randf_range(0.0, threshold)
+			return rng.randf_range(0.0, threshold)
 		Glanceable.HP:
 			return SquadBattleTypes.EntityChangeable.HP
 		Glanceable.STA:
@@ -71,6 +73,8 @@ func _get_glanceable_value(entity: SquadEntity, glanceable: Glanceable) -> float
 		return entity.get_changeable_stat_num(_glanceable_translate(glanceable))
 	elif glanceable in realities:
 		return entity.calculate_reality_value(_glanceable_translate(glanceable))
+	elif glanceable == Glanceable.RDN:
+		return rng.randf_range(0.0, threshold)
 	else:
 		assert(false, "Invalid glanceable: %s" % glanceable)
 	return 0.0
