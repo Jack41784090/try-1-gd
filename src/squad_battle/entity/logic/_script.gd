@@ -69,7 +69,9 @@ func choose_clash_with_skill(selected_skill: Skill) -> OneClash:
 	return OneClash.new(
 		entity,
 		target,
-		selected_skill
+		selected_skill,
+		situation,
+		context,
 	)
 
 ## REMOVED ENTIRELY:

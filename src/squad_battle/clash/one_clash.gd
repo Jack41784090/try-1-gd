@@ -6,11 +6,15 @@ var updates: Array[EntityUpdate] = []
 @export var attacker: SquadEntity
 @export var targeted: SquadEntity
 @export var skill: Skill
+var situation: Situation;
+var context: Dictionary
 
 func _init(
 	_attacker: SquadEntity = null,
 	_targeted: SquadEntity = null,
-	_skill: Skill = null
+	_skill: Skill = null,
+	_situation: Situation = null,
+	_context: Dictionary = {}
 ):
 	# If all parameters are null, we're being loaded from a resource file
 	# The @export variables will be set by the resource loader
@@ -21,6 +25,8 @@ func _init(
 	attacker = _attacker
 	targeted = _targeted
 	affecteds = [_targeted] # todo: change affected based on skill AOE or not
+	situation = _situation;
+	context = _context
 
 func target_manifestation():
 	return targeted
@@ -100,6 +106,8 @@ func damage_calculation():
 
 func cleanup() -> Array[EntityUpdate]:
 	print("[OneClash] Cleanup - Total updates: %d" % updates.size())
+	for update in updates:
+		print("  → Update: %s" % [update])
 	return updates
 
 func commit() -> Array[EntityUpdate]:
@@ -109,8 +117,7 @@ func commit() -> Array[EntityUpdate]:
 	print("  Attacker: %s (ID: %d)" % [attacker.entity_name, attacker.player_id])
 	print("  Target: %s (ID: %d)" % [targeted.entity_name, targeted.player_id])
 	if skill:
-		skill.caster = attacker
-		skill.target = skill.return_who_to_cast_at()
+		skill.inject_context_for_clash(attacker, situation, context)
 		print("  Skill: %s" % skill.name)
 		print("  → Skill has %d effect(s)" % skill.effects.size())
 		for i in range(skill.effects.size()):
@@ -136,24 +143,27 @@ func commit() -> Array[EntityUpdate]:
 
 			effect_instance.setup_connections(updates)
 
+	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnCastSkill)
+
 	# 2. Roll for hit
-	var hit = roll_for_hit()
-	if not hit:
-		print("[OneClash] ✗ Clash ended: MISS")
-		print("═══════════════════════════════════════════════════\n")
-		return cleanup()
+	if skill.roll_for_damage:
+		var hit = roll_for_hit()
+		if not hit:
+			print("[OneClash] ✗ Clash ended: MISS")
+			print("═══════════════════════════════════════════════════\n")
+			return cleanup()
 	
-	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
+		StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
 	
 	# 3. Roll for pierce
-	var pierce = roll_for_pierce()
-	if not pierce:
-		print("[OneClash] ✗ Clash ended: BLOCKED")
-		print("═══════════════════════════════════════════════════\n")
-		return cleanup()
+		var pierce = roll_for_pierce()
+		if not pierce:
+			print("[OneClash] ✗ Clash ended: BLOCKED")
+			print("═══════════════════════════════════════════════════\n")
+			return cleanup()
 	
 	# 4. Calculate damage
-	damage_calculation()
+		damage_calculation()
 	
 	# 5. Done
 	print("[OneClash] ✓ Clash completed successfully")

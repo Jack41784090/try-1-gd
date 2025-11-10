@@ -11,6 +11,8 @@ class_name Skill extends Resource
 @export var effects: Array[SkillEffect]
 @export var targeting_consideration: Consideration
 @export var affected_consideration: Consideration;
+@export var roll_for_damage: bool = true
+
 var caster: SquadEntity;
 var target: SquadEntity;
 var situation: Situation;
@@ -28,6 +30,12 @@ func _init(
 	name = _name;
 	effects = _effects;
 	pass
+
+func inject_context_for_clash(_caster, _situation, _context):
+	caster = _caster
+	situation = _situation;
+	context = _context
+	target = return_who_to_cast_at()
 
 func return_who_to_cast_at() -> SquadEntity:
 	var r = targeting_consideration.score_then_return(caster, situation, context)
