@@ -8,7 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_glance_at_back"]
 script = ExtResource("3_glance")
-property = 5
+property = 6
 use_comparison = true
 comparison = 2
 threshold = 3.0
