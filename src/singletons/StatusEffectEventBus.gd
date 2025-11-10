@@ -3,7 +3,7 @@ extends Node2D
 signal HelloWorld(val)
 signal TargetTookDamage(val)
 signal OnBasicAttackHit(val)
-signal OnCastSkill(val)
+signal OnCastSkill()
 
 enum Signals {
 	HelloWorld,
