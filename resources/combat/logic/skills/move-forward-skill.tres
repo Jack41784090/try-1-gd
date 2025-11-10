@@ -10,3 +10,4 @@ script = ExtResource("1_skill")
 name = "Move Forward"
 effects = Array[ExtResource("2_effect")]([ExtResource("2_pmthc")])
 targeting_consideration = ExtResource("4_5g2kt")
+roll_for_damage = false

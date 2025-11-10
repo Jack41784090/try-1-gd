@@ -10,3 +10,4 @@ script = ExtResource("1_skill")
 name = "Move to Backline"
 effects = Array[ExtResource("1_56u0s")]([ExtResource("2_effect")])
 targeting_consideration = ExtResource("4_jhi0d")
+roll_for_damage = false
