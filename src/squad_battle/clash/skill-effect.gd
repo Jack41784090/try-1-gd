@@ -20,6 +20,8 @@ var updates_collector = null
 func set_attacker_and_target(attacker: SquadEntity, target: SquadEntity) -> void:
 	source = attacker
 	affected = target
+	if source and affected:
+		_debug_id = "[%s→%s:%s]" % [source.entity_name, affected.entity_name, name]
 
 func setup_connections(collector = null) -> void:
 	"""Call this after the resource is loaded to connect triggers to the event bus.
@@ -28,6 +30,8 @@ func setup_connections(collector = null) -> void:
 	print("%s Setting up connections" % _debug_id)
 	print("    → Triggers to connect: %d" % triggers.size())
 	print("    → Triggers: %s" % _format_triggers(triggers))
+	for trigger in triggers:
+		StatusEffectEventBus.Connect(trigger, commit)
 
 func _format_trigger_name(trigger) -> String:
 	return StatusEffectEventBus.Signals.keys()[trigger]

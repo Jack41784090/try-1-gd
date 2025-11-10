@@ -24,7 +24,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 	else:
 		stacks -=1
 	
-	if updates_collector:
+	if updates_collector != null:
 		match SquadBattleTypes.EntityChangeable:
 			SquadBattleTypes.EntityChangeable.HP:
 				if value > 0:
