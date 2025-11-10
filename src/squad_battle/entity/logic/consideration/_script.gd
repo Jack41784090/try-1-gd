@@ -43,6 +43,7 @@ func _score_with_glances(entity, situation, _context) -> float:
 		# 1.5 if the entity score is the highest so far, 
 		if should_return == SkillOrTarget.Target and best_score_so_far < entity_score:
 			returning = entity_to_check
+			best_score_so_far = entity_score
 	
 	# 2. Glance scores is then evaluated into result withr egards to the op variable set in the Consdieration
 	var result: float
@@ -65,35 +66,45 @@ func _score_with_glances(entity, situation, _context) -> float:
 		CsdrTypes.OP.keys()[op], entities_to_evaluate.size(), weight, result])
 	return result
 
-func _get_entities_to_evaluate(entity, situation) -> Array:
+func _get_weapon_range_entities(entity: SquadEntity, situation: Situation) -> Array:
+	var targetable_locs = entity.weapon.get_range_at_location(situation.my_location())
+	var countable_entities: Array = []
+	match entity_limiter:
+		"allies":
+			countable_entities = situation.all_ally_entities()
+		"enemies":
+			countable_entities = situation.all_enemy_entities()
+		"all":
+			countable_entities = situation.all_ally_entities() + situation.all_enemy_entities()
+		_:
+			assert(false, "Unimplemented entity limiter: %s" % entity_limiter)
+
+	var weapon_range_entities = targetable_locs.reduce(func(acc: Array, loc: SquadBattleTypes.SquadEntityInSquadLocation):
+		print("  [Consideration] Location: %s" % loc)
+		for e in countable_entities.filter(func(e: SquadEntity): return e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) == loc):
+			print("  [Consideration] Entity: %s" % e.entity_name)
+			acc.append(e)
+		return acc
+		, [])
+
+	print("  [Consideration] Weapon range entities: %s" % [str(weapon_range_entities)])
+	return weapon_range_entities
+
+func _get_entities_to_evaluate(entity: SquadEntity, situation: Situation) -> Array:
+	assert(entity_limiter in ["self", "allies", "enemies", "all"], "Invalid entity limiter: %s" % entity_limiter)
 	var entities: Array = []
 	match entity_limiter:
 		"self":
 			entities.append(entity)
 		"allies":
-			var our_squad = situation.get_our_squad()
-			for location in our_squad.values():
-				if location is Array:
-					entities.append_array(location)	
+			entities.append_array(_get_weapon_range_entities(entity, situation))
 		"enemies":
-			var enemy_squad = situation.get_enemy_squad()
-			for location in enemy_squad.values():
-				if location is Array:
-					entities.append_array(location)
+			entities.append_array(_get_weapon_range_entities(entity, situation))
 		"all":
-			var our_squad = situation.get_our_squad()
-			# print("Our squad: %s" % our_squad)
-			for location in our_squad.values():
-				if location is Array:
-					entities.append_array(location)
-			var enemy_squad = situation.get_enemy_squad()
-			# print("Enemy squad: %s" % enemy_squad)
-			for location in enemy_squad.values():
-				if location is Array:
-					entities.append_array(location)
+			entities.append_array(_get_weapon_range_entities(entity, situation))
+			
 		_:
 			assert(false, "Unimplemented entity limiter: %s" % entity_limiter)
 	
 	# print(entities)
 	return entities
-
