@@ -324,6 +324,10 @@ func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
 	# 	updates = _execute_non_target_skill(skill, logic_obj)
 
 	var clash = logic_obj.choose_clash_with_skill(skill)
+	if clash == null:
+		print("[%s] Cannot find target for skill: %s" % [_debug_id, skill.name])
+		return []
+	
 	for u in clash.commit():
 		updates.append(u)
 	

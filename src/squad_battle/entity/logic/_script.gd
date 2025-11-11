@@ -65,7 +65,10 @@ func choose_clash() -> OneClash:
 
 func choose_clash_with_skill(selected_skill: Skill) -> OneClash:	
 	var target = selected_skill.targeting_consideration.score_then_return(entity, situation, context)
-	assert(target is SquadEntity);
+	assert(target is SquadEntity or target == null);
+	if target == null:
+		print("No target found for skill %s" % selected_skill.name)
+		return null
 	return OneClash.new(
 		entity,
 		target,
