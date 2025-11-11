@@ -1,21 +1,34 @@
-[gd_scene load_steps=8 format=3 uid="uid://6c86cy13tc0b"]
+[gd_scene load_steps=13 format=3 uid="uid://6c86cy13tc0b"]
 
 [ext_resource type="Script" uid="uid://cfsk5i0pxgs77" path="res://src/squad_battle/squad-battle-battlefield-controller.gd" id="1_battlefield_script"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_wjvbm"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="3_hxxd1"]
+[ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="4_ccqob"]
 [ext_resource type="Texture2D" uid="uid://b0yrw1n1rb4fu" path="res://assets/air_cavalry_charge.png" id="4_wfq3d"]
 [ext_resource type="Texture2D" uid="uid://6p2dvlnoq2ra" path="res://assets/hold_fort.png" id="5_at32v"]
 [ext_resource type="Texture2D" uid="uid://v8qmy8s7gxuh" path="res://assets/GER_gotthard_heinrici.png" id="6_1rjlf"]
+[ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="7_row_marker"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ccqob"]
+albedo_texture = ExtResource("4_ccqob")
 
 [sub_resource type="BoxMesh" id="BoxMesh_battlefield"]
+material = SubResource("StandardMaterial3D_ccqob")
 size = Vector3(20, 0.5, 14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_row_marker"]
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("7_row_marker")
+
+[sub_resource type="QuadMesh" id="QuadMesh_row_marker"]
+size = Vector2(2, 2)
 
 [node name="25dTest" type="Node3D"]
 script = ExtResource("1_battlefield_script")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8660253, 0.50000024, 0, -0.50000024, 0.8660253, 0, 6, 9)
-projection = 1
 fov = 45.6
 size = 17.358
 
@@ -28,6 +41,7 @@ shadow_enabled = true
 [node name="Background3D" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15)
 pixel_size = 0.02
+billboard = 1
 alpha_cut = 2
 texture = ExtResource("2_wjvbm")
 
@@ -44,10 +58,25 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -6.5452366)
 [node name="FrontRow" type="Node3D" parent="Battlefield/AttackerSide"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
 
+[node name="FrontRowMarker" type="MeshInstance3D" parent="Battlefield/AttackerSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.5, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
+
 [node name="MiddleRow" type="Node3D" parent="Battlefield/AttackerSide"]
+
+[node name="MiddleRowMarker" type="MeshInstance3D" parent="Battlefield/AttackerSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
 
 [node name="BackRow" type="Node3D" parent="Battlefield/AttackerSide"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 0)
+
+[node name="BackRowMarker" type="MeshInstance3D" parent="Battlefield/AttackerSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.5, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
 
 [node name="DefenderSide" type="Node3D" parent="Battlefield"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -6.5452366)
@@ -55,10 +84,31 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -6.5452366)
 [node name="FrontRow" type="Node3D" parent="Battlefield/DefenderSide"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 0)
 
+[node name="FrontRowMarker" type="MeshInstance3D" parent="Battlefield/DefenderSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.5, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
+
 [node name="MiddleRow" type="Node3D" parent="Battlefield/DefenderSide"]
+
+[node name="MiddleRowMarker" type="MeshInstance3D" parent="Battlefield/DefenderSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
 
 [node name="BackRow" type="Node3D" parent="Battlefield/DefenderSide"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
+
+[node name="BackRowMarker" type="MeshInstance3D" parent="Battlefield/DefenderSide"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.5, 0.01, 0)
+material_override = SubResource("StandardMaterial3D_row_marker")
+mesh = SubResource("QuadMesh_row_marker")
+
+[node name="Foreground3D" type="Sprite3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 4.1117554, 4.251769, -3.3199463)
+billboard = 1
+render_priority = 1
+texture = ExtResource("4_ccqob")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10
