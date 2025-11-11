@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Glance" load_steps=2 format=3 uid="uid://cfkuq04gtb14b"]
+
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_xoout"]
+
+[resource]
+script = ExtResource("1_xoout")
+property = 1
+normalize_as_percentage = true
+inverse = true
+metadata/_custom_type_script = "uid://b006sp1fbp8ro"
