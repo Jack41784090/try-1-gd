@@ -36,6 +36,7 @@ var realities = [
 @export var or_equal: bool = false
 @export var operation_on_other_glance: CsdrTypes.OP = CsdrTypes.OP.ADD
 @export var additional_glance: Glance = null
+@export var inverse: bool = false
 
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -70,9 +71,15 @@ func _to_string() -> String:
 
 func _get_glanceable_value(entity: SquadEntity, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
-		return entity.get_changeable_stat_num(_glanceable_translate(glanceable))
+		var value = entity.get_changeable_stat_num(_glanceable_translate(glanceable))
+		if inverse:
+			value = 1.0 - value
+		return value
 	elif glanceable in realities:
-		return entity.calculate_reality_value(_glanceable_translate(glanceable))
+		var value = entity.calculate_reality_value(_glanceable_translate(glanceable))
+		if inverse:
+			value = 1.0 - value
+		return value
 	elif glanceable == Glanceable.RDN:
 		return rng.randf_range(0.0, threshold)
 	else:
