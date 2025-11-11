@@ -37,7 +37,7 @@ func DisplayDamageNumber(amount: float, world_position: Vector3) -> void:
 	label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	
 	# Set render priority to appear above other objects
-	label_3d.render_priority = 1
+	label_3d.render_priority = 100
 	
 	# Add to scene first (required before setting global_position)
 	add_child(label_3d)
