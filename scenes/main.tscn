@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://d0c0t40hq113j"]
+
+[ext_resource type="Shader" uid="uid://b8v6dubj7w60y" path="res://assets/shaders/mysecond.gdshader" id="1_o5qli"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0wfyh"]
+render_priority = 0
+shader = ExtResource("1_o5qli")
+
+[sub_resource type="SphereMesh" id="SphereMesh_sugp2"]
+
+[node name="Main" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_0wfyh")
+mesh = SubResource("SphereMesh_sugp2")
