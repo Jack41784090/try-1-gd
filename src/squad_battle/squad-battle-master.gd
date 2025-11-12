@@ -1,127 +1,128 @@
 extends Node3D
 
 var battle: SquadBattle
-var battlefield_controller: d25BattlefieldController
+var battlefield_controller: D25BattlefieldController
 var entity_displays_dict: Dictionary = {}
 var delay_between_rounds: float = 2.0
 var is_running: bool = false
 var last_round_capitulated: Array = []
-var attacker_rows: Dictionary = {}
-var defender_rows: Dictionary = {}
 
 func _ready() -> void:
 	battlefield_controller = get_node("25dBattlefield")
 	if not battlefield_controller:
 		push_error("Could not find 25dBattlefield node!")
 		return
-	
-	attacker_rows = {
-		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.attacker_front,
-		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.attacker_middle,
-		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.attacker_back
-	}
-	
-	defender_rows = {
-		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.defender_front,
-		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.defender_middle,
-		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.defender_back
-	}
-	
+
+	setup_row_mappings()
 	setup_battle()
 	spawn_all_entities()
 	is_running = true
-	
+
 	SBLog.section("Squad Battle Started!", 0, 2, 1)
 	await get_tree().create_timer(1.0).timeout
 	process_round()
 
-func setup_battle():
-	# var squad1_config = {
-	# 	"name": "Heroes Squad",
-	# 	"team": "heroes",
-	# 	"entities": [
-	# 		{"player_id": 1, "name": "Sir Galahad", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
-	# 		{"player_id": 2, "name": "Sir Lancelot", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "frontline"},
-	# 		{"player_id": 3, "name": "Sir Percival", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
-	# 		{"player_id": 4, "name": "Sir Gawain", "stats": EntityBaseStats.new(), "team": "heroes", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
-	# 	]
-	# }
-	
-	# var squad2_config = {
-	# 	"name": "Goblins",
-	# 	"team": "monsters",
-	# 	"entities": [
-	# 		{"player_id": 5, "name": "Grubnak", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
-	# 		{"player_id": 6, "name": "Snaggletooth", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Front, "logic_type": "default"},
-	# 		{"player_id": 7, "name": "Blightfang", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Middle, "logic_type": "frontline"},
-	# 		{"player_id": 8, "name": "Rotclaw", "stats": EntityBaseStats.new(), "team": "monsters", "starting_location": SquadBattleTypes.SquadEntityInSquadLocation.Back, "logic_type": "archer"}
-	# 	]
-	# }
-	
-	# var battle_config = {"teams": {"heroes": [squad1_config], "monsters": [squad2_config]}}
-	
+func setup_row_mappings() -> void:
+	var attacker_rows = {
+		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.attacker_front,
+		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.attacker_middle,
+		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.attacker_back
+	}
+
+	var defender_rows = {
+		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.defender_front,
+		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.defender_middle,
+		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.defender_back
+	}
+
+	# Store as instance variables for use in other methods
+	set_meta("attacker_rows", attacker_rows)
+	set_meta("defender_rows", defender_rows)
+
+func setup_battle() -> void:
 	var battle_config = {
 		"teams": {
-			"heroes": [
-				{
-					"name": "Heroes",
-					"team": "heroes",
-					"entities": [EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Healer]
-				}
-			],
-			"monsters": [
-				{
-					"name": "Monsters",
-					"team": "monsters",
-					"entities": [EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Landsknecht, EntityFactory.EntityClasses.Healer]
-				}
-			]
+			"heroes": [{
+				"name": "Heroes",
+				"team": "heroes",
+				"entities": [
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Healer
+				]
+			}],
+			"monsters": [{
+				"name": "Monsters",
+				"team": "monsters",
+				"entities": [
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Landsknecht,
+					EntityFactory.EntityClasses.Healer
+				]
+			}]
 		}
 	}
-	
+
 	battle = SquadBattle.new(battle_config)
 
 func spawn_all_entities() -> void:
-	for row in [battlefield_controller.attacker_front, battlefield_controller.attacker_middle, battlefield_controller.attacker_back, 
-				battlefield_controller.defender_front, battlefield_controller.defender_middle, battlefield_controller.defender_back]:
+	var all_rows = [
+		battlefield_controller.attacker_front,
+		battlefield_controller.attacker_middle,
+		battlefield_controller.attacker_back,
+		battlefield_controller.defender_front,
+		battlefield_controller.defender_middle,
+		battlefield_controller.defender_back
+	]
+
+	for row in all_rows:
 		battlefield_controller.clear_row(row)
-	
+
 	for team_name in battle.teams_and_squads.keys():
 		var squads: Array = battle.teams_and_squads[team_name]
 		var is_attacker = (team_name == "heroes")
-		var row_map = attacker_rows if is_attacker else defender_rows
+		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
+
 		for squad: Squad in squads:
 			for entity: SquadEntity in squad.entities:
-				var location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
+				var location = entity.get_changeable_stat_num(
+					SquadBattleTypes.EntityChangeable.LOC
+				) as int
 				var row_node: Node3D = row_map.get(location)
 				if not row_node:
 					continue
-				
-				var display = battlefield_controller.add_unit_to_row(row_node, row_node.get_child_count(), entity.entity_name, entity)
+
+				var display = battlefield_controller.add_unit_to_row(
+					row_node, row_node.get_child_count(),
+					entity.entity_name, entity
+				)
 				entity_displays_dict[entity.player_id] = display
 				_update_row_positions(row_node)
 
 func process_round() -> void:
 	if battle.check_victory() or battle.round_count >= 50:
-		SBLog.section("BATTLE ENDED" if battle.check_victory() else "MAX ROUNDS REACHED", 0, 2, 1)
+		var end_message = "BATTLE ENDED" if battle.check_victory() else "MAX ROUNDS REACHED"
+		SBLog.section(end_message, 0, 2, 1)
 		print_winner()
 		is_running = false
 		return
-	
+
 	SBLog.section("Round %d" % (battle.round_count + 1), 1, 1, 1)
 	battle.round_count += 1
-	
+
 	battle.remove_dead_entities()
 	battle.remove_capitulated_entities(last_round_capitulated)
 	last_round_capitulated.clear()
-	
+
 	var updates = battle.squad_actions()
 	for update in updates:
 		if update.change.property == SquadBattleTypes.EntityChangeable.CAPITULATE:
 			var entity = battle.get_entity_by_id(update.affected)
 			if entity:
 				last_round_capitulated.append(entity)
-	
+
 	battle.squad_recoveries()
 	await process_updates(updates)
 	await battlefield_controller.animate_return_all_to_positions()
@@ -129,54 +130,99 @@ func process_round() -> void:
 	process_round()
 
 func process_updates(updates: Array[EntityUpdate]) -> void:
+	print("[process_updates] Starting to process %d updates" % updates.size())
 	for update in updates:
-		var display = entity_displays_dict.get(update.affected)
-		if not display:
+		print("[process_updates] Processing update: source=%d affected=%d property=%s" % [
+			update.source, update.affected, update.change.property
+		])
+		var attackers_display = entity_displays_dict.get(update.source)
+		var targets_display = entity_displays_dict.get(update.affected)
+
+		if not targets_display:
 			push_warning("No display found for entity %d" % update.affected)
 			continue
-		
-		display.update_stat(update.change.property, update.change.from, update.change.to)
-		
-		if update.change.property == SquadBattleTypes.EntityChangeable.HP and update.change.to < update.change.from:
-			battlefield_controller.animate_attack_recoil(display)
-			_animate_attacker_lunge(update.source)
-		elif update.change.property == SquadBattleTypes.EntityChangeable.CLINK:
-			battlefield_controller.animate_clink(display)
-			_animate_attacker_lunge(update.source)
-		
-		await display.animation_completed
-		
-		if update.change.property == SquadBattleTypes.EntityChangeable.DIE:
-			display.visible = false
-			display.queue_free()
-			entity_displays_dict.erase(update.affected)
-		elif update.change.property == SquadBattleTypes.EntityChangeable.LOC:
-			await _handle_location_change(update.affected, display)
 
-func _animate_attacker_lunge(source_id: int) -> void:
-	var attacker_display = entity_displays_dict.get(source_id)
-	if attacker_display:
-		battlefield_controller.animate_attack_lunge(attacker_display)
+		var change_type = update.change.property
+		var hp_changed = change_type == SquadBattleTypes.EntityChangeable.HP
+		var took_damage = update.change.to < update.change.from
+
+		# Do battlefield animations BEFORE update_stat
+		if hp_changed and took_damage:
+			await battlefield_controller.animate_attack_lunge(attackers_display)
+			battlefield_controller.animate_attack_recoil(targets_display)
+			battlefield_controller.animate_attack_recoil(attackers_display)
+		elif change_type == SquadBattleTypes.EntityChangeable.CLINK:
+			battlefield_controller.animate_attack_lunge(attackers_display)
+			battlefield_controller.animate_clink(targets_display)
+
+		# Set up await BEFORE calling update_stat to catch the signal
+		print("[process_updates] Setting up await for entity %d" % update.affected)
+		var animation_task = targets_display.animation_completed
+		targets_display.update_stat(update.change.property, update.change.from, update.change.to)
+
+		print("[process_updates] Awaiting animation_completed for entity %d" % update.affected)
+		await animation_task
+		print("[process_updates] Animation completed for entity %d" % update.affected)
+
+		if change_type == SquadBattleTypes.EntityChangeable.DIE:
+			targets_display.visible = false
+			targets_display.queue_free()
+			entity_displays_dict.erase(update.affected)
+		elif change_type == SquadBattleTypes.EntityChangeable.LOC:
+			await _handle_location_change(update.affected, targets_display)
+	
+	print("[process_updates] All updates processed!")
 
 func _update_row_positions(row_node: Node3D) -> void:
 	battlefield_controller.update_row_positions(row_node)
-	var opposing = battlefield_controller._get_opposing_row(row_node)
-	if opposing:
-		battlefield_controller.update_row_positions(opposing)
+	# Update opposing row positions to maintain proper spacing
+	var all_rows = [
+		battlefield_controller.attacker_front,
+		battlefield_controller.attacker_middle,
+		battlefield_controller.attacker_back,
+		battlefield_controller.defender_front,
+		battlefield_controller.defender_middle,
+		battlefield_controller.defender_back
+	]
+
+	var current_index = all_rows.find(row_node)
+	if current_index == -1:
+		return
+
+	# Find opposing row (attacker rows oppose defender rows in reverse order)
+	var opposing_index = -1
+	if current_index < 3:  # Attacker side
+		opposing_index = 5 - current_index  # Front-Back, Middle-Middle, Back-Front
+	else:  # Defender side
+		opposing_index = 2 - (current_index - 3)  # Same logic
+
+	if opposing_index >= 0 and opposing_index < all_rows.size():
+		battlefield_controller.update_row_positions(all_rows[opposing_index])
 
 func _handle_location_change(entity_id: int, display: Node3D) -> void:
 	var entity = battle.get_entity_by_id(entity_id)
 	if not entity or not display:
+		print("[LOC] Entity or display is null for ID %d" % entity_id)
 		return
-	
-	var new_location = entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) as int
-	var is_attacker = (entity.team == "heroes")
-	var row_map = attacker_rows if is_attacker else defender_rows
-	var new_row = row_map.get(new_location)
-	if new_row and display.get_parent() != new_row:
-		await battlefield_controller.animate_move_to_row(display, new_row)
 
-func print_winner():
+	var new_location = entity.get_changeable_stat_num(
+		SquadBattleTypes.EntityChangeable.LOC
+	) as int
+
+	print("[LOC] Entity %d moving to location %d" % [entity_id, new_location])
+
+	var is_attacker = (entity.team == "heroes")
+	var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
+	var new_row = row_map.get(new_location)
+
+	if new_row and display.get_parent() != new_row:
+		print("[LOC] Animating move to new row")
+		await battlefield_controller.animate_move_to_row(display, new_row)
+		print("[LOC] Move animation completed")
+	else:
+		print("[LOC] No move needed (already in correct row or invalid row)")
+
+func print_winner() -> void:
 	for team_name in battle.teams_and_squads:
 		var strength = battle.check_team_strength(team_name)
 		if strength > 0:
