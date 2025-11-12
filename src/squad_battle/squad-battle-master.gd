@@ -135,8 +135,8 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		print("[process_updates] Processing update: source=%d affected=%d property=%s" % [
 			update.source, update.affected, update.change.property
 		])
-		var attackers_display = entity_displays_dict.get(update.source)
-		var targets_display = entity_displays_dict.get(update.affected)
+		var attackers_display = entity_displays_dict.get(update.source) as EntityDisplay
+		var targets_display = entity_displays_dict.get(update.affected) as EntityDisplay
 
 		if not targets_display:
 			push_warning("No display found for entity %d" % update.affected)
@@ -146,16 +146,19 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		var hp_changed = change_type == SquadBattleTypes.EntityChangeable.HP
 		var took_damage = update.change.to < update.change.from
 
-		# Do battlefield animations BEFORE update_stat
-		if hp_changed and took_damage:
+		if hp_changed:
+			attackers_display.switch_sprite("attack")
 			await battlefield_controller.animate_attack_lunge(attackers_display)
-			battlefield_controller.animate_attack_recoil(targets_display)
-			battlefield_controller.animate_attack_recoil(attackers_display)
+			if took_damage:
+				targets_display.switch_sprite("defend")
+				battlefield_controller.animate_attack_recoil(targets_display)
+				battlefield_controller.animate_attack_recoil(attackers_display)
 		elif change_type == SquadBattleTypes.EntityChangeable.CLINK:
-			battlefield_controller.animate_attack_lunge(attackers_display)
+			attackers_display.switch_sprite("attack")
+			targets_display.switch_sprite("defend")
+			await battlefield_controller.animate_attack_lunge(attackers_display)
 			battlefield_controller.animate_clink(targets_display)
 
-		# Set up await BEFORE calling update_stat to catch the signal
 		print("[process_updates] Setting up await for entity %d" % update.affected)
 		var animation_task = targets_display.animation_completed
 		targets_display.update_stat(update.change.property, update.change.from, update.change.to)
@@ -163,6 +166,10 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 		print("[process_updates] Awaiting animation_completed for entity %d" % update.affected)
 		await animation_task
 		print("[process_updates] Animation completed for entity %d" % update.affected)
+
+
+		attackers_display.switch_sprite("idle")
+		targets_display.switch_sprite("idle")
 
 		if change_type == SquadBattleTypes.EntityChangeable.DIE:
 			targets_display.visible = false
