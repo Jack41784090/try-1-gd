@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SquadEntity" load_steps=6 format=3 uid="uid://cr22weec251r6"]
 
-[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/landsnecht.png" id="1_ly5kv"]
+[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/landsnecht-idle.png" id="1_ly5kv"]
 [ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/logic/test-frontline.tres" id="2_8tqtp"]
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/squad_battle/entity/_script.gd" id="3_q2fet"]
 [ext_resource type="Script" uid="uid://cd8rsiutj3bsj" path="res://src/squad_battle/entity/bstats.gd" id="4_tyx70"]
@@ -23,6 +23,7 @@ metadata/_custom_type_script = "uid://cd8rsiutj3bsj"
 
 [resource]
 script = ExtResource("3_q2fet")
+class_id = "landsnecht"
 entity_name = "Landskneckt"
 stats = SubResource("Resource_waox1")
 icon = ExtResource("1_ly5kv")
