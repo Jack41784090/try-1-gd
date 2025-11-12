@@ -1,10 +1,7 @@
-class_name d25BattlefieldController extends Node3D
+class_name D25BattlefieldController extends Node3D
 
-const BATTLEFIELD_WIDTH: float = 20.0
-const BATTLEFIELD_DEPTH: float = 24.0
-const ROW_SPACING: float = 2.5
-const BASE_UNIT_SPACING: float = 3.75
-const UNIT_HEIGHT_OFFSET: float = 1
+const BASE_UNIT_SPACING: float = 2.75
+const UNIT_HEIGHT_OFFSET: float = 1.25
 const UNIT_PIXEL_SIZE: float = 0.0125
 const PLACEHOLDER_TEXTURE = preload("res://assets/icon.svg")
 const ENTITY_SCENE = preload("res://scenes/entity.tscn")
@@ -28,7 +25,8 @@ const ORG_FADE_DURATION: float = 0.4
 @onready var defender_middle: Node3D = $Battlefield/DefenderSide/MiddleRow
 @onready var defender_back: Node3D = $Battlefield/DefenderSide/BackRow
 
-func add_unit_to_row(row_node: Node3D, unit_index: int, unit_name: String = "Unit", entity: SquadEntity = null) -> Node3D:
+func add_unit_to_row(row_node: Node3D, unit_index: int,
+		unit_name: String = "Unit", entity: SquadEntity = null) -> Node3D:
 	var unit_node: Node3D
 	
 	if entity:
@@ -38,13 +36,10 @@ func add_unit_to_row(row_node: Node3D, unit_index: int, unit_name: String = "Uni
 		row_node.add_child(display)
 		display.setup(entity)
 		
-		if entity.icon:
-			display.sprite.texture = entity.icon
-		display.sprite.pixel_size = UNIT_PIXEL_SIZE
-		
 		var parent = row_node.get_parent()
 		if parent:
-			display.sprite.modulate = Color(1, 0.3, 0.3) if parent.name == "AttackerSide" else Color(0.3, 0.3, 1)
+			display.sprite.modulate = Color(1, 0.3, 0.3) \
+				if parent.name == "AttackerSide" else Color(0.3, 0.3, 1)
 		
 		display.refresh_display()
 		unit_node = display
@@ -73,7 +68,10 @@ func update_row_positions(row_node: Node3D, animate: bool = false) -> void:
 		if (child is Sprite3D or child is EntityDisplay) and i < positions.size():
 			var target_pos = Vector3(0, UNIT_HEIGHT_OFFSET, positions[i])
 			if animate and is_instance_valid(child):
-				create_tween().tween_property(child, "position", target_pos, MOVE_ANIMATION_DURATION * 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+				var tween = create_tween()
+				tween.tween_property(child, "position", target_pos,
+					MOVE_ANIMATION_DURATION * 0.6)\
+					.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 			else:
 				child.position = target_pos
 			if is_instance_valid(child):
@@ -114,6 +112,7 @@ func _get_opposing_row(row_node: Node3D) -> Node3D:
 
 func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: int = -1) -> void:
 	if not unit_node or not is_instance_valid(unit_node) or not target_row:
+		print("[animate_move_to_row] Invalid unit_node or target_row, returning early")
 		return
 	
 	var old_row = unit_node.get_parent()
@@ -130,6 +129,7 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 	
 	var moving_unit_index = target_children.find(unit_node)
 	if moving_unit_index < 0 or moving_unit_index >= target_positions.size():
+		print("[animate_move_to_row] Invalid index: %d, returning" % moving_unit_index)
 		return
 	
 	var target_local_pos = Vector3(0, UNIT_HEIGHT_OFFSET, target_positions[moving_unit_index])
@@ -145,21 +145,28 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 	
 	unit_node.global_position = start_world_pos
 	var tween = create_tween()
-	tween.tween_property(unit_node, "position", target_local_pos, MOVE_ANIMATION_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(unit_node, "position", target_local_pos,
+		MOVE_ANIMATION_DURATION).set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT)
 	
 	for child in ally_old_positions.keys():
-		if is_instance_valid(child) and child in final_positions:
-			var new_pos = final_positions[child]
-			if ally_old_positions[child].distance_to(new_pos) > 0.01:
-				create_tween().tween_property(child, "position", new_pos, MOVE_ANIMATION_DURATION * 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-			else:
-				child.position = new_pos
+			if is_instance_valid(child) and child in final_positions:
+				var new_pos = final_positions[child]
+				if ally_old_positions[child].distance_to(new_pos) > 0.01:
+					var ally_tween = create_tween()
+					ally_tween.tween_property(child, "position", new_pos,
+						MOVE_ANIMATION_DURATION * 0.6)\
+						.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+				else:
+					child.position = new_pos
 	
 	if old_row and is_instance_valid(old_row):
 		update_row_positions(old_row, true)
-	
+
+	print("[animate_move_to_row] Waiting for tween to finish...")
 	await tween.finished
-	
+	print("[animate_move_to_row] Tween finished!")
+
 	for child in target_row.get_children():
 		if is_instance_valid(child):
 			child.set_meta(META_ORIGINAL_POSITION, child.position)
@@ -167,17 +174,24 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 func animate_attack_recoil(unit_node: Node3D, attack_direction: Vector3 = Vector3.ZERO) -> void:
 	if not unit_node or not is_instance_valid(unit_node):
 		return
-	
+
 	if attack_direction == Vector3.ZERO:
 		var parent = unit_node.get_parent()
 		if parent:
 			var grandparent = parent.get_parent()
-			attack_direction = Vector3(-1, 0, 0) if (grandparent and grandparent.name == "AttackerSide") else Vector3(1, 0, 0)
+			attack_direction = Vector3(-1, 0, 0) \
+				if (grandparent and grandparent.name == "AttackerSide") \
+				else Vector3(1, 0, 0)
 		else:
 			attack_direction = Vector3(-1, 0, 0)
 	
 	var recoil_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
-	await create_tween().tween_property(unit_node, "position", recoil_pos, RECOIL_ANIMATION_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).finished
+	var recoil_tween = create_tween()
+	await recoil_tween\
+		.tween_property(unit_node, "position", recoil_pos,RECOIL_ANIMATION_DURATION)\
+		.set_trans(Tween.TRANS_QUAD)\
+		.set_ease(Tween.EASE_OUT)\
+		.finished
 
 func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3.ZERO) -> void:
 	if not unit_node or not is_instance_valid(unit_node):
@@ -187,12 +201,19 @@ func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3
 		var parent = unit_node.get_parent()
 		if parent:
 			var grandparent = parent.get_parent()
-			attack_direction = Vector3(1, 0, 0) if (grandparent and grandparent.name == "AttackerSide") else Vector3(-1, 0, 0)
+			attack_direction = Vector3(1, 0, 0) \
+				if (grandparent and grandparent.name == "AttackerSide") \
+				else Vector3(-1, 0, 0)
 		else:
 			attack_direction = Vector3(1, 0, 0)
 	
 	var lunge_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
-	await create_tween().tween_property(unit_node, "position", lunge_pos, RECOIL_ANIMATION_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).finished
+	var lunge_tween = create_tween()
+	await lunge_tween\
+		.tween_property(unit_node, "position", lunge_pos,RECOIL_ANIMATION_DURATION)\
+		.set_trans(Tween.TRANS_QUAD)\
+		.set_ease(Tween.EASE_OUT)\
+		.finished
 
 func animate_clink(unit_node: Node3D) -> void:
 	if not unit_node or not is_instance_valid(unit_node):
@@ -201,22 +222,33 @@ func animate_clink(unit_node: Node3D) -> void:
 	var original_pos = unit_node.position
 	var forward_push = original_pos + Vector3(0, 0.1, 0)
 	var tween = create_tween()
-	tween.tween_property(unit_node, "position", forward_push, RECOIL_ANIMATION_DURATION * 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(unit_node, "position", forward_push, RECOIL_ANIMATION_DURATION * 0.3)\
+		.set_trans(Tween.TRANS_QUAD)\
+		.set_ease(Tween.EASE_OUT)
+	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3)\
+		.set_trans(Tween.TRANS_ELASTIC)\
+		.set_ease(Tween.EASE_OUT)
 	await tween.finished
 
 func animate_return_to_position(unit_node: Node3D) -> void:
-	if not unit_node or not is_instance_valid(unit_node) or not unit_node.has_meta(META_ORIGINAL_POSITION):
+	if not unit_node or not is_instance_valid(unit_node)\
+	or not unit_node.has_meta(META_ORIGINAL_POSITION):
 		return
 	
 	var original_pos = unit_node.get_meta(META_ORIGINAL_POSITION)
 	if unit_node.position.distance_to(original_pos) < 0.01:
 		return
 	
-	await create_tween().tween_property(unit_node, "position", original_pos, RETURN_ANIMATION_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT).finished
+	await create_tween()\
+		.tween_property(unit_node, "position", original_pos, RETURN_ANIMATION_DURATION)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT).finished
 
 func animate_return_all_to_positions() -> void:
-	var all_rows = [attacker_front, attacker_middle, attacker_back, defender_front, defender_middle, defender_back]
+	var all_rows = [
+		attacker_front, attacker_middle, attacker_back,
+		defender_front, defender_middle, defender_back
+	]
 	var units_to_animate = []
 	
 	for row in all_rows:
@@ -292,8 +324,13 @@ func animate_org_loss(icon: Sprite3D) -> void:
 	shake_tween.set_parallel(true)
 	
 	for j in range(6):
-		var offset = Vector3(randf_range(-0.05, 0.05), randf_range(-0.05, 0.05), randf_range(-0.05, 0.05))
-		shake_tween.tween_property(icon, "position", original_pos + offset, ORG_SHAKE_DURATION / 6.0)
+		var offset = Vector3(
+			randf_range(-0.05, 0.05),
+			randf_range(-0.05, 0.05),
+			randf_range(-0.05, 0.05)
+		)
+		shake_tween.tween_property(icon, "position",
+			original_pos + offset, ORG_SHAKE_DURATION / 6.0)
 	
 	shake_tween.chain().tween_property(icon, "position", original_pos, 0.05)
 	
@@ -307,7 +344,10 @@ func animate_org_loss(icon: Sprite3D) -> void:
 		icon.material_override = shader_material
 		
 		var fade_tween = create_tween()
-		fade_tween.tween_method(func(val): shader_material.set_shader_parameter("dissolve_amount", val), 0.0, 1.0, ORG_FADE_DURATION)
+		fade_tween.tween_method(
+			func(val): shader_material.set_shader_parameter("dissolve_amount", val),
+			0.0, 1.0, ORG_FADE_DURATION
+		)
 		await fade_tween.finished
 		
 		if is_instance_valid(icon):
