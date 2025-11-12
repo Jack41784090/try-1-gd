@@ -3,6 +3,8 @@ class_name SquadEntity extends Resource
 var _debug_id;
 
 #region Init from Resource
+@export var class_id: String
+
 @export var entity_name: String
 @export var stats: EntityBaseStats
 @export var icon: Texture2D
@@ -350,4 +352,4 @@ func add_temporary_skill(skill):
 	temporary_skills.append(skill)
 
 func remove_temporary_skill(skill_id: String):
-	temporary_skills = temporary_skills.filter(func(s): return s.id != skill_id)
+	temporary_skills = temporary_skills.filter(func(s): return s.class_id != skill_id)
