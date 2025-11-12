@@ -25,34 +25,31 @@ const ORG_FADE_DURATION: float = 0.4
 @onready var defender_middle: Node3D = $Battlefield/DefenderSide/MiddleRow
 @onready var defender_back: Node3D = $Battlefield/DefenderSide/BackRow
 
-func add_unit_to_row(row_node: Node3D, unit_index: int,
-		unit_name: String = "Unit", entity: SquadEntity = null) -> Node3D:
+func add_unit_to_row(
+		row_node: Node3D, unit_index: int,
+		unit_name: String, entity: SquadEntity) -> Node3D:
 	var unit_node: Node3D
 	
-	if entity:
-		var display = ENTITY_SCENE.instantiate() as EntityDisplay
-		display.name = "%s_%d" % [unit_name, unit_index]
-		display.position = Vector3(0, UNIT_HEIGHT_OFFSET, 0)
-		row_node.add_child(display)
-		display.setup(entity)
-		
-		var parent = row_node.get_parent()
-		if parent:
-			display.sprite.modulate = Color(1, 0.3, 0.3) \
-				if parent.name == "AttackerSide" else Color(0.3, 0.3, 1)
-		
-		display.refresh_display()
-		unit_node = display
-	else:
-		var sprite = Sprite3D.new()
-		sprite.name = "%s_%d" % [unit_name, unit_index]
-		sprite.texture = PLACEHOLDER_TEXTURE
-		sprite.pixel_size = UNIT_PIXEL_SIZE
-		sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		sprite.shaded = true
-		sprite.position = Vector3(0, UNIT_HEIGHT_OFFSET, 0)
-		row_node.add_child(sprite)
-		unit_node = sprite
+	var display = ENTITY_SCENE.instantiate() as EntityDisplay
+	display.name = "%s_%d" % [unit_name, unit_index]
+	display.position = Vector3(0, UNIT_HEIGHT_OFFSET, 0)
+	row_node.add_child(display)
+	display.setup(entity)
+
+	var parent = row_node.get_parent()
+	var is_attacker = parent.name == "AttackerSide"
+	var is_defender = parent.name == "DefenderSide"
+	assert(is_attacker or is_defender)
+	
+	# if parent:
+	display.sprite.modulate = Color(1, 0.3, 0.3) \
+		if parent.name == "AttackerSide" else Color(0.3, 0.3, 1)
+	if is_defender:
+		display.sprite.flip_h = true
+	
+	
+	display.refresh_display()
+	unit_node = display
 	
 	if is_instance_valid(unit_node):
 		unit_node.set_meta(META_ORIGINAL_POSITION, unit_node.position)
