@@ -142,20 +142,22 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 	
 	unit_node.global_position = start_world_pos
 	var tween = create_tween()
-	tween.tween_property(unit_node, "position", target_local_pos,
-		MOVE_ANIMATION_DURATION).set_trans(Tween.TRANS_CUBIC)\
+	tween\
+		.tween_property(unit_node, "position", target_local_pos, MOVE_ANIMATION_DURATION)\
+		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_IN_OUT)
 	
 	for child in ally_old_positions.keys():
-			if is_instance_valid(child) and child in final_positions:
-				var new_pos = final_positions[child]
-				if ally_old_positions[child].distance_to(new_pos) > 0.01:
-					var ally_tween = create_tween()
-					ally_tween.tween_property(child, "position", new_pos,
-						MOVE_ANIMATION_DURATION * 0.6)\
-						.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-				else:
-					child.position = new_pos
+		if is_instance_valid(child) and child in final_positions:
+			var new_pos = final_positions[child]
+			if ally_old_positions[child].distance_to(new_pos) > 0.01:
+				var ally_tween = create_tween()
+				ally_tween\
+					.tween_property(child, "position", new_pos, MOVE_ANIMATION_DURATION * 0.6)\
+					.set_trans(Tween.TRANS_CUBIC)\
+					.set_ease(Tween.EASE_IN_OUT)
+			else:
+				child.position = new_pos
 	
 	if old_row and is_instance_valid(old_row):
 		update_row_positions(old_row, true)
@@ -203,7 +205,7 @@ func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3
 				else Vector3(-1, 0, 0)
 		else:
 			attack_direction = Vector3(1, 0, 0)
-	
+
 	var lunge_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
 	var lunge_tween = create_tween()
 	await lunge_tween\
