@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bubk1q5x1n63h"
-path="res://.godot/imported/healer.png-55ce833fd8f394ceea74caf727d166f1.ctex"
+uid="uid://b6uuefkxyjnog"
+path="res://.godot/imported/landsnecht-defend.png-cbab4c67544a1c3256a03a4357853035.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/healer.png"
-dest_files=["res://.godot/imported/healer.png-55ce833fd8f394ceea74caf727d166f1.ctex"]
+source_file="res://assets/landsnecht-defend.png"
+dest_files=["res://.godot/imported/landsnecht-defend.png-cbab4c67544a1c3256a03a4357853035.ctex"]
 
 [params]
 
