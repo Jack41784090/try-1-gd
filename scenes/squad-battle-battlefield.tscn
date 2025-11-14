@@ -51,8 +51,45 @@ shader_parameter/normal_map = ExtResource("6_tuxac")
 shader_parameter/effect_enabled = false
 shader_parameter/albedo_texture = ExtResource("4_ccqob")
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dawn"]
+sky_top_color = Color(0.95, 0.65, 0.4, 1)
+sky_horizon_color = Color(1, 0.75, 0.5, 1)
+sky_curve = 0.15
+ground_bottom_color = Color(0.25, 0.2, 0.15, 1)
+ground_horizon_color = Color(0.8, 0.6, 0.4, 1)
+ground_curve = 0.05
+sun_angle_max = 15.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_dawn"]
+sky_material = SubResource("ProceduralSkyMaterial_dawn")
+
+[sub_resource type="Environment" id="Environment_dawn"]
+background_mode = 2
+background_energy_multiplier = 0.7
+sky = SubResource("Sky_dawn")
+ambient_light_source = 3
+ambient_light_color = Color(1, 0.8, 0.6, 1)
+ambient_light_sky_contribution = 0.5
+ambient_light_energy = 0.6
+tonemap_mode = 2
+tonemap_exposure = 1.1
+tonemap_white = 1.2
+glow_enabled = true
+glow_intensity = 0.6
+glow_strength = 0.9
+glow_bloom = 0.15
+glow_blend_mode = 0
+adjustment_enabled = true
+adjustment_brightness = 1.05
+adjustment_contrast = 1.1
+adjustment_saturation = 1.15
+
 [node name="25dTest" type="Node3D"]
 script = ExtResource("1_battlefield_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dawn")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8660253, 0.50000024, 0, -0.50000024, 0.8660253, 0, 20.561405, 31.844006)
@@ -61,10 +98,12 @@ size = 17.358
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.9977031, 0.06612959, 0.014677429, -0.033097494, -0.6649529, 0.7461517, 0.05910249, 0.74395204, 0.6656143, 0, 1.6021044, 3.9332685)
-light_energy = 1.541
-light_indirect_energy = 4.52
-light_volumetric_fog_energy = 0.0
+light_color = Color(1, 0.75, 0.5, 1)
+light_energy = 0.8
+light_indirect_energy = 1.2
+light_volumetric_fog_energy = 1.0
 shadow_enabled = true
+shadow_opacity = 0.7
 
 [node name="Background3D" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14.210333, -10.995384)

@@ -1,5 +1,5 @@
 shader_type spatial;
-// render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
 
 uniform sampler2D albedo_texture : source_color;
 // uniform sampler2D normal_map: hint_normal;
