@@ -2,7 +2,6 @@ class_name GameEvent extends Triggerable
 
 @export var event_id: String = ""
 @export var event_name: String = ""
-@export var event_chain_path: String = ""
 @export var chance: float = 100.0
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
 

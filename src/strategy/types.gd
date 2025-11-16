@@ -97,11 +97,6 @@ class TriggerContext:
 		}
 
 
-
-class TriggerChain extends Resource:
-	var another_trigger: Triggerable
-	var chance: float = 1.0
-
 enum SquadProperty {
 	MOOD,
 	HEALTH,
