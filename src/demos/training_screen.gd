@@ -18,7 +18,7 @@ enum UIMode {
 @onready var main_background: TextureRect = $PanelContainer/MainBackground
 @onready var foreground: TextureRect = $PanelContainer/Foreground
 @onready var character_container: HBoxContainer = $PanelContainer/MainVBox/MainScreenArea/CharacterContainer
-@onready var hint_icon: TextureRect = $PanelContainer/MainVBox/MainScreenArea/HintIcon
+# @onready var hint_icon: TextureRect = $PanelContainer/MainVBox/MainScreenArea/HintIcon
 @onready var dialogue_box: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/DialogueBox
 @onready var speaker_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/SpeakerLabel
 @onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
@@ -136,7 +136,7 @@ func _initialize_demo_scenario() -> void:
 	
 	# Load generic activities
 	var test_activities: Array[Activity] = []
-	test_activities.append(load("res://resources/generic-activities/rest.tres"))
+	test_activities.append(load("res://resources/generic-activities/rest/rest.tres"))
 	test_activities.append(load("res://resources/generic-activities/drill.tres"))
 	test_activities.append(load("res://resources/generic-activities/patrol.tres"))
 	test_activities.append(load("res://resources/generic-activities/investigate.tres"))
@@ -310,7 +310,8 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	print(turn_summary)
 	
 	# Queue all event chains from pre-triggerables, activity, and post-triggerables
-	_queue_triggerable_chains(turn_summary.get("pre_triggerables", []))
+	var pre_triggerables = turn_summary.get("pre_triggerables", [])
+	_queue_triggerable_chains(pre_triggerables)
 	
 	# Queue activity event chain from turn_summary
 	var activity_result_data = turn_summary.get("activity_result", {})
@@ -435,7 +436,7 @@ func _play_next_queued_chain() -> void:
 		_set_ui_mode(UIMode.STRATEGY)
 		_update_ui()
 		return
-	
+
 	is_playing_chain = true
 	var chain_path = event_chain_queue.pop_front()
 	_play_event_chain(chain_path)
