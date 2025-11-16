@@ -1,17 +1,17 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=2 format=3 uid="uid://c7ynaj2kl4pqr"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=4 format=3 uid="uid://c7ynaj2kl4pqr"]
 
-[ext_resource type="Script" uid="uid://bkg3r6ll1pyjo" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_27dkq"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
+
+[sub_resource type="GDScript" id="GDScript_xws67"]
 
 [resource]
 script = ExtResource("1_event")
-trigger_id = "faction_attention"
-trigger_name = "Faction Attention"
-description = "Your religious observance has attracted the attention of local powers."
 event_id = "faction_attention"
 event_name = "Faction Attention"
 event_chain_path = "res://resources/event_chains/faction_attention_event_chain.tres"
-chance = 100.0
-when_to_trigger = 1
-repeats = -1
+trigger_id = "faction_attention"
+trigger_name = "Faction Attention"
+description = "Your religious observance has attracted the attention of local powers."
+trigger_chains = Array[SubResource("GDScript_xws67")]([null])
 emergency_priority = 3
-conditions = []
