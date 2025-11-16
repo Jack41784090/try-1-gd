@@ -117,7 +117,7 @@ func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
 	triggerable_fired.emit(triggerable, result)
 
 func _apply_result(result: GenericResult) -> void:
-	if not result.location_changed.is_empty():
+	if result is ActivityResult and not result.location_changed.is_empty():
 		current_location = world.get_location_by_id(result.location_changed)
 	
 	for event_id in result.triggered_event_ids:
