@@ -45,14 +45,16 @@ enum UIMode {
 
 var game_scenario: GameScenario
 var current_activity_result: ActivityResult = null
-var vn_component: VisualNovelComponent
 var ui_mode: UIMode = UIMode.STRATEGY
 var portrait_cache: Dictionary = {}
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
 
+var vn_current_chain: EventChain
+var vn_current_index: int = 0
+var vn_character_ids_in_chain: Array[String] = []
+
 func _ready() -> void:
-	vn_component = VisualNovelComponent.new()
 	_initialize_demo_scenario()
 	_connect_signals()
 	_setup_dialogue_box_input()
@@ -174,10 +176,6 @@ func _connect_signals() -> void:
 		game_scenario.activity_executed.connect(_on_activity_executed)
 		game_scenario.turn_advanced.connect(_on_turn_advanced)
 		game_scenario.triggerable_fired.connect(_on_triggerable_fired)
-	
-	if vn_component:
-		vn_component.display_updated.connect(_on_vn_display_updated)
-		vn_component.chain_completed.connect(_on_vn_chain_completed)
 
 func _setup_dialogue_box_input() -> void:
 	if dialogue_box:
@@ -479,9 +477,10 @@ func _play_event_chain(chain_path: String) -> void:
 	
 	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
 	_set_ui_mode(UIMode.VISUAL_NOVEL)
-	vn_component.load_chain(chain)
+	_vn_load_chain(chain)
 
-func _on_vn_display_updated(dialogue_data: Dictionary) -> void:
+func _vn_display_current_dialogue() -> void:
+	var dialogue_data = _vn_get_current_dialogue_data()
 	if dialogue_data.is_empty():
 		return
 	
@@ -521,10 +520,71 @@ func _get_or_create_portrait(character_id: String) -> Control:
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if ui_mode == UIMode.VISUAL_NOVEL and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			vn_component.advance()
+			_vn_advance()
 
-func _on_vn_chain_completed() -> void:
-	vn_component.reset()
+func _vn_load_chain(chain: EventChain) -> void:
+	if not chain:
+		push_error("Cannot load null EventChain")
+		return
+	
+	if chain.get_dialogue_count() == 0:
+		push_warning("EventChain '%s' has no dialogues, completing immediately" % chain.chain_id)
+		vn_current_chain = null
+		_vn_on_chain_completed()
+		return
+	
+	vn_current_chain = chain
+	vn_current_index = 0
+	vn_character_ids_in_chain = chain.get_all_character_ids()
+	if vn_current_chain.get_dialogue_count() > 0:
+		_vn_display_current_dialogue()
+
+func _vn_advance() -> void:
+	if not vn_current_chain:
+		push_warning("No chain loaded, cannot advance")
+		return
+	
+	if _vn_is_complete():
+		push_warning("Chain already complete")
+		_vn_on_chain_completed()
+		return
+	
+	vn_current_index += 1
+	
+	if _vn_is_complete():
+		print("EventChain '%s' completed (showed %d/%d dialogues)" % [vn_current_chain.chain_id, vn_current_index, vn_current_chain.get_dialogue_count()])
+		_vn_on_chain_completed()
+	else:
+		print("Advanced to dialogue %d/%d" % [vn_current_index + 1, vn_current_chain.get_dialogue_count()])
+		_vn_display_current_dialogue()
+
+func _vn_get_current_dialogue_data() -> Dictionary:
+	if not vn_current_chain or vn_current_index >= vn_current_chain.get_dialogue_count():
+		return {}
+	
+	var dialogue: Dialogue = vn_current_chain.dialogues[vn_current_index]
+	return {
+		"speaker_name": dialogue.speaker_name,
+		"line_spoken": dialogue.line_spoken,
+		"on_screen_character_ids": dialogue.on_screen_character_ids,
+		"background_id": dialogue.background_id,
+		"triggers": dialogue.triggers,
+		"index": vn_current_index,
+		"total": vn_current_chain.get_dialogue_count()
+	}
+
+func _vn_is_complete() -> bool:
+	if not vn_current_chain:
+		return true
+	return vn_current_index >= vn_current_chain.get_dialogue_count()
+
+func _vn_reset() -> void:
+	vn_current_chain = null
+	vn_current_index = 0
+	vn_character_ids_in_chain.clear()
+
+func _vn_on_chain_completed() -> void:
+	_vn_reset()
 	if event_chain_queue.size() > 0:
 		_play_next_queued_chain()
 	else:
