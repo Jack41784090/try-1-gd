@@ -59,6 +59,8 @@ func _ready() -> void:
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
 
+#region Initialization
+
 func _initialize_demo_scenario() -> void:
 	var test_world = World.new()
 	test_world.turn_count = 0
@@ -181,6 +183,10 @@ func _setup_dialogue_box_input() -> void:
 	if dialogue_box:
 		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
 
+#endregion
+
+#region UI Helpers
+
 func _update_ui() -> void:
 	if not game_scenario:
 		return
@@ -190,22 +196,16 @@ func _update_ui() -> void:
 	var location = game_scenario.current_location
 	
 	turn_label.text = "Turn %d" % world.turn_count
-	
-	if location:
-		location_label.text = "%s (%s) - Dev:%d Stab:%.0f" % [
-			location.location_name,
-			_location_type_to_string(location.type),
-			location.development,
-			location.stability
-		]
-	else:
-		location_label.text = "Unknown Location"
+	location_label.text = "%s (%s) - Dev:%d Stab:%.0f" % [
+		location.location_name if location else "Unknown",
+		_location_type_to_string(location.type) if location else "",
+		location.development if location else 0,
+		location.stability if location else 0.0
+	]
 	
 	morale_bar.value = squad.get_morale()
 	morale_bar.max_value = 100.0
-	
-	var morale_condition = _get_morale_condition(squad.get_morale())
-	condition_label.text = morale_condition
+	condition_label.text = _get_morale_condition(squad.get_morale())
 	
 	money_label.text = "Money: %.1f" % squad.money
 	food_label.text = "Food: %d" % squad.food
@@ -215,11 +215,6 @@ func _update_ui() -> void:
 	end_prog_label.text = "End Prog: %.1f" % world.end_progression
 	
 	_update_activity_buttons()
-	
-	if current_activity_result:
-		_display_activity_result(current_activity_result)
-	else:
-		dialogue_label.text = "Choose an activity to continue your campaign."
 
 func _update_activity_buttons() -> void:
 	if not game_scenario or not game_scenario.current_location:
@@ -266,37 +261,18 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	var activity = _get_activity(activity_type)
 	if not activity:
 		return "Unknown activity"
-	
-	var tooltip = activity.description + "\n\n"
-	tooltip += "Time Cost: %d turn(s)\n" % activity.time_cost
-	
-	if activity.food_cost > 0:
-		tooltip += "Food Cost: %d\n" % activity.food_cost
-	if activity.money_cost > 0:
-		tooltip += "Money Cost: %.1f\n" % activity.money_cost
-	if activity.travel_tools_cost > 0:
-		tooltip += "Tools Cost: %d\n" % activity.travel_tools_cost
-	
-	if activity.location_requirements.size() > 0:
-		tooltip += "Requires: "
-		for loc_type in activity.location_requirements:
-			tooltip += _location_type_to_string(loc_type) + " "
-	
-	return tooltip
+	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
+
+#endregion
+
+#region Activity Execution
 
 func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(activity_type)
-	
 	if not activity:
 		dialogue_label.text = "Activity not found or not registered in scenario."
 		return
 	
-	if not activity.can_execute(game_scenario.player_squad, game_scenario.current_location):
-		var reason = activity.get_cannot_execute_reason(game_scenario.player_squad, game_scenario.current_location)
-		dialogue_label.text = "Cannot execute %s: %s" % [activity.trigger_name, reason]
-		return
-	
-	# Clear previous activity result
 	current_activity_result = null
 	
 	var turn_summary = game_scenario.execute_turn(activity)
@@ -310,7 +286,7 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	print(turn_summary)
 	
 	# Queue all event chains from pre-triggerables, activity, and post-triggerables
-	var pre_triggerables = turn_summary.get("pre_triggerables", [])
+	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
 	_queue_triggerable_chains(pre_triggerables)
 	
 	# Queue activity event chain from turn_summary
@@ -319,7 +295,8 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	if not activity_event_chain.is_empty():
 		_queue_event_chain(activity_event_chain)
 	
-	_queue_triggerable_chains(turn_summary.get("post_triggerables", []))
+	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
+	_queue_triggerable_chains(post_triggers)
 	
 	# Play queued chains or update UI
 	if event_chain_queue.is_empty():
@@ -329,25 +306,16 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 		print("Starting event chain playback...")
 		_play_next_queued_chain()
 
-func _queue_triggerable_chains(triggerable_list: Array) -> void:
-	for triggerable_data in triggerable_list:
-		var result = triggerable_data.get("result")
+func _queue_triggerable_chains(results_list: Array[GenericResult]) -> void:
+	for result in results_list:
 		if result is GenericResult and result.has_event_chain():
 			_queue_event_chain(result.event_chain_path)
+		else:
+			assert(false)
 
-func _display_activity_result(result: ActivityResult) -> void:
-	var display_text = ""
-	
-	if result.squad_stat_changes.size() > 0:
-		display_text += "Squad Changes:\n"
-		for stat in result.squad_stat_changes:
-			var value = result.squad_stat_changes[stat]
-			display_text += "  %s: %+.1f\n" % [stat, value]
-	
-	if result.triggered_event_ids.size() > 0:
-		display_text += "\nEvents Triggered: %s" % str(result.triggered_event_ids)
-	
-	dialogue_label.text = display_text.strip_edges()
+#endregion
+
+#region Utility Functions
 
 func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 	match loc_type:
@@ -375,6 +343,10 @@ func _get_morale_condition(morale: float) -> String:
 		return "Poor"
 	else:
 		return "Critical"
+
+#endregion
+
+#region Button Signal Handlers
 
 func _on_rest_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.REST)
@@ -413,6 +385,10 @@ func _on_short_pressed() -> void:
 	
 	dialogue_label.text = summary_text
 
+#endregion
+
+#region Game Scenario Signal Handlers
+
 func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
 	current_activity_result = result
 	print("Activity executed: %s" % activity.trigger_name)
@@ -422,8 +398,10 @@ func _on_turn_advanced(turn: int) -> void:
 
 func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
 	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
-	# Note: EventChains are queued from turn_summary in _execute_activity(), not here
-	# This prevents duplicate queuing and timing issues
+
+#endregion
+
+#region Event Chain Management
 
 func _queue_event_chain(chain_path: String) -> void:
 	event_chain_queue.append(chain_path)
@@ -441,7 +419,9 @@ func _play_next_queued_chain() -> void:
 	var chain_path = event_chain_queue.pop_front()
 	_play_event_chain(chain_path)
 
-## Visual Novel Mode Functions
+#endregion
+
+#region Visual Novel Functions
 
 func _set_ui_mode(mode: UIMode) -> void:
 	ui_mode = mode
@@ -453,46 +433,20 @@ func _set_ui_mode(mode: UIMode) -> void:
 			_show_vn_ui()
 
 func _show_strategy_ui() -> void:
-	# Show strategy elements
-	if action_buttons:
-		action_buttons.visible = true
-	if stats_panel:
-		stats_panel.modulate.a = 1.0
-	
-	# Hide VN elements
-	if character_container:
-		character_container.visible = false
-	if speaker_label:
-		speaker_label.visible = false
-	if advance_prompt:
-		advance_prompt.visible = false
-	
-	# Restore background textures to normal (TODO: implement background switching)
-	
-	# Reset dialogue box to strategy mode
-	if dialogue_label:
-		dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	action_buttons.visible = true
+	stats_panel.modulate.a = 1.0
+	character_container.visible = false
+	speaker_label.visible = false
+	advance_prompt.visible = false
+	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _show_vn_ui() -> void:
-	# Dim strategy elements
-	if action_buttons:
-		action_buttons.visible = false
-	if stats_panel:
-		stats_panel.modulate.a = 0.5
-	
-	# Show VN elements
-	if character_container:
-		character_container.visible = true
-	if speaker_label:
-		speaker_label.visible = true
-	if advance_prompt:
-		advance_prompt.visible = true
-	
-	# Change background textures (TODO: implement background switching)
-	
-	# Set dialogue box to VN mode
-	if dialogue_label:
-		dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	action_buttons.visible = false
+	stats_panel.modulate.a = 0.5
+	character_container.visible = true
+	speaker_label.visible = true
+	advance_prompt.visible = true
+	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _play_event_chain(chain_path: String) -> void:
 	if chain_path.is_empty():
@@ -531,100 +485,52 @@ func _on_vn_display_updated(dialogue_data: Dictionary) -> void:
 	if dialogue_data.is_empty():
 		return
 	
-	# Update speaker
-	if speaker_label:
-		speaker_label.text = dialogue_data.get("speaker_name", "")
-	
-	# Update dialogue text
-	if dialogue_label:
-		dialogue_label.text = dialogue_data.get("line_spoken", "")
-	
-	# Update background (TODO: switch MainBackground and Foreground textures)
-	var bg_id = dialogue_data.get("background_id", "")
-	_update_vn_background(bg_id)
-	
-	# Update character portraits
-	var char_ids: Array = dialogue_data.get("on_screen_character_ids", [])
-	_update_vn_portraits(char_ids)
-	
-	# Update progress indicator on advance prompt
-	var index = dialogue_data.get("index", 0)
-	var total = dialogue_data.get("total", 0)
-	if advance_prompt:
-		advance_prompt.text = "Click to continue (%d/%d)" % [index + 1, total]
+	speaker_label.text = dialogue_data.get("speaker_name", "")
+	dialogue_label.text = dialogue_data.get("line_spoken", "")
+	_update_vn_background(dialogue_data.get("background_id", ""))
+	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
+	advance_prompt.text = "Click to continue (%d/%d)" % [
+		dialogue_data.get("index", 0) + 1,
+		dialogue_data.get("total", 0)
+	]
 
 func _update_vn_background(_bg_id: String) -> void:
-	# TODO: Load and set actual background textures to main_background and foreground
-	# For now, just a placeholder comment
-	# Example:
-	# if _bg_id == "camp_evening":
-	#     main_background.texture = load("res://assets/backgrounds/camp_evening.png")
-	#     foreground.texture = load("res://assets/backgrounds/camp_evening_fg.png")
 	pass
 
 func _update_vn_portraits(character_ids: Array) -> void:
-	if not character_container:
-		return
-	
-	# Clear existing portraits
 	for child in character_container.get_children():
 		child.queue_free()
-	
-	# Add portraits for on-screen characters
 	for char_id in character_ids:
 		if char_id is String:
-			var portrait = _get_or_create_portrait(char_id)
-			character_container.add_child(portrait)
+			character_container.add_child(_get_or_create_portrait(char_id))
 
 func _get_or_create_portrait(character_id: String) -> Control:
 	if portrait_cache.has(character_id):
 		return portrait_cache[character_id].duplicate()
 	
-	# Create placeholder portrait
 	var portrait = ColorRect.new()
 	portrait.custom_minimum_size = Vector2(150, 250)
-	
-	# Different colors for different characters
 	var hash_val = character_id.hash()
 	portrait.color = Color(
 		float(hash_val % 100) / 100.0,
 		float(int(hash_val / 100.0) % 100) / 100.0,
-		float(int(hash_val / 10000.0) % 100) / 100.0,
-		1.0
-	)
-	
+		float(int(hash_val / 10000.0) % 100) / 100.0, 1.0)
 	portrait_cache[character_id] = portrait
 	return portrait.duplicate()
 
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
-	if ui_mode != UIMode.VISUAL_NOVEL:
-		return
-	
-	if event is InputEventMouseButton:
+	if ui_mode == UIMode.VISUAL_NOVEL and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			if vn_component:
-				vn_component.advance()
+			vn_component.advance()
 
 func _on_vn_chain_completed() -> void:
-	print("TrainingScreen: EventChain completed")
-	
-	# Clear VN state
-	if vn_component:
-		vn_component.reset()
-	
-	# Play next chain in queue or return to strategy mode
+	vn_component.reset()
 	if event_chain_queue.size() > 0:
-		print("TrainingScreen: %d more chains in queue, playing next..." % event_chain_queue.size())
 		_play_next_queued_chain()
 	else:
-		print("TrainingScreen: All chains completed, returning to strategy mode")
 		is_playing_chain = false
 		_set_ui_mode(UIMode.STRATEGY)
-		
-		# Show completion message
-		if current_activity_result:
-			_display_activity_result(current_activity_result)
-		else:
-			dialogue_label.text = "All event chains completed. Choose your next action."
-		
+		dialogue_label.text = "All event chains completed. Choose your next action."
 		_update_ui()
+
+#endregion
