@@ -4,6 +4,8 @@ extends Control
 ## Displays squad state, world info, and allows activity selection
 ## Seamlessly transitions to VN mode for EventChain playback
 
+# const StatChangeAnimator = preload("res://src/strategy/ui/stat_change_animator.gd")
+
 enum UIMode {
 	STRATEGY,      # Normal activity buttons visible
 	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
@@ -53,6 +55,9 @@ var is_playing_chain: bool = false
 var vn_current_chain: EventChain
 var vn_current_index: int = 0
 var vn_character_ids_in_chain: Array[String] = []
+
+var stat_snapshot: Dictionary = {}
+var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
 
 func _ready() -> void:
 	_initialize_demo_scenario()
@@ -273,6 +278,9 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	
 	current_activity_result = null
 	
+	# Capture stat snapshot before executing
+	_capture_stat_snapshot()
+	
 	var turn_summary = game_scenario.execute_turn(activity)
 	
 	if turn_summary.has("error"):
@@ -298,7 +306,8 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	
 	# Play queued chains or update UI
 	if event_chain_queue.is_empty():
-		print("No event chains to play, updating UI")
+		print("No event chains to play, animating stat changes...")
+		await _animate_stat_changes()
 		_update_ui()
 	else:
 		print("Starting event chain playback...")
@@ -310,6 +319,89 @@ func _queue_triggerable_chains(results_list: Array[GenericResult]) -> void:
 			_queue_event_chain(result.event_chain_path)
 		else:
 			assert(false)
+
+#endregion
+
+#region Stat Animation
+
+func _capture_stat_snapshot() -> void:
+	if not game_scenario:
+		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
+		return
+	
+	var squad = game_scenario.player_squad
+	var world = game_scenario.world
+	
+	stat_snapshot = {
+		"money": squad.money,
+		"food": float(squad.food),
+		"tools": float(squad.travel_tools),
+		"karma": squad.karma,
+		"warriors": float(squad.get_living_warriors().size()),
+		"morale": squad.get_morale(),
+		"end_progression": world.end_progression
+	}
+	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
+
+func _calculate_stat_deltas() -> Dictionary:
+	if not game_scenario:
+		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
+		return {}
+	if stat_snapshot.is_empty():
+		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
+		return {}
+	
+	var squad = game_scenario.player_squad
+	var world = game_scenario.world
+	
+	var current_stats := {
+		"money": squad.money,
+		"food": float(squad.food),
+		"tools": float(squad.travel_tools),
+		"karma": squad.karma,
+		"warriors": float(squad.get_living_warriors().size()),
+		"morale": squad.get_morale(),
+		"end_progression": world.end_progression
+	}
+	print("[StatAnimation] Current stats: ", current_stats)
+	
+	var deltas := {}
+	for stat_name in stat_snapshot:
+		var old_value = stat_snapshot[stat_name]
+		var new_value = current_stats[stat_name]
+		var delta = new_value - old_value
+		if abs(delta) >= 0.01:  # Only include meaningful changes
+			deltas[stat_name] = delta
+			print("[StatAnimation] Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
+	
+	if deltas.is_empty():
+		print("[StatAnimation] No meaningful deltas detected (all changes < 0.01)")
+	else:
+		print("[StatAnimation] Total deltas to animate: ", deltas)
+	return deltas
+
+func _animate_stat_changes() -> void:
+	print("[StatAnimation] _animate_stat_changes() called")
+	var deltas = _calculate_stat_deltas()
+	if deltas.is_empty():
+		print("[StatAnimation] No deltas to animate, returning early")
+		return
+	
+	var ui_elements := {
+		"money": money_label,
+		"food": food_label,
+		"tools": tools_label,
+		"karma": karma_label,
+		"warriors": warriors_label,
+		"end_progression": end_prog_label,
+		"morale_bar": morale_bar,
+		"new_morale_value": game_scenario.player_squad.get_morale() if game_scenario else 0.0,
+		"stats_panel": stats_panel
+	}
+	
+	print("[StatAnimation] Starting animation with %d delta(s)" % deltas.size())
+	await stat_animator.animate_changes(self, deltas, ui_elements)
+	print("[StatAnimation] Animation completed")
 
 #endregion
 
@@ -586,9 +678,14 @@ func _vn_reset() -> void:
 func _vn_on_chain_completed() -> void:
 	_vn_reset()
 	if event_chain_queue.size() > 0:
+		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
 		_play_next_queued_chain()
 	else:
+		print("[StatAnimation] All chains completed, triggering stat animation...")
 		is_playing_chain = false
+		# Animate stat changes before returning to strategy mode
+		await _animate_stat_changes()
+		print("[StatAnimation] Returning to strategy UI mode")
 		_set_ui_mode(UIMode.STRATEGY)
 		dialogue_label.text = "All event chains completed. Choose your next action."
 		_update_ui()
