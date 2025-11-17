@@ -7,13 +7,15 @@ signal mission_completed(mission: Mission)
 signal ending_reached(ending: Ending)
 signal turn_advanced(turn: int)
 
-@export var world: World
-var player_squad: StrategicSquad
-@export var factions: Array[Faction] = []
 var triggerable_manager: TriggerableManager
+var player_squad: StrategicSquad
+
+@export var world: World
+@export var factions: Array[Faction] = []
 @export var endings: Array[Ending] = []
 @export var current_location: Location
 
+var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
 var ending_triggered: Ending = null
 
@@ -61,57 +63,45 @@ func execute_turn(activity: Activity) -> Dictionary:
 	if game_ended:
 		return {"error": "Game has ended"}
 	
-	if not activity.can_execute(player_squad, current_location):
-		var reason = activity.get_cannot_execute_reason(player_squad, current_location)
-		return {"error": reason}
+	var pre_activity_triggered = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+	for r in pre_activity_triggered:
+		_apply_result(r)
 	
-	var turn_summary = {
-		"activity": activity.trigger_name,
-		"pre_triggerables": [],
-		"activity_result": {},
-		"post_triggerables": [],
-		"missions_completed": [],
-		"ending": null
-	}
-	
-	# Execute pre and post-activity triggerables
-	turn_summary["pre_triggerables"] = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
-	for r in turn_summary["pre_triggerables"]:
-		_apply_result(r["result"])
-	
-	# The [Activity] itself executes
 	var activity_result = activity.execute(player_squad, world)
-	turn_summary["activity_result"] = {
-		"squad_changes": activity_result.squad_stat_changes,
-		"world_changes": activity_result.world_stat_changes,
-		"event_chain_path": activity_result.event_chain_path
-	}
 	_apply_result(activity_result)
 	activity_executed.emit(activity, activity_result)
 	
-	# Post-activity triggerables with updated context
-	turn_summary["post_triggerables"] = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
-	for r in turn_summary["post_triggerables"]:
-		_apply_result(r["result"])
+	var post_act_triggered = _execute_triggerables(_build_context(activity), StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+	for r in post_act_triggered:
+		_apply_result(r)
 	
-	# [Mission] completions based on changes from Activity, Event results
 	var completed_missions = _check_mission_completion()
 	for mission in completed_missions:
-		turn_summary["missions_completed"].append(mission.mission_name)
 		mission_completed.emit(mission)
 	
-	# Check for [Ending] conditions
 	var ending = _check_ending_conditions()
 	if ending:
 		game_ended = true
 		ending_triggered = ending
-		turn_summary["ending"] = ending.ending_name
 		ending_reached.emit(ending)
 	
 	world.advance_turn(activity.time_cost)
 	turn_advanced.emit(world.turn_count)
 	
-	return turn_summary
+	return {
+		"activity": activity.trigger_name,
+		"pre_triggerables": pre_activity_triggered,
+		"activity_result": {
+			"squad_changes": activity_result.squad_stat_changes,
+			"world_changes": activity_result.world_stat_changes,
+			"event_chain_path": activity_result.event_chain_path
+		},
+		"post_triggerables": post_act_triggered,
+		"missions_completed": completed_missions,
+		"ending": ending
+	}
+
+#region Helper Functions
 
 func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
 	triggerable_fired.emit(triggerable, result)
@@ -120,34 +110,20 @@ func _apply_result(result: GenericResult) -> void:
 	if result is ActivityResult and not result.location_changed.is_empty():
 		current_location = world.get_location_by_id(result.location_changed)
 	
-	for event_id in result.triggered_event_ids:
-		var event = triggerable_manager.get_by_id(event_id)
-		if event and event is GameEvent:
-			print("GameScenario: Triggering event '%s'" % event_id)
-			(event as GameEvent).trigger(player_squad, world)
-		else:
-			push_warning("GameScenario: Event '%s' not found in TriggerableManager" % event_id)
-	
-	# Apply world stat changes using proper enum key
 	if result.world_stat_changes.has(StrategyTypes.GlobalModifier.END):
 		world.end_progression += result.world_stat_changes[StrategyTypes.GlobalModifier.END]
 	
-	# Apply squad stat changes
 	for stat_key in result.squad_stat_changes:
 		var value = result.squad_stat_changes[stat_key]
 		match stat_key:
 			StrategyTypes.SquadProperty.MORALE:
 				player_squad.modify_morale(value)
-				print("GameScenario: Applied morale change: %+.1f (new: %.1f)" % [value, player_squad.get_morale()])
 			StrategyTypes.SquadProperty.FOOD_SUPPLIES:
 				player_squad.food += int(value)
-				print("GameScenario: Applied food change: %+d (new: %d)" % [int(value), player_squad.food])
 			StrategyTypes.SquadProperty.MOOD:
-				# Mood could map to money or karma depending on design
 				player_squad.money += value
-				print("GameScenario: Applied money change: %+.1f (new: %.1f)" % [value, player_squad.money])
 			_:
-				push_warning("GameScenario: Unhandled squad property: %s" % stat_key)
+				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
 
 func _build_context(activity: Activity = null) -> Dictionary:
 	var completed_mission_ids: Array[String] = []
@@ -163,21 +139,30 @@ func _build_context(activity: Activity = null) -> Dictionary:
 		"completed_missions": completed_mission_ids
 	}
 
-func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array:
-	var filter = func(t: Triggerable) -> bool:
+func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
+	var when_filter = func(t: Triggerable) -> bool:
 		return t is GameEvent and (t as GameEvent).when_to_trigger == when
 	
-	var triggerables = triggerable_manager.check_triggers(context, filter)
+	# Triggers from universal Triggerables (e.g., Scenario cutscene)
+	var triggerables: Array[Triggerable] = triggerable_manager.get_triggerables_triggered(context, when_filter)
+
+	# Trigger chains from selected Activity
+	if when == StrategyTypes.TriggerWhen.AFTER_ACTIVITY:
+		var activity: Activity = context.get("activity")
+		if activity:
+			for chain in activity.trigger_chains:
+				var chained_trigger = chain.another_trigger
+				var chance = chain.chance
+				if (chance < 1.0 and rng.randf() <= chance) or chance == 1.0:
+					triggerables.append(chained_trigger)
+
+	
 	_sort_triggerables_by_priority(triggerables)
 	
-	var results: Array = []
+	var results: Array[GenericResult] = []
 	for triggerable in triggerables:
 		var result = triggerable.trigger(player_squad, world)
-		results.append({
-			"triggerable_id": triggerable.trigger_id,
-			"triggerable_name": triggerable.trigger_name,
-			"result": result
-		})
+		results.append(result)
 	
 	return results
 
@@ -201,37 +186,7 @@ func _check_ending_conditions() -> Ending:
 	
 	return null
 
-func get_available_activities() -> Array[Activity]:
-	var available: Array[Activity] = []
-	
-	# Get all registered activities from triggerable manager
-	for triggerable in triggerable_manager.registered_triggerables:
-		if triggerable is Activity:
-			var activity = triggerable as Activity
-			# Check if activity type is available at current location
-			if activity.activity_type in current_location.available_activity_types:
-				if activity.can_execute(player_squad, current_location):
-					available.append(activity)
-	
-	return available
 
-func add_faction(faction: Faction) -> void:
-	factions.append(faction)
-
-func get_faction_by_id(faction_id: String) -> Faction:
-	for faction in factions:
-		if faction.faction_id == faction_id:
-			return faction
-	return null
-
-func add_ending(ending: Ending) -> void:
-	endings.append(ending)
-
-func is_game_ended() -> bool:
-	return game_ended
-
-func get_ending() -> Ending:
-	return ending_triggered
 
 func _sort_triggerables_by_priority(triggerables: Array[Triggerable]) -> void:
 	triggerables.sort_custom(func(a: Triggerable, b: Triggerable) -> bool:
@@ -239,3 +194,5 @@ func _sort_triggerables_by_priority(triggerables: Array[Triggerable]) -> void:
 		var b_pri = (b as GameEvent).emergency_priority if b is GameEvent else 999
 		return a_pri < b_pri
 	)
+
+#endregion
