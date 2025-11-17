@@ -29,8 +29,9 @@ func execute(squad: StrategicSquad, world: World) -> ActivityResult:
 	return _execute_generic(squad, world)
 
 func _execute_generic(_squad: StrategicSquad, _world: World) -> ActivityResult:
-	if not result:
-		result = ActivityResult.new({})
+	# if not result:
+	# 	result = ActivityResult.new({})
+	assert(result)
 	# if not event_chain_path.is_empty():
 	# 	result.event_chain_path = event_chain_path
 	# 	result.requires_async = true
