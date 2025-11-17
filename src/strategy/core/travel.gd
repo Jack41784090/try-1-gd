@@ -101,4 +101,3 @@ func get_all_reachable_locations(from_id: String, max_hops: int = -1) -> Array[S
 				queue.append([neighbor_id, current_depth + 1])
 	
 	return reachable
-

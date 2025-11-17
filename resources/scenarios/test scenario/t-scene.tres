@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b1oewsug2c7mh" path="res://src/strategy/triggerable/ending/script.gd" id="1_roluw"]
 [ext_resource type="Script" uid="uid://bcbf28h1wrvnl" path="res://src/strategy/core/faction.gd" id="2_iqtvy"]
 [ext_resource type="Script" uid="uid://clxbllr22dj1l" path="res://src/strategy/core/location.gd" id="4_0xci1"]
-[ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/game_scenario.gd" id="5_lywjj"]
+[ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/scenario.gd" id="5_lywjj"]
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="6_2k4hx"]
 
 [sub_resource type="Resource" id="Resource_adaw0"]
