@@ -1,17 +1,20 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=2 format=3 uid="uid://beutkj7d3y078"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=6 format=3 uid="uid://beutkj7d3y078"]
 
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_276cc"]
 [ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="2_any0a"]
+[ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_hhnhq"]
+
+[sub_resource type="Resource" id="Resource_xj4mn"]
+script = ExtResource("2_any0a")
+event_chain_path = "res://resources/event_chains/mysterious_stranger_event_chain.tres"
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 
 [resource]
 script = ExtResource("1_event")
+result = SubResource("Resource_xj4mn")
 trigger_id = "mysterious_stranger"
 trigger_name = "Mysterious Stranger"
 description = "A mysterious figure approaches during your patrol, offering unexpected aid."
-event_id = "mysterious_stranger"
-event_name = "Mysterious Stranger"
-event_chain_path = "res://resources/event_chains/mysterious_stranger_event_chain.tres"
-chance = 100.0
-when_to_trigger = 1
 repeats = 2
 emergency_priority = 1
-conditions = []

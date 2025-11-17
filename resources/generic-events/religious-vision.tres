@@ -1,14 +1,19 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=3 format=3 uid="uid://c1mm4dyt6uh7g"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=6 format=3 uid="uid://c1mm4dyt6uh7g"]
 
-[ext_resource type="Script" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
-[ext_resource type="Script" path="res://src/strategy/triggerable/conditon.gd" id="1_x2olr"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_x2olr"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="2_u7tu2"]
+[ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_g0isu"]
+
+[sub_resource type="Resource" id="Resource_pptxw"]
+script = ExtResource("2_u7tu2")
+event_chain_path = "res://resources/event_chains/religious_vision_event_chain.tres"
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 
 [resource]
 script = ExtResource("1_event")
-event_id = "religious_vision"
-event_name = "Religious Vision"
-event_chain_path = "res://resources/event_chains/religious_vision_event_chain.tres"
-emergency_priority = 2
+result = SubResource("Resource_pptxw")
 trigger_id = "religious_vision"
 trigger_name = "Religious Vision"
 description = "During prayer, you experience a profound vision that guides your path."
+emergency_priority = 2
