@@ -10,7 +10,7 @@ func register(triggerable: Triggerable) -> void:
 		registered_triggerables.append(triggerable)
 		_connect_signals(triggerable)
 
-func check_triggers(context: Dictionary, filter: Callable = func(_t): return true) -> Array[Triggerable]:
+func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t): return true) -> Array[Triggerable]:
 	var triggered: Array[Triggerable] = []
 	
 	for triggerable in registered_triggerables:
@@ -36,5 +36,5 @@ func _disconnect_signals(triggerable: Triggerable) -> void:
 	if triggerable.triggered.is_connected(_on_triggerable_triggered):
 		triggerable.triggered.disconnect(_on_triggerable_triggered)
 
-func _on_triggerable_triggered(result: Dictionary, triggerable: Triggerable) -> void:
-	triggerable_fired.emit(triggerable, result as Variant)
+func _on_triggerable_triggered(result: Variant, triggerable: Triggerable) -> void:
+	triggerable_fired.emit(triggerable, result)

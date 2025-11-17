@@ -52,7 +52,7 @@ func trigger(_squad: StrategicSquad, _world: World) -> MissionResult:
 		"reputation_changes": result.reputation_changes,
 		"squad_stat_changes": result.squad_stat_changes,
 		"world_stat_changes": result.world_stat_changes,
-		"triggered_event_ids": result.triggered_event_ids,
+		# "-": result.-,
 		"dialogue_scene_path": result.dialogue_scene_path
 	}
 	

@@ -7,7 +7,7 @@ class_name Triggerable extends Resource
 @export var trigger_chains: Array[TriggerChain] = []
 @export var repeats: int = -1
 @export var emergency_priority: int = 0
-@export var event_chain_path: String
+# @export var event_chain_path: String
 
 signal triggered(result: Dictionary)
 signal execution_started()
