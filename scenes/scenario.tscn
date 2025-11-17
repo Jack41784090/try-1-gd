@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://dmbcxxfr6jwmu"]
 
-[ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/core/training-gui.gd" id="1_w1g7x"]
-[ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_fnhso"]
-[ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_5lq21"]
+[ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/core/training-gui.gd" id="1_5eukr"]
+[ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
+[ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
 
 [node name="TrainingScreen" type="Control"]
 layout_mode = 3
@@ -11,7 +11,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_w1g7x")
+script = ExtResource("1_5eukr")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -23,13 +23,13 @@ grow_vertical = 2
 
 [node name="MainBackground" type="TextureRect" parent="PanelContainer"]
 layout_mode = 2
-texture = ExtResource("2_fnhso")
+texture = ExtResource("2_cfiyq")
 expand_mode = 2
 stretch_mode = 3
 
 [node name="Foreground" type="TextureRect" parent="PanelContainer"]
 layout_mode = 2
-texture = ExtResource("3_5lq21")
+texture = ExtResource("3_wm03m")
 expand_mode = 2
 stretch_mode = 3
 
