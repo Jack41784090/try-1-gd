@@ -1,15 +1,9 @@
-[gd_resource type="Resource" script_class="Activity" load_steps=7 format=3 uid="uid://dto2tvlqqylg"]
+[gd_resource type="Resource" script_class="Activity" load_steps=5 format=3 uid="uid://dto2tvlqqylg"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_t6tde"]
 [ext_resource type="Resource" uid="uid://bqbu8htfo0mli" path="res://resources/generic-activities/rest/result.tres" id="2_113es"]
 [ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/triggerable/activity/script.gd" id="2_a5rie"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_0vfv6"]
-[ext_resource type="Resource" uid="uid://beutkj7d3y078" path="res://resources/generic-events/mysterious-stranger.tres" id="5_ibr7l"]
-
-[sub_resource type="Resource" id="Resource_af6t0"]
-script = ExtResource("4_0vfv6")
-another_trigger = ExtResource("5_ibr7l")
-metadata/_custom_type_script = "uid://n8anhnv7t1lx"
 
 [resource]
 script = ExtResource("2_a5rie")
@@ -18,5 +12,4 @@ activity_type = 0
 trigger_id = "rest-generic"
 trigger_name = "Rest"
 description = "Make camp and allow the squad to recover from the rigors of the road. Essential for maintaining morale."
-trigger_chains = Array[ExtResource("4_0vfv6")]([SubResource("Resource_af6t0")])
 emergency_priority = 1
