@@ -507,7 +507,8 @@ func _play_next_queued_chain() -> void:
 
 	is_playing_chain = true
 	var chain_path = event_chain_queue.pop_front()
-	_play_event_chain(chain_path)
+	await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
+	
 
 #endregion
 
@@ -679,6 +680,7 @@ func _vn_reset() -> void:
 
 func _vn_on_chain_completed() -> void:
 	_vn_reset()
+	
 	if event_chain_queue.size() > 0:
 		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
 		_play_next_queued_chain()
