@@ -5,6 +5,10 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vf1d0"]
 shader = ExtResource("1_fw86c")
+shader_parameter/progress = 1.0
+shader_parameter/color_bands = 3.25
+shader_parameter/animation_speed = 1.25
+shader_parameter/auto_repeat = false
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vwxqn"]
 shader = ExtResource("2_vf1d0")
