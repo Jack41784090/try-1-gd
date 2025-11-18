@@ -599,10 +599,7 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	if travel_gui and game_scenario:
-		travel_gui.show_travel_menu(game_scenario)
-	else:
-		_execute_activity(StrategyTypes.ActivityType.TRAVEL)
+	travel_gui.show_travel_menu(game_scenario)
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -612,31 +609,21 @@ func _on_skip_pressed() -> void:
 		_execute_activity(StrategyTypes.ActivityType.REST)
 
 func _on_travel_confirmed(location_id: String) -> void:
-	if not game_scenario:
-		return
+	var travel_activity = _create_travel_activity(location_id)
+	travel_activity.result.location_changed = location_id
+	var travel_time = game_scenario.world.calculate_travel_time(
+		game_scenario.current_location.location_id,
+		location_id
+	)
+	if travel_time > 0:
+		travel_activity.time_cost = travel_time
 	
-	var travel_activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
-	if not travel_activity:
-		travel_activity = _create_travel_activity(location_id)
-	
-	if travel_activity:
-		if not travel_activity.result:
-			travel_activity.result = ActivityResult.new({})
-		travel_activity.result.location_changed = location_id
-		
-		var travel_time = game_scenario.world.calculate_travel_time(
-			game_scenario.current_location.location_id,
-			location_id
-		)
-		if travel_time > 0:
-			travel_activity.time_cost = travel_time
-		
-		travel_gui.hide_travel_menu()
-		_execute_activity_with_object(travel_activity)
+	travel_gui.hide_travel_menu()
+	_execute_activity_with_object(travel_activity)
 
 func _on_travel_cancelled() -> void:
-	if travel_gui:
-		travel_gui.hide_travel_menu()
+	# if travel_gui:
+	travel_gui.hide_travel_menu()
 
 func _create_travel_activity(location_id: String) -> Activity:
 	var activity = Activity.new()
