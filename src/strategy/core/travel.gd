@@ -16,27 +16,24 @@ func is_adjacent(from_id: String, to_id: String) -> bool:
 	return location.is_connected_to(to_id)
 
 func find_path(from_id: String, to_id: String) -> Array[String]:
+	assert(locations.has(from_id))
+	assert(locations.has(to_id));
+
 	if from_id == to_id:
 		return [from_id]
-	
-	if not locations.has(from_id) or not locations.has(to_id):
-		return []
 	
 	var queue: Array = [[from_id]]
 	var visited: Dictionary = {from_id: true}
 	
 	while queue.size() > 0:
 		var path: Array = queue.pop_front()
-		var current_id: String = path[path.size() - 1]
-		var current_location = get_location(current_id)
+		var current_pathloc_id: String = path[path.size() - 1]
+		var current_pathloc = get_location(current_pathloc_id)
+		assert(current_pathloc != null)
 		
-		if not current_location:
-			continue
-		
-		for neighbor_id in current_location.connected_location_ids:
+		for neighbor_id in current_pathloc.connected_location_ids:
 			if neighbor_id == to_id:
-				var final_path: Array[String] = []
-				final_path.append_array(path)
+				var final_path: Array[String] = path
 				final_path.append(to_id)
 				return final_path
 			
@@ -55,14 +52,17 @@ func calculate_path_travel_time(path: Array[String]) -> int:
 	var total_time = 0
 	
 	for i in range(path.size() - 1):
+		assert(locations.has(path[i]))
+		assert(locations.has(path[i + 1]));
+
 		var from_location = get_location(path[i])
 		var to_location = get_location(path[i + 1])
 		
-		if from_location and to_location:
-			var segment_time = from_location.calculate_base_travel_time(to_location)
-			if segment_time < 0:
-				return -1
-			total_time += segment_time
+		# if from_location and to_location:
+		var segment_time = from_location.calculate_base_travel_time(to_location)
+		if segment_time < 0:
+			return -1
+		total_time += segment_time
 	
 	return total_time
 

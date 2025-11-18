@@ -24,7 +24,7 @@ func calculate_base_travel_time(to_location: Location) -> int:
 	
 	var base_time = 1
 	
-	if type == StrategyTypes.LocationType.ROAD:
+	if self.type == StrategyTypes.LocationType.ROAD:
 		base_time -= 1
 	
 	if to_location.type == StrategyTypes.LocationType.ROAD:
