@@ -41,6 +41,7 @@ enum UIMode {
 @onready var investigate_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/NurseButton
 @onready var hold_mass_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/OutingButton
 @onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RaceButton
+@onready var travel_gui: TravelGUI = $TravelGUI
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
@@ -113,12 +114,32 @@ func _load_generic_events() -> Array[GameEvent]:
 
 func _load_generic_activities() -> Array[Activity]:
 	var activities: Array[Activity] = []
-	activities.append(load("res://resources/generic-activities/rest/rest.tres"))
-	activities.append(load("res://resources/generic-activities/drill.tres"))
-	activities.append(load("res://resources/generic-activities/patrol.tres"))
-	activities.append(load("res://resources/generic-activities/investigate.tres"))
-	activities.append(load("res://resources/generic-activities/hold-mass.tres"))
+	_collect_activity_resources("res://resources/generic-activities", activities)
+	print(activities)
 	return activities
+
+func _collect_activity_resources(base_path: String, target: Array[Activity]) -> void:
+	var dir := DirAccess.open(base_path)
+	if dir == null:
+		push_warning("TrainingScreen: Missing activity directory: %s" % base_path)
+		return
+	dir.list_dir_begin()
+	var entry = dir.get_next()
+	while entry != "":
+		if dir.current_is_dir():
+			if entry != "." and entry != "..":
+				_collect_activity_resources("%s/%s" % [base_path, entry], target)
+		elif entry.ends_with(".tres"):
+			var resource_path = "%s/%s" % [base_path, entry]
+			var resource = load(resource_path)
+			if resource and resource is Activity:
+				target.append(resource)
+			else:
+				push_warning("TrainingScreen: Skipping non-Activity resource: %s" % resource_path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+	if dialogue_box:
+		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
 
 
 
@@ -306,6 +327,10 @@ func _connect_signals() -> void:
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
 	
+	if travel_gui:
+		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
+		travel_gui.travel_cancelled.connect(_on_travel_cancelled)
+	
 	if game_scenario:
 		game_scenario.activity_executed.connect(_on_activity_executed)
 		game_scenario.turn_advanced.connect(_on_turn_advanced)
@@ -375,8 +400,8 @@ func _update_activity_buttons() -> void:
 	hold_mass_button.tooltip_text = _get_activity_tooltip(StrategyTypes.ActivityType.HOLD_MASS)
 	
 	travel_button.text = "Travel"
-	travel_button.disabled = true
-	travel_button.tooltip_text = "Travel system not yet implemented in this demo"
+	travel_button.disabled = false
+	travel_button.tooltip_text = "Travel to another location"
 
 func _get_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
 	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
@@ -574,7 +599,10 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.TRAVEL)
+	if travel_gui and game_scenario:
+		travel_gui.show_travel_menu(game_scenario)
+	else:
+		_execute_activity(StrategyTypes.ActivityType.TRAVEL)
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -582,6 +610,77 @@ func _on_end_pressed() -> void:
 func _on_skip_pressed() -> void:
 	for i in 5:
 		_execute_activity(StrategyTypes.ActivityType.REST)
+
+func _on_travel_confirmed(location_id: String) -> void:
+	if not game_scenario:
+		return
+	
+	var travel_activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
+	if not travel_activity:
+		travel_activity = _create_travel_activity(location_id)
+	
+	if travel_activity:
+		if not travel_activity.result:
+			travel_activity.result = ActivityResult.new({})
+		travel_activity.result.location_changed = location_id
+		
+		var travel_time = game_scenario.world.calculate_travel_time(
+			game_scenario.current_location.location_id,
+			location_id
+		)
+		if travel_time > 0:
+			travel_activity.time_cost = travel_time
+		
+		travel_gui.hide_travel_menu()
+		_execute_activity_with_object(travel_activity)
+
+func _on_travel_cancelled() -> void:
+	if travel_gui:
+		travel_gui.hide_travel_menu()
+
+func _create_travel_activity(location_id: String) -> Activity:
+	var activity = Activity.new()
+	activity.trigger_id = "travel-to-%s" % location_id
+	activity.trigger_name = "Travel"
+	activity.description = "Travel to another location"
+	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
+	activity.time_cost = 1
+	activity.result = ActivityResult.new({"location_changed": location_id})
+	return activity
+
+func _execute_activity_with_object(activity: Activity) -> void:
+	if not activity:
+		dialogue_label.text = "Activity not found or not registered in scenario."
+		return
+	
+	current_activity_result = null
+
+	_capture_stat_snapshot()
+	
+	var turn_summary = game_scenario.execute_turn(activity)
+	
+	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
+	print("Activity: %s" % turn_summary["activity"])
+	print(turn_summary)
+	
+	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
+	_queue_triggerable_chains(pre_triggerables)
+	
+	var activity_result_data = turn_summary.get("activity_result", {})
+	var activity_event_chain = activity_result_data.get("event_chain_path", "")
+	if not activity_event_chain.is_empty():
+		_queue_event_chain(activity_event_chain)
+	
+	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
+	_queue_triggerable_chains(post_triggers)
+	
+	if event_chain_queue.is_empty():
+		print("No event chains to play, animating stat changes...")
+		await _animate_stat_changes()
+		_update_ui()
+	else:
+		print("Starting event chain playback...")
+		_play_next_queued_chain()
 
 func _on_short_pressed() -> void:
 	var summary_text = "=== Campaign Summary ===\n"
