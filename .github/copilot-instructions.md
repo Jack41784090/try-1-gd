@@ -1,390 +1,88 @@
 # CONDOR - Godot/GDScript Project
 
 ## Project Overview
-**CONDOR** is a squad-based narrative strategy game with turn-based tactical combat. The project consists of two major layers:
-1. **Tactical Combat System**: Turn-based squad battles with entity stats, AI logic, weapons, armor, and skill effects
-2. **Strategic Campaign Layer**: Activity-based turn management, event system, mission progression, and faction dynamics
-3. Check additional information about this project in .obsidian/AI-Notes
+**CONDOR** is a squad-based narrative strategy game with:
+1. **Tactical Combat**: Turn-based battles with entity stats, AI logic, weapons/armor, skills
+2. **Strategic Campaign**: Activities, events, missions, factions
+3. See `.obsidian/AI-Notes` for additional details
 
-Originally migrated from TypeScript/Roblox to Godot 4.x/GDScript.
+Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 
-## Architecture (Hierarchical)
+## Architecture
 
-### Tactical Combat Layer
-```
-SquadBattle (battle orchestrator)
-└── Squad (entity positioning & coordination)
-    └── SquadEntity (combat units with stats/equipment)
-        ├── SquadLogic (AI decision-making with specialized subclasses)
-        ├── SquadWeapon (damage calculation)
-        ├── SquadArmour (damage mitigation)
-        └── OneClash (combat resolution with hit/pierce rolls)
-```
+### Tactical: `SquadBattle → Squad → SquadEntity → SquadLogic/Weapon/Armour → OneClash`
+**Flow**: `squad_actions() → squad_attack() → action() → choose_action() → commit()` → `Array[EntityUpdate]`
 
-**Key Data Flow**: `SquadBattle.squad_actions()` → `Squad.squad_attack()` → `SquadEntity.action()` → `SquadLogic.choose_action()` → `OneClash.commit()` → returns `Array[EntityUpdate]`
+### Strategic: `GameScenario → World/EventManager/Factions/StrategicSquad`
+**Flow**: `execute_turn(Activity) → execute() → check_triggers() → advance_turn()`
 
-### Strategic Campaign Layer
-```
-GameScenario (campaign orchestrator)
-├── World (global state, locations, turn tracking)
-├── EventManager (trigger-based event system)
-├── Factions[] (allegiances with mission trees)
-│   └── Missions[] (dependency graph nodes)
-└── StrategicSquad (out-of-combat squad representation)
-    ├── Warriors[] (individual units with morale/religion)
-    ├── Resources (Money, Food, Travel Tools)
-    └── Location (current position in world)
-```
+### Bridge: `StrategicSquad.to_combat_squad()` ↔ `from_combat_results()`
 
-**Key Data Flow**: `GameScenario.execute_turn(Activity)` → `Activity.execute()` → `EventManager.check_triggers()` → `Events fire` → `Mission completion check` → `Ending check` → `World.advance_turn()`
+## Godot Patterns
 
-### Combat ↔ Strategy Bridge Pattern
-The strategic layer invokes combat when needed:
-- `StrategicSquad.to_combat_squad()` → converts to `Squad` with `SquadEntity[]`
-- Run combat via `SquadBattle`
-- `StrategicSquad.from_combat_results()` → updates `Warriors[]` from `EntityUpdate[]`
+### Classes
+- **RefCounted**: Logic classes (`SquadBattle`, `Squad`, `TriggerableManager`, `TravelGraph`)
+- **Resource**: Serializable data (`SquadEntity`, `Skill`, `World`, `Mission`, `GameScenario`, `Triggerable`)
+- **Consideration-based AI**: Current system uses `SimplifiedSquadLogic` with `Consideration` pattern (no nested logic subclasses)
 
-## Critical Godot Patterns
-
-### Class System
-- **Non-Node classes**: Use `extends RefCounted` + `class_name` for global registration
-  - Examples: `SquadBattle`, `Squad`, `SquadWeapon`, `SquadArmour`, `SquadLogic`
-- **Resource classes**: Use `extends Resource` + `class_name` for serializable data
-  - Examples: `SquadEntity`, `Skill`, `StatusEffect`, `EntityBaseStats`
-- **Nested classes**: Defined inside parent class (see `SquadLogic.FrontlineLogic`, `SquadLogic.ArcherLogic`)
-
-### Type System Conventions
-- **Tactical Combat**: Enums in `SquadBattleTypes` (globally accessible via `SquadBattleTypes.Reality.HP`, `SquadBattleTypes.SquadEntityAction.ATTACK`, etc.)
-- **Strategic Campaign**: Enums in `StrategyTypes` (accessible via `StrategyTypes.LocationType.CITY`, `StrategyTypes.Religion.CATHOLIC`, etc.)
-- Use typed arrays where possible: `Array[EntityUpdate]`, `Array[Warrior]`, `Array[Mission]`, `Array[TriggerCondition]`
-- Dictionary-based configs for initialization (see demo files for patterns)
-- **Prefer typed enums over String**: Use `StrategyTypes.Religion` not `String`, `StrategyTypes.ActivityType` not `String`
-- **Prefer typed classes over Dictionary**: Use `ActivityResult` not raw `Dictionary` when structure is known
-
-### Resource Files (.tres)
-- Store skill/status effect configurations as Godot resources
-- See `resources/test-skill.tres` for skill definition pattern
-- Can be loaded with `preload()` or drag-dropped in inspector
+### Types
+- **Enums**: `SquadBattleTypes.Reality.HP`, `StrategyTypes.LocationType.CITY`
+- **Typed arrays**: `Array[EntityUpdate]`, `Array[Warrior]`
+- **Prefer enums over String**, typed classes over Dictionary
 
 ## Core Systems
 
-### Tactical Combat Systems
+### Combat
+- **Stats**: Reality values (HP, Force, etc.) calculated from base stats via `calculate_reality_value()`
+- **Changeable**: HP, STA, ORG, LOC modified via `mod_changeable_stat()` → `EntityChange`
+- **Resolution**: Hit roll → Pierce roll → Damage → Skill effects → `Array[EntityUpdate]`
+- **AI Logic**: Uses `SimplifiedSquadLogic` with `Consideration` pattern (scores actions/targets)
+- **Skills/Status**: One-time vs persistent effects via `StatusEffectEventBus` autoload singleton
 
-#### Entity Stats System
-**Reality Values** (calculated from base stats): HP, Force, Mana, Precision, Maneuver, Guts, etc.
-- Calculated via `SquadEntity.calculate_reality_value(SquadBattleTypes.Reality.HP)`
-- Formula examples: `HP = (endurance * 5) + (size * 2)`, `Force = (strength * 2) + (speed * 1) + (size * 1)`
+### Strategy
+- **Activities**: `REST`, `DRILL`, `TRAVEL`, `PATROL`, `INVESTIGATE`, `HOLD_MASS`
+- **Results**: `ActivityResult` extends `GenericResult` with `squad_stat_changes`, `event_chain_path`, `requires_async`
 
-**Changeable Stats**: HP, STA, ORG (organization/morale), LOC (location in squad formation)
-- Clamped between floor/ceiling via `get_floor_changeable_stat()` / `get_ceiling_changeable_stat()`
-- Modified via `mod_changeable_stat()` which returns `EntityChange` objects
+- **TriggerCondition**: `LOCATION`, `LOCATION_TYPE`, `WARRIOR_STATUS`, `SQUAD_STATUS`, `ACTIVITY_TYPE`, `TIME`, `MISSION_STATUS`, `COMPOUND` (nested AND/OR)
+- **EventManager**: Checks events each turn by priority
+- **Results**: `GenericResult` (base) → `ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`
 
-#### Combat Resolution (OneClash)
-1. **Hit Roll**: `weapon.hit_value` vs `armour.DV` → determines if attack connects
-2. **Pierce Roll**: `weapon.penetration_value` vs `armour.PV` → determines if armor is bypassed
-3. **Damage Calculation**: Apply weapon damage with skill effects
-4. **Skill Effect Application**: Triggers on successful hits (e.g., Frontline Strike +10% Force damage)
+- **Triggerable** (base class): `check_conditions() → can_trigger() → trigger() → execute()`
+  - **GameEvent**: `chance`, `repeats`, `times_triggered`, `emergency_priority`
+  - **Mission**: `prerequisite_mission_ids`, `postrequisite_mission_ids`, `check_completion()`, `complete()`
+  - **Ending**: `narrative_text`, `epilogue_scene_paths`
+- **Async Pattern**: Set `requires_async = true`, `event_chain_path` in result, emit signals for scene manager
+- **TriggerableManager**: Central registry with `register()`, `check_triggers()`, `get_by_id()`
 
-All combat updates return `Array[EntityUpdate]` where `EntityUpdate(source_id, target_id, EntityChange)`
+- **Missions**: Locked → Unlocked → Completed/Failed
+- **Dependency**: `prerequisites → mission → postrequisites`
+- **Completion Effects**: `squad_stats`, `world_stats`, `reputation`, `trigger_events`
+- **Faction Reputation**: Modified by activities/events
 
-#### AI Logic System
-Base class `SquadLogic` with `choose_action()` and `choose_reaction()` methods.
-
-**Specialized AI Types** (nested classes in `logic.gd`):
-- `FrontlineLogic`: Aggressive melee (attacks from front, moves forward if ORG > 50%, has special strike skill)
-- `ArcherLogic`: Defensive ranged (retreats if front line falls, stays in back positions)
-- `AbsurdLogic`: Test AI (always forward/retreat)
-- `AdjustWeaponTestLogic`: Optimizes position based on weapon range
-
-**Factory Pattern**: In `Squad._init()`, logic types instantiated by string matching:
-```gdscript
-match logic_type:
-    "frontline": logic = SquadLogic.FrontlineLogic.new(...)
-    "archer": logic = SquadLogic.ArcherLogic.new(...)
-```
-
-#### Skill & Status Effect System
-**Skills**: One-time effects triggered by actions (e.g., basic attack)
-**Status Effects**: Persistent effects with duration, triggered by event bus signals
-
-Event bus pattern: `StatusEffectEventBus` is autoloaded singleton for decoupled event handling (see `project.godot`)
-
-### Strategic Campaign Systems
-
-#### Activity System
-Activities are player actions that consume turns. Base class `Activity` with virtual `execute()` method.
-
-**Activity Types** (enum `StrategyTypes.ActivityType`):
-- `REST`: Recovers morale, costs food
-- `DRILL`: Improves combat stats, costs morale
-- `TRAVEL`: Moves between locations, triggers travel events
-- `PATROL`: Improves location stability, gains reputation
-- `INVESTIGATE`: Discovers missions/locations, costs money
-- `HOLD_MASS`: Religious ceremony, affects morale by religion
-
-**Factory Pattern**: `Activity.create_activity(ActivityType)` returns specific subclass
-
-**Result Pattern**: All activities return `ActivityResult` (extends `GenericResult`) with:
-- `squad_stat_changes: Dictionary` - Squad resource modifications
-- `world_stat_changes: Dictionary` - World state modifications
-- `triggered_event_ids: Array[String]` - Events to fire
-- `event_chain_path: String` - Path to EventChain resource for VN presentation
-- `requires_async: bool` - Whether result requires async scene playback
-- `location_changed: String` - New location ID if travel occurred
-
-#### Event & Trigger System
-Events are narrative occurrences checked before/after activities.
-
-**TriggerCondition** types (enum `TriggerCondition.ConditionType`):
-- `LOCATION`: Specific location ID check
-- `LOCATION_TYPE`: Location category check (City, Town, etc.)
-- `WARRIOR_STATUS`: Warrior attributes (religion count, morale range)
-- `SQUAD_STATUS`: Squad resources (money, food, morale, karma)
-- `ACTIVITY_TYPE`: Current activity being performed
-- `TIME`: Turn number range
-- `MISSION_STATUS`: Mission completion state
-- `COMPOUND`: AND/OR logic combining multiple conditions
-
-**Composite Pattern**: Conditions can nest infinitely:
-```gdscript
-var condition = TriggerCondition.new()
-condition.condition_type = TriggerCondition.ConditionType.COMPOUND
-condition.parameters = {
-    "operator": "AND",
-    "subconditions": [
-        {"type": "SQUAD_STATUS", "parameters": {"squad_morale_max": 50.0}},
-        {"type": "LOCATION_TYPE", "parameters": {"location_type": StrategyTypes.LocationType.CITY}}
-    ]
-}
-```
-
-**EventManager**: Checks all registered events each turn, sorts by emergency priority
-
-#### Result Type Hierarchy
-All strategic results inherit from `GenericResult` base class (inner class in `StrategyTypes`):
-
-**GenericResult** (base class):
-- `squad_stat_changes: Dictionary` - Modifications to squad resources
-- `world_stat_changes: Dictionary` - Modifications to world state
-- `event_chain_path: String` - Path to EventChain resource for VN presentation
-- `requires_async: bool` - Whether result needs async scene playback
-- `triggered_event_ids: Array[String]` - Event IDs to fire
-- `modify_squad_stat(stat_name: String, value: float)` - Helper to accumulate stat changes
-- `modify_world_stat(stat_name: String, value: float)` - Helper to accumulate stat changes
-- `trigger_event(event_id: String)` - Add event ID to trigger list
-- `has_event_chain() -> bool` - Check if EventChain should be played
-
-**ActivityResult** (extends GenericResult):
-- `location_changed: String` - New location ID if travel occurred
-
-**EventResult** (extends GenericResult):
-- `event_id: String` - Unique event identifier
-- `event_name: String` - Display name
-- `choices: Array[EventChoice]` - Player choices (if not auto-resolved)
-- `immediate_effects: Dictionary` - Effects to apply immediately
-- `auto_resolved: bool` - Whether event auto-resolves or requires player choice
-- `add_choice(choice: EventChoice)` - Add player choice option
-
-**MissionResult** (extends GenericResult):
-- `mission_id: String` - Unique mission identifier
-- `unlocked_missions: Array[String]` - Mission IDs unlocked by completion
-
-**EndingResult** (extends GenericResult):
-- `ending_id: String` - Unique ending identifier
-- `ending_name: String` - Display name
-- `description: String` - Ending description
-
-#### Triggerable Pattern (Base Class)
-Events, Missions, and Endings share a common "check condition then execute" pattern via the `Triggerable` base class.
-
-**Base Class** (`Triggerable` extends `Resource`):
-- Located at `src/strategy/triggerable/script.gd`
-- `trigger_id: String` - Unique identifier
-- `trigger_name: String` - Display name
-- `description: String` - Detailed description
-- `conditions: Array[TriggerCondition]` - Conditions to check before triggering
-- `check_conditions(context: Dictionary) -> bool` - Evaluates all conditions
-- `can_trigger(context: Dictionary) -> bool` - Virtual method for additional trigger logic
-- `trigger(squad: StrategicSquad, world: World) -> GenericResult` - Executes and returns result
-- `execute(squad: StrategicSquad, world: World) -> Variant` - Virtual method to override
-- `add_condition(condition: TriggerCondition)` - Helper to add conditions
-
-**Signals for Async Execution**:
-- `triggered(result: Dictionary)` - Emitted when trigger fires
-- `execution_started()` - Emitted before execution begins
-- `execution_completed(result: Dictionary)` - Emitted after execution finishes (for async scenes)
-
-**Subclasses**:
-- `GameEvent` (`src/strategy/triggerable/game-event/script.gd`): Adds `event_id`, `event_name`, `event_chain_path`, `chance`, `repeats`, `when_to_trigger`, `emergency_priority`, `times_triggered`
-- `Mission` (`src/strategy/triggerable/mission/script.gd`): Adds `mission_id`, `mission_name`, prerequisite/postrequisite graph, completion effects, unlock state (`is_unlocked`, `is_completed`, `is_failed`)
-- `Ending` (`src/strategy/triggerable/ending/script.gd`): Adds `ending_id`, `ending_name`, `narrative_text`, `epilogue_scene_paths`
-
-**GameEvent Specifics**:
-- `times_triggered: int` - Tracks how many times event has fired
-- `can_trigger()` - Checks repeats limit and random chance before base conditions
-- `trigger()` - Increments `times_triggered`, auto-completes execution if no event_chain_path
-- `increment_trigger_count()`, `reset_trigger_count()` - Manual trigger count management
-
-**Mission Specifics**:
-- `check_unlock(completed_mission_ids: Array[String]) -> bool` - Check if prerequisites met
-- `unlock()` - Mark mission as unlocked
-- `complete() -> MissionResult` - Mark completed, apply effects, unlock postrequisites
-- `fail()` - Mark mission as failed
-- `reset()` - Clear all state flags
-- `check_completion(context: Dictionary) -> bool` - Check if finish conditions met
-- Helper methods: `add_prerequisite()`, `add_postrequisite()`, `set_completion_squad_effect()`, etc.
-
-**Ending Specifics**:
-- `trigger()` - Returns EndingResult, auto-completes if no epilogue scenes
-- `execute()` - Delegates to trigger()
-
-**Async Execution Pattern**:
-When a Triggerable requires scene playback (dialogue, battle, cutscene):
-1. Set `requires_async = true` in result object
-2. Set `event_chain_path` or `dialogue_scene_path` field
-3. Emit `triggered` signal but NOT `execution_completed`
-4. External scene manager loads and plays scene
-5. When scene finishes, emit `execution_completed` signal manually
-
-**TriggerableManager**: Unified manager for Events, Missions, and Endings:
-- Located at `src/strategy/triggerable/manager.gd`
-- `registered_triggerables: Array[Triggerable]` - All registered triggerables
-- `register(triggerable: Triggerable)` - Add triggerable and connect signals
-- `check_triggers(context: Dictionary, filter: Callable) -> Array[Triggerable]` - Find matching triggerables
-- `get_by_id(trigger_id: String) -> Triggerable` - Retrieve by ID
-- `triggerable_fired` signal - Emitted when any triggerable fires
-- Automatically connects to all triggerable signals for centralized event handling
-
-#### Mission & Faction System
-Missions are objectives organized in dependency graphs per faction.
-
-**Mission States**:
-- Locked: Prerequisites not met
-- Unlocked: Available to pursue
-- Completed: Finish conditions met
-- Failed: Mission no longer achievable
-
-**Dependency Graph**: `prerequisite_mission_ids` → current mission → `postrequisite_mission_ids`
-
-**Mission Completion Effects** (`completion_effects` Dictionary):
-- `squad_stats: Dictionary` - Modify squad resources (money, food, morale, etc.)
-- `world_stats: Dictionary` - Modify world state (end_progression, global modifiers)
-- `reputation: Dictionary` - Change faction reputation by faction_id
-- `trigger_events: Array[String]` - Event IDs to trigger on completion
-
-**Mission Completion Flow**:
-1. `Mission.check_completion(context)` evaluates finish conditions
-2. `Mission.complete()` called by `Faction.check_mission_completions()`
-3. Returns `MissionResult` with all effects
-4. `Faction.update_mission_graph()` unlocks postrequisite missions
-5. Effects applied by GameScenario or calling code
-
-**Faction Reputation**: Tracked per faction, modified by activities and events
-
-#### Location & Travel System
-Locations form an adjacency graph instead of being fully connected.
-
-**Location Connections**:
-- `connected_location_ids: Array[String]` - IDs of adjacent locations
-- `is_connected_to(location_id: String) -> bool` - Check adjacency
-- `add_connection(location_id: String)` - Add bidirectional or directed edge
-- Connections manually configured or procedurally generated
-
-**TravelGraph Helper Class**:
-- `add_location(location: Location)` - Register location in graph
-- `find_path(from_id: String, to_id: String) -> Array[String]` - BFS pathfinding
-- `calculate_path_travel_time(path: Array[String]) -> int` - Sum travel time per segment
-- `get_distance(from_id: String, to_id: String) -> int` - Hop count
-- `get_all_reachable_locations(from_id: String, max_hops: int) -> Array[String]` - BFS with depth limit
-- `is_adjacent(from_id: String, to_id: String) -> bool` - Direct connection check
-
-**Travel Time Calculation** (per segment):
-- Base time: 1 turn
-- ROAD locations: -1 turn (min 1)
-- Low stability (<50): +1 turn
-- Calculated via `Location.calculate_base_travel_time(to_location)`
-
-**TravelActivity Pathfinding**:
-- If destination is adjacent: Travel directly
-- If destination is NOT adjacent: Use `World.find_path()` to get route, travel to first waypoint
-- Each travel action moves one hop along the path
-- Player sees narrative: "Traveled to X, en route to Y (N more steps)"
-
-**World Integration**:
-- `World.travel_graph: TravelGraph` - Maintained automatically
-- `World.add_location(location)` - Adds to both locations array and travel graph
-- `World.build_travel_graph()` - Rebuilds graph from current locations
-- `World.find_path(from, to)`, `World.calculate_travel_time(from, to)`, `World.get_reachable_locations(from)` - Delegate to TravelGraph
-
-#### World State
-Global game state tracking:
-- Turn counter
-- Location graph (connected nodes)
-- Global modifiers (五行: Metal, Wood, Water, Fire, Earth)
-- End progression value
+- **Travel**: Adjacency graph with `TravelGraph.find_path()` BFS pathfinding
+- **Travel Time**: Base 1 turn, modified by location type and stability
+- **World State**: Turn counter, location graph, global modifiers (五行), end progression
 
 #### Bridge to Combat
 **Strategic → Tactical** (not yet fully implemented):
 ```gdscript
 func to_combat_squad() -> Squad:
     # Convert Warriors[] to SquadEntity configs
-    # Preserve formation, equipment, stats
-    # Return Squad ready for SquadBattle
 ```
 
 **Tactical → Strategic** (not yet fully implemented):
 ```gdscript
 func from_combat_results(updates: Array[EntityUpdate]):
-    # Apply HP changes to warriors
-    # Update morale from ORG changes
-    # Mark dead warriors
-    # Remove casualties from squad
+    # Apply HP/ORG changes, mark casualties
 ```
 
-#### Visual Novel System Components
-Located in `src/strategy/vn/`, provides narrative presentation for activities, events, missions, and endings.
+#### VN System
+**EventChain** (Resource): Contains `chain_id`, `character_ids`, `dialogues[]`
+- `load_from_json_file(path)` / `load_from_json_string(json)`
 
-**EventChain** (Resource class at `src/strategy/vn/event_chain.gd`):
-- `chain_id: String` - Unique identifier
-- `chain_name: String` - Display name
-- `character_ids: Array[String]` - All characters appearing in chain
-- `dialogues: Array` - Array of Dialogue resources
-- `_init(config: Dictionary)` - Initialize from dictionary config
-- `set_character_ids(ids: Array[String])` - Helper to set character list
-- `set_dialogues(dialogue_list: Array)` - Helper to set dialogue list
-- `get_dialogue_count() -> int` - Number of dialogues in chain
-- `get_all_character_ids() -> Array[String]` - All unique character IDs
-- `static load_from_json_file(file_path: String) -> EventChain` - Load from JSON file
-- `static load_from_json_string(json_string: String) -> EventChain` - Load from JSON string
+**Dialogue** (Resource): `speaker_name`, `line_spoken`, `on_screen_character_ids`, `background_id`, `triggers`
 
-**Dialogue** (Resource class at `src/strategy/vn/dialogue.gd`):
-- `on_screen_character_ids: Array[String]` - Characters visible in this dialogue
-- `speaker_name: String` - Who is speaking
-- `line_spoken: String` - The dialogue text
-- `background_id: String` - Background image identifier
-- `triggers: Array` - Trigger effects at specific text positions
-- `_init(config: Dictionary)` - Initialize from dictionary, parses "speak" object format
-- `set_on_screen_character_ids(ids: Array[String])` - Helper to set character list
-- `has_triggers() -> bool` - Check if dialogue has trigger effects
-- `get_trigger_at_position(text_position: String) -> Dictionary` - Get trigger for position
-
-**Dialogue Format**: Supports "speak" object format from JSON:
-```gdscript
-{
-    "on_screen_character_ids": ["char1", "char2"],
-    "background": "bg_id",
-    "speak": {
-        "Character Name": "Dialogue text here",
-        "triggers": [...]
-    }
-}
-```
-
-**EventChain → Result Integration**:
-- Activities, Events, Missions, Endings can set `event_chain_path` in their results
-- `GenericResult.has_event_chain() -> bool` checks if path is set
-- When `event_chain_path` is set, `requires_async = true` should also be set
-- UI layer loads EventChain resource and plays dialogues sequentially
+**Integration**: Results set `event_chain_path` + `requires_async = true` → UI loads and plays chain
 
 ## Project-Specific Conventions
 
@@ -407,8 +105,8 @@ Avoid comments unless Godot documentation (`## Doc comments`)
 
 ### Naming
 - Classes: PascalCase with prefixes (`SquadEntity`, `SquadBattleTypes`)
-- Files: snake_case matching class name (`squad_entity.gd`, `types.gd`)
-- Nested classes: Full path reference (`SquadLogic.FrontlineLogic`)
+- Files: snake_case or kebab-case matching class name (`squad_entity.gd`, `types.gd`, `_script.gd`)
+- Nested classes: Defined inline (e.g., `SimplifiedSquadLogic` contains logic for considerations)
 
 ### Entity Update Pattern
 All state changes return `EntityUpdate` objects containing `EntityChange`:
@@ -507,56 +205,14 @@ my_array = config.get("items", [] as Array[String])  # ❌ STILL WRONG: Cast hap
 my_array = config.get("items", []) as Array[String]  # ❌ STILL WRONG: .get() already returned untyped Array
 ```
 
-**✅ CORRECT Solutions:**
-
-**Method 1: Iterative Assignment (Most Reliable)**
+**✅ CORRECT Solution (Iterative Assignment):**
 ```gdscript
 var my_array: Array[String] = []
 var raw_data = config.get("items", [])
 if raw_data is Array:
     for item in raw_data:
-        if item is String:  # Type check each element
+        if item is String:
             my_array.append(item)
 ```
-
-**Method 2: Helper Method**
-```gdscript
-# In the class
-func set_items(items: Array[String]) -> void:
-    my_array.clear()
-    my_array.append_array(items)  # append_array from typed param is safe
-
-# Usage - caller must provide typed array
-var items: Array[String] = ["a", "b", "c"]
-obj.set_items(items)
-```
-
-**Method 3: Two-step with Clear Intermediate**
-```gdscript
-var temp_array = config.get("items", [])
-var my_array: Array[String] = []
-if temp_array is Array:
-    for val in temp_array:
-        my_array.append(val if val is String else "")
-```
-
-**When Loading from JSON/Dictionary:**
-```gdscript
-# ❌ NEVER do this:
-character_ids = data.get("character_ids", [] as Array[String])
-
-# ✅ ALWAYS do this:
-var raw_ids = data.get("character_ids", [])
-if raw_ids is Array:
-    for id_val in raw_ids:
-        if id_val is String:
-            character_ids.append(id_val)
-```
-
-**Why This Matters:**
-- `Dictionary.get()` always returns untyped Variant
-- Type casts (`as Array[String]`) don't convert, they just assert/fail
-- Godot's type system is strict at assignment boundaries
-- **This error will appear at compile time and break the code completely**
 
 **Golden Rule:** Never directly assign from Dictionary.get(), JSON parsing, or any untyped source to a typed array variable. Always iterate and append with type checking.
