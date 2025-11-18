@@ -59,8 +59,38 @@ var vn_character_ids_in_chain: Array[String] = []
 var stat_snapshot: Dictionary = {}
 var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
 
+@export var is_demo_scenario: bool = true
+
+var _demo_values: Dictionary = {
+	"city": {
+		"location_id": "test_city",
+		"location_name": "Ravenna",
+		"development": 75,
+		"stability": 85.0
+	},
+	"village": {
+		"location_id": "test_village",
+		"location_name": "Countryside",
+		"development": 30,
+		"stability": 60.0
+	},
+	"squad": {
+		"squad_id": "player_squad",
+		"squad_name": "The Condors",
+		"money": 150.0,
+		"food": 20,
+		"travel_tools": 8,
+		"karma": 10.0,
+		"starting_location_id": "test_city"
+	},
+	"world": {
+		"turn_count": 0,
+		"end_progression": 0.0
+	}
+}
+
 func _ready() -> void:
-	_initialize_demo_scenario()
+	_initialize_scenario()
 	_connect_signals()
 	_setup_dialogue_box_input()
 	_set_ui_mode(UIMode.STRATEGY)
@@ -68,49 +98,76 @@ func _ready() -> void:
 
 #region Initialization
 
-func _initialize_demo_scenario() -> void:
-	var test_world = World.new()
-	test_world.turn_count = 0
-	test_world.end_progression = 0.0
+func _initialize_scenario() -> void:
+	if is_demo_scenario:
+		_initialize_demo_scenario()
+	else:
+		push_warning("Non-demo scenario initialization not implemented yet")
+
+func _load_generic_events() -> Array[GameEvent]:
+	var events: Array[GameEvent] = []
+	events.append(load("res://resources/generic-events/faction-attention.tres"))
+	events.append(load("res://resources/generic-events/religious-vision.tres"))
+	events.append(load("res://resources/generic-events/mysterious-stranger.tres"))
+	return events
+
+func _load_generic_activities() -> Array[Activity]:
+	var activities: Array[Activity] = []
+	activities.append(load("res://resources/generic-activities/rest/rest.tres"))
+	activities.append(load("res://resources/generic-activities/drill.tres"))
+	activities.append(load("res://resources/generic-activities/patrol.tres"))
+	activities.append(load("res://resources/generic-activities/investigate.tres"))
+	activities.append(load("res://resources/generic-activities/hold-mass.tres"))
+	return activities
+
+
+
+func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
+	var location = Location.new()
+	location.location_id = location_id
+	location.location_name = location_name
+	location.type = location_type
+	location.development = development
+	location.stability = stability
+	for activity_type in activity_types:
+		location.add_activity_type(activity_type)
+	return location
+
+func _create_locations_with_connections(location_configs: Array[Dictionary], connections: Array[Array]) -> Array[Location]:
+	var locations: Array[Location] = []
+	for config in location_configs:
+		var location = _create_location(
+			config.get("location_id", ""),
+			config.get("location_name", ""),
+			config.get("type", StrategyTypes.LocationType.CITY),
+			config.get("development", 0),
+			config.get("stability", 0.0),
+			config.get("activity_types", [])
+		)
+		locations.append(location)
 	
-	var city_location = Location.new()
-	city_location.location_id = "test_city"
-	city_location.location_name = "Ravenna"
-	city_location.type = StrategyTypes.LocationType.CITY
-	city_location.development = 75
-	city_location.stability = 85.0
-	city_location.add_activity_type(StrategyTypes.ActivityType.REST)
-	city_location.add_activity_type(StrategyTypes.ActivityType.DRILL)
-	city_location.add_activity_type(StrategyTypes.ActivityType.PATROL)
-	city_location.add_activity_type(StrategyTypes.ActivityType.INVESTIGATE)
-	city_location.add_activity_type(StrategyTypes.ActivityType.HOLD_MASS)
+	for connection in connections:
+		if connection.size() >= 2:
+			var from_id: String = connection[0]
+			var to_id: String = connection[1]
+			var from_location = locations.filter(func(loc): return loc.location_id == from_id)
+			var to_location = locations.filter(func(loc): return loc.location_id == to_id)
+			if from_location.size() > 0 and to_location.size() > 0:
+				from_location[0].add_connection(to_id)
+	return locations
+
+func _create_world(turn_count: int, end_progression: float, locations: Array[Location]) -> World:
+	var world = World.new()
+	world.turn_count = turn_count
+	world.end_progression = end_progression
 	
-	var village_location = Location.new()
-	village_location.location_id = "test_village"
-	village_location.location_name = "Countryside"
-	village_location.type = StrategyTypes.LocationType.VILLAGE
-	village_location.development = 30
-	village_location.stability = 60.0
-	village_location.add_activity_type(StrategyTypes.ActivityType.REST)
-	village_location.add_activity_type(StrategyTypes.ActivityType.DRILL)
-	village_location.add_activity_type(StrategyTypes.ActivityType.HOLD_MASS)
-	
-	city_location.add_connection(village_location.location_id)
-	village_location.add_connection(city_location.location_id)
-	
-	test_world.add_location(city_location)
-	test_world.add_location(village_location)
-	test_world.build_travel_graph()
-	
-	var test_squad = StrategicSquad.new()
-	test_squad.squad_id = "player_squad"
-	test_squad.squad_name = "The Condors"
-	test_squad.money = 150.0
-	test_squad.food = 20
-	test_squad.travel_tools = 8
-	test_squad.karma = 10.0
-	test_squad.set_location(city_location.location_id)
-	
+	for location in locations:
+		world.add_location(location)
+	world.build_travel_graph()
+	return world
+
+func _create_warriors() -> Array[Warrior]:
+	var warriors: Array[Warrior] = []
 	for i in range(5):
 		var warrior = Warrior.new()
 		warrior.warrior_id = "warrior_%d" % i
@@ -133,37 +190,109 @@ func _initialize_demo_scenario() -> void:
 		warrior.set_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP, randi_range(20, 60))
 		warrior.logic_type = "frontline" if i < 3 else "archer"
 		
-		test_squad.add_warrior(warrior)
+		warriors.append(warrior)
+	return warriors
+
+func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> StrategicSquad:
+	var squad = StrategicSquad.new()
+	squad.squad_id = squad_id
+	squad.squad_name = squad_name
+	squad.money = money
+	squad.food = food
+	squad.travel_tools = travel_tools
+	squad.karma = karma
+	squad.set_location(starting_location_id)
 	
-	test_squad.update_aggregate_morale()
+	var warriors = _create_warriors()
+	for warrior in warriors:
+		squad.add_warrior(warrior)
 	
-	# Load test events
-	var test_events: Array[GameEvent] = []
-	test_events.append(load("res://resources/generic-events/faction-attention.tres"))
-	test_events.append(load("res://resources/generic-events/religious-vision.tres"))
-	test_events.append(load("res://resources/generic-events/mysterious-stranger.tres"))
-	
-	# Load generic activities
-	var test_activities: Array[Activity] = []
-	test_activities.append(load("res://resources/generic-activities/rest/rest.tres"))
-	test_activities.append(load("res://resources/generic-activities/drill.tres"))
-	test_activities.append(load("res://resources/generic-activities/patrol.tres"))
-	test_activities.append(load("res://resources/generic-activities/investigate.tres"))
-	test_activities.append(load("res://resources/generic-activities/hold-mass.tres"))
-	
-	var scenario_config = {
-		"world": test_world,
-		"player_squad": test_squad,
-		"starting_location_id": city_location.location_id,
+	squad.update_aggregate_morale()
+	return squad
+
+func _create_scenario_config(world: World, squad: StrategicSquad, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:
+	return {
+		"world": world,
+		"player_squad": squad,
+		"starting_location_id": starting_location_id,
 		"factions": [],
-		"events": test_events,
-		"activities": test_activities,
+		"events": events,
+		"activities": activities,
 		"endings": []
 	}
+
+#region Demo-Specific Functions
+
+func _create_demo_locations() -> Array[Location]:
+	var city_values = _demo_values["city"]
+	var village_values = _demo_values["village"]
 	
-	game_scenario = GameScenario.new(scenario_config)
+	var location_configs: Array[Dictionary] = [
+		{
+			"location_id": city_values["location_id"],
+			"location_name": city_values["location_name"],
+			"type": StrategyTypes.LocationType.CITY,
+			"development": city_values["development"],
+			"stability": city_values["stability"],
+			"activity_types": [
+				StrategyTypes.ActivityType.REST,
+				StrategyTypes.ActivityType.DRILL,
+				StrategyTypes.ActivityType.PATROL,
+				StrategyTypes.ActivityType.INVESTIGATE,
+				StrategyTypes.ActivityType.HOLD_MASS
+			]
+		},
+		{
+			"location_id": village_values["location_id"],
+			"location_name": village_values["location_name"],
+			"type": StrategyTypes.LocationType.VILLAGE,
+			"development": village_values["development"],
+			"stability": village_values["stability"],
+			"activity_types": [
+				StrategyTypes.ActivityType.REST,
+				StrategyTypes.ActivityType.DRILL,
+				StrategyTypes.ActivityType.HOLD_MASS
+			]
+		}
+	]
 	
-	print("Demo scenario initialized: %s in %s" % [test_squad.squad_name, city_location.location_name])
+	var connections: Array[Array] = [
+		[city_values["location_id"], village_values["location_id"]],
+		[village_values["location_id"], city_values["location_id"]]
+	]
+	
+	return _create_locations_with_connections(location_configs, connections)
+
+func _create_demo_world() -> World:
+	var world_values = _demo_values["world"]
+	var locations = _create_demo_locations()
+	return _create_world(world_values["turn_count"], world_values["end_progression"], locations)
+
+func _create_demo_squad() -> StrategicSquad:
+	var squad_values = _demo_values["squad"]
+	return _create_squad(
+		squad_values["squad_id"], 
+		squad_values["squad_name"], 
+		squad_values["money"], 
+		squad_values["food"], 
+		squad_values["travel_tools"], 
+		squad_values["karma"], 
+		squad_values["starting_location_id"]
+	)
+
+func _initialize_demo_scenario() -> void:
+	var world = _create_demo_world()
+	var starting_location_id = _demo_values["city"]["location_id"]
+	var squad = _create_demo_squad()
+	var events = _load_generic_events()
+	var activities = _load_generic_activities()
+	var config = _create_scenario_config(world, squad, starting_location_id, events, activities)
+	
+	game_scenario = GameScenario.new(config)
+	
+	print("Demo scenario initialized: %s in %s" % [squad.squad_name, world.travel_graph.get_location(starting_location_id).location_name])
+
+#endregion
 
 func _connect_signals() -> void:
 	rest_button.pressed.connect(_on_rest_pressed)
@@ -250,10 +379,6 @@ func _update_activity_buttons() -> void:
 	travel_button.tooltip_text = "Travel system not yet implemented in this demo"
 
 func _get_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
-	# Get activity from triggerable manager by activity_type
-	if not game_scenario or not game_scenario.triggerable_manager:
-		return null
-	
 	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
 		if triggerable is Activity and (triggerable as Activity).activity_type == activity_type:
 			return triggerable as Activity
@@ -277,15 +402,10 @@ func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 		return
 	
 	current_activity_result = null
-	
-	# Capture stat snapshot before executing
+
 	_capture_stat_snapshot()
 	
 	var turn_summary = game_scenario.execute_turn(activity)
-	
-	if turn_summary.has("error"):
-		dialogue_label.text = "Error: %s" % turn_summary["error"]
-		return
 	
 	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
 	print("Activity: %s" % turn_summary["activity"])
@@ -454,7 +574,7 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	dialogue_label.text = "Travel system not yet implemented in this demo."
+	_execute_activity(StrategyTypes.ActivityType.TRAVEL)
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
