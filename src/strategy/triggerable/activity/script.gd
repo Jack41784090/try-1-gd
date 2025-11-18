@@ -10,6 +10,9 @@ class_name Activity extends Triggerable
 # Optional custom logic override
 @export var custom_script: Script = null
 
+func _to_string() -> String:
+	return "Activity: %s (Type: %s, Time Cost: %d, %s)" % [trigger_name, StrategyTypes.ActivityType.keys()[activity_type], time_cost, super()]
+
 func can_execute(squad: StrategicSquad, location: Location) -> bool:
 	return true
 

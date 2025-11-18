@@ -13,6 +13,16 @@ signal triggered(result: Dictionary)
 signal execution_started()
 signal execution_completed(result: Dictionary)
 
+func _to_string() -> String:
+	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %d, Priority: %d, %s" % [
+		trigger_name,
+		trigger_id,
+		repeats,
+		conditions.size(),
+		trigger_chains.size(),
+		emergency_priority,
+		description
+	]
 
 func _init() -> void:
 	pass
