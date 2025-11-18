@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ActivityResult" load_steps=2 format=3 uid="uid://deki7xospn5wo"]
+
+[ext_resource type="Script" uid="uid://wt0yotigi6ov" path="res://src/strategy/triggerable/activity/result.gd" id="1_0qgda"]
+
+[resource]
+script = ExtResource("1_0qgda")
+metadata/_custom_type_script = "uid://wt0yotigi6ov"
