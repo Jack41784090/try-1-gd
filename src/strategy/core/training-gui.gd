@@ -11,11 +11,11 @@ enum UIMode {
 	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
 }
 
-@onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/TurnStatus
-@onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/QualifierStatus
+@onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent/TurnStatus
+@onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent/QualifierStatus
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
-@onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StaminaBar
-@onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/ConditionStatus/ConditionLabel
+@onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/MoraleSection/StaminaBar
+@onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ConditionStatus/ConditionMargin/ConditionLabel
 
 @onready var main_background: TextureRect = $PanelContainer/MainBackground
 @onready var foreground: TextureRect = $PanelContainer/Foreground
@@ -26,24 +26,24 @@ enum UIMode {
 @onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
 @onready var advance_prompt: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/AdvancePrompt
 
-@onready var stats_panel: GridContainer = $PanelContainer/MainVBox/StatsPanel
-@onready var money_label: Label = $PanelContainer/MainVBox/StatsPanel/SpeedLabel
-@onready var food_label: Label = $PanelContainer/MainVBox/StatsPanel/StaminaLabel
-@onready var tools_label: Label = $PanelContainer/MainVBox/StatsPanel/PowerLabel
-@onready var karma_label: Label = $PanelContainer/MainVBox/StatsPanel/GutsLabel
-@onready var warriors_label: Label = $PanelContainer/MainVBox/StatsPanel/WisdomLabel
-@onready var end_prog_label: Label = $PanelContainer/MainVBox/StatsPanel/SkillPtLabel
+@onready var stats_panel: PanelContainer = $PanelContainer/MainVBox/StatsPanel
+@onready var money_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/SpeedLabel
+@onready var food_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/StaminaLabel
+@onready var tools_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/PowerLabel
+@onready var karma_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/GutsLabel
+@onready var warriors_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/WisdomLabel
+@onready var end_prog_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/SkillPtLabel
 
-@onready var action_buttons: HBoxContainer = $PanelContainer/MainVBox/ActionButtons
-@onready var rest_button: Button = $PanelContainer/MainVBox/ActionButtons/TrainingButton
-@onready var drill_button: Button = $PanelContainer/MainVBox/ActionButtons/RestButton
-@onready var patrol_button: Button = $PanelContainer/MainVBox/ActionButtons/SkillButton
-@onready var investigate_button: Button = $PanelContainer/MainVBox/ActionButtons/NurseButton
-@onready var hold_mass_button: Button = $PanelContainer/MainVBox/ActionButtons/OutingButton
-@onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/RaceButton
+@onready var action_buttons: PanelContainer = $PanelContainer/MainVBox/ActionButtons
+@onready var rest_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/TrainingButton
+@onready var drill_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RestButton
+@onready var patrol_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/SkillButton
+@onready var investigate_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/NurseButton
+@onready var hold_mass_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/OutingButton
+@onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RaceButton
 
-@onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/SkipButton
-@onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/ShortButton
+@onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
+@onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
 
 var game_scenario: GameScenario
 var current_activity_result: ActivityResult = null
@@ -518,9 +518,11 @@ func _set_ui_mode(mode: UIMode) -> void:
 	
 	match mode:
 		UIMode.STRATEGY:
+			dialogue_box.visible = false
 			_show_strategy_ui()
 		UIMode.VISUAL_NOVEL:
 			_show_vn_ui()
+			dialogue_box.visible = true
 
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
