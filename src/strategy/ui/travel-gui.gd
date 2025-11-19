@@ -1,16 +1,23 @@
 extends Control
 class_name TravelGUI
 
+enum TravelMode {
+	AUTOPILOT,
+	MANUAL
+}
+
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var locations_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll/LocationsContainer
 @onready var confirm_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ConfirmButton
 @onready var cancel_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/CancelButton
 @onready var title_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/TitleLabel
 @onready var selected_location_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/SelectedLocationLabel
+@onready var mode_toggle_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ModeToggleButton
 
 var game_scenario: GameScenario
 var selected_location_id: String = ""
 var location_buttons: Dictionary = {}
+var current_mode: TravelMode = TravelMode.AUTOPILOT
 
 signal location_selected(location_id: String)
 signal travel_confirmed(location_id: String)
@@ -21,13 +28,17 @@ func _ready() -> void:
 	confirm_button.visible = false
 	confirm_button.pressed.connect(_on_confirm_pressed)
 	cancel_button.pressed.connect(_on_cancel_pressed)
+	if mode_toggle_button:
+		mode_toggle_button.pressed.connect(_on_mode_toggle_pressed)
 
 func show_travel_menu(scenario: GameScenario) -> void:
 	game_scenario = scenario
 	selected_location_id = ""
 	confirm_button.visible = false
 	selected_location_label.text = ""
+	current_mode = TravelMode.AUTOPILOT
 	overlay_panel.visible = true
+	_update_mode_button()
 	_update_locations_list()
 
 func hide_travel_menu() -> void:
@@ -48,28 +59,49 @@ func _update_locations_list() -> void:
 		game_scenario.world.build_travel_graph()
 		travel_graph = game_scenario.world.travel_graph
 	
-	var reachable_ids = travel_graph.get_all_reachable_locations(current_id)
-	
 	var location_data: Array[Dictionary] = []
-	for location_id in reachable_ids:
-		var location = travel_graph.get_location(location_id)
-		if not location:
-			continue
-		
-		var distance = travel_graph.get_distance(current_id, location_id)
-		if distance < 0:
-			continue
-		
-		location_data.append({
-			"location_id": location_id,
-			"location": location,
-			"distance": distance,
-			"development": location.development
-		})
+	
+	if current_mode == TravelMode.AUTOPILOT:
+		var reachable_ids = travel_graph.get_all_reachable_locations(current_id)
+		for location_id in reachable_ids:
+			var location = travel_graph.get_location(location_id)
+			if not location:
+				continue
+			
+			if location.type not in [StrategyTypes.LocationType.CITY, StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.FORT]:
+				continue
+			
+			var distance = travel_graph.get_distance(current_id, location_id)
+			if distance < 0:
+				continue
+			
+			location_data.append({
+				"location_id": location_id,
+				"location": location,
+				"distance": distance,
+				"development": location.development
+			})
+	else:
+		var current_location = travel_graph.get_location(current_id)
+		if current_location:
+			for neighbor_id in current_location.connected_location_ids:
+				var location = travel_graph.get_location(neighbor_id)
+				if not location:
+					continue
+				
+				location_data.append({
+					"location_id": neighbor_id,
+					"location": location,
+					"distance": 1,
+					"development": location.development
+				})
 	
 	location_data.sort_custom(_sort_locations)
 	
-	title_label.text = "Travel from %s" % game_scenario.current_location.location_name
+	if current_mode == TravelMode.AUTOPILOT:
+		title_label.text = "Autopilot from %s (Cities Only)" % game_scenario.current_location.location_name
+	else:
+		title_label.text = "Manual Travel from %s (Adjacent)" % game_scenario.current_location.location_name
 	
 	if location_data.is_empty():
 		var no_locations_label = Label.new()
@@ -96,19 +128,33 @@ func _create_location_button(location: Location, distance: int) -> void:
 
 func _format_location_text(location: Location, distance: int) -> String:
 	var type_str = _location_type_to_string(location.type)
+	var icon = _location_type_to_icon(location.type)
 	var distance_str = ""
-	if distance == 1:
-		distance_str = "1 location away"
-	else:
-		distance_str = "%d locations away" % distance
 	
-	return "%s (%s) - %s\nDev: %d | Stab: %.0f" % [
-		location.location_name,
-		type_str,
-		distance_str,
-		location.development,
-		location.stability
-	]
+	if current_mode == TravelMode.AUTOPILOT:
+		if distance == 1:
+			distance_str = "1 location away"
+		else:
+			distance_str = "%d locations away" % distance
+		return "%s %s (%s) - %s\nDev: %d | Stab: %.0f" % [
+			icon,
+			location.location_name,
+			type_str,
+			distance_str,
+			location.development,
+			location.stability
+		]
+	else:
+		if location.type == StrategyTypes.LocationType.ROAD:
+			return "→ %s\nStab: %.0f" % [location.location_name, location.stability]
+		else:
+			return "%s %s (%s)\nDev: %d | Stab: %.0f" % [
+				icon,
+				location.location_name,
+				type_str,
+				location.development,
+				location.stability
+			]
 
 func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 	match loc_type:
@@ -125,37 +171,76 @@ func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 		_:
 			return "Unknown"
 
+func _location_type_to_icon(loc_type: StrategyTypes.LocationType) -> String:
+	match loc_type:
+		StrategyTypes.LocationType.CITY:
+			return "🏛️"
+		StrategyTypes.LocationType.TOWN:
+			return "🏘️"
+		StrategyTypes.LocationType.VILLAGE:
+			return "🏡"
+		StrategyTypes.LocationType.FORT:
+			return "🏰"
+		StrategyTypes.LocationType.ROAD:
+			return "🛤️"
+		_:
+			return "❓"
+
+func _update_mode_button() -> void:
+	if not mode_toggle_button:
+		return
+	
+	if current_mode == TravelMode.AUTOPILOT:
+		mode_toggle_button.text = "Switch to Manual"
+	else:
+		mode_toggle_button.text = "Switch to Autopilot"
+
+func _on_mode_toggle_pressed() -> void:
+	if current_mode == TravelMode.AUTOPILOT:
+		current_mode = TravelMode.MANUAL
+	else:
+		current_mode = TravelMode.AUTOPILOT
+	
+	selected_location_id = ""
+	confirm_button.visible = false
+	selected_location_label.text = ""
+	_update_mode_button()
+	_update_locations_list()
+
 func _on_location_button_pressed(location_id: String) -> void:
 	selected_location_id = location_id
-	var location = game_scenario.world.travel_graph.get_location(location_id)
-	if location:
-		var distance = game_scenario.world.travel_graph.get_distance(
-			game_scenario.current_location.location_id,
-			location_id
-		)
-		var travel_time = game_scenario.world.calculate_travel_time(
-			game_scenario.current_location.location_id,
-			location_id
-		)
-		
-		selected_location_label.text = "Selected: %s (%d locations, %d turns)" % [
-			location.location_name,
-			distance,
-			travel_time
-		]
-		confirm_button.visible = true
-		location_selected.emit(location_id)
-		
-		for button_id in location_buttons:
-			var button = location_buttons[button_id]
-			if button_id == location_id:
-				button.modulate = Color(0.8, 0.9, 1.0, 1.0)
-			else:
-				button.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	var travel_graph = game_scenario.world.travel_graph;
+	var location = travel_graph.get_location(location_id)
+	# if location:
+	var distance = travel_graph.get_distance(
+		game_scenario.current_location.location_id,
+		location_id
+	)
+	var travel_time = game_scenario.world.calculate_travel_time(
+		game_scenario.current_location.location_id,
+		location_id
+	)
+	
+	selected_location_label.text = "Selected: %s (%d locations, %d turns)" % [
+		location.location_name,
+		distance,
+		travel_time
+	]
+	confirm_button.visible = true
+	location_selected.emit(location_id)
+	
+	for button_id in location_buttons:
+		var button = location_buttons[button_id]
+		if button_id == location_id:
+			button.modulate = Color(0.8, 0.9, 1.0, 1.0)
+		else:
+			button.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _on_confirm_pressed() -> void:
 	if not selected_location_id.is_empty():
-		travel_confirmed.emit(selected_location_id)
+		var travel_graph = game_scenario.world.travel_graph;
+		var path = travel_graph.find_path(game_scenario.current_location.location_id, selected_location_id)
+		travel_confirmed.emit(path[1])
 
 func _on_cancel_pressed() -> void:
 	travel_cancelled.emit()
