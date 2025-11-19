@@ -14,9 +14,6 @@ class_name World
 
 var travel_graph: TravelGraph = null
 
-func _init() -> void:
-	travel_graph = TravelGraph.new()
-
 func modify_global_modifier(modifier: StrategyTypes.GlobalModifier, amount: float) -> void:
 	var key = _modifier_to_key(modifier)
 	global_modifiers[key] = clamp(global_modifiers.get(key, 0.0) + amount, -100.0, 100.0)
@@ -119,4 +116,3 @@ func load_state(data: Dictionary) -> void:
 		location.connected_location_ids = loc_dict.get("connections", [])
 		location.available_activity_types = loc_dict.get("activities", [])
 		locations.append(location)
-
