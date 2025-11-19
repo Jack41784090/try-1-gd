@@ -14,6 +14,7 @@ var aggregate_morale: float = 100.0
 var current_location_id: String = ""
 
 func _init() -> void:
+	warriors.append(Warrior.new()) # todo: make appropriate squad init
 	update_aggregate_morale()
 
 func consume_food(amount: int) -> bool:
@@ -41,17 +42,21 @@ func modify_karma(amount: float) -> void:
 	karma = clamp(karma + amount, -100.0, 100.0)
 
 func modify_morale(amount: float) -> void:
+	print("StrategicSquad.modify_morale squad=%s amount=%.2f warrior_count=%d" % [squad_name, amount, warriors.size()])
 	for warrior in warriors:
+		var old_morale := warrior.morale
 		warrior.modify_morale(amount)
+		print("  warrior=%s is_dead=%s morale: %.2f -> %.2f" % [warrior.warrior_name, str(warrior.is_dead), old_morale, warrior.morale])
 	update_aggregate_morale()
 
 func update_aggregate_morale() -> void:
 	if warriors.size() == 0:
 		aggregate_morale = 0.0
+		print("StrategicSquad.update_aggregate_morale squad=%s no_warriors aggregate=0" % squad_name)
 		return
 	
-	var total_morale = 0.0
-	var living_count = 0
+	var total_morale := 0.0
+	var living_count := 0
 	
 	for warrior in warriors:
 		if not warrior.is_dead:
@@ -62,6 +67,13 @@ func update_aggregate_morale() -> void:
 		aggregate_morale = total_morale / living_count
 	else:
 		aggregate_morale = 0.0
+	
+	print("StrategicSquad.update_aggregate_morale squad=%s living=%d total=%.2f aggregate=%.2f" % [
+		squad_name,
+		living_count,
+		total_morale,
+		aggregate_morale
+	])
 
 func get_morale() -> float:
 	return aggregate_morale
