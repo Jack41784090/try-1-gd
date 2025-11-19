@@ -98,7 +98,7 @@ class TriggerContext:
 
 
 enum SquadProperty {
-	MOOD,
+	MONEY,
 	HEALTH,
 	FOOD_SUPPLIES,
 	AMMO_SUPPLIES,

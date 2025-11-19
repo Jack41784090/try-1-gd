@@ -179,9 +179,9 @@ func _apply_result(result: GenericResult) -> void:
 			StrategyTypes.SquadProperty.FOOD_SUPPLIES:
 				print("[GameScenario]     -> Adding food: %+d" % int(value))
 				player_squad.food += int(value)
-			StrategyTypes.SquadProperty.MOOD:
+			StrategyTypes.SquadProperty.MONEY:
 				print("[GameScenario]     -> Adding money: %+.2f" % value)
-				player_squad.money += value
+				player_squad.mood += value
 			_:
 				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
