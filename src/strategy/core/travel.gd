@@ -15,7 +15,7 @@ func is_adjacent(from_id: String, to_id: String) -> bool:
 		return false
 	return location.is_connected_to(to_id)
 
-func find_path(from_id: String, to_id: String) -> Array[String]:
+func find_path(from_id: String, to_id: String) -> Array:
 	assert(locations.has(from_id))
 	assert(locations.has(to_id));
 
@@ -33,7 +33,7 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 		
 		for neighbor_id in current_pathloc.connected_location_ids:
 			if neighbor_id == to_id:
-				var final_path: Array[String] = path
+				var final_path: Array= path.duplicate() as Array;
 				final_path.append(to_id)
 				return final_path
 			
@@ -45,7 +45,7 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	
 	return []
 
-func calculate_path_travel_time(path: Array[String]) -> int:
+func calculate_path_travel_time(path: Array) -> int:
 	if path.size() <= 1:
 		return 0
 	
