@@ -1,32 +1,257 @@
-[gd_resource type="Resource" script_class="World" load_steps=6 format=3 uid="uid://b7x8xhqm8n315"]
+[gd_resource type="Resource" script_class="World" load_steps=26 format=3 uid="uid://b7x8xhqm8n315"]
 
 [ext_resource type="Script" uid="uid://clxbllr22dj1l" path="res://src/strategy/core/location.gd" id="1_isety"]
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="2_0wsl6"]
 
-[sub_resource type="Resource" id="Resource_h8tv2"]
+[sub_resource type="Resource" id="Resource_konigsberg"]
 script = ExtResource("1_isety")
-location_id = "1"
-location_name = "village-1"
-connected_location_ids = Array[String](["2"])
-metadata/_custom_type_script = "uid://c7brxo8k1l70l"
-
-[sub_resource type="Resource" id="Resource_nnhn3"]
-script = ExtResource("1_isety")
-location_id = "2"
-location_name = "road-to-city"
-type = 4
-connected_location_ids = Array[String](["1", "3"])
-metadata/_custom_type_script = "uid://c7brxo8k1l70l"
-
-[sub_resource type="Resource" id="Resource_l5l6c"]
-script = ExtResource("1_isety")
-location_id = "3"
-location_name = "city-1"
+location_id = "konigsberg"
+location_name = "Königsberg"
 type = 0
-connected_location_ids = Array[String](["2"])
+development = 120
+stability = 140.0
+connected_location_ids = Array[String](["road_konigsberg_tilsit"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_konigsberg_tilsit"]
+script = ExtResource("1_isety")
+location_id = "road_konigsberg_tilsit"
+location_name = "Road to Tilsit"
+type = 4
+development = 40
+stability = 80.0
+connected_location_ids = Array[String](["konigsberg", "tilsit"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_tilsit"]
+script = ExtResource("1_isety")
+location_id = "tilsit"
+location_name = "Tilsit"
+type = 1
+development = 80
+stability = 110.0
+connected_location_ids = Array[String](["road_konigsberg_tilsit", "road_tilsit_kaunas"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_tilsit_kaunas"]
+script = ExtResource("1_isety")
+location_id = "road_tilsit_kaunas"
+location_name = "Road to Kaunas"
+type = 4
+development = 35
+stability = 70.0
+connected_location_ids = Array[String](["tilsit", "kaunas"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_kaunas"]
+script = ExtResource("1_isety")
+location_id = "kaunas"
+location_name = "Kaunas"
+type = 0
+development = 90
+connected_location_ids = Array[String](["road_tilsit_kaunas", "road_kaunas_vilnius"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_kaunas_vilnius"]
+script = ExtResource("1_isety")
+location_id = "road_kaunas_vilnius"
+location_name = "Road to Vilnius"
+type = 4
+stability = 90.0
+connected_location_ids = Array[String](["kaunas", "vilnius"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_vilnius"]
+script = ExtResource("1_isety")
+location_id = "vilnius"
+location_name = "Vilnius"
+type = 0
+development = 140
+stability = 120.0
+connected_location_ids = Array[String](["road_kaunas_vilnius", "road_vilnius_minsk"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_vilnius_minsk"]
+script = ExtResource("1_isety")
+location_id = "road_vilnius_minsk"
+location_name = "Road to Minsk"
+type = 4
+development = 40
+stability = 75.0
+connected_location_ids = Array[String](["vilnius", "minsk"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_minsk"]
+script = ExtResource("1_isety")
+location_id = "minsk"
+location_name = "Minsk"
+type = 0
+development = 110
+connected_location_ids = Array[String](["road_vilnius_minsk", "road_minsk_dorogobuzh"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_minsk_dorogobuzh"]
+script = ExtResource("1_isety")
+location_id = "road_minsk_dorogobuzh"
+location_name = "Road through Wilderness"
+type = 4
+development = 25
+stability = 50.0
+connected_location_ids = Array[String](["minsk", "dorogobuzh"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_dorogobuzh"]
+script = ExtResource("1_isety")
+location_id = "dorogobuzh"
+location_name = "Dorogobuzh"
+type = 3
+development = 70
+stability = 80.0
+connected_location_ids = Array[String](["road_minsk_dorogobuzh", "road_dorogobuzh_vyazma"])
+available_activity_types = Array[int]([0, 1, 3])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_dorogobuzh_vyazma"]
+script = ExtResource("1_isety")
+location_id = "road_dorogobuzh_vyazma"
+location_name = "Road to Vyazma"
+type = 4
+development = 30
+stability = 60.0
+connected_location_ids = Array[String](["dorogobuzh", "vyazma"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_vyazma"]
+script = ExtResource("1_isety")
+location_id = "vyazma"
+location_name = "Vyazma"
+type = 1
+development = 100
+stability = 90.0
+connected_location_ids = Array[String](["road_dorogobuzh_vyazma", "road_vyazma_tsaryovo"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_vyazma_tsaryovo"]
+script = ExtResource("1_isety")
+location_id = "road_vyazma_tsaryovo"
+location_name = "Forest Road"
+type = 4
+development = 20
+stability = 40.0
+connected_location_ids = Array[String](["vyazma", "tsaryovo_zaymishche"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_tsaryovo"]
+script = ExtResource("1_isety")
+location_id = "tsaryovo_zaymishche"
+location_name = "Tsaryovo-Zaymishche"
+development = 45
+stability = 60.0
+connected_location_ids = Array[String](["road_vyazma_tsaryovo", "road_tsaryovo_gzhatsk"])
+available_activity_types = Array[int]([0, 3])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_tsaryovo_gzhatsk"]
+script = ExtResource("1_isety")
+location_id = "road_tsaryovo_gzhatsk"
+location_name = "Road through Forest"
+type = 4
+development = 25
+stability = 45.0
+connected_location_ids = Array[String](["tsaryovo_zaymishche", "gzhatsk"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_gzhatsk"]
+script = ExtResource("1_isety")
+location_id = "gzhatsk"
+location_name = "Gzhatsk"
+type = 1
+development = 85
+stability = 95.0
+connected_location_ids = Array[String](["road_tsaryovo_gzhatsk", "road_gzhatsk_mozhaysk"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_gzhatsk_mozhaysk"]
+script = ExtResource("1_isety")
+location_id = "road_gzhatsk_mozhaysk"
+location_name = "Road to Mozhaysk"
+type = 4
+development = 35
+stability = 70.0
+connected_location_ids = Array[String](["gzhatsk", "mozhaysk"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_mozhaysk"]
+script = ExtResource("1_isety")
+location_id = "mozhaysk"
+location_name = "Mozhaysk"
+type = 3
+development = 95
+stability = 110.0
+connected_location_ids = Array[String](["road_gzhatsk_mozhaysk", "road_mozhaysk_smolensk", "road_mozhaysk_moscow"])
+available_activity_types = Array[int]([0, 1, 3, 4])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_mozhaysk_smolensk"]
+script = ExtResource("1_isety")
+location_id = "road_mozhaysk_smolensk"
+location_name = "Road to Smolensk"
+type = 4
+development = 45
+stability = 85.0
+connected_location_ids = Array[String](["mozhaysk", "smolensk"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_smolensk"]
+script = ExtResource("1_isety")
+location_id = "smolensk"
+location_name = "Smolensk"
+type = 3
+development = 130
+stability = 130.0
+connected_location_ids = Array[String](["road_mozhaysk_smolensk"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_road_mozhaysk_moscow"]
+script = ExtResource("1_isety")
+location_id = "road_mozhaysk_moscow"
+location_name = "Imperial Road to Moscow"
+type = 4
+development = 60
+connected_location_ids = Array[String](["mozhaysk", "moscow"])
+available_activity_types = Array[int]([0])
+metadata/_custom_type_script = "uid://c7brxo8k1l70l"
+
+[sub_resource type="Resource" id="Resource_moscow"]
+script = ExtResource("1_isety")
+location_id = "moscow"
+location_name = "Moscow"
+type = 0
+development = 180
+stability = 150.0
+connected_location_ids = Array[String](["road_mozhaysk_moscow"])
+available_activity_types = Array[int]([0, 1, 3, 4, 5])
 metadata/_custom_type_script = "uid://c7brxo8k1l70l"
 
 [resource]
 script = ExtResource("2_0wsl6")
-locations = Array[ExtResource("1_isety")]([SubResource("Resource_h8tv2"), SubResource("Resource_nnhn3"), SubResource("Resource_l5l6c")])
+locations = Array[ExtResource("1_isety")]([SubResource("Resource_konigsberg"), SubResource("Resource_road_konigsberg_tilsit"), SubResource("Resource_tilsit"), SubResource("Resource_road_tilsit_kaunas"), SubResource("Resource_kaunas"), SubResource("Resource_road_kaunas_vilnius"), SubResource("Resource_vilnius"), SubResource("Resource_road_vilnius_minsk"), SubResource("Resource_minsk"), SubResource("Resource_road_minsk_dorogobuzh"), SubResource("Resource_dorogobuzh"), SubResource("Resource_road_dorogobuzh_vyazma"), SubResource("Resource_vyazma"), SubResource("Resource_road_vyazma_tsaryovo"), SubResource("Resource_tsaryovo"), SubResource("Resource_road_tsaryovo_gzhatsk"), SubResource("Resource_gzhatsk"), SubResource("Resource_road_gzhatsk_mozhaysk"), SubResource("Resource_mozhaysk"), SubResource("Resource_road_mozhaysk_smolensk"), SubResource("Resource_smolensk"), SubResource("Resource_road_mozhaysk_moscow"), SubResource("Resource_moscow")])
 metadata/_custom_type_script = "uid://c7nmmrwqy6hlh"
