@@ -60,6 +60,7 @@ var vn_character_ids_in_chain: Array[String] = []
 var stat_snapshot: Dictionary = {}
 var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
 
+@export var scenario_path: String
 @export var is_demo_scenario: bool = true
 
 var _demo_values: Dictionary = {
@@ -103,44 +104,10 @@ func _initialize_scenario() -> void:
 	if is_demo_scenario:
 		_initialize_demo_scenario()
 	else:
-		push_warning("Non-demo scenario initialization not implemented yet")
-
-func _load_generic_events() -> Array[GameEvent]:
-	var events: Array[GameEvent] = []
-	events.append(load("res://resources/generic-events/faction-attention.tres"))
-	events.append(load("res://resources/generic-events/religious-vision.tres"))
-	events.append(load("res://resources/generic-events/mysterious-stranger.tres"))
-	return events
-
-func _load_generic_activities() -> Array[Activity]:
-	var activities: Array[Activity] = []
-	_collect_activity_resources("res://resources/generic-activities", activities)
-	print(activities)
-	return activities
-
-func _collect_activity_resources(base_path: String, target: Array[Activity]) -> void:
-	var dir := DirAccess.open(base_path)
-	if dir == null:
-		push_warning("TrainingScreen: Missing activity directory: %s" % base_path)
-		return
-	dir.list_dir_begin()
-	var entry = dir.get_next()
-	while entry != "":
-		if dir.current_is_dir():
-			if entry != "." and entry != "..":
-				_collect_activity_resources("%s/%s" % [base_path, entry], target)
-		elif entry.ends_with(".tres"):
-			var resource_path = "%s/%s" % [base_path, entry]
-			var resource = load(resource_path)
-			if resource and resource is Activity:
-				target.append(resource)
-			else:
-				push_warning("TrainingScreen: Skipping non-Activity resource: %s" % resource_path)
-		entry = dir.get_next()
-	dir.list_dir_end()
-	if dialogue_box:
-		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
-
+		var loaded = load(scenario_path);
+		game_scenario = loaded
+		game_scenario.initialize()
+	print("Done")
 
 
 func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
@@ -305,9 +272,8 @@ func _initialize_demo_scenario() -> void:
 	var world = _create_demo_world()
 	var starting_location_id = _demo_values["city"]["location_id"]
 	var squad = _create_demo_squad()
-	var events = _load_generic_events()
-	var activities = _load_generic_activities()
-	var config = _create_scenario_config(world, squad, starting_location_id, events, activities)
+	# For demo scenario, let GameScenario register default events/activities
+	var config = _create_scenario_config(world, squad, starting_location_id, [], [])
 	
 	game_scenario = GameScenario.new(config)
 	
@@ -315,6 +281,7 @@ func _initialize_demo_scenario() -> void:
 
 #endregion
 
+#region Signal Setps
 func _connect_signals() -> void:
 	rest_button.pressed.connect(_on_rest_pressed)
 	drill_button.pressed.connect(_on_drill_pressed)
