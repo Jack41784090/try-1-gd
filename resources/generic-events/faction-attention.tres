@@ -1,19 +1,37 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=6 format=3 uid="uid://c7ynaj2kl4pqr"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=8 format=3 uid="uid://c7ynaj2kl4pqr"]
 
-[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_27dkq"]
-[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
-[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="2_g3r0k"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_vv40b"]
 
-[sub_resource type="Resource" id="Resource_r0x7n"]
-script = ExtResource("2_g3r0k")
+[sub_resource type="Resource" id="Resource_condition1"]
+script = ExtResource("1_condition")
+parameters = {
+"karma_min": 20.0
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_condition2"]
+script = ExtResource("1_condition")
+condition_type = 1
+parameters = {
+"location_type": 0
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_result"]
+script = ExtResource("3_result")
 event_chain_path = "res://resources/event_chains/faction_attention_event_chain.tres"
 metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 
 [resource]
-script = ExtResource("1_event")
-result = SubResource("Resource_r0x7n")
+script = ExtResource("2_event")
+result = SubResource("Resource_result")
 trigger_id = "faction_attention"
 trigger_name = "Faction Attention"
 description = "Your religious observance has attracted the attention of local powers."
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition1"), SubResource("Resource_condition2")])
+repeats = 1
 emergency_priority = 3
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
