@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=6 format=3 uid="uid://e4forest_bandit_event"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=8 format=3 uid="uid://bli7pe5y5qj"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_condition"]
 [ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="2_event"]
 [ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
+[ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_7b0d2"]
 
 [sub_resource type="Resource" id="Resource_condition1"]
 script = ExtResource("1_condition")
@@ -23,20 +24,15 @@ metadata/_custom_type_script = "uid://bttrmws06n1o1"
 [sub_resource type="Resource" id="Resource_result"]
 script = ExtResource("3_result")
 event_chain_path = "res://resources/event_chains/forest_bandit_event_chain.tres"
-squad_stat_changes = {
-"money": -30.0,
-"morale": -10.0
-}
 metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 
 [resource]
 script = ExtResource("2_event")
 result = SubResource("Resource_result")
-conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition1"), SubResource("Resource_condition2")])
 trigger_id = "forest_bandit_event"
 trigger_name = "Forest Bandits"
 description = "Armed bandits emerge from the forest, demanding tribute. This dangerous stretch of road is notorious for such encounters."
-chance = 0.5
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition1"), SubResource("Resource_condition2")])
 repeats = 3
 emergency_priority = 3
 metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
