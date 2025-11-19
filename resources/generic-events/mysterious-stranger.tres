@@ -1,20 +1,30 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=6 format=3 uid="uid://beutkj7d3y078"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=7 format=3 uid="uid://beutkj7d3y078"]
 
-[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_276cc"]
-[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="1_event"]
-[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="2_any0a"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_hhnhq"]
 
-[sub_resource type="Resource" id="Resource_xj4mn"]
-script = ExtResource("2_any0a")
+[sub_resource type="Resource" id="Resource_condition"]
+script = ExtResource("1_condition")
+condition_type = 4
+parameters = {
+"activity_type": 3
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_result"]
+script = ExtResource("3_result")
 event_chain_path = "res://resources/event_chains/mysterious_stranger_event_chain.tres"
 metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 
 [resource]
-script = ExtResource("1_event")
-result = SubResource("Resource_xj4mn")
+script = ExtResource("2_event")
+result = SubResource("Resource_result")
 trigger_id = "mysterious_stranger"
 trigger_name = "Mysterious Stranger"
 description = "A mysterious figure approaches during your patrol, offering unexpected aid."
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition")])
 repeats = 2
 emergency_priority = 1
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
