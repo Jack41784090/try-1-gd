@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=3 format=3 uid="uid://d3moscow_arrival_chain"]
+
+[ext_resource type="Script" uid="uid://dk5jxwyfvb1ks" path="res://src/strategy/vn/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://bqdfwjgc5yjuv" path="res://src/strategy/vn/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="Resource_dialogue1"]
+script = ExtResource("2_dialogue")
+speaker_name = "Narrator"
+line_spoken = "After weeks of arduous travel through wilderness, mud, and danger, the golden domes of Moscow finally appear on the horizon. The sight brings tears to the eyes of even the most hardened travelers."
+on_screen_character_ids = Array[String]([])
+background_id = ""
+metadata/_custom_type_script = "uid://bqdfwjgc5yjuv"
+
+[sub_resource type="Resource" id="Resource_dialogue2"]
+script = ExtResource("2_dialogue")
+speaker_name = "Narrator"
+line_spoken = "Your squad has survived the journey from Königsberg to Moscow - a feat that many attempt but few complete. The road has tested your endurance, courage, and resolve."
+on_screen_character_ids = Array[String]([])
+background_id = ""
+metadata/_custom_type_script = "uid://bqdfwjgc5yjuv"
+
+[sub_resource type="Resource" id="Resource_dialogue3"]
+script = ExtResource("2_dialogue")
+speaker_name = "Narrator"
+line_spoken = "Welcome to Moscow, the heart of the empire. Your journey may be over, but your story is just beginning."
+on_screen_character_ids = Array[String]([])
+background_id = ""
+metadata/_custom_type_script = "uid://bqdfwjgc5yjuv"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "moscow_arrival_event"
+character_ids = Array[String]([])
+dialogues = Array[ExtResource("2_dialogue")]([SubResource("Resource_dialogue1"), SubResource("Resource_dialogue2"), SubResource("Resource_dialogue3")])
+metadata/_custom_type_script = "uid://dk5jxwyfvb1ks"
