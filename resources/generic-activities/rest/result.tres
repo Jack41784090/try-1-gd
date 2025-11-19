@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_5fl55")
 squad_stat_changes = Dictionary[int, float]({
-0: 20.0
+5: 20.0
 })
 event_chain_path = "res://resources/event_chains/rest_activity_chain.tres"
 metadata/_custom_type_script = "uid://wt0yotigi6ov"
