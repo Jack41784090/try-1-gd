@@ -10,6 +10,7 @@ signal turn_advanced(turn: int)
 var triggerable_manager: TriggerableManager
 var player_squad: StrategicSquad
 
+@export var starting_location_id: String
 @export var world: World
 @export var factions: Array[Faction] = []
 @export var endings: Array[Ending] = []
@@ -18,44 +19,73 @@ var player_squad: StrategicSquad
 var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
 var ending_triggered: Ending = null
+var _initialized: bool = false
 
 func _init(config: Dictionary = {}) -> void:
-	world = config.get("world", World.new())
-	player_squad = config.get("player_squad", StrategicSquad.new())
+	if not config.is_empty():
+		# Programmatic creation with config
+		_setup(config)
+		_initialized = true
+
+func initialize() -> void:
+	if not _initialized:
+		_setup({})
+		_initialized = true
+
+func _setup(config: Dictionary) -> void:
+	# Initialize triggerable_manager first
 	triggerable_manager = TriggerableManager.new()
 	
-	# Register factions
-	for faction in config.get("factions", []):
-		if faction is Faction:
-			factions.append(faction)
-			# Register all missions from this faction
-			for mission in faction.missions:
-				triggerable_manager.register(mission)
+	# Use exported properties if already set (from .tres), otherwise use config
+	if world == null:
+		world = config.get("world", World.new())
+	if player_squad == null:
+		player_squad = config.get("player_squad", StrategicSquad.new())
 	
-	# Register endings
-	for ending in config.get("endings", []):
-		if ending is Ending:
-			endings.append(ending)
-			triggerable_manager.register(ending)
+	# Register factions (either from exported array or config)
+	var config_factions = config.get("factions", [])
+	if not config_factions.is_empty():
+		for faction in config_factions:
+			if faction is Faction:
+				factions.append(faction)
 	
-	# Register events
-	for event in config.get("events", []):
+	for faction in factions:
+		# Register all missions from this faction
+		for mission in faction.missions:
+			triggerable_manager.register(mission)
+	
+	# Register endings (either from exported array or config)
+	var config_endings = config.get("endings", [])
+	if not config_endings.is_empty():
+		for ending in config_endings:
+			if ending is Ending:
+				endings.append(ending)
+	
+	for ending in endings:
+		triggerable_manager.register(ending)
+	
+	# Register events - if none provided, load default generic events
+	var events: Array = config.get("events", [])
+	if events.is_empty():
+		events = _load_generic_events()
+	for event in events:
 		if event is GameEvent:
 			triggerable_manager.register(event)
 	
-	# Register activities
-	for activity in config.get("activities", []):
+	# Register activities - if none provided, load default generic activities
+	var activities: Array = config.get("activities", [])
+	if activities.is_empty():
+		activities = _load_generic_activities()
+	for activity in activities:
 		if activity is Activity:
 			triggerable_manager.register(activity)
 	
 	# Set starting location
-	var starting_location_id = config.get("starting_location_id", "")
-	if not starting_location_id.is_empty():
-		current_location = world.get_location_by_id(starting_location_id)
-		player_squad.set_location(starting_location_id)
-	elif world.locations.size() > 0:
-		current_location = world.locations[0]
-		player_squad.set_location(current_location.location_id)
+	if starting_location_id == null:
+		starting_location_id = config.get("starting_location_id", "")
+	
+	current_location = world.get_location_by_id(starting_location_id)
+	player_squad.set_location(starting_location_id)
 	
 	triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
 
@@ -226,6 +256,60 @@ func _check_ending_conditions() -> Ending:
 			return ending
 	
 	return null
+
+
+func _load_generic_events() -> Array[GameEvent]:
+	var events: Array[GameEvent] = []
+	_collect_event_resources("res://resources/generic-events", events)
+	return events
+
+func _collect_event_resources(base_path: String, target: Array) -> void:
+	var dir := DirAccess.open(base_path)
+	if dir == null:
+		push_warning("GameScenario: Missing event directory: %s" % base_path)
+		return
+	dir.list_dir_begin()
+	var entry = dir.get_next()
+	while entry != "":
+		if dir.current_is_dir():
+			if entry != "." and entry != "..":
+				_collect_event_resources("%s/%s" % [base_path, entry], target)
+		elif entry.ends_with(".tres"):
+			var rp = "%s/%s" % [base_path, entry]
+			var resource = load(rp)
+			if resource and resource is GameEvent:
+				target.append(resource)
+			else:
+				push_warning("GameScenario: Skipping non-GameEvent resource: %s" % rp)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _load_generic_activities() -> Array[Activity]:
+	var activities: Array[Activity] = []
+	_collect_activity_resources("res://resources/generic-activities", activities)
+	print(activities)
+	return activities
+
+func _collect_activity_resources(base_path: String, target: Array) -> void:
+	var dir := DirAccess.open(base_path)
+	if dir == null:
+		push_warning("TrainingScreen: Missing activity directory: %s" % base_path)
+		return
+	dir.list_dir_begin()
+	var entry = dir.get_next()
+	while entry != "":
+		if dir.current_is_dir():
+			if entry != "." and entry != "..":
+				_collect_activity_resources("%s/%s" % [base_path, entry], target)
+		elif entry.ends_with(".tres"):
+			var rp = "%s/%s" % [base_path, entry]
+			var resource = load(rp)
+			if resource:
+				target.append(resource)
+			else:
+				push_warning("TrainingScreen: Skipping non-Activity resource: %s" % rp)
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 
 
