@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="try1"
+run/main_scene="uid://d0c0t40hq113j"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -19,3 +20,8 @@ config/icon="res://icon.svg"
 StatusEffectEventBus="*res://src/singletons/StatusEffectEventBus.gd"
 DamageNumbersManager="*res://src/singletons/DamageNumbersManager.gd"
 SceneManager="*res://scenes/scene_manager.tscn"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
