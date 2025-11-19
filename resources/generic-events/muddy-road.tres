@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="GameEvent" load_steps=5 format=3 uid="uid://e1muddy_road_event"]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
+
+[sub_resource type="Resource" id="Resource_condition"]
+script = ExtResource("1_condition")
+condition_type = 1
+parameters = {
+"location_type": 4
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_result"]
+script = ExtResource("3_result")
+event_chain_path = "res://resources/event_chains/muddy_road_event_chain.tres"
+squad_stat_changes = {
+"morale": -5.0
+}
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
+
+[resource]
+script = ExtResource("2_event")
+result = SubResource("Resource_result")
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition")])
+trigger_id = "muddy_road_event"
+trigger_name = "Rasputitsa - The Mud Season"
+description = "The road has turned into a treacherous quagmire of mud, slowing your progress and testing your squad's endurance."
+chance = 0.3
+repeats = -1
+emergency_priority = 2
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
