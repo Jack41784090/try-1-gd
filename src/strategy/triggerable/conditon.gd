@@ -9,6 +9,7 @@ enum ConditionType {
 	ACTIVITY_TYPE,
 	TIME,
 	MISSION_STATUS,
+	PATH_SEGMENT,
 	COMPOUND
 };
 
@@ -31,6 +32,8 @@ func evaluate(context: Dictionary) -> bool:
 			return _check_time(context)
 		ConditionType.MISSION_STATUS:
 			return _check_mission(context)
+		ConditionType.PATH_SEGMENT:
+			return _check_path_segment(context)
 		ConditionType.COMPOUND:
 			return _check_compound(context)
 		_:
@@ -134,6 +137,31 @@ func _check_mission(context: Dictionary) -> bool:
 		return not (required_mission_id in completed_missions)
 	
 	return false
+
+func _check_path_segment(context: Dictionary) -> bool:
+	var prev_location: Location = context.get("prev_location")
+	var current_location: Location = context.get("location")
+	
+	if not prev_location or not current_location:
+		return false
+	
+	var from_type = parameters.get("from_location_type", -1)
+	if from_type >= 0 and prev_location.type != from_type:
+		return false
+	
+	var to_type = parameters.get("to_location_type", -1)
+	if to_type >= 0 and current_location.type != to_type:
+		return false
+	
+	var from_id = parameters.get("from_location_id", "")
+	if not from_id.is_empty() and prev_location.location_id != from_id:
+		return false
+	
+	var to_id = parameters.get("to_location_id", "")
+	if not to_id.is_empty() and current_location.location_id != to_id:
+		return false
+	
+	return true
 
 func _check_compound(context: Dictionary) -> bool:
 	var operator = parameters.get("operator", "AND")
