@@ -1,9 +1,18 @@
-[gd_scene load_steps=7 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=20 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/core/training-gui.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
 [ext_resource type="Script" uid="uid://cdt4j7cmob7hg" path="res://src/strategy/ui/travel-gui.gd" id="2_travel"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
+[ext_resource type="Texture2D" uid="uid://dqvw881mj3ius" path="res://assets/hoi4_icons/stability_texticon.png" id="4_4vq4d"]
+[ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="4_s06fx"]
+[ext_resource type="Texture2D" uid="uid://dqkm7scsi7hkj" path="res://assets/hoi4_icons/civ_factory.png" id="5_4fho2"]
+[ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_jnf8s"]
+[ext_resource type="Texture2D" uid="uid://ckbp2e1rbt1bu" path="res://assets/hoi4_icons/supply_hub_texticon.png" id="9_ssvir"]
+[ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
+[ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_ewb5q"]
+[ext_resource type="Shader" uid="uid://b3lti25qgpj3e" path="res://assets/shaders/morale-bar.gdshader" id="10_jnf8s"]
+[ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -19,6 +28,42 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_money"]
+texture = ExtResource("4_s06fx")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+modulate_color = Color(1, 0.95, 0.6, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_food"]
+texture = ExtResource("4_s06fx")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+modulate_color = Color(0.9, 0.7, 0.5, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_karma"]
+texture = ExtResource("4_s06fx")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+modulate_color = Color(0.7, 0.85, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jnf8s"]
+shader = ExtResource("10_jnf8s")
+shader_parameter/progress = 0.9
+shader_parameter/high_morale_color = Color(0.2, 0.8, 0.3, 1)
+shader_parameter/mid_morale_color = Color(0.9, 0.7, 0.2, 1)
+shader_parameter/low_morale_color = Color(0.9, 0.2, 0.2, 1)
+shader_parameter/background_color = Color(0.15, 0.15, 0.2, 0.8)
+shader_parameter/knot_scale = 3.0
+shader_parameter/knot_speed = 0.5
+shader_parameter/knot_thickness = 0.08
+shader_parameter/wave_amplitude = 0.15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent"]
 bg_color = Color(0, 0, 0, 0)
@@ -70,18 +115,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="HeaderMargin" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel"]
+[node name="HeaderHBox" type="HBoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel"]
+layout_mode = 2
+
+[node name="HeaderMargin" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 8
 
-[node name="HeaderContent" type="HBoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin"]
+[node name="TurnAndLocation" type="HBoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin"]
 layout_mode = 2
 theme_override_constants/separation = 30
 
-[node name="TurnStatus" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent"]
+[node name="TurnLabel" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
@@ -90,19 +138,180 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 24
 text = "Turn 0"
 
-[node name="Separator" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent"]
+[node name="Separator" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation"]
 modulate = Color(0.6, 0.5, 0.3, 0.5)
 layout_mode = 2
 
-[node name="QualifierStatus" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent"]
+[node name="LocationLabel" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation"]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 18
 text = "Location Info"
+
+[node name="Separator2" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation"]
+modulate = Color(0.6, 0.5, 0.3, 0.5)
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="StatsPanel(NoMargin)" type="HBoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Stability" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Stability" type="BoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability"]
+layout_mode = 2
+texture = ExtResource("4_4vq4d")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0"
+
+[node name="Development" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Development" type="BoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development"]
+layout_mode = 2
+texture = ExtResource("5_4fho2")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0"
+
+[node name="Separator" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+modulate = Color(0.6, 0.5, 0.3, 0.5)
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="Money" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="BoxContainer" type="BoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer"]
+layout_mode = 2
+texture = ExtResource("8_jnf8s")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0"
+
+[node name="Food" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_food")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="BoxContainer" type="BoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer"]
+layout_mode = 2
+texture = ExtResource("9_ssvir")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0"
+
+[node name="Karma" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_karma")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="BoxContainer" type="BoxContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer"]
+layout_mode = 2
+texture = ExtResource("10_ewb5q")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="Label" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0"
 
 [node name="StatusArea" type="HBoxContainer" parent="PanelContainer/MainVBox"]
 custom_minimum_size = Vector2(0, 60)
@@ -125,24 +334,11 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="MoraleSection" type="VBoxContainer" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent"]
+[node name="ProgressBar" type="ProgressBar" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent"]
+material = SubResource("ShaderMaterial_jnf8s")
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 5
-
-[node name="MoraleLabel" type="Label" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/MoraleSection"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.75, 0.6, 1)
-theme_override_font_sizes/font_size = 14
-text = "Squad Morale"
-
-[node name="StaminaBar" type="ProgressBar" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/MoraleSection"]
-custom_minimum_size = Vector2(0, 25)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 14
-value = 90.0
-show_percentage = false
+size_flags_vertical = 4
 
 [node name="ConditionStatus" type="PanelContainer" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent"]
 self_modulate = Color(1, 1, 1, 0.9)
@@ -190,6 +386,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea/CharacterContainer"]
+layout_mode = 2
+texture = ExtResource("10_4fho2")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea/CharacterContainer"]
+layout_mode = 2
+texture = ExtResource("11_jnf8s")
+expand_mode = 3
+stretch_mode = 4
 
 [node name="DialogueBox" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
 layout_mode = 1
@@ -246,111 +454,6 @@ theme_override_font_sizes/font_size = 14
 text = "Click to continue"
 horizontal_alignment = 2
 vertical_alignment = 2
-
-[node name="StatsPanel" type="PanelContainer" parent="PanelContainer/MainVBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_transparent")
-
-[node name="StatsMargin" type="MarginContainer" parent="PanelContainer/MainVBox/StatsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 15
-
-[node name="StatsGrid" type="HBoxContainer" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="MoneyIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "💰"
-
-[node name="SpeedLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Money: 0"
-
-[node name="FoodIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.6, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "🍞"
-
-[node name="StaminaLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Food: 0"
-
-[node name="ToolsIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 18
-text = "🔧"
-
-[node name="PowerLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Tools: 0"
-
-[node name="KarmaIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 18
-text = "✨"
-
-[node name="GutsLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Karma: 0"
-
-[node name="WarriorsIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 18
-text = "⚔️"
-
-[node name="WisdomLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Warriors: 0"
-
-[node name="EndProgIcon" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.3, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "📊"
-
-[node name="SkillPtLabel" type="Label" parent="PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "End Prog: 0"
 
 [node name="ActionButtons" type="PanelContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
@@ -475,6 +578,7 @@ theme_override_font_sizes/font_size = 14
 text = "☰ Menu"
 
 [node name="TravelGUI" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
