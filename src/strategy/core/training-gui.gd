@@ -94,11 +94,82 @@ var _demo_values: Dictionary = {
 func _ready() -> void:
 	_initialize_scenario()
 	_connect_signals()
-	_setup_dialogue_box_input()
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
 
 #region Initialization
+
+#region Demo-Specific Functions
+
+func _create_demo_locations() -> Array[Location]:
+	var city_values = _demo_values["city"]
+	var village_values = _demo_values["village"]
+	
+	var location_configs: Array[Dictionary] = [
+		{
+			"location_id": city_values["location_id"],
+			"location_name": city_values["location_name"],
+			"type": StrategyTypes.LocationType.CITY,
+			"development": city_values["development"],
+			"stability": city_values["stability"],
+			"activity_types": [
+				StrategyTypes.ActivityType.REST,
+				StrategyTypes.ActivityType.DRILL,
+				StrategyTypes.ActivityType.PATROL,
+				StrategyTypes.ActivityType.INVESTIGATE,
+				StrategyTypes.ActivityType.HOLD_MASS
+			]
+		},
+		{
+			"location_id": village_values["location_id"],
+			"location_name": village_values["location_name"],
+			"type": StrategyTypes.LocationType.VILLAGE,
+			"development": village_values["development"],
+			"stability": village_values["stability"],
+			"activity_types": [
+				StrategyTypes.ActivityType.REST,
+				StrategyTypes.ActivityType.DRILL,
+				StrategyTypes.ActivityType.HOLD_MASS
+			]
+		}
+	]
+	
+	var connections: Array[Array] = [
+		[city_values["location_id"], village_values["location_id"]],
+		[village_values["location_id"], city_values["location_id"]]
+	]
+	
+	return _create_locations_with_connections(location_configs, connections)
+
+func _create_demo_world() -> World:
+	var world_values = _demo_values["world"]
+	var locations = _create_demo_locations()
+	return _create_world(world_values["turn_count"], world_values["end_progression"], locations)
+
+func _create_demo_squad() -> StrategicSquad:
+	var squad_values = _demo_values["squad"]
+	return _create_squad(
+		squad_values["squad_id"], 
+		squad_values["squad_name"], 
+		squad_values["money"], 
+		squad_values["food"], 
+		squad_values["travel_tools"], 
+		squad_values["karma"], 
+		squad_values["starting_location_id"]
+	)
+
+func _initialize_demo_scenario() -> void:
+	var world = _create_demo_world()
+	var starting_location_id = _demo_values["city"]["location_id"]
+	var squad = _create_demo_squad()
+	# For demo scenario, let GameScenario register default events/activities
+	var config = _create_scenario_config(world, squad, starting_location_id, [], [])
+	
+	game_scenario = GameScenario.new(config)
+	
+	print("Demo scenario initialized: %s in %s" % [squad.squad_name, world.travel_graph.get_location(starting_location_id).location_name])
+
+#endregion
 
 func _initialize_scenario() -> void:
 	if is_demo_scenario:
@@ -107,8 +178,6 @@ func _initialize_scenario() -> void:
 		var loaded = load(scenario_path);
 		game_scenario = loaded
 		game_scenario.initialize()
-	print("Done")
-
 
 func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
 	var location = Location.new()
@@ -209,79 +278,9 @@ func _create_scenario_config(world: World, squad: StrategicSquad, starting_locat
 		"endings": []
 	}
 
-#region Demo-Specific Functions
-
-func _create_demo_locations() -> Array[Location]:
-	var city_values = _demo_values["city"]
-	var village_values = _demo_values["village"]
-	
-	var location_configs: Array[Dictionary] = [
-		{
-			"location_id": city_values["location_id"],
-			"location_name": city_values["location_name"],
-			"type": StrategyTypes.LocationType.CITY,
-			"development": city_values["development"],
-			"stability": city_values["stability"],
-			"activity_types": [
-				StrategyTypes.ActivityType.REST,
-				StrategyTypes.ActivityType.DRILL,
-				StrategyTypes.ActivityType.PATROL,
-				StrategyTypes.ActivityType.INVESTIGATE,
-				StrategyTypes.ActivityType.HOLD_MASS
-			]
-		},
-		{
-			"location_id": village_values["location_id"],
-			"location_name": village_values["location_name"],
-			"type": StrategyTypes.LocationType.VILLAGE,
-			"development": village_values["development"],
-			"stability": village_values["stability"],
-			"activity_types": [
-				StrategyTypes.ActivityType.REST,
-				StrategyTypes.ActivityType.DRILL,
-				StrategyTypes.ActivityType.HOLD_MASS
-			]
-		}
-	]
-	
-	var connections: Array[Array] = [
-		[city_values["location_id"], village_values["location_id"]],
-		[village_values["location_id"], city_values["location_id"]]
-	]
-	
-	return _create_locations_with_connections(location_configs, connections)
-
-func _create_demo_world() -> World:
-	var world_values = _demo_values["world"]
-	var locations = _create_demo_locations()
-	return _create_world(world_values["turn_count"], world_values["end_progression"], locations)
-
-func _create_demo_squad() -> StrategicSquad:
-	var squad_values = _demo_values["squad"]
-	return _create_squad(
-		squad_values["squad_id"], 
-		squad_values["squad_name"], 
-		squad_values["money"], 
-		squad_values["food"], 
-		squad_values["travel_tools"], 
-		squad_values["karma"], 
-		squad_values["starting_location_id"]
-	)
-
-func _initialize_demo_scenario() -> void:
-	var world = _create_demo_world()
-	var starting_location_id = _demo_values["city"]["location_id"]
-	var squad = _create_demo_squad()
-	# For demo scenario, let GameScenario register default events/activities
-	var config = _create_scenario_config(world, squad, starting_location_id, [], [])
-	
-	game_scenario = GameScenario.new(config)
-	
-	print("Demo scenario initialized: %s in %s" % [squad.squad_name, world.travel_graph.get_location(starting_location_id).location_name])
-
 #endregion
 
-#region Signal Setps
+#region Signals
 func _connect_signals() -> void:
 	rest_button.pressed.connect(_on_rest_pressed)
 	drill_button.pressed.connect(_on_drill_pressed)
@@ -303,18 +302,130 @@ func _connect_signals() -> void:
 		game_scenario.turn_advanced.connect(_on_turn_advanced)
 		game_scenario.triggerable_fired.connect(_on_triggerable_fired)
 
-func _setup_dialogue_box_input() -> void:
 	if dialogue_box:
 		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
+
+#region Button Signal Handlers
+
+func _on_rest_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.REST)
+
+func _on_drill_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.DRILL)
+
+func _on_patrol_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.PATROL)
+
+func _on_investigate_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.INVESTIGATE)
+
+func _on_hold_mass_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
+
+func _on_travel_pressed() -> void:
+	travel_gui.show_travel_menu(game_scenario)
+
+func _on_end_pressed() -> void:
+	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
+
+func _on_skip_pressed() -> void:
+	for i in 5:
+		_execute_activity(StrategyTypes.ActivityType.REST)
+
+func _on_travel_confirmed(location_id: String) -> void:
+	var travel_activity = _create_travel_activity(location_id)
+	travel_activity.result.location_changed = location_id
+	var travel_time = game_scenario.world.calculate_travel_time(
+		game_scenario.current_location.location_id,
+		location_id
+	)
+	if travel_time > 0:
+		travel_activity.time_cost = travel_time
+	
+	travel_gui.hide_travel_menu()
+	_execute_activity_with_object(travel_activity)
+
+func _on_travel_cancelled() -> void:
+	# if travel_gui:
+	travel_gui.hide_travel_menu()
+
+func _create_travel_activity(location_id: String) -> Activity:
+	var activity = Activity.new()
+	activity.trigger_id = "travel-to-%s" % location_id
+	activity.trigger_name = "Travel"
+	activity.description = "Travel to another location"
+	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
+	activity.time_cost = 1
+	activity.result = ActivityResult.new({"location_changed": location_id})
+	return activity
+
+func _execute_activity_with_object(activity: Activity) -> void:
+	if not activity:
+		dialogue_label.text = "Activity not found or not registered in scenario."
+		return
+	
+	current_activity_result = null
+
+	_capture_stat_snapshot()
+	
+	var turn_summary = game_scenario.execute_turn(activity)
+	
+	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
+	print("Activity: %s" % turn_summary["activity"])
+	print(turn_summary)
+	
+	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
+	_queue_triggerable_chains(pre_triggerables)
+	
+	var activity_result_data = turn_summary.get("activity_result", {})
+	var activity_event_chain = activity_result_data.get("event_chain_path", "")
+	if not activity_event_chain.is_empty():
+		_queue_event_chain(activity_event_chain)
+	
+	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
+	_queue_triggerable_chains(post_triggers)
+	
+	if event_chain_queue.is_empty():
+		print("No event chains to play, animating stat changes...")
+		await _animate_stat_changes()
+		_update_ui()
+	else:
+		print("Starting event chain playback...")
+		_play_next_queued_chain()
+
+func _on_short_pressed() -> void:
+	var summary_text = "=== Campaign Summary ===\n"
+	summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
+	summary_text += "Turn: %d\n" % game_scenario.world.turn_count
+	summary_text += "Location: %s\n" % game_scenario.current_location.location_name
+	summary_text += "Warriors: %d\n" % game_scenario.player_squad.get_living_warriors().size()
+	summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
+	summary_text += "Money: %.1f\n" % game_scenario.player_squad.money
+	summary_text += "Food: %d\n" % game_scenario.player_squad.food
+	
+	dialogue_label.text = summary_text
+
+#endregion
+
+#region Game Scenario Signal Handlers
+
+func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
+	current_activity_result = result
+	print("Activity executed: %s" % activity.trigger_name)
+
+func _on_turn_advanced(turn: int) -> void:
+	print("Turn advanced to: %d" % turn)
+
+func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
+	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
+
+#endregion
 
 #endregion
 
 #region UI Helpers
 
 func _update_ui() -> void:
-	if not game_scenario:
-		return
-	
 	var squad = game_scenario.player_squad
 	var world = game_scenario.world
 	var location = game_scenario.current_location
@@ -548,122 +659,6 @@ func _get_morale_condition(morale: float) -> String:
 
 #endregion
 
-#region Button Signal Handlers
-
-func _on_rest_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.REST)
-
-func _on_drill_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.DRILL)
-
-func _on_patrol_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.PATROL)
-
-func _on_investigate_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.INVESTIGATE)
-
-func _on_hold_mass_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
-
-func _on_travel_pressed() -> void:
-	travel_gui.show_travel_menu(game_scenario)
-
-func _on_end_pressed() -> void:
-	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
-
-func _on_skip_pressed() -> void:
-	for i in 5:
-		_execute_activity(StrategyTypes.ActivityType.REST)
-
-func _on_travel_confirmed(location_id: String) -> void:
-	var travel_activity = _create_travel_activity(location_id)
-	travel_activity.result.location_changed = location_id
-	var travel_time = game_scenario.world.calculate_travel_time(
-		game_scenario.current_location.location_id,
-		location_id
-	)
-	if travel_time > 0:
-		travel_activity.time_cost = travel_time
-	
-	travel_gui.hide_travel_menu()
-	_execute_activity_with_object(travel_activity)
-
-func _on_travel_cancelled() -> void:
-	# if travel_gui:
-	travel_gui.hide_travel_menu()
-
-func _create_travel_activity(location_id: String) -> Activity:
-	var activity = Activity.new()
-	activity.trigger_id = "travel-to-%s" % location_id
-	activity.trigger_name = "Travel"
-	activity.description = "Travel to another location"
-	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
-	activity.time_cost = 1
-	activity.result = ActivityResult.new({"location_changed": location_id})
-	return activity
-
-func _execute_activity_with_object(activity: Activity) -> void:
-	if not activity:
-		dialogue_label.text = "Activity not found or not registered in scenario."
-		return
-	
-	current_activity_result = null
-
-	_capture_stat_snapshot()
-	
-	var turn_summary = game_scenario.execute_turn(activity)
-	
-	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
-	print("Activity: %s" % turn_summary["activity"])
-	print(turn_summary)
-	
-	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
-	_queue_triggerable_chains(pre_triggerables)
-	
-	var activity_result_data = turn_summary.get("activity_result", {})
-	var activity_event_chain = activity_result_data.get("event_chain_path", "")
-	if not activity_event_chain.is_empty():
-		_queue_event_chain(activity_event_chain)
-	
-	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
-	_queue_triggerable_chains(post_triggers)
-	
-	if event_chain_queue.is_empty():
-		print("No event chains to play, animating stat changes...")
-		await _animate_stat_changes()
-		_update_ui()
-	else:
-		print("Starting event chain playback...")
-		_play_next_queued_chain()
-
-func _on_short_pressed() -> void:
-	var summary_text = "=== Campaign Summary ===\n"
-	summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
-	summary_text += "Turn: %d\n" % game_scenario.world.turn_count
-	summary_text += "Location: %s\n" % game_scenario.current_location.location_name
-	summary_text += "Warriors: %d\n" % game_scenario.player_squad.get_living_warriors().size()
-	summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
-	summary_text += "Money: %.1f\n" % game_scenario.player_squad.money
-	summary_text += "Food: %d\n" % game_scenario.player_squad.food
-	
-	dialogue_label.text = summary_text
-
-#endregion
-
-#region Game Scenario Signal Handlers
-
-func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
-	current_activity_result = result
-	print("Activity executed: %s" % activity.trigger_name)
-
-func _on_turn_advanced(turn: int) -> void:
-	print("Turn advanced to: %d" % turn)
-
-func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
-	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
-
-#endregion
-
 #region Event Chain Management
 
 func _queue_event_chain(chain_path: String) -> void:
@@ -689,14 +684,13 @@ func _play_next_queued_chain() -> void:
 
 func _set_ui_mode(mode: UIMode) -> void:
 	ui_mode = mode
-	
 	match mode:
 		UIMode.STRATEGY:
 			dialogue_box.visible = false
 			_show_strategy_ui()
 		UIMode.VISUAL_NOVEL:
-			_show_vn_ui()
 			dialogue_box.visible = true
+			_show_vn_ui()
 
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
