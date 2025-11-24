@@ -187,4 +187,3 @@ func save_state() -> Dictionary:
 		"current_location_id": current_location_id,
 		"warriors": warrior_data
 	}
-
