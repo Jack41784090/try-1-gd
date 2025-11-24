@@ -33,6 +33,7 @@ func _ready() -> void:
 
 func show_travel_menu(scenario: GameScenario) -> void:
 	game_scenario = scenario
+	self.visible = true
 	selected_location_id = ""
 	confirm_button.visible = false
 	selected_location_label.text = ""
