@@ -181,7 +181,7 @@ func _apply_result(result: GenericResult) -> void:
 				player_squad.food += int(value)
 			StrategyTypes.SquadProperty.MONEY:
 				print("[GameScenario]     -> Adding money: %+.2f" % value)
-				player_squad.mood += value
+				player_squad.money += value
 			_:
 				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
@@ -199,6 +199,10 @@ func _build_context(activity: Activity = null) -> Dictionary:
 		"turn": world.turn_count,
 		"completed_missions": completed_mission_ids
 	}
+
+func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
+	var context = _build_context(activity)
+	return _execute_triggerables(context, when);
 
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	print("[GameScenario] _execute_triggerables() when=", StrategyTypes.TriggerWhen.keys()[when])
