@@ -3,7 +3,7 @@ class_name Warrior
 
 @export var warrior_id: String = ""
 @export var warrior_name: String = ""
-@export var morale: float = 100.0
+@export var morale: float = 50.0
 @export var religion: StrategyTypes.Religion = StrategyTypes.Religion.CATHOLIC
 @export var attributes: Dictionary = {
 	"diplomacy": 0,
