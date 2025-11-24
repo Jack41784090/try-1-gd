@@ -6,15 +6,17 @@ extends Control
 
 # const StatChangeAnimator = preload("res://src/strategy/ui/stat_change_animator.gd")
 
+signal vn_completed();
+
 enum UIMode {
 	STRATEGY,      # Normal activity buttons visible
 	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
 }
 
-@onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent/TurnStatus
-@onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderMargin/HeaderContent/QualifierStatus
+@onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
+@onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/LocationLabel
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
-@onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/MoraleSection/StaminaBar
+@onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
 @onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ConditionStatus/ConditionMargin/ConditionLabel
 
 @onready var main_background: TextureRect = $PanelContainer/MainBackground
@@ -26,13 +28,12 @@ enum UIMode {
 @onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
 @onready var advance_prompt: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/AdvancePrompt
 
-@onready var stats_panel: PanelContainer = $PanelContainer/MainVBox/StatsPanel
-@onready var money_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/SpeedLabel
-@onready var food_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/StaminaLabel
-@onready var tools_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/PowerLabel
-@onready var karma_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/GutsLabel
-@onready var warriors_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/WisdomLabel
-@onready var end_prog_label: Label = $PanelContainer/MainVBox/StatsPanel/StatsMargin/StatsGrid/SkillPtLabel
+@onready var stats_panel: PanelContainer = $PanelContainer/MainVBox/StatusHeader/HeaderPanel
+@onready var stability_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability/Label")
+@onready var development_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development/Label")
+@onready var money_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer/Label")
+@onready var food_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer/Label")
+@onready var karma_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer/Label")
 
 @onready var action_buttons: PanelContainer = $PanelContainer/MainVBox/ActionButtons
 @onready var rest_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/TrainingButton
@@ -47,7 +48,7 @@ enum UIMode {
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
 
 var game_scenario: GameScenario
-var current_activity_result: ActivityResult = null
+# var current_activity_result: ActivityResult = null
 var ui_mode: UIMode = UIMode.STRATEGY
 var portrait_cache: Dictionary = {}
 var event_chain_queue: Array[String] = []
@@ -292,6 +293,8 @@ func _connect_signals() -> void:
 	end_button.pressed.connect(_on_end_pressed)
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
+
+	vn_completed.connect(_vn_on_chain_completed)
 	
 	if travel_gui:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
@@ -364,8 +367,6 @@ func _execute_activity_with_object(activity: Activity) -> void:
 		dialogue_label.text = "Activity not found or not registered in scenario."
 		return
 	
-	current_activity_result = null
-
 	_capture_stat_snapshot()
 	
 	var turn_summary = game_scenario.execute_turn(activity)
@@ -375,7 +376,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	print(turn_summary)
 	
 	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
-	_queue_triggerable_chains(pre_triggerables)
+	_queue_multiple_eventchains_from_results(pre_triggerables)
 	
 	var activity_result_data = turn_summary.get("activity_result", {})
 	var activity_event_chain = activity_result_data.get("event_chain_path", "")
@@ -383,7 +384,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 		_queue_event_chain(activity_event_chain)
 	
 	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
-	_queue_triggerable_chains(post_triggers)
+	_queue_multiple_eventchains_from_results(post_triggers)
 	
 	if event_chain_queue.is_empty():
 		print("No event chains to play, animating stat changes...")
@@ -397,11 +398,15 @@ func _on_short_pressed() -> void:
 	var summary_text = "=== Campaign Summary ===\n"
 	summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
 	summary_text += "Turn: %d\n" % game_scenario.world.turn_count
-	summary_text += "Location: %s\n" % game_scenario.current_location.location_name
-	summary_text += "Warriors: %d\n" % game_scenario.player_squad.get_living_warriors().size()
+	summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
+		game_scenario.current_location.location_name,
+		game_scenario.current_location.development,
+		game_scenario.current_location.stability
+	]
 	summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
-	summary_text += "Money: %.1f\n" % game_scenario.player_squad.money
+	summary_text += "Money: %.0f\n" % game_scenario.player_squad.money
 	summary_text += "Food: %d\n" % game_scenario.player_squad.food
+	summary_text += "Karma: %.0f\n" % game_scenario.player_squad.karma
 	
 	dialogue_label.text = summary_text
 
@@ -410,7 +415,7 @@ func _on_short_pressed() -> void:
 #region Game Scenario Signal Handlers
 
 func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
-	current_activity_result = result
+	# current_activity_result = result
 	print("Activity executed: %s" % activity.trigger_name)
 
 func _on_turn_advanced(turn: int) -> void:
@@ -431,23 +436,20 @@ func _update_ui() -> void:
 	var location = game_scenario.current_location
 	
 	turn_label.text = "Turn %d" % world.turn_count
-	location_label.text = "%s (%s) - Dev:%d Stab:%.0f" % [
+	location_label.text = "%s (%s)" % [
 		location.location_name if location else "Unknown",
 		_location_type_to_string(location.type) if location else "",
-		location.development if location else 0,
-		location.stability if location else 0.0
 	]
 	
 	morale_bar.value = squad.get_morale()
 	morale_bar.max_value = 100.0
 	condition_label.text = _get_morale_condition(squad.get_morale())
 	
-	money_label.text = "Money: %.1f" % squad.money
-	food_label.text = "Food: %d" % squad.food
-	tools_label.text = "Tools: %d" % squad.travel_tools
-	karma_label.text = "Karma: %.1f" % squad.karma
-	warriors_label.text = "Warriors: %d" % squad.get_living_warriors().size()
-	end_prog_label.text = "End Prog: %.1f" % world.end_progression
+	stability_label.text = "%.0f" % (location.stability if location else 0.0)
+	development_label.text = "%d" % (location.development if location else 0)
+	money_label.text = "%.0f" % squad.money
+	food_label.text = "%d" % squad.food
+	karma_label.text = "%.0f" % squad.karma
 	
 	_update_activity_buttons()
 
@@ -481,11 +483,10 @@ func _update_activity_buttons() -> void:
 	travel_button.disabled = false
 	travel_button.tooltip_text = "Travel to another location"
 
-func _get_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
+func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
 	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
-		if triggerable is Activity and (triggerable as Activity).activity_type == activity_type:
+		if triggerable is Activity and triggerable.activity_type == _getting_type:
 			return triggerable as Activity
-	
 	return null
 
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
@@ -498,54 +499,81 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 
 #region Activity Execution
 
+func _apply_play_wait(results: Array[GenericResult]):
+	# apply changes
+	for r in results:
+		game_scenario._apply_result(r)
+
+	# queue and play
+	_queue_multiple_eventchains_from_results(results)
+	_play_next_queued_chain()
+	
+	# 
+	if is_playing_chain: await vn_completed
+
 func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(activity_type)
-	if not activity:
-		dialogue_label.text = "Activity not found or not registered in scenario."
-		return
-	
-	current_activity_result = null
+	assert(activity != null)
 
+	# First capture of stat does not require animations or updates (nothing has changed since last round)
 	_capture_stat_snapshot()
 	
-	var turn_summary = game_scenario.execute_turn(activity)
+	var player_squad = game_scenario.player_squad
+	var world = game_scenario.world
+	print("\n[GameScenario] === execute_turn() START ===")
+	print("[GameScenario] Activity: ", activity.trigger_name)
+	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
 	
-	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
-	print("Activity: %s" % turn_summary["activity"])
-	print(turn_summary)
 	
-	# Queue all event chains from pre-triggerables, activity, and post-triggerables
-	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
-	_queue_triggerable_chains(pre_triggerables)
-	
-	# Queue activity event chain from turn_summary
-	var activity_result_data = turn_summary.get("activity_result", {})
-	var activity_event_chain = activity_result_data.get("event_chain_path", "")
-	if not activity_event_chain.is_empty():
-		_queue_event_chain(activity_event_chain)
-	
-	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
-	_queue_triggerable_chains(post_triggers)
-	
-	# Play queued chains or update UI
-	if event_chain_queue.is_empty():
-		print("No event chains to play, animating stat changes...")
-		await _animate_stat_changes()
-		_update_ui()
-	else:
-		print("Starting event chain playback...")
-		_play_next_queued_chain()
+	var preact_results: Array[GenericResult] = game_scenario.execute_triggerables(
+		activity,
+		StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
+	);
+	await _apply_play_wait(preact_results)
 
-func _queue_triggerable_chains(results_list: Array[GenericResult]) -> void:
+	var activity_result: ActivityResult = activity.execute(player_squad, world); print("[GameScenario] Activity result: %s" % activity_result)
+	await _apply_play_wait([activity_result])
+
+	# print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
+	# game_scenario.activity_executed.emit(activity, activity_result)
+	
+	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
+		activity,
+		StrategyTypes.TriggerWhen.AFTER_ACTIVITY
+	);
+	await _apply_play_wait(postact_results)
+	
+	var completed_missions: Array[Mission] = game_scenario._check_mission_completion()
+	for mission in completed_missions:
+		game_scenario.mission_completed.emit(mission)
+	
+	var ending: Ending = game_scenario._check_ending_conditions()
+	if ending:
+		game_scenario.game_ended = true
+		game_scenario.ending_triggered = ending
+		game_scenario.ending_reached.emit(ending)
+	
+	world.advance_turn(activity.time_cost)
+	game_scenario.turn_advanced.emit(world.turn_count)
+	
+	print("[GameScenario] Squad final: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
+	print("[GameScenario] === execute_turn() END ===\n")
+
+func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
 	for result in results_list:
-		if result is GenericResult and result.has_event_chain():
-			_queue_event_chain(result.event_chain_path)
+		if result is GenericResult:
+			if result.has_event_chain(): _queue_event_chain(result.event_chain_path)
 		else:
-			assert(false)
+			assert(false, "%s" % result)
 
 #endregion
 
 #region Stat Animation
+
+func _anim_update_capture() -> void:
+	await _animate_stat_changes()
+	_update_ui()
+	_capture_stat_snapshot()
 
 func _capture_stat_snapshot() -> void:
 	if not game_scenario:
@@ -553,16 +581,15 @@ func _capture_stat_snapshot() -> void:
 		return
 	
 	var squad = game_scenario.player_squad
-	var world = game_scenario.world
+	var location = game_scenario.current_location
 	
 	stat_snapshot = {
 		"money": squad.money,
 		"food": float(squad.food),
-		"tools": float(squad.travel_tools),
 		"karma": squad.karma,
-		"warriors": float(squad.get_living_warriors().size()),
 		"morale": squad.get_morale(),
-		"end_progression": world.end_progression
+		"stability": location.stability if location else 0.0,
+		"development": float(location.development if location else 0)
 	}
 	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
 
@@ -575,16 +602,15 @@ func _calculate_stat_deltas() -> Dictionary:
 		return {}
 	
 	var squad = game_scenario.player_squad
-	var world = game_scenario.world
+	# var location = game_scenario.current_location
 	
 	var current_stats := {
 		"money": squad.money,
 		"food": float(squad.food),
-		"tools": float(squad.travel_tools),
 		"karma": squad.karma,
-		"warriors": float(squad.get_living_warriors().size()),
 		"morale": squad.get_morale(),
-		"end_progression": world.end_progression
+		# "stability": location.stability if location else 0.0,
+		# "development": float(location.development if location else 0)
 	}
 	print("[StatAnimation] Current stats: ", current_stats)
 	
@@ -613,10 +639,10 @@ func _animate_stat_changes() -> void:
 	var ui_elements := {
 		"money": money_label,
 		"food": food_label,
-		"tools": tools_label,
 		"karma": karma_label,
-		"warriors": warriors_label,
-		"end_progression": end_prog_label,
+		"stability": stability_label,
+		"development": development_label,
+		"morale": morale_bar,
 		"morale_bar": morale_bar,
 		"new_morale_value": game_scenario.player_squad.get_morale() if game_scenario else 0.0,
 		"stats_panel": stats_panel
@@ -668,15 +694,20 @@ func _queue_event_chain(chain_path: String) -> void:
 
 func _play_next_queued_chain() -> void:
 	if event_chain_queue.is_empty():
-		is_playing_chain = false
-		_set_ui_mode(UIMode.STRATEGY)
-		_update_ui()
+		_exit_from_vn_to_strategy()
 		return
 
 	is_playing_chain = true
 	var chain_path = event_chain_queue.pop_front()
 	await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
-	
+
+func _exit_from_vn_to_strategy():
+	print("exiting from vn to strategy")
+	is_playing_chain = false
+	_set_ui_mode(UIMode.STRATEGY)
+	_update_ui()
+	return
+
 
 #endregion
 
@@ -711,30 +742,25 @@ func _show_vn_ui() -> void:
 func _play_event_chain(chain_path: String) -> void:
 	if chain_path.is_empty():
 		push_warning("TrainingScreen: Empty event chain path")
-		_set_ui_mode(UIMode.STRATEGY)
-		_update_ui()
+		_exit_from_vn_to_strategy()
 		return
-	
 	if not ResourceLoader.exists(chain_path):
 		push_error("TrainingScreen: EventChain resource not found: %s" % chain_path)
 		dialogue_label.text = "Error: EventChain resource not found"
-		_set_ui_mode(UIMode.STRATEGY)
-		_update_ui()
+		_exit_from_vn_to_strategy()
 		return
 	
 	var chain = load(chain_path)
+	
 	if not chain or not chain is EventChain:
 		push_error("TrainingScreen: Failed to load EventChain from: %s" % chain_path)
 		dialogue_label.text = "Error: Failed to load EventChain"
-		_set_ui_mode(UIMode.STRATEGY)
-		_update_ui()
+		_exit_from_vn_to_strategy()
 		return
-	
 	if chain.get_dialogue_count() == 0:
 		push_warning("TrainingScreen: EventChain '%s' has no dialogues, skipping VN mode" % chain.chain_id)
 		dialogue_label.text = "EventChain has no content (add dialogues to the resource)"
-		_set_ui_mode(UIMode.STRATEGY)
-		_update_ui()
+		_exit_from_vn_to_strategy()
 		return
 	
 	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
@@ -792,7 +818,7 @@ func _vn_load_chain(chain: EventChain) -> void:
 	if chain.get_dialogue_count() == 0:
 		push_warning("EventChain '%s' has no dialogues, completing immediately" % chain.chain_id)
 		vn_current_chain = null
-		_vn_on_chain_completed()
+		vn_completed.emit()
 		return
 	
 	vn_current_chain = chain
@@ -805,17 +831,11 @@ func _vn_advance() -> void:
 	if not vn_current_chain:
 		push_warning("No chain loaded, cannot advance")
 		return
-	
-	if _vn_is_complete():
-		push_warning("Chain already complete")
-		_vn_on_chain_completed()
-		return
-	
+
 	vn_current_index += 1
-	
 	if _vn_is_complete():
 		print("EventChain '%s' completed (showed %d/%d dialogues)" % [vn_current_chain.chain_id, vn_current_index, vn_current_chain.get_dialogue_count()])
-		_vn_on_chain_completed()
+		vn_completed.emit()
 	else:
 		print("Advanced to dialogue %d/%d" % [vn_current_index + 1, vn_current_chain.get_dialogue_count()])
 		_vn_display_current_dialogue()
@@ -840,13 +860,15 @@ func _vn_is_complete() -> bool:
 		return true
 	return vn_current_index >= vn_current_chain.get_dialogue_count()
 
-func _vn_reset() -> void:
+func _vn_components_reset() -> void:
 	vn_current_chain = null
 	vn_current_index = 0
 	vn_character_ids_in_chain.clear()
 
 func _vn_on_chain_completed() -> void:
-	_vn_reset()
+	_vn_components_reset()
+	await _animate_stat_changes()
+	_capture_stat_snapshot()
 	
 	if event_chain_queue.size() > 0:
 		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
@@ -854,11 +876,6 @@ func _vn_on_chain_completed() -> void:
 	else:
 		print("[StatAnimation] All chains completed, triggering stat animation...")
 		is_playing_chain = false
-		# Animate stat changes before returning to strategy mode
-		await _animate_stat_changes()
-		print("[StatAnimation] Returning to strategy UI mode")
-		_set_ui_mode(UIMode.STRATEGY)
-		dialogue_label.text = "All event chains completed. Choose your next action."
-		_update_ui()
+		_exit_from_vn_to_strategy()
 
 #endregion
