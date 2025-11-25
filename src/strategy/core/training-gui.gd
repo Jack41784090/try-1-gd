@@ -53,6 +53,7 @@ var ui_mode: UIMode = UIMode.STRATEGY
 var portrait_cache: Dictionary = {}
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
+var is_executing_activity: bool = false
 
 var vn_current_chain: EventChain
 var vn_current_index: int = 0
@@ -332,8 +333,9 @@ func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
 
 func _on_skip_pressed() -> void:
-	for i in 5:
-		_execute_activity(StrategyTypes.ActivityType.REST)
+	# for i in 5:
+	# 	_execute_activity(StrategyTypes.ActivityType.REST)
+	pass
 
 func _on_travel_confirmed(location_id: String) -> void:
 	var travel_activity = _create_travel_activity(location_id)
@@ -360,39 +362,67 @@ func _create_travel_activity(location_id: String) -> Activity:
 	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
 	activity.time_cost = 1
 	activity.result = ActivityResult.new({"location_changed": location_id})
+	activity.result.event_chain_path = "empty";
 	return activity
 
 func _execute_activity_with_object(activity: Activity) -> void:
-	if not activity:
-		dialogue_label.text = "Activity not found or not registered in scenario."
+	# Guard against race conditions from double-clicking
+	if is_executing_activity:
+		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
 		return
 	
+	is_executing_activity = true
+	# Disable all buttons at the start of activity execution
+	_disable_all_activity_buttons()
+	
+	# First capture of stat does not require animations or updates (nothing has changed since last round)
 	_capture_stat_snapshot()
 	
-	var turn_summary = game_scenario.execute_turn(activity)
+	var player_squad = game_scenario.player_squad
+	var world = game_scenario.world
+	print("\n[GameScenario] === execute_turn() START ===")
+	print("[GameScenario] Activity: ", activity.trigger_name)
+	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
 	
-	print("\n=== Turn %d Summary ===" % game_scenario.world.turn_count)
-	print("Activity: %s" % turn_summary["activity"])
-	print(turn_summary)
 	
-	var pre_triggerables: Array[GenericResult] = turn_summary.get("pre_triggerables", [])
-	_queue_multiple_eventchains_from_results(pre_triggerables)
+	var preact_results: Array[GenericResult] = game_scenario.execute_triggerables(
+		activity,
+		StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
+	);
+	await _apply_play_wait(preact_results)
+
+	var activity_result: ActivityResult = activity.execute(player_squad, world); print("[GameScenario] Activity result: %s" % activity_result)
+	await _apply_play_wait([activity_result])
+
+	# print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
+	# game_scenario.activity_executed.emit(activity, activity_result)
 	
-	var activity_result_data = turn_summary.get("activity_result", {})
-	var activity_event_chain = activity_result_data.get("event_chain_path", "")
-	if not activity_event_chain.is_empty():
-		_queue_event_chain(activity_event_chain)
+	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
+		activity,
+		StrategyTypes.TriggerWhen.AFTER_ACTIVITY
+	);
+	await _apply_play_wait(postact_results)
 	
-	var post_triggers: Array[GenericResult] = turn_summary.get("post_triggerables", [])
-	_queue_multiple_eventchains_from_results(post_triggers)
+	var completed_missions: Array[Mission] = game_scenario._check_mission_completion()
+	for mission in completed_missions:
+		game_scenario.mission_completed.emit(mission)
 	
-	if event_chain_queue.is_empty():
-		print("No event chains to play, animating stat changes...")
-		await _animate_stat_changes()
-		_update_ui()
-	else:
-		print("Starting event chain playback...")
-		_play_next_queued_chain()
+	var ending: Ending = game_scenario._check_ending_conditions()
+	if ending:
+		game_scenario.game_ended = true
+		game_scenario.ending_triggered = ending
+		game_scenario.ending_reached.emit(ending)
+	
+	world.advance_turn(activity.time_cost)
+	game_scenario.turn_advanced.emit(world.turn_count)
+	
+	print("[GameScenario] Squad final: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
+	print("[GameScenario] === execute_turn() END ===\n")
+	
+	# Re-enable buttons after activity is complete
+	is_executing_activity = false
+	_reenable_activity_buttons()
+	
 
 func _on_short_pressed() -> void:
 	var summary_text = "=== Campaign Summary ===\n"
@@ -483,6 +513,17 @@ func _update_activity_buttons() -> void:
 	travel_button.disabled = false
 	travel_button.tooltip_text = "Travel to another location"
 
+func _disable_all_activity_buttons() -> void:
+	rest_button.disabled = true
+	drill_button.disabled = true
+	patrol_button.disabled = true
+	investigate_button.disabled = true
+	hold_mass_button.disabled = true
+	travel_button.disabled = true
+
+func _reenable_activity_buttons() -> void:
+	_update_activity_buttons()
+
 func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
 	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
 		if triggerable is Activity and triggerable.activity_type == _getting_type:
@@ -506,58 +547,18 @@ func _apply_play_wait(results: Array[GenericResult]):
 
 	# queue and play
 	_queue_multiple_eventchains_from_results(results)
-	_play_next_queued_chain()
+	await _play_next_queued_chain()
 	
 	# 
 	if is_playing_chain: await vn_completed
+
+	_update_ui()
 
 func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(activity_type)
 	assert(activity != null)
 
-	# First capture of stat does not require animations or updates (nothing has changed since last round)
-	_capture_stat_snapshot()
-	
-	var player_squad = game_scenario.player_squad
-	var world = game_scenario.world
-	print("\n[GameScenario] === execute_turn() START ===")
-	print("[GameScenario] Activity: ", activity.trigger_name)
-	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	
-	
-	var preact_results: Array[GenericResult] = game_scenario.execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
-	);
-	await _apply_play_wait(preact_results)
-
-	var activity_result: ActivityResult = activity.execute(player_squad, world); print("[GameScenario] Activity result: %s" % activity_result)
-	await _apply_play_wait([activity_result])
-
-	# print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	# game_scenario.activity_executed.emit(activity, activity_result)
-	
-	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.AFTER_ACTIVITY
-	);
-	await _apply_play_wait(postact_results)
-	
-	var completed_missions: Array[Mission] = game_scenario._check_mission_completion()
-	for mission in completed_missions:
-		game_scenario.mission_completed.emit(mission)
-	
-	var ending: Ending = game_scenario._check_ending_conditions()
-	if ending:
-		game_scenario.game_ended = true
-		game_scenario.ending_triggered = ending
-		game_scenario.ending_reached.emit(ending)
-	
-	world.advance_turn(activity.time_cost)
-	game_scenario.turn_advanced.emit(world.turn_count)
-	
-	print("[GameScenario] Squad final: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	print("[GameScenario] === execute_turn() END ===\n")
+	await _execute_activity_with_object(activity)
 
 func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
 	for result in results_list:
@@ -588,8 +589,8 @@ func _capture_stat_snapshot() -> void:
 		"food": float(squad.food),
 		"karma": squad.karma,
 		"morale": squad.get_morale(),
-		"stability": location.stability if location else 0.0,
-		"development": float(location.development if location else 0)
+		#"stability": location.stability if location else 0.0,
+		#"development": float(location.development if location else 0)
 	}
 	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
 
@@ -695,11 +696,10 @@ func _queue_event_chain(chain_path: String) -> void:
 func _play_next_queued_chain() -> void:
 	if event_chain_queue.is_empty():
 		_exit_from_vn_to_strategy()
-		return
-
-	is_playing_chain = true
-	var chain_path = event_chain_queue.pop_front()
-	await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
+	else:
+		is_playing_chain = true
+		var chain_path = event_chain_queue.pop_front()
+		await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
 
 func _exit_from_vn_to_strategy():
 	print("exiting from vn to strategy")
@@ -740,8 +740,9 @@ func _show_vn_ui() -> void:
 	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _play_event_chain(chain_path: String) -> void:
-	if chain_path.is_empty():
+	if chain_path.is_empty() or chain_path == "empty":
 		push_warning("TrainingScreen: Empty event chain path")
+		# await SceneManager.transition_quick(_exit_from_vn_to_strategy)
 		_exit_from_vn_to_strategy()
 		return
 	if not ResourceLoader.exists(chain_path):
