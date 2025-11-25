@@ -7,9 +7,11 @@ signal transitioned_out();
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 func transition_in():
+	print('in')
 	animation_player.play("in")
 
 func transition_out():
+	print('out')
 	animation_player.play("out")
 	
 func transition_quick(sneak_in: Callable):
