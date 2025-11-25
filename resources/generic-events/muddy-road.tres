@@ -5,12 +5,9 @@
 [ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_t7k30"]
 
-[sub_resource type="Resource" id="Resource_condition"]
+[sub_resource type="Resource" id="Resource_t7k30"]
 script = ExtResource("1_condition")
-condition_type = 1
-parameters = {
-"location_type": 4
-}
+condition_type = 4
 metadata/_custom_type_script = "uid://bttrmws06n1o1"
 
 [sub_resource type="Resource" id="Resource_result"]
@@ -24,6 +21,6 @@ result = SubResource("Resource_result")
 trigger_id = "muddy_road_event"
 trigger_name = "Rasputitsa - The Mud Season"
 description = "The road has turned into a treacherous quagmire of mud, slowing your progress and testing your squad's endurance."
-conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition")])
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_t7k30")])
 emergency_priority = 2
 metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
