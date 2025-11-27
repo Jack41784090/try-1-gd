@@ -16,7 +16,17 @@ func _to_string() -> String:
 
 func _init(_config: Dictionary = {}) -> void:
     for key in _config.keys():
-        if self.get(key) != null:
+        assert(self.get(key) != null)
+        # Handle typed dictionaries specially - must iterate and assign
+        if key == "squad_stat_changes":
+            var raw_dict = _config[key]
+            for stat_key in raw_dict:
+                squad_stat_changes[stat_key] = raw_dict[stat_key]
+        elif key == "world_stat_changes":
+            var raw_dict = _config[key]
+            for stat_key in raw_dict:
+                world_stat_changes[stat_key] = raw_dict[stat_key]
+        else:
             self.set(key, _config[key])
 
 func has_event_chain() -> bool:

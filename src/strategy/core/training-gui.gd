@@ -166,8 +166,17 @@ func _create_travel_activity(location_id: String) -> Activity:
 	activity.description = "Travel to another location"
 	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
 	activity.time_cost = 1
-	activity.result = ActivityResult.new({"location_changed": location_id})
-	activity.result.event_chain_path = "empty";
+	
+	# Create result with travel costs - morale decreases, travel tools consumed
+	var travel_result = ActivityResult.new({"location_changed": location_id})
+	travel_result.event_chain_path = "empty"
+	
+	# Travel costs: morale penalty and travel tools consumption
+	# These can be modified based on distance, terrain, etc.
+	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
+	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0  # travel_tools
+	
+	activity.result = travel_result
 	return activity
 
 func _execute_activity_with_object(activity: Activity) -> void:

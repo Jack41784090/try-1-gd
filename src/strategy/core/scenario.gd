@@ -20,6 +20,8 @@ var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
 var ending_triggered: Ending = null
 var _initialized: bool = false
+var previous_location: Location = null  # Track for LOCATION_TRANSITION conditions
+var _pending_location_change: String = ""  # Location ID we're traveling to
 
 func _init(config: Dictionary = {}) -> void:
 	if not config.is_empty():
@@ -157,7 +159,12 @@ func _apply_result(result: GenericResult) -> void:
 	
 	if result is ActivityResult and not result.location_changed.is_empty():
 		print("[GameScenario]   Location changed to: ", result.location_changed)
+		# Track previous location before changing
+		previous_location = current_location
 		current_location = world.get_location_by_id(result.location_changed)
+		player_squad.set_location(result.location_changed)
+		# Clear pending location change
+		_pending_location_change = ""
 	
 	if result.world_stat_changes.has(StrategyTypes.GlobalModifier.END):
 		var end_change = result.world_stat_changes[StrategyTypes.GlobalModifier.END]
@@ -182,6 +189,9 @@ func _apply_result(result: GenericResult) -> void:
 			StrategyTypes.SquadProperty.MONEY:
 				print("[GameScenario]     -> Adding money: %+.2f" % value)
 				player_squad.money += value
+			StrategyTypes.SquadProperty.AMMO_SUPPLIES:
+				print("[GameScenario]     -> Travel Tools: %+.2f" % value)
+				player_squad.travel_tools += round(value)
 			_:
 				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
@@ -191,11 +201,29 @@ func _build_context(activity: Activity = null) -> Dictionary:
 	for faction in factions:
 		completed_mission_ids.append_array(faction.get_completed_mission_ids())
 	
+	# Determine if we're in a location transition (travel activity with destination)
+	var is_location_changing: bool = false
+	var next_location: Location = null
+	
+	if activity and activity.activity_type == StrategyTypes.ActivityType.TRAVEL:
+		if activity.result and activity.result is ActivityResult:
+			var dest_id = (activity.result as ActivityResult).location_changed
+			if not dest_id.is_empty():
+				is_location_changing = true
+				next_location = world.get_location_by_id(dest_id)
+		# Also check pending location change
+		elif not _pending_location_change.is_empty():
+			is_location_changing = true
+			next_location = world.get_location_by_id(_pending_location_change)
+	
 	return {
 		"squad": player_squad,
 		"world": world,
 		"activity": activity,
 		"location": current_location,
+		"prev_location": previous_location,
+		"next_location": next_location,
+		"is_location_changing": is_location_changing,
 		"turn": world.turn_count,
 		"completed_missions": completed_mission_ids
 	}
