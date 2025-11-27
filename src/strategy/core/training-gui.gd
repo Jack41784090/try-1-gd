@@ -47,238 +47,43 @@ enum UIMode {
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
 
+#region State Variables
 var game_scenario: GameScenario
-# var current_activity_result: ActivityResult = null
 var ui_mode: UIMode = UIMode.STRATEGY
-var portrait_cache: Dictionary = {}
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
 var is_executing_activity: bool = false
-
-var vn_current_chain: EventChain
-var vn_current_index: int = 0
-var vn_character_ids_in_chain: Array[String] = []
-
 var stat_snapshot: Dictionary = {}
+#endregion
+
+#region Components
+var vn_controller: VisualNovelController = VisualNovelController.new()
 var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
+#endregion
 
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
 
-var _demo_values: Dictionary = {
-	"city": {
-		"location_id": "test_city",
-		"location_name": "Ravenna",
-		"development": 75,
-		"stability": 85.0
-	},
-	"village": {
-		"location_id": "test_village",
-		"location_name": "Countryside",
-		"development": 30,
-		"stability": 60.0
-	},
-	"squad": {
-		"squad_id": "player_squad",
-		"squad_name": "The Condors",
-		"money": 150.0,
-		"food": 20,
-		"travel_tools": 8,
-		"karma": 10.0,
-		"starting_location_id": "test_city"
-	},
-	"world": {
-		"turn_count": 0,
-		"end_progression": 0.0
-	}
-}
-
 func _ready() -> void:
 	_initialize_scenario()
+	_setup_components()
 	_connect_signals()
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
 
 #region Initialization
 
-#region Demo-Specific Functions
-
-func _create_demo_locations() -> Array[Location]:
-	var city_values = _demo_values["city"]
-	var village_values = _demo_values["village"]
-	
-	var location_configs: Array[Dictionary] = [
-		{
-			"location_id": city_values["location_id"],
-			"location_name": city_values["location_name"],
-			"type": StrategyTypes.LocationType.CITY,
-			"development": city_values["development"],
-			"stability": city_values["stability"],
-			"activity_types": [
-				StrategyTypes.ActivityType.REST,
-				StrategyTypes.ActivityType.DRILL,
-				StrategyTypes.ActivityType.PATROL,
-				StrategyTypes.ActivityType.INVESTIGATE,
-				StrategyTypes.ActivityType.HOLD_MASS
-			]
-		},
-		{
-			"location_id": village_values["location_id"],
-			"location_name": village_values["location_name"],
-			"type": StrategyTypes.LocationType.VILLAGE,
-			"development": village_values["development"],
-			"stability": village_values["stability"],
-			"activity_types": [
-				StrategyTypes.ActivityType.REST,
-				StrategyTypes.ActivityType.DRILL,
-				StrategyTypes.ActivityType.HOLD_MASS
-			]
-		}
-	]
-	
-	var connections: Array[Array] = [
-		[city_values["location_id"], village_values["location_id"]],
-		[village_values["location_id"], city_values["location_id"]]
-	]
-	
-	return _create_locations_with_connections(location_configs, connections)
-
-func _create_demo_world() -> World:
-	var world_values = _demo_values["world"]
-	var locations = _create_demo_locations()
-	return _create_world(world_values["turn_count"], world_values["end_progression"], locations)
-
-func _create_demo_squad() -> StrategicSquad:
-	var squad_values = _demo_values["squad"]
-	return _create_squad(
-		squad_values["squad_id"], 
-		squad_values["squad_name"], 
-		squad_values["money"], 
-		squad_values["food"], 
-		squad_values["travel_tools"], 
-		squad_values["karma"], 
-		squad_values["starting_location_id"]
-	)
-
-func _initialize_demo_scenario() -> void:
-	var world = _create_demo_world()
-	var starting_location_id = _demo_values["city"]["location_id"]
-	var squad = _create_demo_squad()
-	# For demo scenario, let GameScenario register default events/activities
-	var config = _create_scenario_config(world, squad, starting_location_id, [], [])
-	
-	game_scenario = GameScenario.new(config)
-	
-	print("Demo scenario initialized: %s in %s" % [squad.squad_name, world.travel_graph.get_location(starting_location_id).location_name])
-
-#endregion
-
 func _initialize_scenario() -> void:
 	if is_demo_scenario:
-		_initialize_demo_scenario()
+		game_scenario = DemoScenarioFactory.create_demo_scenario()
 	else:
-		var loaded = load(scenario_path);
+		var loaded = load(scenario_path)
 		game_scenario = loaded
 		game_scenario.initialize()
 
-func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
-	var location = Location.new()
-	location.location_id = location_id
-	location.location_name = location_name
-	location.type = location_type
-	location.development = development
-	location.stability = stability
-	for activity_type in activity_types:
-		location.add_activity_type(activity_type)
-	return location
-
-func _create_locations_with_connections(location_configs: Array[Dictionary], connections: Array[Array]) -> Array[Location]:
-	var locations: Array[Location] = []
-	for config in location_configs:
-		var location = _create_location(
-			config.get("location_id", ""),
-			config.get("location_name", ""),
-			config.get("type", StrategyTypes.LocationType.CITY),
-			config.get("development", 0),
-			config.get("stability", 0.0),
-			config.get("activity_types", [])
-		)
-		locations.append(location)
-	
-	for connection in connections:
-		if connection.size() >= 2:
-			var from_id: String = connection[0]
-			var to_id: String = connection[1]
-			var from_location = locations.filter(func(loc): return loc.location_id == from_id)
-			var to_location = locations.filter(func(loc): return loc.location_id == to_id)
-			if from_location.size() > 0 and to_location.size() > 0:
-				from_location[0].add_connection(to_id)
-	return locations
-
-func _create_world(turn_count: int, end_progression: float, locations: Array[Location]) -> World:
-	var world = World.new()
-	world.turn_count = turn_count
-	world.end_progression = end_progression
-	
-	for location in locations:
-		world.add_location(location)
-	world.build_travel_graph()
-	return world
-
-func _create_warriors() -> Array[Warrior]:
-	var warriors: Array[Warrior] = []
-	for i in range(5):
-		var warrior = Warrior.new()
-		warrior.warrior_id = "warrior_%d" % i
-		warrior.warrior_name = ["Marcus", "Giovanni", "Alessandro", "Francesco", "Lorenzo"][i]
-		warrior.morale = randf_range(70.0, 100.0)
-		warrior.religion = [
-			StrategyTypes.Religion.CATHOLIC,
-			StrategyTypes.Religion.CATHOLIC,
-			StrategyTypes.Religion.PROTESTANT,
-			StrategyTypes.Religion.CATHOLIC,
-			StrategyTypes.Religion.MUSLIM
-		][i]
-		
-		warrior.combat_stats = EntityBaseStats.new()
-		warrior.combat_stats.strength = randi_range(5, 10)
-		warrior.combat_stats.dex = randi_range(5, 10)
-		warrior.combat_stats.endurance = randi_range(5, 10)
-		
-		warrior.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, randi_range(30, 70))
-		warrior.set_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP, randi_range(20, 60))
-		warrior.logic_type = "frontline" if i < 3 else "archer"
-		
-		warriors.append(warrior)
-	return warriors
-
-func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> StrategicSquad:
-	var squad = StrategicSquad.new()
-	squad.squad_id = squad_id
-	squad.squad_name = squad_name
-	squad.money = money
-	squad.food = food
-	squad.travel_tools = travel_tools
-	squad.karma = karma
-	squad.set_location(starting_location_id)
-	
-	var warriors = _create_warriors()
-	for warrior in warriors:
-		squad.add_warrior(warrior)
-	
-	squad.update_aggregate_morale()
-	return squad
-
-func _create_scenario_config(world: World, squad: StrategicSquad, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:
-	return {
-		"world": world,
-		"player_squad": squad,
-		"starting_location_id": starting_location_id,
-		"factions": [],
-		"events": events,
-		"activities": activities,
-		"endings": []
-	}
+func _setup_components() -> void:
+	vn_controller.chain_completed.connect(_on_vn_chain_completed)
+	vn_controller.dialogue_advanced.connect(_on_vn_dialogue_advanced)
 
 #endregion
 
@@ -295,7 +100,7 @@ func _connect_signals() -> void:
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
 
-	vn_completed.connect(_vn_on_chain_completed)
+	vn_completed.connect(_on_vn_completed_signal)
 	
 	if travel_gui:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
@@ -766,10 +571,12 @@ func _play_event_chain(chain_path: String) -> void:
 	
 	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
 	_set_ui_mode(UIMode.VISUAL_NOVEL)
-	_vn_load_chain(chain)
+	
+	if vn_controller.load_chain(chain):
+		_vn_display_current_dialogue()
 
 func _vn_display_current_dialogue() -> void:
-	var dialogue_data = _vn_get_current_dialogue_data()
+	var dialogue_data = vn_controller.get_current_dialogue_data()
 	if dialogue_data.is_empty():
 		return
 	
@@ -777,10 +584,7 @@ func _vn_display_current_dialogue() -> void:
 	dialogue_label.text = dialogue_data.get("line_spoken", "")
 	_update_vn_background(dialogue_data.get("background_id", ""))
 	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
-	advance_prompt.text = "Click to continue (%d/%d)" % [
-		dialogue_data.get("index", 0) + 1,
-		dialogue_data.get("total", 0)
-	]
+	advance_prompt.text = "Click to continue %s" % vn_controller.get_progress_text()
 
 func _update_vn_background(_bg_id: String) -> void:
 	pass
@@ -790,84 +594,15 @@ func _update_vn_portraits(character_ids: Array) -> void:
 		child.queue_free()
 	for char_id in character_ids:
 		if char_id is String:
-			character_container.add_child(_get_or_create_portrait(char_id))
-
-func _get_or_create_portrait(character_id: String) -> Control:
-	if portrait_cache.has(character_id):
-		return portrait_cache[character_id].duplicate()
-	
-	var portrait = ColorRect.new()
-	portrait.custom_minimum_size = Vector2(150, 250)
-	var hash_val = character_id.hash()
-	portrait.color = Color(
-		float(hash_val % 100) / 100.0,
-		float(int(hash_val / 100.0) % 100) / 100.0,
-		float(int(hash_val / 10000.0) % 100) / 100.0, 1.0)
-	portrait_cache[character_id] = portrait
-	return portrait.duplicate()
+			character_container.add_child(vn_controller.get_or_create_portrait(char_id))
 
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if ui_mode == UIMode.VISUAL_NOVEL and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_vn_advance()
+			vn_controller.advance()
 
-func _vn_load_chain(chain: EventChain) -> void:
-	if not chain:
-		push_error("Cannot load null EventChain")
-		return
-	
-	if chain.get_dialogue_count() == 0:
-		push_warning("EventChain '%s' has no dialogues, completing immediately" % chain.chain_id)
-		vn_current_chain = null
-		vn_completed.emit()
-		return
-	
-	vn_current_chain = chain
-	vn_current_index = 0
-	vn_character_ids_in_chain = chain.get_all_character_ids()
-	if vn_current_chain.get_dialogue_count() > 0:
-		_vn_display_current_dialogue()
-
-func _vn_advance() -> void:
-	if not vn_current_chain:
-		push_warning("No chain loaded, cannot advance")
-		return
-
-	vn_current_index += 1
-	if _vn_is_complete():
-		print("EventChain '%s' completed (showed %d/%d dialogues)" % [vn_current_chain.chain_id, vn_current_index, vn_current_chain.get_dialogue_count()])
-		vn_completed.emit()
-	else:
-		print("Advanced to dialogue %d/%d" % [vn_current_index + 1, vn_current_chain.get_dialogue_count()])
-		_vn_display_current_dialogue()
-
-func _vn_get_current_dialogue_data() -> Dictionary:
-	if not vn_current_chain or vn_current_index >= vn_current_chain.get_dialogue_count():
-		return {}
-	
-	var dialogue: Dialogue = vn_current_chain.dialogues[vn_current_index]
-	return {
-		"speaker_name": dialogue.speaker_name,
-		"line_spoken": dialogue.line_spoken,
-		"on_screen_character_ids": dialogue.on_screen_character_ids,
-		"background_id": dialogue.background_id,
-		"triggers": dialogue.triggers,
-		"index": vn_current_index,
-		"total": vn_current_chain.get_dialogue_count()
-	}
-
-func _vn_is_complete() -> bool:
-	if not vn_current_chain:
-		return true
-	return vn_current_index >= vn_current_chain.get_dialogue_count()
-
-func _vn_components_reset() -> void:
-	vn_current_chain = null
-	vn_current_index = 0
-	vn_character_ids_in_chain.clear()
-
-func _vn_on_chain_completed() -> void:
-	_vn_components_reset()
+func _on_vn_chain_completed() -> void:
+	vn_controller.reset()
 	await _animate_stat_changes()
 	_capture_stat_snapshot()
 	
@@ -875,8 +610,14 @@ func _vn_on_chain_completed() -> void:
 		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
 		_play_next_queued_chain()
 	else:
-		print("[StatAnimation] All chains completed, triggering stat animation...")
-		is_playing_chain = false
-		_exit_from_vn_to_strategy()
+		print("[StatAnimation] All chains completed")
+		vn_completed.emit()
+
+func _on_vn_dialogue_advanced(_index: int, _total: int) -> void:
+	_vn_display_current_dialogue()
+
+func _on_vn_completed_signal() -> void:
+	is_playing_chain = false
+	_exit_from_vn_to_strategy()
 
 #endregion
