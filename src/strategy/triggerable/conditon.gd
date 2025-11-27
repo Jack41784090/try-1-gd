@@ -10,6 +10,7 @@ enum ConditionType {
 	TIME,
 	MISSION_STATUS,
 	PATH_SEGMENT,
+	LOCATION_TRANSITION,  # Checks if squad just arrived at/left a location
 	COMPOUND
 };
 
@@ -34,6 +35,8 @@ func evaluate(context: Dictionary) -> bool:
 			return _check_mission(context)
 		ConditionType.PATH_SEGMENT:
 			return _check_path_segment(context)
+		ConditionType.LOCATION_TRANSITION:
+			return _check_location_transition(context)
 		ConditionType.COMPOUND:
 			return _check_compound(context)
 		_:
@@ -159,6 +162,65 @@ func _check_path_segment(context: Dictionary) -> bool:
 	
 	var to_id = parameters.get("to_location_id", "")
 	if not to_id.is_empty() and current_location.location_id != to_id:
+		return false
+	
+	return true
+
+func _check_location_transition(context: Dictionary) -> bool:
+	## Checks if squad is transitioning to/from a location this turn
+	## Parameters:
+	##   - transition_type: "arriving" | "leaving" | "any" (default: "arriving")
+	##   - location_id: specific location ID to check (optional)
+	##   - location_type: LocationType enum value to check (optional)
+	##   - require_travel_activity: if true, only triggers on TRAVEL activity (default: true)
+	
+	var transition_type = parameters.get("transition_type", "arriving")
+	var require_travel = parameters.get("require_travel_activity", true)
+	
+	# Check if this is a travel activity (if required)
+	if require_travel:
+		var activity: Activity = context.get("activity")
+		if not activity or activity.activity_type != StrategyTypes.ActivityType.TRAVEL:
+			return false
+	
+	# Check for location change flag in context
+	var is_location_changing: bool = context.get("is_location_changing", false)
+	if not is_location_changing:
+		return false
+	
+	var prev_location: Location = context.get("prev_location")
+	var next_location: Location = context.get("next_location")  # The location being traveled to
+	var current_location: Location = context.get("location")  # Current location before change
+	
+	# Determine which location to check based on transition type
+	var check_location: Location = null
+	match transition_type:
+		"arriving":
+			check_location = next_location if next_location else current_location
+		"leaving":
+			check_location = prev_location if prev_location else current_location
+		"any":
+			# Check both - if either matches, return true
+			var arriving_match = _check_location_match(next_location if next_location else current_location)
+			var leaving_match = _check_location_match(prev_location if prev_location else current_location)
+			return arriving_match or leaving_match
+		_:
+			push_warning("Unknown transition_type: %s" % transition_type)
+			return false
+	
+	return _check_location_match(check_location)
+
+func _check_location_match(location: Location) -> bool:
+	## Helper to check if a location matches the condition parameters
+	if not location:
+		return false
+	
+	var required_id = parameters.get("location_id", "")
+	if not required_id.is_empty() and location.location_id != required_id:
+		return false
+	
+	var required_type = parameters.get("location_type", -1)
+	if required_type >= 0 and location.type != required_type:
 		return false
 	
 	return true
