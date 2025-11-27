@@ -4,12 +4,17 @@ class_name GameEvent extends Triggerable
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
 
 var times_triggered: int = 0
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _init() -> void:
 	super._init()
 
 func can_trigger(context: Dictionary = {}) -> bool:
 	if repeats >= 0 and times_triggered >= repeats:
+		return false
+	
+	# Check chance roll (only roll if chance < 1.0 to avoid unnecessary RNG calls)
+	if chance < 1.0 and _rng.randf() > chance:
 		return false
 	
 	return super.can_trigger(context)
