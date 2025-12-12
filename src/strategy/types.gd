@@ -28,6 +28,8 @@ enum ActivityType {
 	HOLD_MASS,
 	MERCENARY_WORK,
 	FORAGE,
+	ATTACK,
+	FORCE_MARCH,
 	CUSTOM
 }
 
