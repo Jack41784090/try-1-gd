@@ -8,6 +8,7 @@ class_name Location
 @export var stability: float = 100.0
 @export var connected_location_ids: Array[String] = []
 @export var available_activity_types: Array[StrategyTypes.ActivityType] = []
+@export var clues: Array[Clue] = []
 
 func modify_stability(amount: float) -> void:
 	stability = clamp(stability + amount, 0.0, 200.0)
@@ -55,4 +56,35 @@ func add_connection(location_id_to_connect: String) -> void:
 func set_connections(connections: Array[String]) -> void:
 	connected_location_ids.clear()
 	connected_location_ids.append_array(connections)
+
+func add_clue(clue: Clue) -> void:
+	clues.append(clue)
+
+func get_active_clues(current_turn: int) -> Array[Clue]:
+	var active: Array[Clue] = []
+	for clue in clues:
+		if not clue.is_expired(current_turn):
+			active.append(clue)
+	return active
+
+func decay_clues() -> void:
+	for clue in clues:
+		clue.decay_one_turn()
+	
+	var i = clues.size() - 1
+	while i >= 0:
+		if clues[i].decay <= 0:
+			clues.remove_at(i)
+		i -= 1
+
+func investigate_clues(perception: int, current_turn: int) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for clue in get_active_clues(current_turn):
+		var info = {
+			"clue_name": clue.clue_name,
+			"age_description": clue.get_age_description(current_turn),
+			"destination_hint": clue.get_destination_hint(perception)
+		}
+		results.append(info)
+	return results
 

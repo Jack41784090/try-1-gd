@@ -9,13 +9,19 @@ class_name StrategicSquad
 @export var food: int = 10
 @export var travel_tools: int = 5
 @export var formation: Array[int] = []
+@export var starting_location_id: String = ""
 
 var aggregate_morale: float = 100.0
 var current_location_id: String = ""
+var current_tactic: Tactic = null
 
 func _init() -> void:
-	warriors.append(Warrior.new()) # todo: make appropriate squad init
+	warriors.append(Warrior.new())
 	update_aggregate_morale()
+	current_tactic = Tactic.create_balanced()
+	# Initialize current_location_id from starting_location_id if set
+	if starting_location_id != "":
+		current_location_id = starting_location_id
 
 func consume_food(amount: int) -> bool:
 	if food >= amount:
@@ -75,6 +81,10 @@ func update_aggregate_morale() -> void:
 		aggregate_morale
 	])
 
+func modify_aggregate_morale(mod: float) -> void:
+	modify_morale(mod)
+	update_aggregate_morale()
+
 func get_morale() -> float:
 	return aggregate_morale
 
@@ -111,6 +121,43 @@ func get_living_warriors() -> Array[Warrior]:
 			living.append(warrior)
 	return living
 
+func get_warrior_by_id(warrior_id: String) -> Warrior:
+	for warrior in warriors:
+		if warrior.warrior_id == warrior_id:
+			return warrior
+	return null
+
+func set_tactic(tactic: Tactic) -> void:
+	current_tactic = tactic
+
+func get_tactic() -> Tactic:
+	if not current_tactic:
+		current_tactic = Tactic.create_balanced()
+	return current_tactic
+
+func attempt_stealth_at_location(location: Location, destination_id: String, current_turn: int) -> Array[Clue]:
+	var clues_left: Array[Clue] = []
+	
+	for warrior in get_living_warriors():
+		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
+		var roll = randi_range(0, 100)
+		
+		if roll > stealth_value:
+			var failure_margin = roll - stealth_value
+			var clue_name = Clue.get_random_clue_name(warrior.religion)
+			var clue = Clue.create_clue(
+				clue_name,
+				squad_id,
+				warrior.warrior_id,
+				current_turn,
+				failure_margin,
+				destination_id
+			)
+			location.add_clue(clue)
+			clues_left.append(clue)
+	
+	return clues_left
+
 func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Warrior]:
 	var matching: Array[Warrior] = []
 	for warrior in warriors:
@@ -120,6 +167,10 @@ func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Wa
 
 func set_location(location_id: String) -> void:
 	current_location_id = location_id
+
+func ensure_initialized() -> void:
+	if current_location_id == "" and starting_location_id != "":
+		current_location_id = starting_location_id
 
 func get_location_id() -> String:
 	return current_location_id

@@ -89,6 +89,10 @@ func _setup(config: Dictionary) -> void:
 	current_location = world.get_location_by_id(starting_location_id)
 	player_squad.set_location(starting_location_id)
 	
+	# Initialize roaming squads from their starting locations
+	for roaming_squad in world.roaming_squads:
+		roaming_squad.ensure_initialized()
+	
 	triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
 
 func execute_turn(activity: Activity) -> Dictionary:

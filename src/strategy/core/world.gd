@@ -11,6 +11,7 @@ class_name World
 }
 @export var locations: Array[Location] = []
 @export var turn_count: int = 0
+@export var roaming_squads: Array[StrategicSquad] = []
 
 var travel_graph: TravelGraph = null
 
@@ -78,6 +79,40 @@ func get_reachable_locations(from_id: String, max_hops: int = -1) -> Array[Strin
 
 func advance_turn(amount: int = 1) -> void:
 	turn_count += amount
+
+func get_squads_at_location(location_id: String) -> Array[StrategicSquad]:
+	var squads_at_loc: Array[StrategicSquad] = []
+	for squad in roaming_squads:
+		if squad.current_location_id == location_id:
+			squads_at_loc.append(squad)
+	return squads_at_loc
+
+func add_roaming_squad(squad: StrategicSquad) -> void:
+	roaming_squads.append(squad)
+
+func remove_roaming_squad(squad_id: String) -> void:
+	for i in range(roaming_squads.size() - 1, -1, -1):
+		if roaming_squads[i].squad_id == squad_id:
+			roaming_squads.remove_at(i)
+			break
+
+func move_squad_to_location(squad_id: String, location_id: String) -> void:
+	for squad in roaming_squads:
+		if squad.squad_id == squad_id:
+			squad.set_location(location_id)
+			break
+
+func get_adjacent_squads(location_id: String) -> Array[StrategicSquad]:
+	var adjacent_squads: Array[StrategicSquad] = []
+	var location = get_location_by_id(location_id)
+	if not location:
+		return adjacent_squads
+	
+	for connected_id in location.connected_location_ids:
+		var squads_there = get_squads_at_location(connected_id)
+		for squad in squads_there:
+			adjacent_squads.append(squad)
+	return adjacent_squads
 
 func save_state() -> Dictionary:
 	var location_data: Array = []
