@@ -3,14 +3,18 @@ extends Control
 ## Strategic Campaign UI Screen with integrated Visual Novel system
 ## Displays squad state, world info, and allows activity selection
 ## Seamlessly transitions to VN mode for EventChain playback
+## Handles combat encounters with intermission choices (Flee/Negotiate/Fight)
 
-# const StatChangeAnimator = preload("res://src/strategy/ui/stat_change_animator.gd")
+# const StatChangeAnimator = preload("res://src/strategy/core/stat_change_animator.gd")
 
 signal vn_completed();
+signal combat_completed(result: CombatController.CombatResult);
+signal combat_resolved();  # Emitted when combat encounter ends (regardless of outcome)
 
 enum UIMode {
-	STRATEGY,      # Normal activity buttons visible
-	VISUAL_NOVEL   # VN elements visible, strategy UI dimmed
+	STRATEGY,           # Normal activity buttons visible
+	VISUAL_NOVEL,       # VN elements visible, strategy UI dimmed
+	COMBAT_INTERMISSION # Combat choice screen (Flee/Negotiate/Fight)
 }
 
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
@@ -42,10 +46,20 @@ enum UIMode {
 @onready var investigate_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/NurseButton
 @onready var hold_mass_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/OutingButton
 @onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RaceButton
+@onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
 @onready var travel_gui: TravelGUI = $TravelGUI
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
+
+# Combat UI elements (will be added to scene)
+@onready var combat_panel: PanelContainer = $CombatIntermission
+@onready var combat_enemy_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/EnemyInfoLabel
+@onready var combat_flee_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FleeButton
+@onready var combat_negotiate_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/NegotiateButton
+@onready var combat_fight_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FightButton
+@onready var combat_timer_bar: ProgressBar = $CombatIntermission/MarginContainer/VBoxContainer/TimerBar
+@onready var combat_info_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/InfoLabel
 
 #region State Variables
 var game_scenario: GameScenario
@@ -54,6 +68,12 @@ var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
 var is_executing_activity: bool = false
 var stat_snapshot: Dictionary = {}
+
+# Combat state
+var combat_controller: CombatController = null
+var is_in_combat: bool = false
+var combat_timeout_timer: float = 0.0
+var combat_options: Dictionary = {}
 #endregion
 
 #region Components
@@ -71,6 +91,13 @@ func _ready() -> void:
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
 
+func _process(delta: float) -> void:
+	if is_in_combat and combat_timeout_timer > 0:
+		combat_timeout_timer -= delta
+		_update_combat_timer_display()
+		if combat_timeout_timer <= 0:
+			_on_combat_timeout()
+
 #region Initialization
 
 func _initialize_scenario() -> void:
@@ -84,6 +111,10 @@ func _initialize_scenario() -> void:
 func _setup_components() -> void:
 	vn_controller.chain_completed.connect(_on_vn_chain_completed)
 	vn_controller.dialogue_advanced.connect(_on_vn_dialogue_advanced)
+	
+	# Initialize combat controller
+	combat_controller = CombatController.new()
+	print("[TrainingScreen] CombatController initialized")
 
 #endregion
 
@@ -95,12 +126,21 @@ func _connect_signals() -> void:
 	investigate_button.pressed.connect(_on_investigate_pressed)
 	hold_mass_button.pressed.connect(_on_hold_mass_pressed)
 	travel_button.pressed.connect(_on_travel_pressed)
+	attack_button.pressed.connect(_on_attack_pressed)
 	
 	end_button.pressed.connect(_on_end_pressed)
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
 
 	vn_completed.connect(_on_vn_completed_signal)
+	
+	# Combat button signals (only connect if nodes exist)
+	if combat_flee_button:
+		combat_flee_button.pressed.connect(_on_combat_flee_pressed)
+	if combat_negotiate_button:
+		combat_negotiate_button.pressed.connect(_on_combat_negotiate_pressed)
+	if combat_fight_button:
+		combat_fight_button.pressed.connect(_on_combat_fight_pressed)
 	
 	if travel_gui:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
@@ -133,6 +173,9 @@ func _on_hold_mass_pressed() -> void:
 
 func _on_travel_pressed() -> void:
 	travel_gui.show_travel_menu(game_scenario)
+
+func _on_attack_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.ATTACK)
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -207,6 +250,17 @@ func _execute_activity_with_object(activity: Activity) -> void:
 
 	var activity_result: ActivityResult = activity.execute(player_squad, world); print("[GameScenario] Activity result: %s" % activity_result)
 	await _apply_play_wait([activity_result])
+	
+	# Check if combat was triggered by the activity
+	if activity_result.requires_combat and activity_result.combat_target_squad_id != "":
+		var enemy_squad = _find_enemy_squad(activity_result.combat_target_squad_id)
+		if enemy_squad:
+			start_combat_encounter(enemy_squad, {"activity": activity.trigger_name})
+			# Wait for combat to complete before continuing
+			await combat_resolved
+			if is_in_combat:
+				# Combat still in progress - early return, rest will happen after combat ends
+				return
 
 	# print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
 	# game_scenario.activity_executed.emit(activity, activity_result)
@@ -258,8 +312,8 @@ func _on_short_pressed() -> void:
 
 #region Game Scenario Signal Handlers
 
-func _on_activity_executed(activity: Activity, result: ActivityResult) -> void:
-	# current_activity_result = result
+func _on_activity_executed(activity: Activity, _result: ActivityResult) -> void:
+	# current_activity_result = _result
 	print("Activity executed: %s" % activity.trigger_name)
 
 func _on_turn_advanced(turn: int) -> void:
@@ -326,6 +380,15 @@ func _update_activity_buttons() -> void:
 	travel_button.text = "Travel"
 	travel_button.disabled = false
 	travel_button.tooltip_text = "Travel to another location"
+	
+	# Attack button - enabled only if enemies are at this location
+	var enemies_here = game_scenario.world.get_squads_at_location(location.location_id)
+	attack_button.text = "Attack"
+	attack_button.disabled = enemies_here.is_empty()
+	if not enemies_here.is_empty():
+		attack_button.tooltip_text = "Attack %s (%d warriors)" % [enemies_here[0].squad_name, enemies_here[0].get_living_warriors().size()]
+	else:
+		attack_button.tooltip_text = "No enemies at this location"
 
 func _disable_all_activity_buttons() -> void:
 	rest_button.disabled = true
@@ -334,6 +397,7 @@ func _disable_all_activity_buttons() -> void:
 	investigate_button.disabled = true
 	hold_mass_button.disabled = true
 	travel_button.disabled = true
+	attack_button.disabled = true
 
 func _reenable_activity_buttons() -> void:
 	_update_activity_buttons()
@@ -396,7 +460,7 @@ func _capture_stat_snapshot() -> void:
 		return
 	
 	var squad = game_scenario.player_squad
-	var location = game_scenario.current_location
+	var _location = game_scenario.current_location
 	
 	stat_snapshot = {
 		"money": squad.money,
@@ -532,10 +596,16 @@ func _set_ui_mode(mode: UIMode) -> void:
 	match mode:
 		UIMode.STRATEGY:
 			dialogue_box.visible = false
+			if combat_panel: combat_panel.visible = false
 			_show_strategy_ui()
 		UIMode.VISUAL_NOVEL:
 			dialogue_box.visible = true
+			if combat_panel: combat_panel.visible = false
 			_show_vn_ui()
+		UIMode.COMBAT_INTERMISSION:
+			dialogue_box.visible = false
+			if combat_panel: combat_panel.visible = true
+			_show_combat_ui()
 
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
@@ -628,5 +698,207 @@ func _on_vn_dialogue_advanced(_index: int, _total: int) -> void:
 func _on_vn_completed_signal() -> void:
 	is_playing_chain = false
 	_exit_from_vn_to_strategy()
+
+#endregion
+
+#region Combat System
+
+## Finds an enemy squad by ID from the world's roaming squads
+func _find_enemy_squad(squad_id: String) -> StrategicSquad:
+	if not game_scenario or not game_scenario.world:
+		return null
+	for squad in game_scenario.world.roaming_squads:
+		if squad.squad_id == squad_id:
+			return squad
+	return null
+
+## Initiates combat encounter with intermission screen
+## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
+func start_combat_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> void:
+	print("\n[TrainingScreen] ========================================")
+	print("[TrainingScreen] COMBAT ENCOUNTER INITIATED")
+	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
+	print("[TrainingScreen] ========================================")
+	
+	is_in_combat = true
+	combat_options = combat_controller.start_combat(
+		game_scenario.player_squad,
+		enemy_squad,
+		context
+	)
+	
+	# Set timeout timer
+	combat_timeout_timer = combat_options.get("timeout_seconds", 30.0)
+	
+	# Switch to combat intermission UI
+	_set_ui_mode(UIMode.COMBAT_INTERMISSION)
+	_update_combat_intermission_ui()
+
+func _update_combat_intermission_ui() -> void:
+	if not combat_panel:
+		push_warning("[TrainingScreen] Combat panel not found in scene")
+		return
+	
+	var enemy_name = combat_options.get("enemy_name", "Unknown Enemy")
+	var enemy_count = combat_options.get("enemy_count", 0)
+	var flee_chance = combat_options.get("flee_chance", 0.0) * 100
+	var negotiate_chance = combat_options.get("negotiate_chance", 0.0) * 100
+	
+	if combat_enemy_label:
+		combat_enemy_label.text = "⚔️ Encountered: %s (%d warriors)" % [enemy_name, enemy_count]
+	
+	if combat_flee_button:
+		combat_flee_button.text = "🏃 Flee (%.0f%% chance)" % flee_chance
+		combat_flee_button.disabled = not combat_options.get("can_flee", true)
+		combat_flee_button.tooltip_text = "Attempt to escape. Uses SURVIVAL stat.\nSuccess: Escape with morale penalty\nFailure: Forced into combat"
+	
+	if combat_negotiate_button:
+		combat_negotiate_button.text = "🤝 Negotiate (%.0f%% chance)" % negotiate_chance
+		combat_negotiate_button.disabled = not combat_options.get("can_negotiate", true)
+		combat_negotiate_button.tooltip_text = "Attempt peaceful resolution. Uses DIPLOMACY stat.\nSuccess: Avoid combat entirely\nFailure: Forced into combat"
+	
+	if combat_fight_button:
+		combat_fight_button.text = "⚔️ Fight!"
+		combat_fight_button.disabled = not combat_options.get("can_fight", true)
+		combat_fight_button.tooltip_text = "Engage in tactical combat.\nVictory brings loot and clues.\nDefeat brings casualties."
+	
+	if combat_info_label:
+		combat_info_label.text = "Choose your action before time runs out..."
+	
+	_update_combat_timer_display()
+	
+	print("[TrainingScreen] Combat UI updated:")
+	print("[TrainingScreen]   Flee chance: %.1f%%" % flee_chance)
+	print("[TrainingScreen]   Negotiate chance: %.1f%%" % negotiate_chance)
+
+func _update_combat_timer_display() -> void:
+	if combat_timer_bar:
+		var max_time = combat_options.get("timeout_seconds", 30.0)
+		combat_timer_bar.max_value = max_time
+		combat_timer_bar.value = combat_timeout_timer
+		
+		# Change color based on remaining time
+		if combat_timeout_timer < 5.0:
+			combat_timer_bar.modulate = Color.RED
+		elif combat_timeout_timer < 10.0:
+			combat_timer_bar.modulate = Color.YELLOW
+		else:
+			combat_timer_bar.modulate = Color.WHITE
+
+func _on_combat_flee_pressed() -> void:
+	print("[TrainingScreen] Player chose: FLEE")
+	_process_combat_choice(CombatController.IntermissionChoice.FLEE)
+
+func _on_combat_negotiate_pressed() -> void:
+	print("[TrainingScreen] Player chose: NEGOTIATE")
+	_process_combat_choice(CombatController.IntermissionChoice.NEGOTIATE)
+
+func _on_combat_fight_pressed() -> void:
+	print("[TrainingScreen] Player chose: FIGHT")
+	_process_combat_choice(CombatController.IntermissionChoice.FIGHT)
+
+func _on_combat_timeout() -> void:
+	print("[TrainingScreen] COMBAT TIMEOUT - Auto-fighting!")
+	if combat_info_label:
+		combat_info_label.text = "Time's up! Engaging in combat..."
+	_process_combat_choice(CombatController.IntermissionChoice.FIGHT)
+
+func _process_combat_choice(choice: CombatController.IntermissionChoice) -> void:
+	# Disable buttons during processing
+	if combat_flee_button: combat_flee_button.disabled = true
+	if combat_negotiate_button: combat_negotiate_button.disabled = true
+	if combat_fight_button: combat_fight_button.disabled = true
+	combat_timeout_timer = 0  # Stop timer
+	
+	var result = combat_controller.process_intermission_choice(choice)
+	
+	print("[TrainingScreen] Combat result received: %s" % result.to_string() if result else "null")
+	
+	# Handle result
+	_handle_combat_result(result)
+
+func _handle_combat_result(result: CombatController.CombatResult) -> void:
+	is_in_combat = false
+	
+	if not result:
+		push_error("[TrainingScreen] Combat returned null result")
+		_exit_combat_to_strategy()
+		return
+	
+	print("\n[TrainingScreen] ========================================")
+	print("[TrainingScreen] COMBAT RESOLVED")
+	print("[TrainingScreen] %s" % result.to_string())
+	print("[TrainingScreen] ========================================")
+	
+	# Apply morale changes to squad
+	if result.morale_change != 0:
+		game_scenario.player_squad.modify_aggregate_morale(result.morale_change)
+		print("[TrainingScreen] Applied morale change: %.1f" % result.morale_change)
+	
+	# Handle casualties
+	for casualty_id in result.player_casualties:
+		var warrior = game_scenario.player_squad.get_warrior_by_id(casualty_id)
+		if warrior:
+			print("[TrainingScreen] Casualty: %s" % warrior.warrior_name)
+	
+	# Handle loot if victory
+	if result.victory and result.loot:
+		print("[TrainingScreen] Loot collected: %s" % [result.loot])
+		# Apply loot to squad inventory (stub - implement based on your inventory system)
+		_apply_combat_loot(result.loot)
+	
+	# Handle clues if victory
+	if result.victory and result.clues_dropped.size() > 0:
+		var current_location = game_scenario.current_location
+		for clue in result.clues_dropped:
+			current_location.add_clue(clue)
+			print("[TrainingScreen] Clue dropped: %s" % clue.clue_name)
+	
+	# Show result in UI briefly, then return to strategy
+	if combat_info_label:
+		if result.victory:
+			combat_info_label.text = "✓ VICTORY! Returning to camp..."
+		elif result.fled:
+			combat_info_label.text = "🏃 Escaped successfully. Returning..."
+		elif result.negotiated:
+			combat_info_label.text = "🤝 Conflict resolved peacefully. Returning..."
+		else:
+			combat_info_label.text = "✗ DEFEAT! Regrouping..."
+	
+	# Emit signal and transition back after brief delay
+	combat_completed.emit(result)
+	
+	# Use a timer or await to show result before transitioning
+	await get_tree().create_timer(1.5).timeout
+	_exit_combat_to_strategy()
+
+func _apply_combat_loot(loot: Dictionary) -> void:
+	var squad = game_scenario.player_squad
+	if loot.has("money"):
+		squad.money += loot.money
+		print("[TrainingScreen] Gained money: %.0f" % loot.money)
+	if loot.has("food"):
+		squad.food += int(loot.food)
+		print("[TrainingScreen] Gained food: %d" % int(loot.food))
+
+func _exit_combat_to_strategy() -> void:
+	print("[TrainingScreen] Exiting combat, returning to strategy mode")
+	is_in_combat = false
+	combat_timeout_timer = 0
+	combat_options = {}
+	_set_ui_mode(UIMode.STRATEGY)
+	_update_ui()
+	combat_resolved.emit()  # Signal that combat encounter has finished
+
+func _show_combat_ui() -> void:
+	# Hide strategy elements
+	action_buttons.visible = false
+	stats_panel.modulate.a = 0.5
+	dialogue_box.visible = false
+	character_container.visible = false
+	
+	# Show combat panel
+	if combat_panel:
+		combat_panel.visible = true
 
 #endregion
