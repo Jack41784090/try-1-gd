@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://combat_strategy_test"]
+
+[ext_resource type="Script" path="res://scenes/demos/combat_strategy_integration_test.gd" id="1_test"]
+
+[node name="CombatStrategyIntegrationTest" type="Node"]
+script = ExtResource("1_test")
