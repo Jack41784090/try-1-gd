@@ -1,4 +1,4 @@
-class_name D25BattlefieldController extends Node3D
+class_name SBGraphics extends Node3D
 
 const BASE_UNIT_SPACING: float = 2.75
 const UNIT_HEIGHT_OFFSET: float = 1.25

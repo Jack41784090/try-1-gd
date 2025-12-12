@@ -1,7 +1,7 @@
 extends Node3D
 
 var battle: SquadBattle
-var battlefield_controller: D25BattlefieldController
+var battlefield_controller: SBGraphics
 var entity_displays_dict: Dictionary = {}
 var delay_between_rounds: float = 2.0
 var is_running: bool = false

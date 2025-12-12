@@ -1,6 +1,6 @@
 [gd_scene load_steps=20 format=3 uid="uid://6c86cy13tc0b"]
 
-[ext_resource type="Script" uid="uid://cfsk5i0pxgs77" path="res://src/squad_battle/squad-battle-battlefield-controller.gd" id="1_battlefield_script"]
+[ext_resource type="Script" uid="uid://cfsk5i0pxgs77" path="res://src/squad-battle/graphics.gd" id="1_battlefield_script"]
 [ext_resource type="Shader" uid="uid://i7wm2v825i35" path="res://assets/shaders/bg-test.gdshader" id="2_a3vn4"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_wjvbm"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="3_hxxd1"]

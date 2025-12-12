@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="DamageTranslation" load_steps=5 format=3 uid="uid://dm8x3kj22fmfr"]
 
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/weapon/potency-obj.gd" id="1_lw2r7"]
-[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad_battle/weapon/damage-tsl.gd" id="2_cbxkl"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/weapon/potency-obj.gd" id="1_lw2r7"]
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/weapon/damage-tsl.gd" id="2_cbxkl"]
 
 [sub_resource type="Resource" id="Resource_lw2r7"]
 script = ExtResource("1_lw2r7")

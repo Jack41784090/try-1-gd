@@ -1,7 +1,7 @@
 extends RefCounted
 class_name SquadBattle
 
-const Types = preload("res://src/squad_battle/types.gd")
+var Types = SquadBattleTypes
 
 
 var teams_and_squads: Dictionary = {}

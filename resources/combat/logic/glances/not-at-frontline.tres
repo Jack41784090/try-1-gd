@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Glance" load_steps=2 format=3 uid="uid://c56631fupxyfq"]
 
-[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_glance"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="1_glance"]
 
 [resource]
 script = ExtResource("1_glance")

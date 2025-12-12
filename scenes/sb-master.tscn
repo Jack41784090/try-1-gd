@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://biqok44gmpkp8"]
 
-[ext_resource type="Script" uid="uid://brpxf2b6cbk64" path="res://src/squad_battle/squad-battle-master.gd" id="1_h63x3"]
+[ext_resource type="Script" uid="uid://brpxf2b6cbk64" path="res://src/squad-battle/master.gd" id="1_h63x3"]
 [ext_resource type="PackedScene" uid="uid://6c86cy13tc0b" path="res://scenes/sb-battlefield.tscn" id="2_e5hhc"]
 
 [node name="SquadBattle25DDemo" type="Node3D"]

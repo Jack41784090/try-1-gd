@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=7 format=3 uid="uid://ci87hl1evlrii"]
 
-[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="1_config"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/_script.gd" id="2_consideration"]
-[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
+[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad-battle/entity/logic/config.gd" id="1_config"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="2_consideration"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="3_glance"]
 [ext_resource type="Resource" uid="uid://b2x3m4n5p6q7r" path="res://resources/combat/logic/skills/example-attack-skill.tres" id="4_skill"]
 
 [sub_resource type="Resource" id="Resource_glance1"]

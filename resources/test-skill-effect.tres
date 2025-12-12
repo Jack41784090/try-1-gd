@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SkillEffect" load_steps=2 format=3 uid="uid://doasit2u48o6d"]
 
-[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_2dohm"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_2dohm"]
 
 [resource]
 script = ExtResource("1_2dohm")
