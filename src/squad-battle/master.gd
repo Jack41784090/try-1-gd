@@ -14,7 +14,7 @@ func _ready() -> void:
 		return
 
 	setup_row_mappings()
-	setup_battle()
+	setup_mock_battle()
 	spawn_all_entities()
 	is_running = true
 
@@ -39,7 +39,7 @@ func setup_row_mappings() -> void:
 	set_meta("attacker_rows", attacker_rows)
 	set_meta("defender_rows", defender_rows)
 
-func setup_battle() -> void:
+func setup_mock_battle() -> void:
 	var battle_config = {
 		"teams": {
 			"heroes": [{
