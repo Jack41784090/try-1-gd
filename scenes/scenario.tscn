@@ -63,7 +63,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_5eukr")
-scenario_path = "res://resources/scenarios/test scenario/t-scene.tres"
+scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
 is_demo_scenario = false
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
@@ -519,6 +519,16 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "🗺️ Travel"
 
+[node name="AttackButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+tooltip_text = "Attack enemies at this location"
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "⚔️ Attack"
+
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -646,3 +656,90 @@ theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Cancel"
+
+[node name="CombatIntermission" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="MarginContainer" type="MarginContainer" parent="CombatIntermission"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CombatIntermission/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="CombatIntermission/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 28
+text = "⚔️ COMBAT ENCOUNTER!"
+horizontal_alignment = 1
+
+[node name="EnemyInfoLabel" type="Label" parent="CombatIntermission/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "Encountered: Unknown Enemy (? warriors)"
+horizontal_alignment = 1
+
+[node name="TimerBar" type="ProgressBar" parent="CombatIntermission/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+max_value = 30.0
+value = 30.0
+show_percentage = false
+
+[node name="ButtonContainer" type="HBoxContainer" parent="CombatIntermission/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="FleeButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(160, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 0.7, 1)
+theme_override_colors/font_hover_color = Color(0.8, 1, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "🏃 Flee (??%)"
+
+[node name="NegotiateButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(160, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "🤝 Negotiate (??%)"
+
+[node name="FightButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(160, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚔️ Fight!"
+
+[node name="InfoLabel" type="Label" parent="CombatIntermission/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 14
+text = "Choose your action before time runs out..."
+horizontal_alignment = 1
