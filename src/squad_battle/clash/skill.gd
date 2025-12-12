@@ -24,11 +24,17 @@ func _to_string() -> String:
 func _init(
 	_name: String = '',
 	_effects: Array[SkillEffect] = [],
+	_targeting_consideration: Consideration = Consideration.new(),
+	_affected_consideration: Consideration = Consideration.new(),
+	_roll_for_damage: bool = true,
 ) -> void:
 	if _name == '':
 		return
 	name = _name;
 	effects = _effects;
+	targeting_consideration = _targeting_consideration
+	affected_consideration = _affected_consideration
+	roll_for_damage = _roll_for_damage
 	pass
 
 func inject_context_for_clash(_caster, _situation, _context):

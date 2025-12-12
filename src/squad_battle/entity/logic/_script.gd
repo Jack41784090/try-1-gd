@@ -58,7 +58,7 @@ func choose_weapon():
 	return entity.weapon
 
 func get_default_attack() -> Skill:
-	return Skill.new("Basic Attack", [])
+	return load('res://resources/combat/logic/skills/example-attack-skill.tres')
 
 func choose_clash() -> OneClash:
 	return choose_clash_with_skill(choose_skill())
