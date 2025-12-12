@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ActivityResult" load_steps=2 format=3 uid="uid://force_march_result"]
+
+[ext_resource type="Script" uid="uid://wt0yotigi6ov" path="res://src/strategy/triggerable/activity/result.gd" id="1_result"]
+
+[resource]
+script = ExtResource("1_result")
+squad_stat_changes = Dictionary[int, float]({
+5: -10.0
+})
+requires_combat = false
+combat_target_squad_id = ""
+location_changed = ""
+clues_left = 0
+metadata/_custom_type_script = "uid://wt0yotigi6ov"
