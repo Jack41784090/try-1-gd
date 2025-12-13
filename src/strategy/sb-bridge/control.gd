@@ -5,12 +5,7 @@ class_name CombatController
 ## Manages pre-combat intermission, combat execution, and post-combat resolution
 ## Integrates with CombatBridge for Warrior↔Entity mapping
 
-signal combat_started(player_squad: StrategicSquad, enemy_squad: StrategicSquad)
-signal intermission_started(options: Dictionary)
-signal intermission_choice_made(choice: String, roll_result: Dictionary)
-signal combat_phase_started(phase: int, tactic: Tactic)
-signal combat_phase_ended(phase: int, updates: Array[EntityUpdate])
-signal combat_ended(result: CombatResult)
+signal combat_ended()
 
 const FLEE_BASE_CHANCE: float = 0.3
 const FLEE_SURVIVAL_MODIFIER: float = 0.05
@@ -61,27 +56,42 @@ func _init() -> void:
 
 #region Combat Flow
 
-func start_combat(player_squad: StrategicSquad, enemy_squad: StrategicSquad, context: Dictionary = {}) -> Dictionary:
-	print("\n" + "=".repeat(60))
-	print("[CombatController] COMBAT INITIATED")
-	print("=".repeat(60))
-	print("[CombatController] Player Squad: %s (%d warriors)" % [player_squad.squad_name, player_squad.get_living_warriors().size()])
-	print("[CombatController] Enemy Squad: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
-	print("[CombatController] Context: %s" % context)
+func _start_3d_battle_scene(battle_viewport, combat_overlay) -> void:
+	print("[TrainingScreen] Loading 3D battle scene")
 	
+	var battle_scene = preload("res://scenes/sb-master.tscn").instantiate()
+	battle_viewport.add_child(battle_scene)
+	combat_overlay.visible = true
+	
+	battle_scene.initialize_battle(
+		combat_bridge.current_battle,
+		combat_bridge.player_combat_squad,
+		combat_bridge.enemy_combat_squad
+	)
+	# battle_completed.connect(_on_3d_battle_completed)
+
+	await battle_scene.battle_completed
+
+func inject_context(player_squad, enemy_squad):
 	current_player_squad = player_squad
 	current_enemy_squad = enemy_squad
 	current_tactic = player_squad.get_tactic()
 	is_in_combat = true
 	combat_phase = 0
 	all_updates.clear()
-	
-	combat_started.emit(player_squad, enemy_squad)
-	
-	# Build intermission options based on squad stats
+
+
+func start_combat(player_squad: StrategicSquad, enemy_squad: StrategicSquad) -> Dictionary:
+	print("\n" + "=".repeat(60))
+	print("[CombatController] COMBAT INITIATED")
+	print("=".repeat(60))
+	print("[CombatController] Player Squad: %s (%d warriors)" % [player_squad.squad_name, player_squad.get_living_warriors().size()])
+	print("[CombatController] Enemy Squad: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
+
+	inject_context(player_squad, enemy_squad)
+
 	var options = _build_intermission_options()
 	print("[CombatController] Intermission options: %s" % options)
-	intermission_started.emit(options)
 	
 	return options
 
@@ -166,7 +176,7 @@ func _attempt_flee() -> CombatResult:
 		"rolled": roll,
 		"success": roll < flee_chance
 	}
-	intermission_choice_made.emit("FLEE", roll_result)
+	# intermission_choice_made.emit("FLEE", roll_result)
 	
 	if roll < flee_chance:
 		print("[CombatController]   SUCCESS - Squad escaped!")
@@ -197,7 +207,7 @@ func _attempt_negotiate() -> CombatResult:
 		"rolled": roll,
 		"success": roll < negotiate_chance
 	}
-	intermission_choice_made.emit("NEGOTIATE", roll_result)
+	# intermission_choice_made.emit("NEGOTIATE", roll_result)
 	
 	if roll < negotiate_chance:
 		print("[CombatController]   SUCCESS - Conflict resolved peacefully!")
@@ -230,7 +240,7 @@ func _execute_combat() -> CombatResult:
 		battle.round_count = combat_phase
 		
 		print("\n[CombatController] === COMBAT ROUND %d ===" % combat_phase)
-		combat_phase_started.emit(combat_phase, current_tactic)
+		# combat_phase_started.emit(combat_phase, current_tactic)
 		
 		# Execute squad actions
 		var round_updates = battle.squad_actions()
@@ -244,7 +254,7 @@ func _execute_combat() -> CombatResult:
 		battle.squad_recoveries()
 		battle.remove_dead_entities()
 		
-		combat_phase_ended.emit(combat_phase, round_updates)
+		# combat_phase_ended.emit(combat_phase, round_updates)
 		result.turns_elapsed = combat_phase
 	
 	# Determine outcome
@@ -332,7 +342,7 @@ func _end_combat(result: CombatResult) -> void:
 	print("=".repeat(60) + "\n")
 	
 	is_in_combat = false
-	combat_ended.emit(result)
+	combat_ended.emit()
 	combat_bridge.clear_mappings()
 
 #endregion

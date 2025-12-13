@@ -7,6 +7,8 @@ var delay_between_rounds: float = 2.0
 var is_running: bool = false
 var last_round_capitulated: Array = []
 
+signal battle_completed
+
 func _ready() -> void:
 	battlefield_controller = get_node("25dBattlefield")
 	if not battlefield_controller:
@@ -107,6 +109,7 @@ func process_round() -> void:
 		SBLog.section(end_message, 0, 2, 1)
 		print_winner()
 		is_running = false
+		battle_completed.emit()
 		return
 
 	SBLog.section("Round %d" % (battle.round_count + 1), 1, 1, 1)

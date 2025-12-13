@@ -9,11 +9,11 @@ extends Control
 
 signal vn_completed();
 signal combat_completed(result: CombatController.CombatResult);
-signal combat_resolved();  # Emitted when combat encounter ends (regardless of outcome)
+signal combat_resolved(); # Emitted when combat encounter ends (regardless of outcome)
 
 enum UIMode {
-	STRATEGY,           # Normal activity buttons visible
-	VISUAL_NOVEL,       # VN elements visible, strategy UI dimmed
+	STRATEGY, # Normal activity buttons visible
+	VISUAL_NOVEL, # VN elements visible, strategy UI dimmed
 	COMBAT_INTERMISSION # Combat choice screen (Flee/Negotiate/Fight)
 }
 
@@ -61,6 +61,10 @@ enum UIMode {
 @onready var combat_timer_bar: ProgressBar = $CombatIntermission/MarginContainer/VBoxContainer/TimerBar
 @onready var combat_info_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/InfoLabel
 
+@onready var combat_overlay: CanvasLayer = $CombatOverlay
+@onready var battle_viewport: SubViewport = $CombatOverlay/BattleViewportContainer/BattleViewport
+@onready var battle_close_button: Button = $CombatOverlay/CloseButton
+
 #region State Variables
 var game_scenario: GameScenario
 var ui_mode: UIMode = UIMode.STRATEGY
@@ -71,7 +75,7 @@ var stat_snapshot: Dictionary = {}
 
 # Combat state
 var combat_controller: CombatController = null
-var is_in_combat: bool = false
+var is_in_combat_encounter: bool = false
 var combat_timeout_timer: float = 0.0
 var combat_options: Dictionary = {}
 #endregion
@@ -92,7 +96,7 @@ func _ready() -> void:
 	_update_ui()
 
 func _process(delta: float) -> void:
-	if is_in_combat and combat_timeout_timer > 0:
+	if is_in_combat_encounter and combat_timeout_timer > 0:
 		combat_timeout_timer -= delta
 		_update_combat_timer_display()
 		if combat_timeout_timer <= 0:
@@ -217,7 +221,7 @@ func _create_travel_activity(location_id: String) -> Activity:
 	# Travel costs: morale penalty and travel tools consumption
 	# These can be modified based on distance, terrain, etc.
 	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
-	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0  # travel_tools
+	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
 	
 	activity.result = travel_result
 	return activity
@@ -258,7 +262,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 			start_combat_encounter(enemy_squad, {"activity": activity.trigger_name})
 			# Wait for combat to complete before continuing
 			await combat_resolved
-			if is_in_combat:
+			if is_in_combat_encounter:
 				# Combat still in progress - early return, rest will happen after combat ends
 				return
 
@@ -498,7 +502,7 @@ func _calculate_stat_deltas() -> Dictionary:
 		var old_value = stat_snapshot[stat_name]
 		var new_value = current_stats[stat_name]
 		var delta = new_value - old_value
-		if abs(delta) >= 0.01:  # Only include meaningful changes
+		if abs(delta) >= 0.01: # Only include meaningful changes
 			deltas[stat_name] = delta
 			print("[StatAnimation] Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
 	
@@ -720,30 +724,17 @@ func start_combat_encounter(enemy_squad: StrategicSquad, context: Dictionary = {
 	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 	print("[TrainingScreen] ========================================")
 	
-	is_in_combat = true
-	combat_options = combat_controller.start_combat(
+	is_in_combat_encounter = true
+	combat_options = combat_controller.inject_context(
 		game_scenario.player_squad,
 		enemy_squad,
-		context
 	)
-	
-	# Set timeout timer
 	combat_timeout_timer = combat_options.get("timeout_seconds", 30.0)
 	
-	# Switch to combat intermission UI
 	_set_ui_mode(UIMode.COMBAT_INTERMISSION)
 	_update_combat_intermission_ui()
 
-func _update_combat_intermission_ui() -> void:
-	if not combat_panel:
-		push_warning("[TrainingScreen] Combat panel not found in scene")
-		return
-	
-	var enemy_name = combat_options.get("enemy_name", "Unknown Enemy")
-	var enemy_count = combat_options.get("enemy_count", 0)
-	var flee_chance = combat_options.get("flee_chance", 0.0) * 100
-	var negotiate_chance = combat_options.get("negotiate_chance", 0.0) * 100
-	
+func _update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance):	
 	if combat_enemy_label:
 		combat_enemy_label.text = "⚔️ Encountered: %s (%d warriors)" % [enemy_name, enemy_count]
 	
@@ -761,10 +752,14 @@ func _update_combat_intermission_ui() -> void:
 		combat_fight_button.text = "⚔️ Fight!"
 		combat_fight_button.disabled = not combat_options.get("can_fight", true)
 		combat_fight_button.tooltip_text = "Engage in tactical combat.\nVictory brings loot and clues.\nDefeat brings casualties."
+
+func _update_combat_intermission_ui() -> void:
+	var enemy_name = combat_options.get("enemy_name", "Unknown Enemy")
+	var enemy_count = combat_options.get("enemy_count", 0)
+	var flee_chance = combat_options.get("flee_chance", 0.0) * 100
+	var negotiate_chance = combat_options.get("negotiate_chance", 0.0) * 100
 	
-	if combat_info_label:
-		combat_info_label.text = "Choose your action before time runs out..."
-	
+	_update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance)
 	_update_combat_timer_display()
 	
 	print("[TrainingScreen] Combat UI updated:")
@@ -772,18 +767,17 @@ func _update_combat_intermission_ui() -> void:
 	print("[TrainingScreen]   Negotiate chance: %.1f%%" % negotiate_chance)
 
 func _update_combat_timer_display() -> void:
-	if combat_timer_bar:
-		var max_time = combat_options.get("timeout_seconds", 30.0)
-		combat_timer_bar.max_value = max_time
-		combat_timer_bar.value = combat_timeout_timer
-		
-		# Change color based on remaining time
-		if combat_timeout_timer < 5.0:
-			combat_timer_bar.modulate = Color.RED
-		elif combat_timeout_timer < 10.0:
-			combat_timer_bar.modulate = Color.YELLOW
-		else:
-			combat_timer_bar.modulate = Color.WHITE
+	var max_time = combat_options.get("timeout_seconds", 30.0)
+	combat_timer_bar.max_value = max_time
+	combat_timer_bar.value = combat_timeout_timer
+	
+	# Change color based on remaining time
+	if combat_timeout_timer < 5.0:
+		combat_timer_bar.modulate = Color.RED
+	elif combat_timeout_timer < 10.0:
+		combat_timer_bar.modulate = Color.YELLOW
+	else:
+		combat_timer_bar.modulate = Color.WHITE
 
 func _on_combat_flee_pressed() -> void:
 	print("[TrainingScreen] Player chose: FLEE")
@@ -799,8 +793,7 @@ func _on_combat_fight_pressed() -> void:
 
 func _on_combat_timeout() -> void:
 	print("[TrainingScreen] COMBAT TIMEOUT - Auto-fighting!")
-	if combat_info_label:
-		combat_info_label.text = "Time's up! Engaging in combat..."
+	combat_info_label.text = "Time's up! Engaging in combat..."
 	_process_combat_choice(CombatController.IntermissionChoice.FIGHT)
 
 func _process_combat_choice(choice: CombatController.IntermissionChoice) -> void:
@@ -808,17 +801,36 @@ func _process_combat_choice(choice: CombatController.IntermissionChoice) -> void
 	if combat_flee_button: combat_flee_button.disabled = true
 	if combat_negotiate_button: combat_negotiate_button.disabled = true
 	if combat_fight_button: combat_fight_button.disabled = true
-	combat_timeout_timer = 0  # Stop timer
+	combat_timeout_timer = 0
 	
 	var result = combat_controller.process_intermission_choice(choice)
 	
-	print("[TrainingScreen] Combat result received: %s" % result.to_string() if result else "null")
+	# If FIGHT chosen and combat is needed, show 3D battle
+	if choice == CombatController.IntermissionChoice.FIGHT :
+		combat_panel.visible = false
+		result = combat_controller.get_final_result()
 	
-	# Handle result
+	print("[TrainingScreen] Combat result received: %s" % result.to_string() if result else "null")
 	_handle_combat_result(result)
 
+func _on_3d_battle_completed() -> void:
+	print("[TrainingScreen] 3D battle visualization completed")
+	_cleanup_battle_scene()
+
+func _on_battle_close_pressed() -> void:
+	print("[TrainingScreen] User closed battle manually")
+	_cleanup_battle_scene()
+
+func _cleanup_battle_scene() -> void:
+	# Remove battle scene from viewport
+	for child in battle_viewport.get_children():
+		child.queue_free()
+	
+	# Hide overlay
+	combat_overlay.visible = false
+
 func _handle_combat_result(result: CombatController.CombatResult) -> void:
-	is_in_combat = false
+	is_in_combat_encounter = false
 	
 	if not result:
 		push_error("[TrainingScreen] Combat returned null result")
@@ -883,12 +895,12 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 
 func _exit_combat_to_strategy() -> void:
 	print("[TrainingScreen] Exiting combat, returning to strategy mode")
-	is_in_combat = false
+	is_in_combat_encounter = false
 	combat_timeout_timer = 0
 	combat_options = {}
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
-	combat_resolved.emit()  # Signal that combat encounter has finished
+	combat_resolved.emit() # Signal that combat encounter has finished
 
 func _show_combat_ui() -> void:
 	# Hide strategy elements
