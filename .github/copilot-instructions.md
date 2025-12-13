@@ -16,7 +16,13 @@ Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 ### Strategic: `GameScenario → World/EventManager/Factions/StrategicSquad`
 **Flow**: `execute_turn(Activity) → execute() → check_triggers() → advance_turn()`
 
-### Bridge: `StrategicSquad.to_combat_squad()` ↔ `from_combat_results()`
+### Combat Integration: `CombatController → CombatBridge → SquadBattle`
+**Architecture**: 
+- **CombatBridge** (`src/strategy/sb-bridge/!main.gd`): Data translation layer - converts `StrategicSquad` ↔ tactical `Squad` configs, manages Warrior↔Entity ID mapping
+- **CombatController** (`src/strategy/sb-bridge/control.gd`): Orchestration layer - manages combat flow (intermission → combat → resolution), flee/negotiate mechanics, loot/clues generation
+- **Separation Rationale**: Bridge handles pure data conversion (stateless), Controller handles game logic and combat flow (stateful)
+
+**Flow**: `start_combat() → _build_intermission_options() → process_intermission_choice() → _execute_combat() → apply_results()`
 
 ## Godot Patterns
 
@@ -40,8 +46,9 @@ Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 - **Skills/Status**: One-time vs persistent effects via `StatusEffectEventBus` autoload singleton
 
 ### Strategy
-- **Activities**: `REST`, `DRILL`, `TRAVEL`, `PATROL`, `INVESTIGATE`, `HOLD_MASS`
-- **Results**: `ActivityResult` extends `GenericResult` with `squad_stat_changes`, `event_chain_path`, `requires_async`
+- **Activities**: `REST`, `DRILL`, `TRAVEL`, `PATROL`, `INVESTIGATE`, `HOLD_MASS`, `ATTACK`, `FORCE_MARCH`
+- **Results**: `ActivityResult` extends `GenericResult` with `squad_stat_changes`, `event_chain_path`, `requires_async`, `requires_combat`, `combat_target_squad_id`
+- **Combat Triggering**: Activities like `ATTACK` and `FORCE_MARCH` set `requires_combat = true` when enemies present at location
 
 - **TriggerCondition**: `LOCATION`, `LOCATION_TYPE`, `WARRIOR_STATUS`, `SQUAD_STATUS`, `ACTIVITY_TYPE`, `TIME`, `MISSION_STATUS`, `COMPOUND` (nested AND/OR)
 - **EventManager**: Checks events each turn by priority
@@ -62,19 +69,33 @@ Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 - **Travel**: Adjacency graph with `TravelGraph.find_path()` BFS pathfinding
 - **Travel Time**: Base 1 turn, modified by location type and stability
 - **World State**: Turn counter, location graph, global modifiers (五行), end progression
+- **Roaming Squads**: Enemy squads tracked in `World.roaming_squads`, detected via `get_squads_at_location()`
 
-#### Bridge to Combat
-**Strategic → Tactical** (not yet fully implemented):
-```gdscript
-func to_combat_squad() -> Squad:
-    # Convert Warriors[] to SquadEntity configs
-```
+#### Combat System
+**CombatController** manages three-phase combat flow:
 
-**Tactical → Strategic** (not yet fully implemented):
-```gdscript
-func from_combat_results(updates: Array[EntityUpdate]):
-    # Apply HP/ORG changes, mark casualties
-```
+1. **Intermission Phase**:
+   - Flee chance: `FLEE_BASE_CHANCE + (SURVIVAL_stat * modifier)`
+   - Negotiate chance: `NEGOTIATE_BASE_CHANCE + (DIPLOMACY_stat * modifier)`
+   - Fight option always available
+   - Timeout: 30 seconds (auto-fight)
+
+2. **Tactical Phase** (if FIGHT chosen):
+   - `CombatBridge.create_battle()` converts strategic squads to tactical entities
+   - Runs `SquadBattle.squad_actions()` rounds until victory/defeat
+   - Collects all `EntityUpdate[]` for post-combat processing
+
+3. **Resolution Phase**:
+   - `CombatBridge.apply_results()` converts tactical outcomes back to strategic layer
+   - Morale changes based on outcome (victory: +15, defeat: -20, flee: -10)
+   - Loot generation (money, food) from defeated enemies
+   - Clue drops (30% chance) revealing enemy movements
+   - Casualty tracking via `Warrior.is_dead`, `is_injured` flags
+
+**UI Integration**:
+- `UIMode.COMBAT_INTERMISSION`: Shows flee/negotiate/fight buttons with calculated chances
+- `UIMode.STRATEGY`: Returns after combat resolution
+- 3D battle overlay via `SubViewport` in `CombatOverlay` CanvasLayer (planned)
 
 #### VN System
 **EventChain** (Resource): Contains `chain_id`, `character_ids`, `dialogues[]`
@@ -92,6 +113,7 @@ Activities, Events, Missions, and Endings can trigger EventChains for narrative 
 - **TrainingScreen UI Modes**: 
   - `STRATEGY`: Normal activity selection and stats display
   - `VISUAL_NOVEL`: EventChain playback with character portraits and dialogue
+  - `COMBAT_INTERMISSION`: Combat choice screen (flee/negotiate/fight)
 - **Result Extensions**: All Result types (`ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`) have:
   - `event_chain_path: String` - Path to EventChain resource
   - `has_event_chain() -> bool` - Check if EventChain should be played
@@ -150,13 +172,42 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 - `src/strategy/triggerable/mission/`: Mission implementation and result
 - `src/strategy/triggerable/ending/`: Ending implementation and result
 - `src/strategy/vn/`: Visual novel system (EventChain, Dialogue, VisualNovelComponent)
+- `src/strategy/sb-bridge/`: Combat integration bridge (!main.gd = CombatBridge, control.gd = CombatController)
+- `src/strategy/ui/`: UI components (!main.gd = TrainingScreen, travel.gd = TravelGUI)
 - `src/demos/`: Demo implementations
 - `src/singletons/`: Autoloaded event buses
 - `scenes/`: Godot scene files (.tscn)
+- `scenes/demos/`: Test and demo scenes
 - `resources/`: Serialized resource files (.tres)
+- `resources/scenarios/`: GameScenario resources with World, squads, events
 - `notes/`: Documentation and migration notes
 
 ## Best Practices Learned
+
+### Fail-Fast Philosophy (CRITICAL)
+1. **No fallback values unless explicitly requested** - If data is missing, fail with error/assert
+2. **No stub/placeholder implementations** - Only implement functions when they have real logic
+3. **No unused signals** - Only declare signals when they will be emitted and connected
+4. **No unused parameters** - Don't add parameters "just in case" - only add them when actually used in function body
+5. **No speculative code** - Don't add variables, properties, or logic for "future use" - implement only what's needed now
+6. **Explicit null checks** - Use `assert(obj != null)` or early returns, don't silently continue with bad data
+7. **Example**: 
+   ```gdscript
+   # ❌ BAD: Silent fallback
+   var weapon = warrior.equipment_weapon if warrior.equipment_weapon else WeaponFactory.create_default()
+   
+   # ✅ GOOD: Explicit requirement
+   assert(warrior.equipment_weapon != null, "Warrior must have weapon equipped")
+   var weapon = warrior.equipment_weapon
+   
+   # ❌ BAD: Unused parameter
+   func process_turn(squad: Squad, context: Dictionary = {}) -> void:
+       print("Processing turn for %s" % squad.name)  # context never used
+   
+   # ✅ GOOD: Only required parameters
+   func process_turn(squad: Squad) -> void:
+       print("Processing turn for %s" % squad.name)
+   ```
 
 ### Type Safety
 1. **Always use enums over strings** for categorical data (Religion, LocationType, ActivityType)
@@ -169,14 +220,16 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 1. **Factory Pattern**: Use static `create_*()` methods for polymorphic instantiation (Activity.create_activity())
 2. **Composite Pattern**: For recursive structures like TriggerCondition with AND/OR nesting
 3. **Bridge Pattern**: Separate strategic and tactical representations with conversion methods
+   - **Data Layer** (CombatBridge): Pure data translation, stateless, no game logic
+   - **Logic Layer** (CombatController): Game rules, state management, orchestration
 4. **Result Pattern**: Return strongly-typed result objects (ActivityResult, EventResult) instead of raw dictionaries
 5. **Event Bus Pattern**: Use autoloaded singletons for cross-system communication without tight coupling
 
 ### Data Flow
 1. **Context Dictionaries**: Build context once, pass to all evaluators (avoid repeated data gathering)
 2. **Immutable Results**: Return new result objects, don't modify passed parameters
-3. **Stub Warnings**: Use `push_warning()` for unimplemented combat bridge methods to track what needs completion
-4. **Signal Orchestration**: Emit signals from orchestrator (GameScenario) not from low-level classes
+3. **Signal Orchestration**: Emit signals from orchestrator (GameScenario, CombatController) not from low-level classes
+4. **ID Mapping**: Use explicit dictionaries for cross-layer ID translation (warrior_to_entity, entity_to_warrior)
 
 ### Code Organization
 1. **One class per file** except nested utility classes (EventChoice inside StrategyTypes is fine)
@@ -193,6 +246,7 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 6. ❌ **Don't directly assign untyped arrays to typed array properties** - Always use iterative assignment or helper methods (see below)
 7. ❌ **Don't use `.get()` with default array values for typed arrays** - Returns untyped Array, causing type errors
 8. ❌ **Don't cast Dictionary.get() results to typed arrays** - The cast happens after .get() returns untyped Array
+9. ❌ **Don't add comments (`#`) in .tscn scene files** - Godot scene format doesn't support inline comments
 
 ### Typed Array Assignment Pattern (CRITICAL)
 GDScript has strict typed array requirements. **ANY assignment to a typed array variable MUST come from a compatible typed source.**
