@@ -1,17 +1,2 @@
 extends Node
 
-signal activity_started(activity_name: String)
-signal activity_completed(activity_name: String, result: ActivityResult)
-signal event_fired(event_name: String)
-signal mission_unlocked(mission_name: String)
-signal mission_completed(mission_name: String)
-signal mission_failed(mission_name: String)
-signal faction_reputation_changed(faction_name: String, new_reputation: float)
-signal squad_morale_changed(new_morale: float)
-signal squad_resource_changed(resource_name: String, new_amount: Variant)
-signal warrior_joined(warrior_name: String)
-signal warrior_died(warrior_name: String)
-signal location_changed(old_location: String, new_location: String)
-signal turn_advanced(turn_number: int)
-signal game_ended(ending_name: String)
-

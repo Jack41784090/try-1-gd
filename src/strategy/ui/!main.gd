@@ -259,7 +259,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	if activity_result.requires_combat and activity_result.combat_target_squad_id != "":
 		var enemy_squad = _find_enemy_squad(activity_result.combat_target_squad_id)
 		if enemy_squad:
-			start_combat_encounter(enemy_squad, {"activity": activity.trigger_name})
+			start_combat_encounter(enemy_squad)
 			# Wait for combat to complete before continuing
 			await combat_resolved
 			if is_in_combat_encounter:
@@ -718,7 +718,7 @@ func _find_enemy_squad(squad_id: String) -> StrategicSquad:
 
 ## Initiates combat encounter with intermission screen
 ## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
-func start_combat_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> void:
+func start_combat_encounter(enemy_squad: StrategicSquad) -> void:
 	print("\n[TrainingScreen] ========================================")
 	print("[TrainingScreen] COMBAT ENCOUNTER INITIATED")
 	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])

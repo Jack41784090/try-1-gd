@@ -1,10 +1,6 @@
 extends RefCounted
 class_name CombatBridge
 
-signal combat_requested(player_squad: StrategicSquad, enemy_squad: StrategicSquad, context: Dictionary)
-signal combat_phase_completed(updates: Array[EntityUpdate])
-signal combat_ended(result: Dictionary)
-
 var warrior_to_entity: Dictionary = {}
 var entity_to_warrior: Dictionary = {}
 var current_battle: SquadBattle = null

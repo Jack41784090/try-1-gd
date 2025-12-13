@@ -94,7 +94,12 @@ func _init(config: Dictionary = {}):
 		"enemy_squad": {}
 	}, logic_config)
 	
-	innate_skills = config.get("innate_skills", [] as Array[Skill])
+	var raw_skills = config.get("innate_skills", [])
+	if raw_skills is Array:
+		for skill in raw_skills:
+			if skill is Skill:
+				innate_skills.append(skill)
+	
 	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	init_after()
 

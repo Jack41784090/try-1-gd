@@ -16,7 +16,12 @@ func _init(config: Dictionary = {}) -> void:
 	
 	chain_id = config.get("chain_id", config.get("id", ""))
 	chain_name = config.get("chain_name", config.get("name", ""))
-	character_ids = config.get("character_ids", [] as Array[String])
+	
+	var raw_char_ids = config.get("character_ids", [])
+	if raw_char_ids is Array:
+		for char_id in raw_char_ids:
+			if char_id is String:
+				character_ids.append(char_id)
 	
 	var dialogue_configs: Array = config.get("dialogues", [])
 	for dialogue_config in dialogue_configs:

@@ -148,6 +148,15 @@ func load_state(data: Dictionary) -> void:
 		location.type = loc_dict.get("type", StrategyTypes.LocationType.VILLAGE)
 		location.development = loc_dict.get("development", 50)
 		location.stability = loc_dict.get("stability", 100.0)
-		location.connected_location_ids = loc_dict.get("connections", [])
-		location.available_activity_types = loc_dict.get("activities", [])
+		var raw_connections = loc_dict.get("connections", [])
+		if raw_connections is Array:
+			for conn in raw_connections:
+				if conn is String:
+					location.connected_location_ids.append(conn)
+		
+		var raw_activities = loc_dict.get("activities", [])
+		if raw_activities is Array:
+			for activity in raw_activities:
+				if activity is int:
+					location.available_activity_types.append(activity)
 		locations.append(location)
