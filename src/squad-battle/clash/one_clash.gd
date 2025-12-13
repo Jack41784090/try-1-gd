@@ -170,15 +170,6 @@ func commit() -> Array[EntityUpdate]:
 	print("═══════════════════════════════════════════════════\n")
 	return cleanup()
 
-# func _get_effect_type_name(effect: SkillEffect) -> String:
-# 	if not effect:
-# 		return "Unknown"
-# 	match effect.commitType:
-# 		ClashCommonTypes.CommitType.ApplyStatusEffect: return "ApplyStatusEffect"
-# 		ClashCommonTypes.CommitType.Damage: return "Damage"
-# 		ClashCommonTypes.CommitType.Heal: return "Heal"
-# 		_: return "Unknown"
-
 func _format_triggers(trigger_array: Array) -> String:
 	if trigger_array.is_empty():
 		return "None"

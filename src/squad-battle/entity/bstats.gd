@@ -1,6 +1,5 @@
 class_name EntityBaseStats extends Resource
 
-#@export var id: String
 @export var strength: float
 @export var dex: float
 @export var acr: float
@@ -20,7 +19,6 @@ func _init(
 	p_spd: float= 1, p_siz: float= 1, p_int: float= 1, p_spr: float= 1,
 	p_fai: float= 1, p_cha: float= 1, p_beu: float= 1, p_wil: float= 1,
 	p_end: float= 1):
-	#id = p_id
 	strength = p_str
 	dex = p_dex
 	acr = p_acr
