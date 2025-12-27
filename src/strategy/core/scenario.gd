@@ -24,17 +24,23 @@ var previous_location: Location = null  # Track for LOCATION_TRANSITION conditio
 var _pending_location_change: String = ""  # Location ID we're traveling to
 
 func _init(config: Dictionary = {}) -> void:
-	if not config.is_empty():
-		# Programmatic creation with config
+	print(" --- new scenario init --- ")
+
+	if config.is_empty():
+		print(" Should follow a \"Manual INIT func call\" ")
+	else:
+		print(" --- Config is not empty, setting up now using premade configs --- ")
 		_setup(config)
 		_initialized = true
 
-func initialize() -> void:
-	if not _initialized:
-		_setup({})
-		_initialized = true
+func initialize(_config = {}) -> void:
+	print(" --- Manual INIT func called --- ")
+	assert(not _initialized, "scenario->initialize must not be called when it has already initialised through other means.")
+	_setup(_config)
+	_initialized = true
 
 func _setup(config: Dictionary) -> void:
+	print("Scenario setup: ", config);
 	# Initialize triggerable_manager first
 	triggerable_manager = TriggerableManager.new()
 	

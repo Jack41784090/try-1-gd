@@ -22,9 +22,15 @@ class_name Warrior
 var is_dead: bool = false
 var is_injured: bool = false
 
+func _religion_tostring(_r):
+	return StrategyTypes.Religion.keys()[_r]
+
 func _init() -> void:
 	if not combat_stats:
 		combat_stats = EntityBaseStats.new()
+
+func _to_string() -> String:
+	return "Warrior(id=%s, name=%s, morale=%f, religion=%s, attributes=%s)" % [warrior_id, warrior_name, morale, _religion_tostring(religion), attributes]
 
 func modify_morale(amount: float) -> void:
 	morale = clamp(morale + amount, 0.0, 200.0)

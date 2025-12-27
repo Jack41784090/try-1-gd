@@ -16,12 +16,17 @@ var current_location_id: String = ""
 var current_tactic: Tactic = null
 
 func _init() -> void:
+	print(" --- StrategicSquad init --- ")
 	warriors.append(Warrior.new())
 	update_aggregate_morale()
 	current_tactic = Tactic.create_balanced()
 	# Initialize current_location_id from starting_location_id if set
 	if starting_location_id != "":
 		current_location_id = starting_location_id
+	print(" \\=> New squad created: ", _to_string())
+
+func _to_string() -> String:
+	return "StrategicSquad(id=%s, name=%s, warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [squad_id, squad_name, warriors, money, karma, food, travel_tools, formation, starting_location_id]
 
 func consume_food(amount: int) -> bool:
 	if food >= amount:
