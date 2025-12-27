@@ -49,51 +49,173 @@ var combat_phase: int = 0
 var all_updates: Array[EntityUpdate] = []
 var rng := RandomNumberGenerator.new()
 
+var battle_viewport
+var combat_overlay
+
 func _init() -> void:
 	combat_bridge = CombatBridge.new()
 	rng.randomize()
 	print("[CombatController] Initialized")
 
-#region Combat Flow
-
-func _start_3d_battle_scene(battle_viewport, combat_overlay) -> void:
-	print("[TrainingScreen] Loading 3D battle scene")
-	
-	var battle_scene = preload("res://scenes/sb-master.tscn").instantiate()
-	battle_viewport.add_child(battle_scene)
-	combat_overlay.visible = true
-	
-	battle_scene.initialize_battle(
-		combat_bridge.current_battle,
-		combat_bridge.player_combat_squad,
-		combat_bridge.enemy_combat_squad
-	)
-	# battle_completed.connect(_on_3d_battle_completed)
-
-	await battle_scene.battle_completed
-
-func inject_context(player_squad, enemy_squad):
+## Injecting the context first to let control knows how to translate between strategy and combat. This is the first point of contact between strategy and combat.
+func inject_context(player_squad, enemy_squad, _battle_viewport, _combat_overlay):
 	current_player_squad = player_squad
 	current_enemy_squad = enemy_squad
 	current_tactic = player_squad.get_tactic()
 	is_in_combat = true
 	combat_phase = 0
 	all_updates.clear()
+	battle_viewport = _battle_viewport;
+	combat_overlay = _combat_overlay;
+	return _build_intermission_options()
 
+func set_tactic(tactic: Tactic) -> void:
+	current_tactic = tactic
+	print("[CombatController] Tactic set to: %s" % tactic.tactic_name)
 
-func start_combat(player_squad: StrategicSquad, enemy_squad: StrategicSquad) -> Dictionary:
-	print("\n" + "=".repeat(60))
-	print("[CombatController] COMBAT INITIATED")
-	print("=".repeat(60))
-	print("[CombatController] Player Squad: %s (%d warriors)" % [player_squad.squad_name, player_squad.get_living_warriors().size()])
-	print("[CombatController] Enemy Squad: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
+func set_tactic_by_type(tactic_type: Tactic.TacticType) -> void:
+	current_tactic = Tactic.create_from_type(tactic_type)
+	print("[CombatController] Tactic set by type: %s → %s" % [Tactic.TacticType.keys()[tactic_type], current_tactic.tactic_name])
 
-	inject_context(player_squad, enemy_squad)
-
-	var options = _build_intermission_options()
-	print("[CombatController] Intermission options: %s" % options)
+func process_intermission_choice(choice: IntermissionChoice) -> CombatResult:
+	print("\n[CombatController] Processing intermission choice: %s" % IntermissionChoice.keys()[choice])
 	
-	return options
+	var result := CombatResult.new()
+	
+	match choice:
+		IntermissionChoice.FIGHT:
+			print("[CombatController] Player chose to FIGHT")
+			result = await _execute_combat()
+		
+		IntermissionChoice.FLEE:
+			print("[CombatController] Player chose to FLEE")
+			result = await _attempt_flee()
+		
+		IntermissionChoice.NEGOTIATE:
+			print("[CombatController] Player chose to NEGOTIATE")
+			result = await _attempt_negotiate()
+	
+	_end_combat(result)
+	return result
+
+func _execute_combat() -> CombatResult:
+	print("\n[CombatController] EXECUTING TACTICAL COMBAT")
+	print("-".repeat(40))
+	
+	var result := CombatResult.new()
+
+	# Create battle via bridge
+	var battle = combat_bridge.create_battle(current_player_squad, current_enemy_squad, current_tactic)
+	print("[CombatController] Battle created with tactic: %s" % current_tactic.tactic_name)
+	
+	# Use factory to create master scene with battle
+	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)
+	battle_viewport.add_child(battle_scene)
+	combat_overlay.visible = true
+	
+	print("[CombatController] Awaiting battle completion...")
+	await battle_scene.battle_completed
+	
+	# Collect all updates from the completed battle
+	all_updates.clear()
+	combat_phase = battle.round_count
+	print("[CombatController] Battle completed after %d rounds" % combat_phase)
+	
+	var player_strength = battle.check_team_strength("player")
+	var enemy_strength = battle.check_team_strength("enemy")
+	
+	print("\n[CombatController] COMBAT CONCLUDED")
+	print("[CombatController] Final strengths - Player: %.1f, Enemy: %.1f" % [player_strength, enemy_strength])
+	
+	result.victory = player_strength > 0 and enemy_strength <= 0
+	result.turns_elapsed = combat_phase
+
+	var player_apply_result = combat_bridge.apply_results(current_player_squad, all_updates)
+	print("[CombatController] Applied results to player squad:")
+	print("[CombatController]   Deaths: %s" % [player_apply_result.deaths])
+	print("[CombatController]   Injuries: %s" % [player_apply_result.injuries])
+	
+	for death_id in player_apply_result.deaths:
+		result.player_casualties.append(death_id)
+	
+	# Calculate morale change based on outcome
+	if result.victory:
+		result.morale_change = 15.0 - (result.player_casualties.size() * 5.0)
+		print("[CombatController] VICTORY! Morale change: %.1f" % result.morale_change)
+		
+		# result.loot = _generate_loot(current_enemy_squad)
+		# print("[CombatController] Loot generated: %s" % [result.loot])
+		
+		# result.clues_dropped = _generate_enemy_clues(current_enemy_squad, combat_phase)
+		# print("[CombatController] Clues dropped: %d" % result.clues_dropped.size())
+	else:
+		result.morale_change = -5.0 - (result.player_casualties.size() * 5.0)
+		print("[CombatController] DEFEAT! Morale change: %.1f" % result.morale_change)
+	
+	return result
+
+func _attempt_flee() -> CombatResult:
+	var result := CombatResult.new()
+	var flee_chance = clampf(FLEE_BASE_CHANCE + (_get_squad_survival_stat(current_player_squad) * FLEE_SURVIVAL_MODIFIER), 0.0, 0.9)
+	var roll = rng.randf()
+	
+	print("[CombatController] FLEE ATTEMPT:")
+	print("[CombatController]   Required: %.1f%%" % (flee_chance * 100))
+	print("[CombatController]   Rolled: %.1f%%" % (roll * 100))
+	
+	var roll_result = {
+		"stat": "SURVIVAL",
+		"stat_value": _get_squad_survival_stat(current_player_squad),
+		"required": flee_chance,
+		"rolled": roll,
+		"success": roll < flee_chance
+	}
+	# intermission_choice_made.emit("FLEE", roll_result)
+	
+	if roll < flee_chance:
+		print("[CombatController]   SUCCESS - Squad escaped!")
+		result.fled = true
+		result.morale_change = -10.0  # Morale penalty for fleeing
+	else:
+		print("[CombatController]   FAILED - Forced to fight!")
+		# Failed flee attempt - fight with penalty
+		current_tactic = Tactic.create_defensive_formation()  # Forced defensive
+		result = await _execute_combat()
+		result.morale_change -= 15.0  # Additional penalty for failed flee
+	
+	return result
+
+func _attempt_negotiate() -> CombatResult:
+	var result := CombatResult.new()
+	var negotiate_chance = clampf(NEGOTIATE_BASE_CHANCE + (_get_squad_diplomacy_stat(current_player_squad) * NEGOTIATE_DIPLOMACY_MODIFIER), 0.0, 0.9)
+	var roll = rng.randf()
+	
+	print("[CombatController] NEGOTIATE ATTEMPT:")
+	print("[CombatController]   Required: %.1f%%" % (negotiate_chance * 100))
+	print("[CombatController]   Rolled: %.1f%%" % (roll * 100))
+	
+	var roll_result = {
+		"stat": "DIPLOMACY",
+		"stat_value": _get_squad_diplomacy_stat(current_player_squad),
+		"required": negotiate_chance,
+		"rolled": roll,
+		"success": roll < negotiate_chance
+	}
+	# intermission_choice_made.emit("NEGOTIATE", roll_result)
+	
+	if roll < negotiate_chance:
+		print("[CombatController]   SUCCESS - Conflict resolved peacefully!")
+		result.negotiated = true
+		result.morale_change = 5.0  # Small morale boost for diplomatic solution
+	else:
+		print("[CombatController]   FAILED - Negotiations broke down!")
+		# Failed negotiate - fight normally
+		result = await _execute_combat()
+		result.morale_change -= 5.0  # Small penalty for wasted time
+	
+	return result
+
+#region Combat Flow
 
 func _build_intermission_options() -> Dictionary:
 	var player_survival = _get_squad_survival_stat(current_player_squad)
@@ -139,159 +261,7 @@ func _get_squad_diplomacy_stat(squad: StrategicSquad) -> float:
 		count += 1
 	return total / max(count, 1) / 2.0  # Average of CHA+INT
 
-func process_intermission_choice(choice: IntermissionChoice) -> CombatResult:
-	print("\n[CombatController] Processing intermission choice: %s" % IntermissionChoice.keys()[choice])
-	
-	var result := CombatResult.new()
-	
-	match choice:
-		IntermissionChoice.FIGHT:
-			print("[CombatController] Player chose to FIGHT")
-			result = _execute_combat()
-		
-		IntermissionChoice.FLEE:
-			print("[CombatController] Player chose to FLEE")
-			result = _attempt_flee()
-		
-		IntermissionChoice.NEGOTIATE:
-			print("[CombatController] Player chose to NEGOTIATE")
-			result = _attempt_negotiate()
-	
-	_end_combat(result)
-	return result
 
-func _attempt_flee() -> CombatResult:
-	var result := CombatResult.new()
-	var flee_chance = clampf(FLEE_BASE_CHANCE + (_get_squad_survival_stat(current_player_squad) * FLEE_SURVIVAL_MODIFIER), 0.0, 0.9)
-	var roll = rng.randf()
-	
-	print("[CombatController] FLEE ATTEMPT:")
-	print("[CombatController]   Required: %.1f%%" % (flee_chance * 100))
-	print("[CombatController]   Rolled: %.1f%%" % (roll * 100))
-	
-	var roll_result = {
-		"stat": "SURVIVAL",
-		"stat_value": _get_squad_survival_stat(current_player_squad),
-		"required": flee_chance,
-		"rolled": roll,
-		"success": roll < flee_chance
-	}
-	# intermission_choice_made.emit("FLEE", roll_result)
-	
-	if roll < flee_chance:
-		print("[CombatController]   SUCCESS - Squad escaped!")
-		result.fled = true
-		result.morale_change = -10.0  # Morale penalty for fleeing
-	else:
-		print("[CombatController]   FAILED - Forced to fight!")
-		# Failed flee attempt - fight with penalty
-		current_tactic = Tactic.create_defensive_formation()  # Forced defensive
-		result = _execute_combat()
-		result.morale_change -= 15.0  # Additional penalty for failed flee
-	
-	return result
-
-func _attempt_negotiate() -> CombatResult:
-	var result := CombatResult.new()
-	var negotiate_chance = clampf(NEGOTIATE_BASE_CHANCE + (_get_squad_diplomacy_stat(current_player_squad) * NEGOTIATE_DIPLOMACY_MODIFIER), 0.0, 0.9)
-	var roll = rng.randf()
-	
-	print("[CombatController] NEGOTIATE ATTEMPT:")
-	print("[CombatController]   Required: %.1f%%" % (negotiate_chance * 100))
-	print("[CombatController]   Rolled: %.1f%%" % (roll * 100))
-	
-	var roll_result = {
-		"stat": "DIPLOMACY",
-		"stat_value": _get_squad_diplomacy_stat(current_player_squad),
-		"required": negotiate_chance,
-		"rolled": roll,
-		"success": roll < negotiate_chance
-	}
-	# intermission_choice_made.emit("NEGOTIATE", roll_result)
-	
-	if roll < negotiate_chance:
-		print("[CombatController]   SUCCESS - Conflict resolved peacefully!")
-		result.negotiated = true
-		result.morale_change = 5.0  # Small morale boost for diplomatic solution
-	else:
-		print("[CombatController]   FAILED - Negotiations broke down!")
-		# Failed negotiate - fight normally
-		result = _execute_combat()
-		result.morale_change -= 5.0  # Small penalty for wasted time
-	
-	return result
-
-func _execute_combat() -> CombatResult:
-	print("\n[CombatController] EXECUTING TACTICAL COMBAT")
-	print("-".repeat(40))
-	
-	var result := CombatResult.new()
-	
-	# Create battle via bridge
-	var battle = combat_bridge.create_battle(current_player_squad, current_enemy_squad, current_tactic)
-	print("[CombatController] Battle created with tactic: %s" % current_tactic.tactic_name)
-	print("[CombatController]   Action count: %d, Reaction count: %d" % [current_tactic.action_count, current_tactic.reaction_count])
-	print("[CombatController]   Attack modifier: %.2f, Defense modifier: %.2f" % [current_tactic.attack_modifier, current_tactic.defense_modifier])
-	
-	# Run combat rounds until victory or max rounds
-	var max_rounds = 20
-	while not battle.check_victory() and combat_phase < max_rounds:
-		combat_phase += 1
-		battle.round_count = combat_phase
-		
-		print("\n[CombatController] === COMBAT ROUND %d ===" % combat_phase)
-		# combat_phase_started.emit(combat_phase, current_tactic)
-		
-		# Execute squad actions
-		var round_updates = battle.squad_actions()
-		print("[CombatController] Round %d produced %d updates" % [combat_phase, round_updates.size()])
-		
-		for update in round_updates:
-			all_updates.append(update)
-			_log_entity_update(update)
-		
-		# Recovery phase
-		battle.squad_recoveries()
-		battle.remove_dead_entities()
-		
-		# combat_phase_ended.emit(combat_phase, round_updates)
-		result.turns_elapsed = combat_phase
-	
-	# Determine outcome
-	var player_strength = battle.check_team_strength("player")
-	var enemy_strength = battle.check_team_strength("enemy")
-	
-	print("\n[CombatController] COMBAT CONCLUDED")
-	print("[CombatController] Final strengths - Player: %.1f, Enemy: %.1f" % [player_strength, enemy_strength])
-	
-	result.victory = player_strength > 0 and enemy_strength <= 0
-	
-	# Apply results to strategic squads
-	var player_apply_result = combat_bridge.apply_results(current_player_squad, all_updates)
-	print("[CombatController] Applied results to player squad:")
-	print("[CombatController]   Deaths: %s" % [player_apply_result.deaths])
-	print("[CombatController]   Injuries: %s" % [player_apply_result.injuries])
-	
-	for death_id in player_apply_result.deaths:
-		result.player_casualties.append(death_id)
-	
-	# Calculate morale change based on outcome
-	if result.victory:
-		result.morale_change = 15.0 - (result.player_casualties.size() * 5.0)
-		print("[CombatController] VICTORY! Morale change: %.1f" % result.morale_change)
-		
-		# Generate loot from enemy
-		result.loot = _generate_loot(current_enemy_squad)
-		print("[CombatController] Loot generated: %s" % [result.loot])
-		
-		# Drop clues from defeated enemy (pass current turn from battle)
-		result.clues_dropped = _generate_enemy_clues(current_enemy_squad, combat_phase)
-		print("[CombatController] Clues dropped: %d" % result.clues_dropped.size())
-	else:
-		result.morale_change = -20.0 - (result.player_casualties.size() * 5.0)
-		print("[CombatController] DEFEAT! Morale change: %.1f" % result.morale_change)
-	
-	return result
 
 func _log_entity_update(update: EntityUpdate) -> void:
 	var source_name = _get_entity_name(update.source)
@@ -344,18 +314,6 @@ func _end_combat(result: CombatResult) -> void:
 	is_in_combat = false
 	combat_ended.emit()
 	combat_bridge.clear_mappings()
-
-#endregion
-
-#region Tactic Management
-
-func set_tactic(tactic: Tactic) -> void:
-	current_tactic = tactic
-	print("[CombatController] Tactic set to: %s" % tactic.tactic_name)
-
-func set_tactic_by_type(tactic_type: Tactic.TacticType) -> void:
-	current_tactic = Tactic.create_from_type(tactic_type)
-	print("[CombatController] Tactic set by type: %s → %s" % [Tactic.TacticType.keys()[tactic_type], current_tactic.tactic_name])
 
 #endregion
 
