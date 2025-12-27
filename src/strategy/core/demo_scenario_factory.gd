@@ -190,7 +190,8 @@ static func _create_squad(squad_id: String, squad_name: String, money: float, fo
 	for warrior in warriors:
 		squad.add_warrior(warrior)
 	
-	squad.update_aggregate_morale()
+	# squad.update_aggregate_morale()
+	
 	return squad
 
 static func _create_scenario_config(world: World, squad: StrategicSquad, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:

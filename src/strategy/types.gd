@@ -10,6 +10,7 @@ enum LocationType {
 }
 
 enum Religion {
+	ATHEIST,
 	CATHOLIC,
 	MUSLIM,
 	SAVINKOVIST,
