@@ -1,22 +1,26 @@
 extends Node3D
 
+var config: Dictionary
 var battle: SquadBattle
 var battlefield_controller: SBGraphics
 var entity_displays_dict: Dictionary = {}
 var delay_between_rounds: float = 2.0
+var max_rounds: int = 50
 var is_running: bool = false
 var last_round_capitulated: Array = []
+var all_updates: Array[EntityUpdate] = []
 
 signal battle_completed
 
 func _ready() -> void:
 	battlefield_controller = get_node("25dBattlefield")
-	if not battlefield_controller:
-		push_error("Could not find 25dBattlefield node!")
-		return
 
 	setup_row_mappings()
-	setup_mock_battle()
+	if battle == null:
+		if config == null:
+			setup_mock_battle()
+		else:
+			battle = SquadBattle.new(config)
 	spawn_all_entities()
 	is_running = true
 
@@ -104,8 +108,8 @@ func spawn_all_entities() -> void:
 				_update_row_positions(row_node)
 
 func process_round() -> void:
-	if battle.check_victory() or battle.round_count >= 50:
-		var end_message = "BATTLE ENDED" if battle.check_victory() else "MAX ROUNDS REACHED"
+	if battle.check_victory() or battle.round_count >= max_rounds:
+		var end_message = "BATTLE ENDED" if battle.check_victory() else "MAX ROUNDS REACHED (DRAW)"
 		SBLog.section(end_message, 0, 2, 1)
 		print_winner()
 		is_running = false
@@ -121,6 +125,7 @@ func process_round() -> void:
 
 	var updates = battle.squad_actions()
 	for update in updates:
+		all_updates.append(update)
 		if update.change.property == SquadBattleTypes.EntityChangeable.CAPITULATE:
 			var entity = battle.get_entity_by_id(update.affected)
 			if entity:
