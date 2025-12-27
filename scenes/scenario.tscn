@@ -1,7 +1,8 @@
-[gd_scene load_steps=18 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=19 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/!main.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
+[ext_resource type="Resource" uid="uid://cefsqsj7rvmuj" path="res://resources/strategy-squads/test-player-squad.tres" id="2_jnf8s"]
 [ext_resource type="Script" uid="uid://cdt4j7cmob7hg" path="res://src/strategy/ui/travel.gd" id="2_travel"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
 [ext_resource type="Texture2D" uid="uid://dqvw881mj3ius" path="res://assets/hoi4_icons/stability_texticon.png" id="4_4vq4d"]
@@ -63,6 +64,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_5eukr")
+player__registered_squad = ExtResource("2_jnf8s")
 scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
 is_demo_scenario = false
 
@@ -745,8 +747,8 @@ text = "Choose your action before time runs out..."
 horizontal_alignment = 1
 
 [node name="CombatOverlay" type="CanvasLayer" parent="."]
-visible = false
 layer = 100
+visible = false
 
 [node name="DimBackground" type="ColorRect" parent="CombatOverlay"]
 anchors_preset = 15
@@ -766,8 +768,8 @@ stretch = true
 
 [node name="BattleViewport" type="SubViewport" parent="CombatOverlay/BattleViewportContainer"]
 handle_input_locally = false
-size = Vector2i(1152, 648)
-render_target_update_mode = 4
+size = Vector2i(1920, 1080)
+render_target_update_mode = 0
 
 [node name="CloseButton" type="Button" parent="CombatOverlay"]
 anchors_preset = 1

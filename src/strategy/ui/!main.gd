@@ -9,7 +9,7 @@ extends Control
 
 signal vn_completed();
 signal combat_completed(result: CombatController.CombatResult);
-signal combat_resolved(); # Emitted when combat encounter ends (regardless of outcome)
+signal encounter_resolved(); # Emitted when combat encounter ends (regardless of outcome)
 
 enum UIMode {
 	STRATEGY, # Normal activity buttons visible
@@ -55,9 +55,9 @@ enum UIMode {
 # Combat UI elements (will be added to scene)
 @onready var combat_panel: PanelContainer = $CombatIntermission
 @onready var combat_enemy_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/EnemyInfoLabel
-@onready var combat_flee_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FleeButton
-@onready var combat_negotiate_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/NegotiateButton
-@onready var combat_fight_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FightButton
+@onready var encounter_flee_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FleeButton
+@onready var encounter_negotiate_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/NegotiateButton
+@onready var encounter_fight_button: Button = $CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer/FightButton
 @onready var combat_timer_bar: ProgressBar = $CombatIntermission/MarginContainer/VBoxContainer/TimerBar
 @onready var combat_info_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/InfoLabel
 
@@ -76,7 +76,7 @@ var stat_snapshot: Dictionary = {}
 # Combat state
 var combat_controller: CombatController = null
 var is_in_combat_encounter: bool = false
-var combat_timeout_timer: float = 0.0
+var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = {}
 #endregion
 
@@ -85,10 +85,15 @@ var vn_controller: VisualNovelController = VisualNovelController.new()
 var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
 #endregion
 
+@export var player__registered_squad: StrategicSquad = null
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
 
+func _init() -> void:
+	print(" --- main gui init --- ")
+
 func _ready() -> void:
+	print(" --- Main gui is ready --- ")
 	_initialize_scenario()
 	_setup_components()
 	_connect_signals()
@@ -96,21 +101,26 @@ func _ready() -> void:
 	_update_ui()
 
 func _process(delta: float) -> void:
-	if is_in_combat_encounter and combat_timeout_timer > 0:
-		combat_timeout_timer -= delta
+	if is_in_combat_encounter and encounter_timeout_timer > 0:
+		encounter_timeout_timer -= delta
 		_update_combat_timer_display()
-		if combat_timeout_timer <= 0:
+		if encounter_timeout_timer <= 0:
 			_on_combat_timeout()
 
 #region Initialization
 
 func _initialize_scenario() -> void:
+	print(" --- Initialising scenario --- ")
 	if is_demo_scenario:
+		print (" \\=> DEMO ")
 		game_scenario = DemoScenarioFactory.create_demo_scenario()
 	else:
+		print (" \\=> loading ", scenario_path)
 		var loaded = load(scenario_path)
 		game_scenario = loaded
-		game_scenario.initialize()
+		game_scenario.initialize({
+			"player_squad": player__registered_squad
+		})
 
 func _setup_components() -> void:
 	vn_controller.chain_completed.connect(_on_vn_chain_completed)
@@ -139,12 +149,12 @@ func _connect_signals() -> void:
 	vn_completed.connect(_on_vn_completed_signal)
 	
 	# Combat button signals (only connect if nodes exist)
-	if combat_flee_button:
-		combat_flee_button.pressed.connect(_on_combat_flee_pressed)
-	if combat_negotiate_button:
-		combat_negotiate_button.pressed.connect(_on_combat_negotiate_pressed)
-	if combat_fight_button:
-		combat_fight_button.pressed.connect(_on_combat_fight_pressed)
+	if encounter_flee_button:
+		encounter_flee_button.pressed.connect(_on_combat_flee_pressed)
+	if encounter_negotiate_button:
+		encounter_negotiate_button.pressed.connect(_on_combat_negotiate_pressed)
+	if encounter_fight_button:
+		encounter_fight_button.pressed.connect(_on_combat_fight_pressed)
 	
 	if travel_gui:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
@@ -233,6 +243,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 		return
 	
 	is_executing_activity = true
+
 	# Disable all buttons at the start of activity execution
 	_disable_all_activity_buttons()
 	
@@ -256,18 +267,14 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	await _apply_play_wait([activity_result])
 	
 	# Check if combat was triggered by the activity
-	if activity_result.requires_combat and activity_result.combat_target_squad_id != "":
+	if activity_result.requires_combat:
+		assert(activity_result.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
 		var enemy_squad = _find_enemy_squad(activity_result.combat_target_squad_id)
 		if enemy_squad:
-			start_combat_encounter(enemy_squad, {"activity": activity.trigger_name})
-			# Wait for combat to complete before continuing
-			await combat_resolved
-			if is_in_combat_encounter:
-				# Combat still in progress - early return, rest will happen after combat ends
-				return
-
-	# print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	# game_scenario.activity_executed.emit(activity, activity_result)
+			start_encounter(enemy_squad, {"activity": activity.trigger_name})
+			await encounter_resolved
+		else:
+			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % activity_result.combat_target_squad_id)
 	
 	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
 		activity,
@@ -718,7 +725,7 @@ func _find_enemy_squad(squad_id: String) -> StrategicSquad:
 
 ## Initiates combat encounter with intermission screen
 ## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
-func start_combat_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> void:
+func start_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> void:
 	print("\n[TrainingScreen] ========================================")
 	print("[TrainingScreen] COMBAT ENCOUNTER INITIATED")
 	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
@@ -728,30 +735,16 @@ func start_combat_encounter(enemy_squad: StrategicSquad, context: Dictionary = {
 	combat_options = combat_controller.inject_context(
 		game_scenario.player_squad,
 		enemy_squad,
+		battle_viewport,
+		combat_overlay
 	)
-	combat_timeout_timer = combat_options.get("timeout_seconds", 30.0)
+	encounter_timeout_timer = combat_options.get("timeout_seconds", 30.0)
 	
 	_set_ui_mode(UIMode.COMBAT_INTERMISSION)
 	_update_combat_intermission_ui()
 
-func _update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance):	
-	if combat_enemy_label:
-		combat_enemy_label.text = "⚔️ Encountered: %s (%d warriors)" % [enemy_name, enemy_count]
-	
-	if combat_flee_button:
-		combat_flee_button.text = "🏃 Flee (%.0f%% chance)" % flee_chance
-		combat_flee_button.disabled = not combat_options.get("can_flee", true)
-		combat_flee_button.tooltip_text = "Attempt to escape. Uses SURVIVAL stat.\nSuccess: Escape with morale penalty\nFailure: Forced into combat"
-	
-	if combat_negotiate_button:
-		combat_negotiate_button.text = "🤝 Negotiate (%.0f%% chance)" % negotiate_chance
-		combat_negotiate_button.disabled = not combat_options.get("can_negotiate", true)
-		combat_negotiate_button.tooltip_text = "Attempt peaceful resolution. Uses DIPLOMACY stat.\nSuccess: Avoid combat entirely\nFailure: Forced into combat"
-	
-	if combat_fight_button:
-		combat_fight_button.text = "⚔️ Fight!"
-		combat_fight_button.disabled = not combat_options.get("can_fight", true)
-		combat_fight_button.tooltip_text = "Engage in tactical combat.\nVictory brings loot and clues.\nDefeat brings casualties."
+
+#region helpers to dynamically change Encounter UI's
 
 func _update_combat_intermission_ui() -> void:
 	var enemy_name = combat_options.get("enemy_name", "Unknown Enemy")
@@ -766,52 +759,73 @@ func _update_combat_intermission_ui() -> void:
 	print("[TrainingScreen]   Flee chance: %.1f%%" % flee_chance)
 	print("[TrainingScreen]   Negotiate chance: %.1f%%" % negotiate_chance)
 
+func _update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance):	
+	combat_enemy_label.text = "⚔️ Encountered: %s (%d warriors)" % [enemy_name, enemy_count]
+
+	encounter_flee_button.text = "🏃 Flee (%.0f%% chance)" % flee_chance
+	encounter_flee_button.disabled = not combat_options.get("can_flee", true)
+	encounter_flee_button.tooltip_text = "Attempt to escape. Uses SURVIVAL stat.\nSuccess: Escape with morale penalty\nFailure: Forced into combat"
+
+	encounter_negotiate_button.text = "🤝 Negotiate (%.0f%% chance)" % negotiate_chance
+	encounter_negotiate_button.disabled = not combat_options.get("can_negotiate", true)
+	encounter_negotiate_button.tooltip_text = "Attempt peaceful resolution. Uses DIPLOMACY stat.\nSuccess: Avoid combat entirely\nFailure: Forced into combat"
+
+	encounter_fight_button.text = "⚔️ Fight!"
+	encounter_fight_button.disabled = not combat_options.get("can_fight", true)
+	encounter_fight_button.tooltip_text = "Engage in tactical combat.\nVictory brings loot and clues.\nDefeat brings casualties."
+
 func _update_combat_timer_display() -> void:
 	var max_time = combat_options.get("timeout_seconds", 30.0)
 	combat_timer_bar.max_value = max_time
-	combat_timer_bar.value = combat_timeout_timer
+	combat_timer_bar.value = encounter_timeout_timer
 	
 	# Change color based on remaining time
-	if combat_timeout_timer < 5.0:
+	if encounter_timeout_timer < 5.0:
 		combat_timer_bar.modulate = Color.RED
-	elif combat_timeout_timer < 10.0:
+	elif encounter_timeout_timer < 10.0:
 		combat_timer_bar.modulate = Color.YELLOW
 	else:
 		combat_timer_bar.modulate = Color.WHITE
+#endregion
 
+#region _on helpers of different Encounter reactions, goes into _process_encounter_choice
 func _on_combat_flee_pressed() -> void:
+	if not ui_mode == UIMode.COMBAT_INTERMISSION:
+		return
 	print("[TrainingScreen] Player chose: FLEE")
-	_process_combat_choice(CombatController.IntermissionChoice.FLEE)
+	_process_encounter_choice(CombatController.IntermissionChoice.FLEE)
 
 func _on_combat_negotiate_pressed() -> void:
+	if not ui_mode == UIMode.COMBAT_INTERMISSION:
+		return
 	print("[TrainingScreen] Player chose: NEGOTIATE")
-	_process_combat_choice(CombatController.IntermissionChoice.NEGOTIATE)
+	_process_encounter_choice(CombatController.IntermissionChoice.NEGOTIATE)
 
 func _on_combat_fight_pressed() -> void:
+	if not ui_mode == UIMode.COMBAT_INTERMISSION:
+		return
 	print("[TrainingScreen] Player chose: FIGHT")
-	_process_combat_choice(CombatController.IntermissionChoice.FIGHT)
+	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
 
 func _on_combat_timeout() -> void:
+	if not ui_mode == UIMode.COMBAT_INTERMISSION:
+		return
 	print("[TrainingScreen] COMBAT TIMEOUT - Auto-fighting!")
 	combat_info_label.text = "Time's up! Engaging in combat..."
-	_process_combat_choice(CombatController.IntermissionChoice.FIGHT)
+	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
+#endregion
 
-func _process_combat_choice(choice: CombatController.IntermissionChoice) -> void:
-	# Disable buttons during processing
-	if combat_flee_button: combat_flee_button.disabled = true
-	if combat_negotiate_button: combat_negotiate_button.disabled = true
-	if combat_fight_button: combat_fight_button.disabled = true
-	combat_timeout_timer = 0
+func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
+	if encounter_flee_button: encounter_flee_button.disabled = true
+	if encounter_negotiate_button: encounter_negotiate_button.disabled = true
+	if encounter_fight_button: encounter_fight_button.disabled = true
+	encounter_timeout_timer = 0
 	
-	var result = combat_controller.process_intermission_choice(choice)
+	var encounter_result: CombatController.CombatResult = await combat_controller.process_intermission_choice(choice)
+	combat_panel.visible = false
 	
-	# If FIGHT chosen and combat is needed, show 3D battle
-	if choice == CombatController.IntermissionChoice.FIGHT :
-		combat_panel.visible = false
-		result = combat_controller.get_final_result()
-	
-	print("[TrainingScreen] Combat result received: %s" % result.to_string() if result else "null")
-	_handle_combat_result(result)
+	print("[TrainingScreen] Combat result received: %s" % encounter_result.to_string() if encounter_result else "null")
+	_handle_encounter_result(encounter_result)
 
 func _on_3d_battle_completed() -> void:
 	print("[TrainingScreen] 3D battle visualization completed")
@@ -822,20 +836,12 @@ func _on_battle_close_pressed() -> void:
 	_cleanup_battle_scene()
 
 func _cleanup_battle_scene() -> void:
-	# Remove battle scene from viewport
 	for child in battle_viewport.get_children():
 		child.queue_free()
-	
-	# Hide overlay
 	combat_overlay.visible = false
 
-func _handle_combat_result(result: CombatController.CombatResult) -> void:
+func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	is_in_combat_encounter = false
-	
-	if not result:
-		push_error("[TrainingScreen] Combat returned null result")
-		_exit_combat_to_strategy()
-		return
 	
 	print("\n[TrainingScreen] ========================================")
 	print("[TrainingScreen] COMBAT RESOLVED")
@@ -854,31 +860,30 @@ func _handle_combat_result(result: CombatController.CombatResult) -> void:
 			print("[TrainingScreen] Casualty: %s" % warrior.warrior_name)
 	
 	# Handle loot if victory
-	if result.victory and result.loot:
+	if result.loot:
 		print("[TrainingScreen] Loot collected: %s" % [result.loot])
 		# Apply loot to squad inventory (stub - implement based on your inventory system)
 		_apply_combat_loot(result.loot)
 	
 	# Handle clues if victory
-	if result.victory and result.clues_dropped.size() > 0:
+	if result.clues_dropped.size() > 0:
 		var current_location = game_scenario.current_location
 		for clue in result.clues_dropped:
 			current_location.add_clue(clue)
 			print("[TrainingScreen] Clue dropped: %s" % clue.clue_name)
 	
 	# Show result in UI briefly, then return to strategy
-	if combat_info_label:
-		if result.victory:
-			combat_info_label.text = "✓ VICTORY! Returning to camp..."
-		elif result.fled:
-			combat_info_label.text = "🏃 Escaped successfully. Returning..."
-		elif result.negotiated:
-			combat_info_label.text = "🤝 Conflict resolved peacefully. Returning..."
-		else:
-			combat_info_label.text = "✗ DEFEAT! Regrouping..."
+	if result.victory:
+		combat_info_label.text = "✓ VICTORY! Returning to camp..."
+	elif result.fled:
+		combat_info_label.text = "🏃 Escaped successfully. Returning..."
+	elif result.negotiated:
+		combat_info_label.text = "🤝 Conflict resolved peacefully. Returning..."
+	else:
+		combat_info_label.text = "✗ DEFEAT! Regrouping..."
 	
 	# Emit signal and transition back after brief delay
-	combat_completed.emit(result)
+	encounter_resolved.emit(result)
 	
 	# Use a timer or await to show result before transitioning
 	await get_tree().create_timer(1.5).timeout
@@ -896,11 +901,11 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 func _exit_combat_to_strategy() -> void:
 	print("[TrainingScreen] Exiting combat, returning to strategy mode")
 	is_in_combat_encounter = false
-	combat_timeout_timer = 0
+	encounter_timeout_timer = 0
 	combat_options = {}
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
-	combat_resolved.emit() # Signal that combat encounter has finished
+	encounter_resolved.emit() # Signal that combat encounter has finished
 
 func _show_combat_ui() -> void:
 	# Hide strategy elements
@@ -910,7 +915,6 @@ func _show_combat_ui() -> void:
 	character_container.visible = false
 	
 	# Show combat panel
-	if combat_panel:
-		combat_panel.visible = true
+	combat_panel.visible = true
 
 #endregion
