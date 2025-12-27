@@ -120,8 +120,9 @@ func _jump():
 	return tween
 
 func switch_sprite(sprite_mode):
-	var texture = load("res://assets/%s-%s.png" % [squad_entity.class_id, sprite_mode])
-	assert(texture != null)
+	var sprite_name = "res://assets/%s-%s.png" % [squad_entity.class_id, sprite_mode]
+	var texture = load(sprite_name)
+	assert(texture != null, "%s not found." % sprite_name)
 	sprite.material_override.set_shader_parameter("albedo_texture", texture)
 
 #region Change handlers with animations

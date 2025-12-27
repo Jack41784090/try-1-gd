@@ -19,7 +19,7 @@ func _init(config: Dictionary):
 			entity.set_player_id(next_player_id)
 			next_player_id += 1
 			entity.set_team(team)
-		elif entity_config is Dictionary:
+		elif entity_config is EntityConfig:
 			entity = SquadEntity.new(entity_config)
 		else:
 			push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])

@@ -1,9 +1,9 @@
 extends RefCounted
 class_name CombatBridge
 
-signal combat_requested(player_squad: StrategicSquad, enemy_squad: StrategicSquad, context: Dictionary)
-signal combat_phase_completed(updates: Array[EntityUpdate])
-signal combat_ended(result: Dictionary)
+# signal combat_requested(player_squad: StrategicSquad, enemy_squad: StrategicSquad, context: Dictionary)
+# signal combat_phase_completed(updates: Array[EntityUpdate])
+# signal combat_ended(result: Dictionary)
 
 var warrior_to_entity: Dictionary = {}
 var entity_to_warrior: Dictionary = {}
@@ -60,28 +60,27 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String) -> Dicti
 		if i < formation.size():
 			starting_loc = formation[i] as SquadBattleTypes.SquadEntityInSquadLocation
 		
-		# Build entity config, using factory defaults if equipment not set
-		var entity_config = {
-			"player_id": entity_id,
-			"name": warrior.warrior_name,
-			"team": team,
-			"stats": warrior.combat_stats if warrior.combat_stats else EntityBaseStats.new(),
-			"starting_location": starting_loc,
-			"logic_type": warrior.logic_type
-		}
+
+		var entity_config = EntityConfig.new(
+			"landsnecht",
+			entity_id,
+			warrior.warrior_name,
+			team,
+			warrior.combat_stats if warrior.combat_stats else EntityBaseStats.new(),
+			starting_loc,
+			warrior.logic_type
+		)
 		
-		# Use weapon config if available, otherwise fall back to factory
 		if warrior.equipment_weapon:
-			entity_config["weapon"] = warrior.equipment_weapon
+			entity_config.weapon = warrior.equipment_weapon
 		else:
-			entity_config["weapon_class"] = WeaponFactory.WeaponClasses.Unarmed
+			entity_config.weapon_class = WeaponFactory.WeaponClasses.Unarmed
 			print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % warrior.warrior_name)
 		
-		# Use armor config if available, otherwise fall back to factory
 		if warrior.equipment_armor:
-			entity_config["armor"] = warrior.equipment_armor
+			entity_config.armor = warrior.equipment_armor
 		else:
-			entity_config["armor_class"] = ArmorFactory.ArmorClasses.Unarmored
+			entity_config.armor_class = ArmorFactory.ArmorClasses.Unarmored
 			print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % warrior.warrior_name)
 		
 		entity_configs.append(entity_config)

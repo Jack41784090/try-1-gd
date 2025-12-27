@@ -1,17 +1,12 @@
-[gd_scene load_steps=19 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=14 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/!main.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
 [ext_resource type="Resource" uid="uid://cefsqsj7rvmuj" path="res://resources/strategy-squads/test-player-squad.tres" id="2_jnf8s"]
 [ext_resource type="Script" uid="uid://cdt4j7cmob7hg" path="res://src/strategy/ui/travel.gd" id="2_travel"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
-[ext_resource type="Texture2D" uid="uid://dqvw881mj3ius" path="res://assets/hoi4_icons/stability_texticon.png" id="4_4vq4d"]
 [ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="4_s06fx"]
-[ext_resource type="Texture2D" uid="uid://dqkm7scsi7hkj" path="res://assets/hoi4_icons/civ_factory.png" id="5_4fho2"]
-[ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_jnf8s"]
-[ext_resource type="Texture2D" uid="uid://ckbp2e1rbt1bu" path="res://assets/hoi4_icons/supply_hub_texticon.png" id="9_ssvir"]
 [ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
-[ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_ewb5q"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
@@ -165,7 +160,6 @@ layout_mode = 2
 
 [node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability"]
 layout_mode = 2
-texture = ExtResource("4_4vq4d")
 expand_mode = 2
 stretch_mode = 4
 
@@ -194,7 +188,6 @@ layout_mode = 2
 
 [node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development"]
 layout_mode = 2
-texture = ExtResource("5_4fho2")
 expand_mode = 2
 stretch_mode = 4
 
@@ -229,7 +222,6 @@ theme_override_constants/separation = 10
 
 [node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer"]
 layout_mode = 2
-texture = ExtResource("8_jnf8s")
 expand_mode = 2
 stretch_mode = 4
 
@@ -259,7 +251,6 @@ theme_override_constants/separation = 10
 
 [node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer"]
 layout_mode = 2
-texture = ExtResource("9_ssvir")
 expand_mode = 2
 stretch_mode = 4
 
@@ -289,7 +280,6 @@ theme_override_constants/separation = 10
 
 [node name="Icon" type="TextureRect" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer"]
 layout_mode = 2
-texture = ExtResource("10_ewb5q")
 expand_mode = 2
 stretch_mode = 4
 

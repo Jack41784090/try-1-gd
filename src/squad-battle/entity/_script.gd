@@ -1,6 +1,6 @@
 class_name SquadEntity extends Resource
 
-var _debug_id;
+var _debug_id = "Entity_script_unknown";
 
 #region Init from Resource
 @export var class_id: String
@@ -38,15 +38,63 @@ var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
 
 static func quick_dummy():
-	return SquadEntity.new({
-		player_id = 0,
-		entity_name = "Dummy",
-		team = "Dummy",
-		stats = EntityBaseStats.new(),
-		weapon_class = WeaponFactory.WeaponClasses.Unarmed,
-		armor_class = ArmorFactory.ArmorClasses.Unarmored,
-	})
+	return SquadEntity.new(EntityConfig.new(
+		"landsnecht",
+		0,
+		"Dummy",
+		"Dummy",
+		EntityBaseStats.new(),
+		SquadBattleTypes.SquadEntityInSquadLocation.Front,
+		LogicFactory.LogicAvailable.Frontline,
+		null,
+		WeaponFactory.WeaponClasses.Unarmed,
+		null,
+		ArmorFactory.ArmorClasses.Unarmored
+	))
 
+
+func _to_string() -> String:
+	var status_str = "alive" if not is_dead() else "DEAD"
+	var retreat_str = " [RETREATING]" if is_retreating else ""
+	
+	var hp = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var hp_max = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	var org = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
+	var org_max = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG)
+	var sta = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.STA)
+	var pos = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.POS)
+	var mag = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.MAG)
+	var loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
+	
+	var class_id_str = class_id if class_id else "NULL"
+	var weapon_str = weapon.weapon_name if weapon else "NULL"
+	var armor_str = armor.armor_name if armor else "NULL"
+	var icon_str = icon.resource_path if icon else "NULL"
+	
+	var skills_str = ""
+	var all_skills = get_available_skills()
+	if all_skills.size() > 0:
+		var skill_names = []
+		for skill in all_skills:
+			skill_names.append(skill.name)
+		skills_str = ", ".join(skill_names)
+	else:
+		skills_str = "NULL"
+	
+	var status_effects_str = ""
+	if status_effects.size() > 0:
+		var effect_names = []
+		for effect in status_effects:
+			effect_names.append(effect.name)
+		status_effects_str = ", ".join(effect_names)
+	else:
+		status_effects_str = "NULL"
+	
+	return "SquadEntity(ClassID:%s Name:%s[%d] Team:%s %s%s | HP:%.1f/%.1f ORG:%.1f/%.1f STA:%.1f POS:%.1f MAG:%.1f LOC:%d | Weapon:%s Armor:%s Icon:%s | Skills:[%s] Status:[%s])" % [
+		class_id_str, entity_name, player_id, team, status_str, retreat_str,
+		hp, hp_max, org, org_max, sta, pos, mag, loc,
+		weapon_str, armor_str, icon_str, skills_str, status_effects_str
+	]
 
 func set_player_id(_id):
 	_debug_id = "%s[%d]" % [entity_name, _id]
@@ -58,6 +106,8 @@ func set_team(_team):
 
 func init_after():
 	_debug_id = "%s[%d]" % [entity_name, player_id]
+	print(" --- %s initialized after --- " % _debug_id)
+	
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
 	changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG)
@@ -65,26 +115,38 @@ func init_after():
 	changeable_stats[SquadBattleTypes.EntityChangeable.MAG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.MAG)
 
 
-func _init(config: Dictionary = {}):
-	if config.is_empty():
+func _validate_existence():
+	print(self)
+	assert(class_id != null, "Class ID must not be null")
+
+
+func _init(config: EntityConfig = null):
+	print(" --- %s initialization --- " % _debug_id)
+
+	if config == null:
+		print(" --- %s initialized with empty config --- " % _debug_id)
+		_validate_existence()
 		return
-	
-	player_id = config.get("player_id", randi() % 1000 + 1)
-	entity_name = config.get("name", entity_name)
-	team = config.get("team", "")
-	stats = config.get("stats", EntityBaseStats.new())
-	logic_config = config.get("logic_config")
-	
-	if config.has("weapon"):
-		weapon = SquadWeapon.new(config["weapon"])
 	else:
-		weapon_class = config.get("weapon_class", WeaponFactory.WeaponClasses.Unarmed)
+		print(" --- %s initialized with config, should expect init_after() call afterwards --- " % _debug_id)
+	
+	player_id = config.player_id
+	class_id = config.entity_type_id
+	entity_name = config.name
+	team = config.team
+	stats = config.stats
+	logic_config = LogicFactory.get_logic(config.logic_enum)
+	
+	if config.weapon:
+		weapon = SquadWeapon.new(config.weapon)
+	else:
+		weapon_class = config.weapon_class
 		weapon = WeaponFactory.get_weapon(weapon_class)
 	
-	if config.has("armor"):
-		armor = SquadArmor.new(config["armor"])
+	if config.armor:
+		armor = SquadArmor.new(config.armor)
 	else:
-		armor_class = config.get("armor_class", ArmorFactory.ArmorClasses.Unarmored)
+		armor_class = config.armor_class
 		armor = ArmorFactory.get_armor(armor_class)
 	armor.set_defender(self)
 	
@@ -94,8 +156,12 @@ func _init(config: Dictionary = {}):
 		"enemy_squad": {}
 	}, logic_config)
 	
-	innate_skills = config.get("innate_skills", [] as Array[Skill])
-	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.get("starting_location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	for skill in config.innate_skills:
+		innate_skills.append(skill)
+	
+	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.starting_location
+
+	_validate_existence()
 	init_after()
 
 func init_from_resource():
@@ -337,8 +403,6 @@ func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
 
 func get_available_skills() -> Array[Skill]:
 	var skills = innate_skills.duplicate()
-	if weapon:
-		skills.append_array(weapon.get_weapon_skills(self))
 	skills.append_array(temporary_skills)
 	return skills
 

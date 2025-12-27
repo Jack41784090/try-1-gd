@@ -672,22 +672,21 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 	stats.beu = 5.0
 	stats.wil = 5.0
 	
-	# Prepare entity config with proper parameter names
-	var entity_config = {
-		"player_id": config.get("player_id", 0),
-		"name": "Test Entity",
-		"team": "test",
-		"stats": stats,
-		"weapon_class": WeaponFactory.WeaponClasses.Unarmed,
-		"armor_class": ArmorFactory.ArmorClasses.Unarmored,
-		"starting_location": config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	}
+	var entity_config = EntityConfig.new(
+		"landsnecht",
+		config.get("player_id", 0),
+		"Test Entity",
+		"test",
+		stats,
+		config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front),
+		LogicFactory.LogicAvailable.Frontline,
+		null,
+		WeaponFactory.WeaponClasses.Unarmed,
+		null,
+		ArmorFactory.ArmorClasses.Unarmored
+	)
 	
-	# Note: max_hp is calculated from stats, so if we need specific max_hp:
 	if config.has("max_hp"):
-		# Adjust endurance to achieve desired max HP
-		# HP = endurance * 5 + siz * 2
-		# So: endurance = (desired_hp - siz * 2) / 5
 		var desired_max = config["max_hp"]
 		stats.endurance = (desired_max - 3) / (stats.siz * 10)
 	

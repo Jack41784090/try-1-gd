@@ -14,7 +14,7 @@ class_name Warrior
 }
 
 @export var combat_stats: EntityBaseStats
-@export var logic_type: String = "frontline"
+@export var logic_type: LogicFactory.LogicAvailable = LogicFactory.LogicAvailable.Frontline
 
 @export var equipment_weapon: WeaponConfig
 @export var equipment_armor: ArmorConfig
@@ -73,16 +73,19 @@ func _attribute_to_key(attribute: StrategyTypes.WarriorAttribute) -> String:
 func to_squad_entity(player_id: int, team: String, starting_location: int) -> SquadEntity:
 	push_warning("Warrior.to_squad_entity() - Combat bridge not yet fully implemented")
 	
-	var entity_config = {
-		"player_id": player_id,
-		"name": warrior_name,
-		"team": team,
-		"stats": combat_stats,
-		"weapon": equipment_weapon,
-		"armor": equipment_armor,
-		"starting_location": starting_location,
-		"logic_type": logic_type
-	}
+	var entity_config = EntityConfig.new(
+		"landsnecht",
+		player_id,
+		warrior_name,
+		team,
+		combat_stats,
+		starting_location,
+		logic_type
+	)
+	if equipment_weapon:
+		entity_config.weapon = equipment_weapon
+	if equipment_armor:
+		entity_config.armor = equipment_armor
 	
 	return SquadEntity.new(entity_config)
 
