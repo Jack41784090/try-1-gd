@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StrategicSquad" load_steps=4 format=3 uid="uid://cefsqsj7rvmuj"]
+
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/strategy/core/squad.gd" id="1_48kqx"]
+[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior.gd" id="2_0jl8n"]
+[ext_resource type="Resource" uid="uid://cob1exkhexah3" path="res://resources/strategy-warrior/test-Siegmund.tres" id="3_1syff"]
+
+[resource]
+script = ExtResource("1_48kqx")
+squad_id = "test-player"
+squad_name = "Player's Squad"
+warriors = Array[ExtResource("2_0jl8n")]([ExtResource("3_1syff")])
+metadata/_custom_type_script = "uid://cjilk34mc47ja"
