@@ -70,24 +70,6 @@ func _attribute_to_key(attribute: StrategyTypes.WarriorAttribute) -> String:
 		_:
 			return "diplomacy"
 
-func to_squad_entity(player_id: int, team: String, starting_location: int) -> SquadEntity:
-	push_warning("Warrior.to_squad_entity() - Combat bridge not yet fully implemented")
-	
-	var entity_config = EntityConfig.new(
-		"landsnecht",
-		player_id,
-		warrior_name,
-		team,
-		combat_stats,
-		starting_location,
-		logic_type
-	)
-	if equipment_weapon:
-		entity_config.weapon = equipment_weapon
-	if equipment_armor:
-		entity_config.armor = equipment_armor
-	
-	return SquadEntity.new(entity_config)
 
 func from_combat_result(entity_update: EntityUpdate) -> void:
 	push_warning("Warrior.from_combat_result() - Combat bridge not yet fully implemented")
