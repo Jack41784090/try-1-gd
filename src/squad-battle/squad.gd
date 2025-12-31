@@ -25,6 +25,7 @@ func _init(config: Dictionary):
 			push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])
 			continue
 
+		entity.side = config.get("side"); assert(entity.side != null)
 		entities.append(entity)
 
 func is_crippled() -> bool:
@@ -89,6 +90,81 @@ func squad_attack(enemy_squad: Squad, round_count: int) -> Array[EntityUpdate]:
 			updates_after_attack.append(result)
 	
 	return updates_after_attack
+
+func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _attack_modifier: float) -> Array[EntityUpdate]:
+	var updates: Array[EntityUpdate] = []
+	
+	if action_count <= 0:
+		SBLog.line(3, "No actions available this round (tactic: 0 actions)", SBLog.prefix(self, squad_name))
+		return updates
+	
+	SBLog.line(3, "Performing %d action(s)" % action_count, SBLog.prefix(self, squad_name))
+	
+	for entity in entities:
+		entity.new_round_reset()
+	
+	# Each entity gets to act up to action_count times
+	for action_num in range(action_count):
+		SBLog.line(4, "Action %d/%d" % [action_num + 1, action_count], SBLog.prefix(self, squad_name))
+		
+		var enemy_squad = choose_enemy_squad(enemy_squads)
+		if not enemy_squad:
+			SBLog.line(4, "No enemy squad available to attack", SBLog.prefix(self, squad_name))
+			break
+		
+		last_round_received_attack = round_count
+		
+		for our_entity in entities:
+			if our_entity.is_dead():
+				continue
+				
+			var our_squad_metadata = get_all_entities()
+			var enemy_squad_metadata = enemy_squad.get_all_entities()
+			
+			SBLog.line(5, "Entity [%s] action %d. Enemy positions: %s" % [
+				our_entity.entity_name, action_num + 1, _format_enemy_positions(enemy_squad_metadata)
+			])
+			
+			var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
+			for result in action_results:
+				updates.append(result)
+	
+	return updates
+
+func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: int, _defense_modifier: float) -> Array[EntityUpdate]:
+	var updates: Array[EntityUpdate] = []
+	
+	if reaction_count <= 0:
+		SBLog.line(3, "No reactions available this round (tactic: 0 reactions)", SBLog.prefix(self, squad_name))
+		return updates
+	
+	SBLog.line(3, "Performing %d reaction(s)" % reaction_count, SBLog.prefix(self, squad_name))
+	
+	# Each entity gets to react up to reaction_count times
+	for reaction_num in range(reaction_count):
+		SBLog.line(4, "Reaction %d/%d" % [reaction_num + 1, reaction_count], SBLog.prefix(self, squad_name))
+		
+		var enemy_squad = choose_enemy_squad(enemy_squads)
+		if not enemy_squad:
+			SBLog.line(4, "No enemy squad to react against", SBLog.prefix(self, squad_name))
+			break
+		
+		for our_entity in entities:
+			if our_entity.is_dead():
+				continue
+				
+			var our_squad_metadata = get_all_entities()
+			var enemy_squad_metadata = enemy_squad.get_all_entities()
+			
+			SBLog.line(5, "Entity [%s] reaction %d. Enemy positions: %s" % [
+				our_entity.entity_name, reaction_num + 1, _format_enemy_positions(enemy_squad_metadata)
+			])
+			
+			var reaction_results = our_entity.reaction(our_squad_metadata, enemy_squad_metadata)
+			for result in reaction_results:
+				updates.append(result)
+	
+	return updates
 
 func choose_enemy_squad(enemy_squads: Array):
 	if enemy_squads.size() > 0:

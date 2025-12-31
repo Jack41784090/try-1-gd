@@ -8,8 +8,22 @@ var teams_and_squads: Dictionary = {}
 var team_names: Array = []
 var round_count: int = -1
 
+# Tactic configuration for battle flow
+var attacker_tactic: Tactic = null
+var defender_tactic: Tactic = null
+
+# Max rounds is determined by attacker's tactic action_count
+var max_rounds: int = 3
+
 func _init(config: Dictionary):
 	var teams = config.get("teams", {})
+	
+	# Store tactics if provided
+	attacker_tactic = config.get("attacker_tactic", Tactic.create_balanced())
+	defender_tactic = config.get("defender_tactic", Tactic.create_balanced())
+	
+	# Max rounds comes from attacker's action_count
+	max_rounds = attacker_tactic.action_count
 	
 	for team_name in teams:
 		var squad_configs = teams[team_name]
@@ -98,19 +112,23 @@ func check_team_strength(team_name: Variant) -> float:
 	return strength
 
 func check_victory() -> bool:
-	var alive_teams = 0
-	var dead_teams = 0
-	
-	for team_name in teams_and_squads:
-		var team_strength = check_team_strength(team_name)
-		if team_strength <= 0:
-			dead_teams += 1
-		else:
-			alive_teams += 1
-	
+	return get_battle_outcome() != SquadBattleTypes.BattleOutcome.ONGOING
 
-	SBLog.line(0, "Check victory: alive[%d] dead[%d]" % [alive_teams, dead_teams], SBLog.prefix("Battle"))
-	return alive_teams <= 1
+func get_battle_outcome() -> SquadBattleTypes.BattleOutcome:
+	var attacker_strength = check_team_strength(SquadBattleTypes.Side.ATTACKER)
+	var defender_strength = check_team_strength(SquadBattleTypes.Side.DEFENDER)
+	
+	# Check for team elimination
+	if attacker_strength <= 0:
+		return SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY
+	if defender_strength <= 0:
+		return SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY
+	
+	# Check for round exhaustion (Draw)
+	if round_count >= max_rounds:
+		return SquadBattleTypes.BattleOutcome.DRAW
+	
+	return SquadBattleTypes.BattleOutcome.ONGOING
 
 func squad_recoveries():
 	for team_name in teams_and_squads:
@@ -122,17 +140,35 @@ func squad_recoveries():
 func squad_actions() -> Array[EntityUpdate]:
 	var updates: Array[EntityUpdate] = []
 	
-	for team_name in teams_and_squads:
-		var squads = teams_and_squads[team_name]
-		var target_squads = get_all_enemy_squads(team_name)
-		
-		for squad in squads:
-			var squad_update = squad.round(target_squads, round_count)
-			
-			if squad_update:
-				for update in squad_update:
-					updates.append(update)
+	# Get attacker and defender squads
+	var attacker_squads: Array = teams_and_squads.get(Types.Side.ATTACKER, [])
+	var defender_squads: Array = teams_and_squads.get(Types.Side.DEFENDER, [])
 	
+	SBLog.section("Round %d/%d - Attacker Phase" % [round_count, max_rounds], 2, 1, 0)
+	
+	# Phase 1: Attackers act (1 action each, modified by tactic)
+	for squad in attacker_squads:
+		var squad_updates = squad.perform_actions(
+			defender_squads,
+			round_count,
+			1,
+			attacker_tactic.attack_modifier
+		)
+		for update in squad_updates:
+			updates.append(update)
+	
+	SBLog.section("Round %d/%d - Defender Phase (%d reactions)" % [round_count, max_rounds, defender_tactic.reaction_count], 2, 1, 0)
+	
+	# Phase 2: Defenders react (using defender_tactic.reaction_count)
+	for squad in defender_squads:
+		var squad_updates = squad.perform_reactions(
+			attacker_squads,
+			round_count,
+			defender_tactic.reaction_count,
+			defender_tactic.defense_modifier
+		)
+		for update in squad_updates:
+			updates.append(update)
 
 	SBLog.section("Round %d Updates" % round_count, 2, 1, 0)
 	for update in updates:

@@ -67,6 +67,13 @@ enum Side {
 	DEFENDER
 }
 
+enum BattleOutcome {
+	ONGOING,
+	ATTACKER_VICTORY,
+	DEFENDER_VICTORY,
+	DRAW
+}
+
 
 # class WeaponConfig:
 # 	var hit_bonus: float
