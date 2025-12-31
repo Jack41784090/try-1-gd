@@ -21,8 +21,8 @@ func create_battle(
 	clear_mappings()
 	current_tactic = tactic
 	
-	var player_squad_config = _build_squad_config(player_squad, "player")
-	var enemy_squad_config = _build_squad_config(enemy_squad, "enemy")
+	var player_squad_config = _build_squad_config(player_squad, "player", SquadBattleTypes.Side.ATTACKER)
+	var enemy_squad_config = _build_squad_config(enemy_squad, "enemy", SquadBattleTypes.Side.DEFENDER)
 	
 	print("[CombatBridge] Creating battle with config:")
 	print("[CombatBridge]   Player squad: %s (%d entities)" % [player_squad_config.name, player_squad_config.entities.size()])
@@ -30,8 +30,8 @@ func create_battle(
 	
 	current_battle = SquadBattle.new({
 		"teams": {
-			"player": [player_squad_config],
-			"enemy": [enemy_squad_config]
+			SquadBattleTypes.Side.ATTACKER: [player_squad_config],
+			SquadBattleTypes.Side.DEFENDER: [enemy_squad_config]
 		}
 	})
 	
@@ -43,7 +43,7 @@ func create_battle(
 	
 	return current_battle
 
-func _build_squad_config(strategic_squad: StrategicSquad, team: String) -> Dictionary:
+func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: SquadBattleTypes.Side) -> Dictionary:
 	var entity_configs: Array = []
 	var living_warriors = strategic_squad.get_living_warriors()
 	var formation = strategic_squad.formation
@@ -88,7 +88,8 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String) -> Dicti
 	var squad_config = {
 		"entities": entity_configs,
 		"name": strategic_squad.squad_name,
-		"team": team
+		"team": team,
+		"side": side
 	}
 	
 	return squad_config
