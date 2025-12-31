@@ -48,7 +48,8 @@ func setup_row_mappings() -> void:
 func setup_mock_battle() -> void:
 	var battle_config = {
 		"teams": {
-			"heroes": [{
+			SquadBattleTypes.Side.ATTACKER: [{
+				"side": SquadBattleTypes.Side.ATTACKER,
 				"name": "Heroes",
 				"team": "heroes",
 				"entities": [
@@ -58,7 +59,8 @@ func setup_mock_battle() -> void:
 					EntityFactory.EntityClasses.Healer
 				]
 			}],
-			"monsters": [{
+			SquadBattleTypes.Side.DEFENDER: [{
+				"side": SquadBattleTypes.Side.DEFENDER,
 				"name": "Monsters",
 				"team": "monsters",
 				"entities": [
@@ -88,7 +90,7 @@ func spawn_all_entities() -> void:
 
 	for team_name in battle.teams_and_squads.keys():
 		var squads: Array = battle.teams_and_squads[team_name]
-		var is_attacker = (team_name == "heroes")
+		var is_attacker = (team_name == SquadBattleTypes.Side.ATTACKER)
 		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 
 		for squad: Squad in squads:
