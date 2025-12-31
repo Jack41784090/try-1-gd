@@ -117,10 +117,9 @@ func _execute_combat() -> CombatResult:
 	var outcome = await battle_scene.battle_completed
 	print("[CombatController] Battle outcome: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
 	
-	# Clean up battle scene
-	battle_scene.queue_free()
-	combat_overlay.visible = false
-	print("[CombatController] Battle scene cleaned up")
+	# NOTE: Battle scene and overlay are kept visible for the summary display
+	# The UI (_show_combat_result_overlay) will clean up after showing the summary
+	print("[CombatController] Battle scene kept for summary display")
 	
 	# Collect all updates from the completed battle
 	all_updates.clear()

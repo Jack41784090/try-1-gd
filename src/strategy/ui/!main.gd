@@ -21,6 +21,7 @@ enum UIMode {
 @onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/LocationLabel
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
 @onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
+@onready var morale_panel: PanelContainer = $PanelContainer/MainVBox/StatusArea/StatusPanel
 @onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ConditionStatus/ConditionMargin/ConditionLabel
 
 @onready var main_background: TextureRect = $PanelContainer/MainBackground
@@ -825,7 +826,7 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 	combat_panel.visible = false
 	
 	print("[TrainingScreen] Combat result received: %s" % encounter_result.to_string() if encounter_result else "null")
-	_handle_encounter_result(encounter_result)
+	await _handle_encounter_result(encounter_result)
 
 func _on_3d_battle_completed() -> void:
 	print("[TrainingScreen] 3D battle visualization completed")
@@ -848,6 +849,9 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	print("[TrainingScreen] %s" % result.to_string())
 	print("[TrainingScreen] ========================================")
 	
+	# Capture morale before changes for animation
+	var morale_before = game_scenario.player_squad.get_morale()
+	
 	# Apply morale changes to squad
 	if result.morale_change != 0:
 		game_scenario.player_squad.modify_aggregate_morale(result.morale_change)
@@ -862,7 +866,6 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	# Handle loot if victory
 	if result.loot:
 		print("[TrainingScreen] Loot collected: %s" % [result.loot])
-		# Apply loot to squad inventory (stub - implement based on your inventory system)
 		_apply_combat_loot(result.loot)
 	
 	# Handle clues if victory
@@ -872,22 +875,152 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 			current_location.add_clue(clue)
 			print("[TrainingScreen] Clue dropped: %s" % clue.clue_name)
 	
-	# Show result in UI briefly, then return to strategy
-	if result.victory:
-		combat_info_label.text = "✓ VICTORY! Returning to camp..."
-	elif result.fled:
-		combat_info_label.text = "🏃 Escaped successfully. Returning..."
-	elif result.negotiated:
-		combat_info_label.text = "🤝 Conflict resolved peacefully. Returning..."
-	else:
-		combat_info_label.text = "✗ DEFEAT! Regrouping..."
+	# Show combat result with animated morale bar overlay
+	await _show_combat_result_overlay(result, morale_before)
 	
-	# Emit signal and transition back after brief delay
-	encounter_resolved.emit(result)
-	
-	# Use a timer or await to show result before transitioning
-	await get_tree().create_timer(1.5).timeout
 	_exit_combat_to_strategy()
+	
+	# Emit signal AFTER cleanup so _execute_activity_with_object can continue
+	encounter_resolved.emit(result)
+
+## Shows the battle result with morale bar overlaid on the 3D battle scene
+func _show_combat_result_overlay(result: CombatController.CombatResult, morale_before: float) -> void:
+	combat_panel.visible = false
+	
+	# Show the combat overlay (3D battle scene is in BattleViewport)
+	combat_overlay.visible = true
+	
+	# Store original parent and position of morale panel (contains the morale bar)
+	var original_parent = morale_panel.get_parent()
+	var original_index = morale_panel.get_index()
+	
+	# Create a container for the overlay UI elements (on top of 3D scene)
+	var overlay_container = Control.new()
+	overlay_container.name = "BattleSummaryOverlay"
+	overlay_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	combat_overlay.add_child(overlay_container)
+	
+	# Add result label in center of screen
+	var result_label = _create_result_label(result)
+	overlay_container.add_child(result_label)
+	
+	# Reparent the morale panel (which contains morale bar) to the overlay
+	original_parent.remove_child(morale_panel)
+	overlay_container.add_child(morale_panel)
+	
+	# Position morale panel at the TOP (same position as strategy UI)
+	morale_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	morale_panel.anchor_left = 0.1
+	morale_panel.anchor_right = 0.9
+	morale_panel.anchor_top = 0.02
+	morale_panel.anchor_bottom = 0.08
+	morale_panel.offset_left = 0
+	morale_panel.offset_right = 0
+	morale_panel.offset_top = 0
+	morale_panel.offset_bottom = 0
+	morale_panel.visible = true
+	morale_panel.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	
+	# Set morale bar to "before" value
+	morale_bar.value = morale_before
+	morale_bar.visible = true
+	
+	# Wait for user to see the result
+	await get_tree().create_timer(0.5).timeout
+	
+	# Animate morale bar change
+	var morale_after = game_scenario.player_squad.get_morale()
+	var tween = create_tween()
+	tween.tween_property(morale_bar, "value", morale_after, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	await tween.finished
+	
+	# Spawn floating delta label on the overlay
+	if abs(result.morale_change) >= 0.1:
+		_spawn_morale_delta_label_on_overlay(result.morale_change, overlay_container)
+	
+	# Brief pause to read
+	await get_tree().create_timer(1.2).timeout
+	
+	# Reparent morale panel back to original location
+	overlay_container.remove_child(morale_panel)
+	original_parent.add_child(morale_panel)
+	original_parent.move_child(morale_panel, original_index)
+	
+	# Reset morale panel anchors to fill horizontally in its container
+	morale_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	morale_panel.anchor_left = 0
+	morale_panel.anchor_right = 1
+	morale_panel.anchor_top = 0
+	morale_panel.anchor_bottom = 0
+	morale_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	# Clean up overlay UI container
+	overlay_container.queue_free()
+	
+	# Clean up battle scene from viewport (was kept visible for summary)
+	for child in battle_viewport.get_children():
+		child.queue_free()
+	combat_overlay.visible = false
+
+## Creates the result label (Victory/Defeat/Fled/Negotiated)
+func _create_result_label(result: CombatController.CombatResult) -> Label:
+	var result_label = Label.new()
+	result_label.name = "ResultLabel"
+	result_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	result_label.anchor_top = 0.15
+	result_label.anchor_bottom = 0.25
+	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	result_label.add_theme_font_size_override("font_size", 48)
+	result_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	result_label.add_theme_constant_override("shadow_offset_x", 3)
+	result_label.add_theme_constant_override("shadow_offset_y", 3)
+	
+	if result.victory:
+		result_label.text = "✓ VICTORY!"
+		result_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	elif result.fled:
+		result_label.text = "🏃 Escaped!"
+		result_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+	elif result.negotiated:
+		result_label.text = "🤝 Negotiated!"
+		result_label.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
+	else:
+		result_label.text = "✗ DEFEAT!"
+		result_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	
+	return result_label
+
+## Spawns a floating morale delta label on the combat overlay
+func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -> void:
+	var delta_label = Label.new()
+	parent.add_child(delta_label)
+	
+	delta_label.text = "%+.1f Morale" % delta_value
+	delta_label.add_theme_font_size_override("font_size", 28)
+	delta_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	delta_label.add_theme_constant_override("shadow_offset_x", 2)
+	delta_label.add_theme_constant_override("shadow_offset_y", 2)
+	
+	if delta_value >= 0:
+		delta_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	else:
+		delta_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	
+	# Position below the morale bar (which is now at top)
+	delta_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	delta_label.anchor_top = 0.10
+	delta_label.anchor_bottom = 0.14
+	delta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	# Animate float down and fade
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(delta_label, "anchor_top", 0.16, 1.2).set_ease(Tween.EASE_OUT)
+	tween.tween_property(delta_label, "anchor_bottom", 0.20, 1.2).set_ease(Tween.EASE_OUT)
+	tween.tween_property(delta_label, "modulate:a", 0.0, 0.8).set_delay(0.4)
+
+
 
 func _apply_combat_loot(loot: Dictionary) -> void:
 	var squad = game_scenario.player_squad
@@ -905,7 +1038,7 @@ func _exit_combat_to_strategy() -> void:
 	combat_options = {}
 	_set_ui_mode(UIMode.STRATEGY)
 	_update_ui()
-	encounter_resolved.emit() # Signal that combat encounter has finished
+	# Note: encounter_resolved is emitted in _handle_encounter_result, not here
 
 func _show_combat_ui() -> void:
 	# Hide strategy elements
