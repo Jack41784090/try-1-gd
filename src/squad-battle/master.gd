@@ -5,12 +5,14 @@ var battle: SquadBattle
 var battlefield_controller: SBGraphics
 var entity_displays_dict: Dictionary = {}
 var delay_between_rounds: float = 2.0
-var max_rounds: int = 50
 var is_running: bool = false
 var last_round_capitulated: Array = []
 var all_updates: Array[EntityUpdate] = []
 
-signal battle_completed
+signal battle_completed(outcome: SquadBattleTypes.BattleOutcome)
+
+func _is_attacker(entity: SquadEntity) -> bool:
+	return entity.side == SquadBattleTypes.Side.ATTACKER
 
 func _ready() -> void:
 	battlefield_controller = get_node("25dBattlefield")
@@ -70,7 +72,9 @@ func setup_mock_battle() -> void:
 					EntityFactory.EntityClasses.Healer
 				]
 			}]
-		}
+		},
+		"attacker_tactic": Tactic.create_balanced(),
+		"defender_tactic": Tactic.create_balanced()
 	}
 
 	battle = SquadBattle.new(battle_config)
@@ -110,15 +114,16 @@ func spawn_all_entities() -> void:
 				_update_row_positions(row_node)
 
 func process_round() -> void:
-	if battle.check_victory() or battle.round_count >= max_rounds:
-		var end_message = "BATTLE ENDED" if battle.check_victory() else "MAX ROUNDS REACHED (DRAW)"
-		SBLog.section(end_message, 0, 2, 1)
-		print_winner()
+	var outcome = battle.get_battle_outcome()
+	if outcome != SquadBattleTypes.BattleOutcome.ONGOING:
+		var outcome_name = SquadBattleTypes.BattleOutcome.keys()[outcome]
+		SBLog.section("BATTLE ENDED: %s" % outcome_name, 0, 2, 1)
+		print_outcome(outcome)
 		is_running = false
-		battle_completed.emit()
+		battle_completed.emit(outcome)
 		return
 
-	SBLog.section("Round %d" % (battle.round_count + 1), 1, 1, 1)
+	SBLog.section("Round %d / %d" % [battle.round_count + 1, battle.max_rounds], 1, 1, 1)
 	battle.round_count += 1
 
 	battle.remove_dead_entities()
@@ -186,7 +191,7 @@ func process_updates(updates: Array[EntityUpdate]) -> void:
 			targets_display.queue_free()
 			entity_displays_dict.erase(update.affected)
 		elif change_type == SquadBattleTypes.EntityChangeable.LOC:
-			await _handle_location_change(update.affected, targets_display)
+			await _handle_location_change(update.affected, targets_display, int(update.change.to))
 	
 	print("[process_updates] All updates processed!")
 
@@ -216,31 +221,44 @@ func _update_row_positions(row_node: Node3D) -> void:
 	if opposing_index >= 0 and opposing_index < all_rows.size():
 		battlefield_controller.update_row_positions(all_rows[opposing_index])
 
-func _handle_location_change(entity_id: int, display: Node3D) -> void:
+func _handle_location_change(entity_id: int, display: Node3D, new_location: int) -> void:
 	var entity = battle.get_entity_by_id(entity_id)
 	if not entity or not display:
 		print("[LOC] Entity or display is null for ID %d" % entity_id)
 		return
 
-	var new_location = entity.get_changeable_stat_num(
-		SquadBattleTypes.EntityChangeable.LOC
-	) as int
-
-	print("[LOC] Entity %d moving to location %d" % [entity_id, new_location])
-
-	var is_attacker = (entity.team == "heroes")
+	var is_attacker = _is_attacker(entity)
+	print("[LOC_DEBUG] Entity %d (%s) side=%d is_attacker=%s LOC=%d" % [
+		entity_id, entity.entity_name, entity.side, is_attacker, new_location
+	])
+	
 	var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 	var new_row = row_map.get(new_location)
+	
+	if new_row:
+		var new_row_parent = new_row.get_parent()
+		print("[LOC_DEBUG] Selected row: %s/%s (from %s)" % [
+			new_row_parent.name if new_row_parent else "null",
+			new_row.name,
+			"attacker_rows" if is_attacker else "defender_rows"
+		])
 
 	if new_row and display.get_parent() != new_row:
-		print("[LOC] Animating move to new row")
 		await battlefield_controller.animate_move_to_row(display, new_row)
-		print("[LOC] Move animation completed")
 	else:
 		print("[LOC] No move needed (already in correct row or invalid row)")
 
-func print_winner() -> void:
-	for team_name in battle.teams_and_squads:
-		var strength = battle.check_team_strength(team_name)
-		if strength > 0:
-			print("🏆 WINNER: Team %s with strength %.1f" % [team_name.to_upper(), strength])
+func print_outcome(outcome: SquadBattleTypes.BattleOutcome) -> void:
+	match outcome:
+		SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY:
+			var strength = battle.check_team_strength(SquadBattleTypes.Side.ATTACKER)
+			print("🏆 ATTACKER VICTORY with remaining strength %.1f" % strength)
+		SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY:
+			var strength = battle.check_team_strength(SquadBattleTypes.Side.DEFENDER)
+			print("🏆 DEFENDER VICTORY with remaining strength %.1f" % strength)
+		SquadBattleTypes.BattleOutcome.DRAW:
+			var atk_str = battle.check_team_strength(SquadBattleTypes.Side.ATTACKER)
+			var def_str = battle.check_team_strength(SquadBattleTypes.Side.DEFENDER)
+			print("🤝 DRAW after %d rounds. Attacker: %.1f, Defender: %.1f" % [
+				battle.round_count, atk_str, def_str
+			])
