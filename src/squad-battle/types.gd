@@ -61,6 +61,11 @@ enum SquadEntityAction {
 	CAPITULATE
 }
 
+enum Side {
+	NULL,
+	ATTACKER,
+	DEFENDER
+}
 
 
 # class WeaponConfig:
