@@ -20,6 +20,7 @@ var logic: SimplifiedSquadLogic
 #endregion
 
 #region Init after Resource
+var side: SquadBattleTypes.Side
 var player_id: int = -1
 var team: String
 var changeable_stats: Dictionary = {
@@ -117,6 +118,7 @@ func init_after():
 
 func _validate_existence():
 	print(self)
+	# assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
 	assert(class_id != null, "Class ID must not be null")
 
 
@@ -133,6 +135,7 @@ func _init(config: EntityConfig = null):
 	player_id = config.player_id
 	class_id = config.entity_type_id
 	entity_name = config.name
+	side = config.side
 	team = config.team
 	stats = config.stats
 	logic_config = LogicFactory.get_logic(config.logic_enum)
