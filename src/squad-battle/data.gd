@@ -46,7 +46,7 @@ func remove_capitulated_entities(capitulated_entities: Array):
 				for i in range(entities_to_remove.size() - 1, -1, -1):
 					squad.entities.remove_at(entities_to_remove[i])
 
-func get_all_enemy_squads(current_team_name: String) -> Array:
+func get_all_enemy_squads(current_team_name: Variant) -> Array:
 	var enemy_squads: Array = []
 	
 	for team_name in team_names:
@@ -87,7 +87,7 @@ func choose_weighted_enemy_squad(current_team_name: String):
 	
 	return result
 
-func check_team_strength(team_name: String) -> float:
+func check_team_strength(team_name: Variant) -> float:
 	var strength = 0.0
 	
 	if teams_and_squads.has(team_name):
