@@ -19,6 +19,8 @@ func _ready() -> void:
 	test_location_clue_management()
 	test_strategic_squad_tactic()
 	test_combat_bridge()
+	test_battle_outcome_system()
+	test_tactic_based_rounds()
 	
 	print_final_results()
 	
@@ -637,4 +639,119 @@ func test_combat_bridge_clear() -> void:
 	assert_equal(bridge.warrior_to_entity.size(), 0, "warrior_to_entity cleared")
 	assert_equal(bridge.entity_to_warrior.size(), 0, "entity_to_warrior cleared")
 	assert_true(bridge.current_battle == null, "current_battle cleared")
+	end_test()
+
+# ============================================================================
+# TEST SUITE 8: BattleOutcome System
+# ============================================================================
+
+func test_battle_outcome_system() -> void:
+	print("\n" + "-".repeat(80))
+	print("TEST SUITE 8: BattleOutcome System")
+	print("-".repeat(80) + "\n")
+	
+	test_battle_outcome_enum_values()
+	test_tactic_determines_max_rounds()
+
+func test_battle_outcome_enum_values() -> void:
+	start_test("BattleOutcome: enum values exist")
+	
+	assert_equal(SquadBattleTypes.BattleOutcome.ONGOING, 0, "ONGOING is 0")
+	assert_equal(SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY, 1, "ATTACKER_VICTORY is 1")
+	assert_equal(SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY, 2, "DEFENDER_VICTORY is 2")
+	assert_equal(SquadBattleTypes.BattleOutcome.DRAW, 3, "DRAW is 3")
+	end_test()
+
+func test_tactic_determines_max_rounds() -> void:
+	start_test("Tactic: action_count determines max_rounds")
+	
+	# Test that each tactic type has the expected action_count that would be used as max_rounds
+	var balanced = Tactic.create_balanced()
+	assert_equal(balanced.action_count, 1, "balanced has action_count 1 (1 round)")
+	
+	var aggressive = Tactic.create_aggressive_charge()
+	assert_equal(aggressive.action_count, 2, "aggressive_charge has action_count 2 (2 rounds)")
+	
+	var full_assault = Tactic.create_full_assault()
+	assert_equal(full_assault.action_count, 3, "full_assault has action_count 3 (3 rounds)")
+	
+	var defensive = Tactic.create_defensive_formation()
+	assert_equal(defensive.action_count, 0, "defensive_formation has action_count 0 (0 rounds - pure defense)")
+	
+	var guerilla = Tactic.create_guerilla_defence()
+	assert_equal(guerilla.action_count, 1, "guerilla_defence has action_count 1 (1 round)")
+	end_test()
+
+# ============================================================================
+# TEST SUITE 9: Tactic-Based Battle Rounds
+# ============================================================================
+
+func test_tactic_based_rounds() -> void:
+	print("\n" + "-".repeat(80))
+	print("TEST SUITE 9: Tactic-Based Battle Rounds")
+	print("-".repeat(80) + "\n")
+	
+	test_tactic_action_vs_reaction_balance()
+	test_combat_bridge_creates_battle_with_tactic()
+
+func test_tactic_action_vs_reaction_balance() -> void:
+	start_test("Tactic: action_count + reaction_count patterns")
+	
+	# Balanced: equal actions and reactions
+	var balanced = Tactic.create_balanced()
+	assert_equal(balanced.action_count, balanced.reaction_count, "balanced has equal actions and reactions")
+	
+	# Aggressive: more actions than reactions
+	var aggressive = Tactic.create_aggressive_charge()
+	assert_true(aggressive.action_count > aggressive.reaction_count, "aggressive has more actions than reactions")
+	
+	# Guerilla: more reactions than actions
+	var guerilla = Tactic.create_guerilla_defence()
+	assert_true(guerilla.reaction_count > guerilla.action_count, "guerilla has more reactions than actions")
+	
+	# Full assault: max actions, no reactions
+	var full_assault = Tactic.create_full_assault()
+	assert_equal(full_assault.action_count, 3, "full assault has 3 actions")
+	assert_equal(full_assault.reaction_count, 0, "full assault has 0 reactions")
+	
+	# Defensive: no actions, max reactions
+	var defensive = Tactic.create_defensive_formation()
+	assert_equal(defensive.action_count, 0, "defensive has 0 actions")
+	assert_equal(defensive.reaction_count, 3, "defensive has 3 reactions")
+	end_test()
+
+func test_combat_bridge_creates_battle_with_tactic() -> void:
+	start_test("CombatBridge: create_battle() applies tactic to battle")
+	
+	var bridge = CombatBridge.new()
+	
+	# Create minimal strategic squads for testing
+	var player_squad = StrategicSquad.new()
+	player_squad.squad_id = "player"
+	player_squad.squad_name = "Player Squad"
+	
+	var enemy_squad = StrategicSquad.new()
+	enemy_squad.squad_id = "enemy"
+	enemy_squad.squad_name = "Enemy Squad"
+	
+	# Create warriors with combat stats
+	var warrior = Warrior.new()
+	warrior.warrior_id = "w1"
+	warrior.warrior_name = "Test Warrior"
+	warrior.combat_stats = EntityBaseStats.new()
+	player_squad.warriors.append(warrior)
+	
+	var enemy_warrior = Warrior.new()
+	enemy_warrior.warrior_id = "e1"
+	enemy_warrior.warrior_name = "Enemy Warrior"
+	enemy_warrior.combat_stats = EntityBaseStats.new()
+	enemy_squad.warriors.append(enemy_warrior)
+	
+	# Test with aggressive charge tactic
+	var aggressive = Tactic.create_aggressive_charge()
+	var battle = bridge.create_battle(player_squad, enemy_squad, aggressive)
+	
+	assert_not_null(battle, "battle created")
+	assert_equal(battle.attacker_tactic.tactic_id, "aggressive_charge", "attacker_tactic set")
+	assert_equal(battle.max_rounds, 2, "max_rounds set from tactic action_count")
 	end_test()
