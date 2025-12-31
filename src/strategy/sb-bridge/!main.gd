@@ -27,12 +27,20 @@ func create_battle(
 	print("[CombatBridge] Creating battle with config:")
 	print("[CombatBridge]   Player squad: %s (%d entities)" % [player_squad_config.name, player_squad_config.entities.size()])
 	print("[CombatBridge]   Enemy squad: %s (%d entities)" % [enemy_squad_config.name, enemy_squad_config.entities.size()])
+	print("[CombatBridge]   Attacker Tactic: %s (actions=%d, reactions=%d)" % [
+		tactic.tactic_name, tactic.action_count, tactic.reaction_count
+	])
+	
+	# Enemy uses balanced tactic by default
+	var enemy_tactic = Tactic.create_balanced()
 	
 	current_battle = SquadBattle.new({
 		"teams": {
 			SquadBattleTypes.Side.ATTACKER: [player_squad_config],
 			SquadBattleTypes.Side.DEFENDER: [enemy_squad_config]
-		}
+		},
+		"attacker_tactic": tactic,
+		"defender_tactic": enemy_tactic
 	})
 	
 	# Store Squad references after battle creation

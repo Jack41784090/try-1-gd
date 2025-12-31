@@ -114,20 +114,23 @@ func _execute_combat() -> CombatResult:
 	combat_overlay.visible = true
 	
 	print("[CombatController] Awaiting battle completion...")
-	await battle_scene.battle_completed
+	var outcome = await battle_scene.battle_completed
+	print("[CombatController] Battle outcome: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
+	
+	# Clean up battle scene
+	battle_scene.queue_free()
+	combat_overlay.visible = false
+	print("[CombatController] Battle scene cleaned up")
 	
 	# Collect all updates from the completed battle
 	all_updates.clear()
 	combat_phase = battle.round_count
 	print("[CombatController] Battle completed after %d rounds" % combat_phase)
 	
-	var player_strength = battle.check_team_strength("player")
-	var enemy_strength = battle.check_team_strength("enemy")
-	
 	print("\n[CombatController] COMBAT CONCLUDED")
-	print("[CombatController] Final strengths - Player: %.1f, Enemy: %.1f" % [player_strength, enemy_strength])
 	
-	result.victory = player_strength > 0 and enemy_strength <= 0
+	# Determine victory based on outcome enum
+	result.victory = (outcome == SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY)
 	result.turns_elapsed = combat_phase
 
 	var player_apply_result = combat_bridge.apply_results(current_player_squad, all_updates)
@@ -139,18 +142,16 @@ func _execute_combat() -> CombatResult:
 		result.player_casualties.append(death_id)
 	
 	# Calculate morale change based on outcome
-	if result.victory:
-		result.morale_change = 15.0 - (result.player_casualties.size() * 5.0)
-		print("[CombatController] VICTORY! Morale change: %.1f" % result.morale_change)
-		
-		# result.loot = _generate_loot(current_enemy_squad)
-		# print("[CombatController] Loot generated: %s" % [result.loot])
-		
-		# result.clues_dropped = _generate_enemy_clues(current_enemy_squad, combat_phase)
-		# print("[CombatController] Clues dropped: %d" % result.clues_dropped.size())
-	else:
-		result.morale_change = -5.0 - (result.player_casualties.size() * 5.0)
-		print("[CombatController] DEFEAT! Morale change: %.1f" % result.morale_change)
+	match outcome:
+		SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY:
+			result.morale_change = 15.0 - (result.player_casualties.size() * 5.0)
+			print("[CombatController] VICTORY! Morale change: %.1f" % result.morale_change)
+		SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY:
+			result.morale_change = -20.0 - (result.player_casualties.size() * 5.0)
+			print("[CombatController] DEFEAT! Morale change: %.1f" % result.morale_change)
+		SquadBattleTypes.BattleOutcome.DRAW:
+			result.morale_change = -5.0 - (result.player_casualties.size() * 2.0)
+			print("[CombatController] DRAW! Morale change: %.1f" % result.morale_change)
 	
 	return result
 
