@@ -1,0 +1,141 @@
+[gd_scene load_steps=5 format=3 uid="uid://7wiqx3r6htjw"]
+
+[ext_resource type="Script" uid="uid://cdrf2o4xvkcgu" path="res://src/strategy/ui/warrior_item.gd" id="1_warrior_item"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.15, 0.15, 0.2, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.5, 0.3, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.8, 0.2, 0.2, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="WarriorItem" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 80)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+script = ExtResource("1_warrior_item")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="IconRect" type="TextureRect" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 2
+stretch_mode = 4
+
+[node name="InfoVBox" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "Warrior Name"
+
+[node name="StatsHBox" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HPContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="HPLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/HPContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "HP:"
+
+[node name="HPBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/HPContainer"]
+custom_minimum_size = Vector2(100, 16)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+
+[node name="MoraleContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="MoraleLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/MoraleContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Morale:"
+
+[node name="MoraleValueLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/MoraleContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "100"
+
+[node name="LocationContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/LocationContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Front"
+
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Actions ▼" type="PopupMenu" parent="MarginContainer/HBoxContainer/MenuBar"]
+item_count = 8
+item_0/text = "Rest"
+item_0/id = 0
+item_1/text = "Train"
+item_1/id = 1
+item_2/text = "Heal"
+item_2/id = 2
+item_3/id = 100
+item_3/separator = true
+item_4/text = "Move"
+item_4/id = 4
+item_5/id = 101
+item_5/separator = true
+item_6/text = "Transfer"
+item_6/id = 3
+item_7/text = "Dismiss"
+item_7/id = 5
+
+[node name="PopupMenu_move" type="PopupMenu" parent="MarginContainer/HBoxContainer/MenuBar/Actions ▼"]
+item_count = 3
+item_0/text = "Front"
+item_0/id = 10
+item_1/text = "Mid"
+item_1/id = 11
+item_2/text = "Back"
+item_2/id = 12
+
+[connection signal="id_pressed" from="MarginContainer/HBoxContainer/MenuBar/Actions ▼" to="." method="_on_action_selected"]
+[connection signal="id_pressed" from="MarginContainer/HBoxContainer/MenuBar/Actions ▼/PopupMenu_move" to="." method="_on_action_selected"]
