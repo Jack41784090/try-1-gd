@@ -5,5 +5,5 @@
         "**/*.editorconfig": true,
         "**/*.gitattributes": true
     },
-    "godotTools.editorPath.godot4": "c:\\Godot\\godot.exe"
+    "godotTools.editorPath.godot4": "/usr/bin/godot"
 }
