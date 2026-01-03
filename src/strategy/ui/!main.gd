@@ -48,7 +48,9 @@ enum UIMode {
 @onready var hold_mass_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/OutingButton
 @onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RaceButton
 @onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
+@onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var travel_gui: TravelGUI = $TravelGUI
+@onready var manage_squad_screen: Control = $ManageSquadScreen
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
@@ -142,6 +144,7 @@ func _connect_signals() -> void:
 	hold_mass_button.pressed.connect(_on_hold_mass_pressed)
 	travel_button.pressed.connect(_on_travel_pressed)
 	attack_button.pressed.connect(_on_attack_pressed)
+	manage_squad_button.pressed.connect(_on_manage_squad_pressed)
 	
 	end_button.pressed.connect(_on_end_pressed)
 	skip_button.pressed.connect(_on_skip_pressed)
@@ -160,6 +163,9 @@ func _connect_signals() -> void:
 	if travel_gui:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
 		travel_gui.travel_cancelled.connect(_on_travel_cancelled)
+	
+	if manage_squad_screen:
+		manage_squad_screen.closed.connect(_on_manage_squad_closed)
 	
 	if game_scenario:
 		game_scenario.activity_executed.connect(_on_activity_executed)
@@ -191,6 +197,12 @@ func _on_travel_pressed() -> void:
 
 func _on_attack_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.ATTACK)
+
+func _on_manage_squad_pressed() -> void:
+	manage_squad_screen.call("show_squad", game_scenario.player_squad)
+
+func _on_manage_squad_closed() -> void:
+	pass
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -302,7 +314,6 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	# Re-enable buttons after activity is complete
 	is_executing_activity = false
 	_reenable_activity_buttons()
-	
 
 func _on_short_pressed() -> void:
 	var summary_text = "=== Campaign Summary ===\n"
@@ -401,6 +412,10 @@ func _update_activity_buttons() -> void:
 		attack_button.tooltip_text = "Attack %s (%d warriors)" % [enemies_here[0].squad_name, enemies_here[0].get_living_warriors().size()]
 	else:
 		attack_button.tooltip_text = "No enemies at this location"
+	
+	manage_squad_button.text = "Manage Squad"
+	manage_squad_button.disabled = false
+	manage_squad_button.tooltip_text = "View and manage your warriors"
 
 func _disable_all_activity_buttons() -> void:
 	rest_button.disabled = true
@@ -410,6 +425,7 @@ func _disable_all_activity_buttons() -> void:
 	hold_mass_button.disabled = true
 	travel_button.disabled = true
 	attack_button.disabled = true
+	manage_squad_button.disabled = true
 
 func _reenable_activity_buttons() -> void:
 	_update_activity_buttons()
