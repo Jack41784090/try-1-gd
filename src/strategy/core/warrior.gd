@@ -12,6 +12,7 @@ class_name Warrior
 	"leadership": 0,
 	"stealth": 0
 }
+@export var location_prebattle: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Back
 
 @export var combat_stats: EntityBaseStats
 @export var logic_type: LogicFactory.LogicAvailable = LogicFactory.LogicAvailable.Frontline
