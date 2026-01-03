@@ -64,7 +64,7 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 		warrior_to_entity[warrior.warrior_id] = entity_id
 		entity_to_warrior[entity_id] = warrior.warrior_id
 		
-		var starting_loc = SquadBattleTypes.SquadEntityInSquadLocation.Front
+		var starting_loc = warrior.location_prebattle
 		if i < formation.size():
 			starting_loc = formation[i] as SquadBattleTypes.SquadEntityInSquadLocation
 		
@@ -111,13 +111,7 @@ func apply_results(strategic_squad: StrategicSquad, updates: Array[EntityUpdate]
 	
 	for update in updates:
 		var warrior_id = get_warrior_for_entity(update.affected)
-		if warrior_id.is_empty():
-			continue
-		
 		var warrior = strategic_squad.get_warrior_by_id(warrior_id)
-		if not warrior:
-			continue
-		
 		match update.change.property:
 			SquadBattleTypes.EntityChangeable.HP:
 				var from_hp = update.change.from
