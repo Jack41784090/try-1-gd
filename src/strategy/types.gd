@@ -31,6 +31,7 @@ enum ActivityType {
 	FORAGE,
 	ATTACK,
 	FORCE_MARCH,
+	MANAGE_SQUAD,
 	CUSTOM
 }
 
