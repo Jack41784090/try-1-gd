@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=15 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/!main.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="4_s06fx"]
 [ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
+[ext_resource type="Script" uid="uid://drsc0hepx74gn" path="res://src/strategy/ui/manage_squad.gd" id="12_manage_squad"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -521,6 +522,16 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "⚔️ Attack"
 
+[node name="ManageSquadButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+tooltip_text = "View and manage your warriors"
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "👥 Manage Squad"
+
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -648,6 +659,70 @@ theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Cancel"
+
+[node name="ManageSquadScreen" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_manage_squad")
+
+[node name="OverlayPanel" type="PanelContainer" parent="ManageSquadScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="MarginContainer" type="MarginContainer" parent="ManageSquadScreen/OverlayPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TitleLabel" type="Label" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
+text = "Squad Management"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WarriorsContainer" type="VBoxContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Close"
 
 [node name="CombatIntermission" type="PanelContainer" parent="."]
 visible = false
