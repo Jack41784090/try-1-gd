@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5giksh8h82gd"
-path.s3tc="res://.godot/imported/landsnecht-idle.png-bd56d1e6c98ddd2b0fc4a2af6b0ea71f.s3tc.ctex"
+path.s3tc="res://.godot/imported/landsknecht-idle.png-7eb9fee5dffc8c90504fdddf15876073.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/landsnecht-idle.png"
-dest_files=["res://.godot/imported/landsnecht-idle.png-bd56d1e6c98ddd2b0fc4a2af6b0ea71f.s3tc.ctex"]
+source_file="res://assets/landsknecht-idle.png"
+dest_files=["res://.godot/imported/landsknecht-idle.png-7eb9fee5dffc8c90504fdddf15876073.s3tc.ctex"]
 
 [params]
 
