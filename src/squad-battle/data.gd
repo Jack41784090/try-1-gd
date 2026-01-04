@@ -35,6 +35,8 @@ func _init(config: Dictionary):
 		
 		team_names.append(team_name)
 
+	pass
+
 func get_entity_by_id(entity_id: int):
 	for team_name in teams_and_squads:
 		var squads = teams_and_squads[team_name]

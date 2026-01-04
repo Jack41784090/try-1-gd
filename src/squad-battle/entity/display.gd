@@ -37,6 +37,7 @@ var _debug_id: String = ""
 ## Initialize the display with entity data (scene-based mode for old 2D system)
 ## This is called by the GUI when spawning entities from entity.tscn
 func setup(entity: SquadEntity) -> void:
+	print("[EntityDisplay] Setting up display for entity %s [%d]" % [entity.entity_name, entity.player_id])
 	squad_entity = entity
 	_debug_id = "[Display:%s[%d]]" % [entity.entity_name, entity.player_id]
 	
@@ -47,6 +48,8 @@ func setup(entity: SquadEntity) -> void:
 	# Initialize stats display
 	_initialize_hp_bar()
 	_initialize_org_icons()
+
+	switch_sprite("idle")
 
 ## Refresh all visual elements based on current entity data
 func refresh_display() -> void:
