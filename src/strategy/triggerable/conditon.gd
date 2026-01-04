@@ -17,6 +17,9 @@ enum ConditionType {
 @export var condition_type: ConditionType = ConditionType.SQUAD_STATUS
 @export var parameters: Dictionary = {}
 
+func _to_string() -> String:
+	return "TriggerCondition(type: %s, Parameters: %s)" % [ConditionType.keys()[condition_type], str(parameters)]
+
 func evaluate(context: Dictionary) -> bool:
 	match condition_type:
 		ConditionType.LOCATION:
@@ -211,10 +214,6 @@ func _check_location_transition(context: Dictionary) -> bool:
 	return _check_location_match(check_location)
 
 func _check_location_match(location: Location) -> bool:
-	## Helper to check if a location matches the condition parameters
-	if not location:
-		return false
-	
 	var required_id = parameters.get("location_id", "")
 	if not required_id.is_empty() and location.location_id != required_id:
 		return false
@@ -262,4 +261,3 @@ func _create_subcondition(data: Variant) -> TriggerCondition:
 	else:
 		push_warning("Invalid subcondition data type")
 		return TriggerCondition.new()
-
