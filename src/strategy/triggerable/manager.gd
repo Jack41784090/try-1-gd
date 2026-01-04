@@ -17,7 +17,7 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 		if not filter.call(triggerable):
 			continue
 		
-		if triggerable.can_trigger(context) and triggerable.check_conditions(context):
+		if triggerable.check_conditions(context):
 			triggered.append(triggerable)
 	
 	return triggered
