@@ -673,7 +673,7 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 	stats.wil = 5.0
 	
 	var entity_config = EntityConfig.new(
-		"landsnecht",
+		"landsknecht",
 		config.get("player_id", 0),
 		"Test Entity",
 		"test",

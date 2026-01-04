@@ -40,7 +40,7 @@ var status_effects: Array[StatusEffect] = []
 
 static func quick_dummy():
 	return SquadEntity.new(EntityConfig.new(
-		"landsnecht",
+		"landsknecht",
 		0,
 		"Dummy",
 		"Dummy",
