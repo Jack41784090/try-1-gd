@@ -30,9 +30,14 @@ func _init() -> void:
 
 
 func check_conditions(context: Dictionary) -> bool:
+	print("		Checking conditions for Triggerable: %s" % trigger_name)
 	for condition in conditions:
-		if not condition.evaluate(context):
+		var e = condition.evaluate(context)
+		if not e:
+			print("		❎: %s" % condition._to_string())
 			return false
+		else:
+			print("		✅: %s" % condition._to_string())
 	return true
 
 
