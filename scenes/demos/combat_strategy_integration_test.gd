@@ -583,19 +583,19 @@ func test_squad_get_warrior_by_id() -> void:
 	squad.warriors.clear()
 	
 	var warrior1 = Warrior.new()
-	warrior1.warrior_id = "w1"
-	warrior1.warrior_name = "Warrior One"
+	warrior1.id = "w1"
+	warrior1.name = "Warrior One"
 	
 	var warrior2 = Warrior.new()
-	warrior2.warrior_id = "w2"
-	warrior2.warrior_name = "Warrior Two"
+	warrior2.id = "w2"
+	warrior2.name = "Warrior Two"
 	
 	squad.warriors.append(warrior1)
 	squad.warriors.append(warrior2)
 	
 	var found = squad.get_warrior_by_id("w1")
 	assert_not_null(found, "warrior found")
-	assert_equal(found.warrior_name, "Warrior One", "correct warrior returned")
+	assert_equal(found.name, "Warrior One", "correct warrior returned")
 	
 	var not_found = squad.get_warrior_by_id("nonexistent")
 	assert_true(not_found == null, "null for nonexistent id")
@@ -736,14 +736,14 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	
 	# Create warriors with combat stats
 	var warrior = Warrior.new()
-	warrior.warrior_id = "w1"
-	warrior.warrior_name = "Test Warrior"
+	warrior.id = "w1"
+	warrior.name = "Test Warrior"
 	warrior.combat_stats = EntityBaseStats.new()
 	player_squad.warriors.append(warrior)
 	
 	var enemy_warrior = Warrior.new()
-	enemy_warrior.warrior_id = "e1"
-	enemy_warrior.warrior_name = "Enemy Warrior"
+	enemy_warrior.id = "e1"
+	enemy_warrior.name = "Enemy Warrior"
 	enemy_warrior.combat_stats = EntityBaseStats.new()
 	enemy_squad.warriors.append(enemy_warrior)
 	

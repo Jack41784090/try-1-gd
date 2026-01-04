@@ -169,7 +169,7 @@ func test_verify_world_state() -> void:
 		print("      • %s at %s (%d warriors)" % [squad.squad_name, squad.current_location_id, squad.get_living_warriors().size()])
 	print("    - Player Warriors: %d" % living_warriors.size())
 	for warrior in living_warriors:
-		print("      • %s" % warrior.warrior_name)
+		print("      • %s" % warrior.name)
 
 #endregion
 
@@ -200,7 +200,7 @@ func test_find_forest_bandits() -> bool:
 	print("    - Location: %s" % forest_bandits.current_location_id)
 	print("    - Warriors: %d" % bandit_warriors.size())
 	for warrior in bandit_warriors:
-		print("      • %s" % warrior.warrior_name)
+		print("      • %s" % warrior.name)
 	
 	# Move player to bandit location for attack
 	start_test("Move player to bandit location for attack")

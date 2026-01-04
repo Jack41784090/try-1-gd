@@ -297,7 +297,7 @@ func _generate_enemy_clues(enemy_squad: StrategicSquad, current_turn: int = 0) -
 		var clue = Clue.create_clue(
 			Clue.get_random_clue_name(StrategyTypes.Religion.PAGAN),
 			enemy_squad.squad_id,
-			warrior.warrior_id,
+			warrior.id,
 			current_turn,
 			3,  # stealth_failure_margin (detail level)
 			enemy_squad.current_location_id  # destination

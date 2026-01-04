@@ -61,8 +61,8 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 		var entity_id = _next_entity_id
 		_next_entity_id += 1
 		
-		warrior_to_entity[warrior.warrior_id] = entity_id
-		entity_to_warrior[entity_id] = warrior.warrior_id
+		warrior_to_entity[warrior.id] = entity_id
+		entity_to_warrior[entity_id] = warrior.id
 		
 		var starting_loc = warrior.location_prebattle
 		if i < formation.size():
@@ -70,9 +70,9 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 		
 
 		var entity_config = EntityConfig.new(
-			"landsnecht",
+			warrior.id,
 			entity_id,
-			warrior.warrior_name,
+			warrior.name,
 			team,
 			warrior.combat_stats if warrior.combat_stats else EntityBaseStats.new(),
 			starting_loc,
@@ -83,13 +83,13 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 			entity_config.weapon = warrior.equipment_weapon
 		else:
 			entity_config.weapon_class = WeaponFactory.WeaponClasses.Unarmed
-			print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % warrior.warrior_name)
+			print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % warrior.name)
 		
 		if warrior.equipment_armor:
 			entity_config.armor = warrior.equipment_armor
 		else:
 			entity_config.armor_class = ArmorFactory.ArmorClasses.Unarmored
-			print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % warrior.warrior_name)
+			print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % warrior.name)
 		
 		entity_configs.append(entity_config)
 	

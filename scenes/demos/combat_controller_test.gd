@@ -89,8 +89,8 @@ func end_test() -> void:
 
 func create_test_warrior(id: String, warrior_name: String) -> Warrior:
 	var warrior = Warrior.new()
-	warrior.warrior_id = id
-	warrior.warrior_name = warrior_name
+	warrior.id = id
+	warrior.name = warrior_name
 	warrior.morale = 50.0
 	warrior.is_dead = false
 	

@@ -39,7 +39,7 @@ func _setup_warrior_internal(warrior_data: Warrior) -> void:
 		icon_rect.modulate = Color(1, 1, 1, 1)
 	
 	# Update name with status
-	name_label.text = warrior_data.warrior_name
+	name_label.text = warrior_data.name
 	
 	if warrior_data.is_dead:
 		name_label.text += " [DEAD]"
@@ -75,25 +75,25 @@ func _setup_warrior_internal(warrior_data: Warrior) -> void:
 func _on_action_selected(id: int) -> void:
 	match id:
 		0: # Rest
-			print("Rest action selected for ", warrior.warrior_name)
+			print("Rest action selected for ", warrior.name)
 		1: # Train
-			print("Train action selected for ", warrior.warrior_name)
+			print("Train action selected for ", warrior.name)
 		2: # Heal
-			print("Heal action selected for ", warrior.warrior_name)
+			print("Heal action selected for ", warrior.name)
 		3: # Transfer
-			print("Transfer action selected for ", warrior.warrior_name)
+			print("Transfer action selected for ", warrior.name)
 		5: # Dismiss
-			print("Dismiss action selected for ", warrior.warrior_name)
+			print("Dismiss action selected for ", warrior.name)
 		10: # Move Front
-			print("Move to Front selected for ", warrior.warrior_name)
+			print("Move to Front selected for ", warrior.name)
 			warrior.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Front
 			loca_value_label.text = "Front"
 		11: # Move Mid
-			print("Move to Mid selected for ", warrior.warrior_name)
+			print("Move to Mid selected for ", warrior.name)
 			warrior.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Middle
 			loca_value_label.text = "Middle"
 		12: # Move Back
-			print("Move to Back selected for ", warrior.warrior_name)
+			print("Move to Back selected for ", warrior.name)
 			warrior.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Back
 			loca_value_label.text = "Back"
 

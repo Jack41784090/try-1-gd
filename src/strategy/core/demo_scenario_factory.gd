@@ -159,8 +159,8 @@ static func _create_warriors() -> Array[Warrior]:
 	
 	for i in range(5):
 		var warrior = Warrior.new()
-		warrior.warrior_id = "warrior_%d" % i
-		warrior.warrior_name = names[i]
+		warrior.id = "warrior_%d" % i
+		warrior.name = names[i]
 		warrior.morale = randf_range(70.0, 100.0)
 		warrior.religion = religions[i]
 		

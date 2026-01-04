@@ -1,8 +1,8 @@
 extends Resource
 class_name Warrior
 
-@export var warrior_id: String = ""
-@export var warrior_name: String = ""
+@export var id: String = ""
+@export var name: String = ""
 @export var morale: float = 50.0
 @export var religion: StrategyTypes.Religion = StrategyTypes.Religion.CATHOLIC
 @export var attributes: Dictionary = {
@@ -31,7 +31,7 @@ func _init() -> void:
 		combat_stats = EntityBaseStats.new()
 
 func _to_string() -> String:
-	return "Warrior(id=%s, name=%s, morale=%f, religion=%s, attributes=%s)" % [warrior_id, warrior_name, morale, _religion_tostring(religion), attributes]
+	return "Warrior(id=%s, name=%s, morale=%f, religion=%s, attributes=%s)" % [id, name, morale, _religion_tostring(religion), attributes]
 
 func modify_morale(amount: float) -> void:
 	morale = clamp(morale + amount, 0.0, 200.0)

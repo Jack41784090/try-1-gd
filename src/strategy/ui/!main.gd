@@ -877,7 +877,7 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	for casualty_id in result.player_casualties:
 		var warrior = game_scenario.player_squad.get_warrior_by_id(casualty_id)
 		if warrior:
-			print("[TrainingScreen] Casualty: %s" % warrior.warrior_name)
+			print("[TrainingScreen] Casualty: %s" % warrior.name)
 	
 	# Handle loot if victory
 	if result.loot:

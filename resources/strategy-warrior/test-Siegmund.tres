@@ -7,8 +7,8 @@
 
 [resource]
 script = ExtResource("1_twsyk")
-warrior_id = "siegmund"
-warrior_name = "Siegmund"
+id = "landsknecht"
+name = "Siegmund"
 attributes = {
 "diplomacy": 3,
 "leadership": 3,

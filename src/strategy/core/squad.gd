@@ -57,7 +57,7 @@ func modify_morale(amount: float) -> void:
 	for warrior in warriors:
 		var old_morale := warrior.morale
 		warrior.modify_morale(amount)
-		print("  warrior=%s is_dead=%s morale: %.2f -> %.2f" % [warrior.warrior_name, str(warrior.is_dead), old_morale, warrior.morale])
+		print("  warrior=%s is_dead=%s morale: %.2f -> %.2f" % [warrior.name, str(warrior.is_dead), old_morale, warrior.morale])
 	update_aggregate_morale()
 
 func update_aggregate_morale() -> void:
@@ -128,7 +128,7 @@ func get_living_warriors() -> Array[Warrior]:
 
 func get_warrior_by_id(warrior_id: String) -> Warrior:
 	for warrior in warriors:
-		if warrior.warrior_id == warrior_id:
+		if warrior.id == warrior_id:
 			return warrior
 	return null
 
@@ -153,7 +153,7 @@ func attempt_stealth_at_location(location: Location, destination_id: String, cur
 			var clue = Clue.create_clue(
 				clue_name,
 				squad_id,
-				warrior.warrior_id,
+				warrior.id,
 				current_turn,
 				failure_margin,
 				destination_id
@@ -192,7 +192,7 @@ func to_combat_squad(team: String = "player") -> Squad:
 		
 		var entity_config = {
 			"player_id": i,
-			"name": warrior.warrior_name,
+			"name": warrior.name,
 			"team": team,
 			"stats": warrior.combat_stats,
 			"weapon": warrior.equipment_weapon,
@@ -222,8 +222,8 @@ func save_state() -> Dictionary:
 	var warrior_data: Array = []
 	for warrior in warriors:
 		warrior_data.append({
-			"id": warrior.warrior_id,
-			"name": warrior.warrior_name,
+			"id": warrior.id,
+			"name": warrior.name,
 			"morale": warrior.morale,
 			"religion": warrior.religion,
 			"attributes": warrior.attributes,
