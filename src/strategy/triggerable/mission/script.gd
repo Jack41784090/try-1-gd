@@ -137,4 +137,3 @@ func add_completion_triggered_event(event_id: String) -> void:
 	if not completion_effects.has("trigger_events"):
 		completion_effects["trigger_events"] = []
 	completion_effects["trigger_events"].append(event_id)
-
