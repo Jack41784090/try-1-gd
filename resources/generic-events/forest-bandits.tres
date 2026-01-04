@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="GameEvent" load_steps=8 format=3 uid="uid://bli7pe5y5qj"]
+[gd_resource type="Resource" script_class="GameEvent" load_steps=9 format=3 uid="uid://bli7pe5y5qj"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior.gd" id="2_2eqyj"]
 [ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/triggerable/game-event/script.gd" id="2_event"]
 [ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="3_result"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_7b0d2"]
