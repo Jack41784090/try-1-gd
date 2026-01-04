@@ -32,6 +32,7 @@ enum ActivityType {
 	ATTACK,
 	FORCE_MARCH,
 	MANAGE_SQUAD,
+	RECRUIT,
 	CUSTOM
 }
 

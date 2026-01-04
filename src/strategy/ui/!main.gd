@@ -49,6 +49,7 @@ enum UIMode {
 @onready var travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RaceButton
 @onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
+@onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
 @onready var travel_gui: TravelGUI = $TravelGUI
 @onready var manage_squad_screen: Control = $ManageSquadScreen
 
@@ -145,6 +146,7 @@ func _connect_signals() -> void:
 	travel_button.pressed.connect(_on_travel_pressed)
 	attack_button.pressed.connect(_on_attack_pressed)
 	manage_squad_button.pressed.connect(_on_manage_squad_pressed)
+	recruit_button.pressed.connect(_on_recruit_pressed)
 	
 	end_button.pressed.connect(_on_end_pressed)
 	skip_button.pressed.connect(_on_skip_pressed)
@@ -203,6 +205,9 @@ func _on_manage_squad_pressed() -> void:
 
 func _on_manage_squad_closed() -> void:
 	pass
+
+func _on_recruit_pressed() -> void:
+	_execute_activity(StrategyTypes.ActivityType.RECRUIT)
 
 func _on_end_pressed() -> void:
 	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -430,12 +435,6 @@ func _disable_all_activity_buttons() -> void:
 func _reenable_activity_buttons() -> void:
 	_update_activity_buttons()
 
-func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
-	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
-		if triggerable is Activity and triggerable.activity_type == _getting_type:
-			return triggerable as Activity
-	return null
-
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	var activity = _get_activity(activity_type)
 	if not activity:
@@ -459,6 +458,12 @@ func _apply_play_wait(results: Array[GenericResult]):
 	if is_playing_chain: await vn_completed
 
 	_update_ui()
+
+func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
+	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
+		if triggerable is Activity and triggerable.activity_type == _getting_type:
+			return triggerable as Activity
+	return null
 
 func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(activity_type)

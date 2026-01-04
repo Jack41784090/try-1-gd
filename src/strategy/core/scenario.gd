@@ -206,6 +206,11 @@ func _apply_result(result: GenericResult) -> void:
 				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
 
+	if result.new_recruits.size() > 0:
+		print("[GameScenario]   Adding %d new recruit(s) to squad" % result.new_recruits.size())
+		for recruit in result.new_recruits:
+			player_squad.add_warrior(recruit)
+
 func _build_context(activity: Activity = null) -> Dictionary:
 	var completed_mission_ids: Array[String] = []
 	for faction in factions:

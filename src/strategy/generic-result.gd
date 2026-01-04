@@ -4,6 +4,7 @@ class_name GenericResult extends Resource
 @export var world_stat_changes: Dictionary[StrategyTypes.GlobalModifier, float] = {}
 @export var event_chain_path: String = ""
 @export var requires_async: bool
+@export var new_recruits: Array[Warrior] = []
 # @export var triggered_event_ids: Array[String] = []
 
 func _to_string() -> String:
@@ -31,6 +32,10 @@ func _init(_config: Dictionary = {}) -> void:
 
 func has_event_chain() -> bool:
     return not event_chain_path.is_empty()
+
+func append_new_recruits(recruits: Array[Warrior]) -> void:
+    for recruit in recruits:
+        new_recruits.append(recruit)
 
 func modify_squad_stat(stat_name: StrategyTypes.SquadProperty, value: float) -> void:
     if not squad_stat_changes.has(stat_name):
