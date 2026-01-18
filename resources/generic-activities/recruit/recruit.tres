@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RecruitActivity" load_steps=5 format=3 uid="uid://kwc6dpwun100"]
+[gd_resource type="Resource" script_class="Activity" load_steps=5 format=3 uid="uid://kwc6dpwun100"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_f0i5n"]
-[ext_resource type="Script" uid="uid://h3xmdadd6s4b" path="res://src/strategy/triggerable/activity/recruit/script.gd" id="2_0vj7v"]
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/triggerable/activity/script.gd" id="2_0vj7v"]
 [ext_resource type="Resource" uid="uid://bjkjmhrhmcw4" path="res://resources/generic-activities/recruit/result.tres" id="2_6q5px"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_6u3em"]
 
@@ -9,4 +9,4 @@
 script = ExtResource("2_0vj7v")
 result = ExtResource("2_6q5px")
 activity_type = 11
-metadata/_custom_type_script = "uid://h3xmdadd6s4b"
+metadata/_custom_type_script = "uid://bo18gilf28ttd"
