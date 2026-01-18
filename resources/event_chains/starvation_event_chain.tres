@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=8 format=3 uid="uid://cy4rk8s3vpx2h"]
+
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/vn/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/vn/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["soldier"])
+speaker_name = "Soldier"
+line_spoken = "Captain... the rations are gone. We have nothing left."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "soldier"])
+speaker_name = "Squad Leader"
+line_spoken = "We'll find supplies at the next settlement. Hold fast."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["soldier", "soldier2"])
+speaker_name = "Soldier"
+line_spoken = "Hold fast? We're starving! My belly's been empty for three days!"
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["soldier", "soldier2"])
+speaker_name = "Another Soldier"
+line_spoken = "He's right! We didn't sign up to die of hunger on some cursed road!"
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_5"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["squad_leader", "soldier", "soldier2"])
+speaker_name = "Squad Leader"
+line_spoken = "Stand down! I know you're hungry, but we must press on. Desertion means death."
+background_id = "road"
+
+[sub_resource type="Resource" id="dialogue_6"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["soldier"])
+speaker_name = "Soldier"
+line_spoken = "...Fine. But the men won't forget this, Captain."
+background_id = "road"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "starvation_event_chain"
+chain_name = "No Food Left"
+character_ids = Array[String](["squad_leader", "soldier", "soldier2"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5"), SubResource("dialogue_6")]
