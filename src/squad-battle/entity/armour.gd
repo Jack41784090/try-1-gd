@@ -1,7 +1,7 @@
 extends RefCounted
 class_name SquadArmour
 
-const Types = preload("res://src/squad_battle/types.gd")
+# const Types = preload("res://src/squad_battle/types.gd")
 
 var DV: float
 var PV: float
@@ -11,12 +11,12 @@ func unprotected() -> SquadArmour:
 	DV = 12
 	PV = 0
 	resistance = {
-		Types.DamageType.Cut: -0.2,
-		Types.DamageType.Impale: -0.2
+		SquadBattleTypes.DamageType.Cut: -0.2,
+		SquadBattleTypes.DamageType.Impale: -0.2
 	}
 	return self
 
-func _init(config: Types.ArmourConfig = null):
+func _init(config: SquadBattleTypes.ArmourConfig = null):
 	if config:
 		DV = config.DV
 		PV = config.PV
