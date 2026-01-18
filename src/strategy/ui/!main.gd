@@ -120,7 +120,21 @@ func _initialize_scenario() -> void:
 		game_scenario = DemoScenarioFactory.create_demo_scenario()
 	else:
 		print (" \\=> loading ", scenario_path)
-		var loaded = load(scenario_path)
+		assert(not scenario_path.is_empty(), "Scenario path is empty")
+		assert(ResourceLoader.exists(scenario_path), "Scenario resource does not exist at path: %s" % scenario_path)
+		
+		var loaded = ResourceLoader.load(scenario_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+		if loaded == null:
+			var error_msg = "Failed to load scenario from path: %s\nPossible causes:\n" % scenario_path
+			error_msg += "  - Script class not found (check class_name matches)\n"
+			error_msg += "  - Missing dependencies (check ExtResource paths)\n"
+			error_msg += "  - Circular reference in resources\n"
+			error_msg += "  - Corrupted .tres file\n"
+			push_error(error_msg)
+			assert(false, error_msg)
+		
+		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
+		
 		game_scenario = loaded
 		game_scenario.initialize({
 			"player_squad": player__registered_squad

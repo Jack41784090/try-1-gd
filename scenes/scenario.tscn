@@ -66,11 +66,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_5eukr")
 player__registered_squad = ExtResource("2_jnf8s")
-scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
+scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario2.tres"
 is_demo_scenario = false
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
-layout_mode = 1
+layout_mode = 1		assert(loaded != null, "Failed to load scenario from path: %s" % scenario_path)
+
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

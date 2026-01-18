@@ -127,7 +127,7 @@ func _init(config: EntityConfig = null):
 
 	if config == null:
 		print(" --- %s initialized with empty config --- " % _debug_id)
-		_validate_existence()
+		# _validate_existence()
 		return
 	else:
 		print(" --- %s initialized with config, should expect init_after() call afterwards --- " % _debug_id)
