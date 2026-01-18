@@ -37,7 +37,7 @@ func can_trigger(context: Dictionary = {}) -> bool:
 func check_completion(context: Dictionary) -> bool:
 	return can_trigger(context) and check_conditions(context)
 
-func trigger(_squad: StrategicSquad, _world: World) -> MissionResult:
+func trigger(context: Dictionary) -> Array[MissionResult]:
 	trigger_id = mission_id
 	trigger_name = mission_name
 	
@@ -61,9 +61,9 @@ func trigger(_squad: StrategicSquad, _world: World) -> MissionResult:
 	if not result.requires_async:
 		execution_completed.emit(result_dict)
 	
-	return result
+	return [result]
 
-func execute(_squad: StrategicSquad, _world: World) -> MissionResult:
+func execute(context: Dictionary) -> MissionResult:
 	return complete()
 
 func complete() -> MissionResult:

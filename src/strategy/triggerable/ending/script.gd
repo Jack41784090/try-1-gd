@@ -9,7 +9,7 @@ class_name Ending
 func _init() -> void:
 	super._init()
 
-func trigger(_squad: StrategicSquad = null, _world: World = null) -> EndingResult:
+func trigger(_context: Dictionary) -> Array[EndingResult]:
 	trigger_id = ending_id
 	trigger_name = ending_name
 	
@@ -29,7 +29,7 @@ func trigger(_squad: StrategicSquad = null, _world: World = null) -> EndingResul
 	if epilogue_scene_paths.size() == 0:
 		execution_completed.emit(ending_result)
 	
-	return ending_result
+	return [ending_result]
 
-func execute(_squad: StrategicSquad = null, _world: World = null) -> EndingResult:
-	return trigger(_squad, _world)
+func execute(_context: Dictionary) -> Array[EndingResult]:
+	return trigger(_context)

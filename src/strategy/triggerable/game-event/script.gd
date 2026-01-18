@@ -19,21 +19,21 @@ func can_trigger(context: Dictionary = {}) -> bool:
 	
 	return super.can_trigger(context)
 
-func trigger(_squad: StrategicSquad, _world: World) -> EventResult:
+func trigger(context: Dictionary) -> Array[EventResult]:
 	times_triggered += 1
 	
 	execution_started.emit()
 	
-	var _result = execute(_squad, _world)
+	var _result = execute(context)
 	
 	triggered.emit(_result)
 	
 	if _result.auto_resolved and _result.event_chain_path.is_empty():
 		execution_completed.emit(_result)
 	
-	return _result
+	return [_result]
 
-func execute(_squad: StrategicSquad, _world: World) -> EventResult:
+func execute(context: Dictionary) -> EventResult:
 	# Override this in subclasses to implement event logic
 	# var result = EventResult.new({
 	# 	"event_chain_path": event_chain_path,
