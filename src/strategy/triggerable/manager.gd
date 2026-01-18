@@ -19,6 +19,15 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 		
 		if triggerable.check_conditions(context):
 			triggered.append(triggerable)
+			for chain in triggerable.trigger_chains:
+				print("[TriggerableManager] Processing chain for trigger: ", triggerable.trigger_name)
+				var chained_trigger = chain.another_trigger
+				var chance = chain.chance
+				if chained_trigger.can_trigger(context) and (chance == 1.0 or (chance < 1.0 and RandomNumberGenerator.new().randf() <= chance)):
+					print("[TriggerableManager]     Added chained trigger: ", chained_trigger.trigger_name)
+					triggered.append(chained_trigger)
+				else:
+					print("[TriggerableManager]     Skipped chained trigger (chance failed): ", chained_trigger.trigger_name)
 	
 	return triggered
 
