@@ -6,7 +6,7 @@ class_name StrategicSquad
 @export var warriors: Array[Warrior] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0
-@export var food: int = 10
+@export var food: int = 0
 @export var travel_tools: int = 5
 @export var formation: Array[int] = []
 @export var starting_location_id: String = ""
@@ -32,12 +32,14 @@ func consume_food(amount: int) -> bool:
 	if food >= amount:
 		food -= amount
 		return true
+	food = 0
 	return false
 
 func consume_travel_tools(amount: int) -> bool:
 	if travel_tools >= amount:
 		travel_tools -= amount
 		return true
+	travel_tools = 0
 	return false
 
 func gain_money(amount: float) -> void:
