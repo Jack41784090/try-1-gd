@@ -69,28 +69,7 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 			starting_loc = formation[i] as SquadBattleTypes.SquadEntityInSquadLocation
 		
 
-		var entity_config = EntityConfig.new(
-			warrior.id,
-			entity_id,
-			warrior.name,
-			team,
-			warrior.combat_stats if warrior.combat_stats else EntityBaseStats.new(),
-			starting_loc,
-			warrior.logic_type
-		)
-		
-		if warrior.equipment_weapon:
-			entity_config.weapon = warrior.equipment_weapon
-		else:
-			entity_config.weapon_class = WeaponFactory.WeaponClasses.Unarmed
-			print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % warrior.name)
-		
-		if warrior.equipment_armor:
-			entity_config.armor = warrior.equipment_armor
-		else:
-			entity_config.armor_class = ArmorFactory.ArmorClasses.Unarmored
-			print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % warrior.name)
-		
+		var entity_config = warrior.convert_to_entity(entity_id, team, starting_loc)
 		entity_configs.append(entity_config)
 	
 	var squad_config = {

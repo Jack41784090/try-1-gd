@@ -71,6 +71,31 @@ func _attribute_to_key(attribute: StrategyTypes.WarriorAttribute) -> String:
 		_:
 			return "diplomacy"
 
+func convert_to_entity(entity_id, team, starting_loc, ) -> EntityConfig:
+	var e_config = EntityConfig.new(
+		self.id,
+		entity_id,
+		self.name,
+		team,
+		self.combat_stats if self.combat_stats else EntityBaseStats.new(),
+		starting_loc,
+		self.logic_type
+	)
+	
+	if self.equipment_weapon:
+		e_config.weapon = self.equipment_weapon
+	else:
+		e_config.weapon_class = WeaponFactory.WeaponClasses.Unarmed
+		print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % self.name)
+	
+	if self.equipment_armor:
+		e_config.armor = self.equipment_armor
+	else:
+		e_config.armor_class = ArmorFactory.ArmorClasses.Unarmored
+		print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % self.name)
+
+	return e_config
+		
 
 func from_combat_result(entity_update: EntityUpdate) -> void:
 	push_warning("Warrior.from_combat_result() - Combat bridge not yet fully implemented")
@@ -92,4 +117,3 @@ func from_combat_result(entity_update: EntityUpdate) -> void:
 		SquadBattleTypes.EntityChangeable.DIE:
 			is_dead = true
 			morale = 0.0
-
