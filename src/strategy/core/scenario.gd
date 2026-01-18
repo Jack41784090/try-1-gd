@@ -115,7 +115,7 @@ func execute_turn(activity: Activity) -> Dictionary:
 		_apply_result(r)
 	
 	print("[GameScenario] Executing activity: ", activity.trigger_name)
-	var activity_result = activity.execute(player_squad, world)
+	var activity_result = activity.execute(_build_context(activity))
 	print("[GameScenario] Activity result: %s" % activity_result)
 	_apply_result(activity_result)
 	print("[GameScenario] Squad after activity: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
@@ -255,34 +255,20 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	# Triggers from universal Triggerables (e.g., Scenario cutscene)
 	var triggerables: Array[Triggerable] = triggerable_manager.get_triggerables_triggered(context, when_filter)
 	print("[GameScenario]   Found %d triggered event(s)" % triggerables.size())
-
-	# Trigger chains from selected Activity
-	if when == StrategyTypes.TriggerWhen.AFTER_ACTIVITY:
-		var activity: Activity = context.get("activity")
-		if activity:
-			print("[GameScenario]   Checking activity trigger chains: %d" % activity.trigger_chains.size())
-			for chain in activity.trigger_chains:
-				var chained_trigger = chain.another_trigger
-				var chance = chain.chance
-				if (chance < 1.0 and rng.randf() <= chance) or chance == 1.0:
-					print("[GameScenario]     Added chained trigger: ", chained_trigger.trigger_name)
-					triggerables.append(chained_trigger)
-				else:
-					print("[GameScenario]     Skipped chained trigger (chance failed): ", chained_trigger.trigger_name)
-
 	
 	_sort_triggerables_by_priority(triggerables)
 	print("[GameScenario]   Total triggerables after sorting: %d" % triggerables.size())
 	
-	var results: Array[GenericResult] = []
+	var all_results: Array[GenericResult] = []
 	for triggerable in triggerables:
 		print("[GameScenario]   Triggering: ", triggerable.trigger_name, " (", triggerable.get_class(), ")")
-		var result = triggerable.trigger(player_squad, world)
-		print("[GameScenario]     Result: squad_changes=", result.squad_stat_changes, ", world_changes=", result.world_stat_changes)
-		results.append(result)
+		var triggered_results = triggerable.trigger(context)
+		for r in triggered_results:
+			print("[GameScenario]     Result: squad_changes=", r.squad_stat_changes, ", world_changes=", r.world_stat_changes)
+			all_results.append(r)
 	
-	print("[GameScenario]   Returning %d result(s)" % results.size())
-	return results
+	print("[GameScenario]   Returning %d result(s)" % all_results.size())
+	return all_results
 
 func _check_mission_completion() -> Array[Mission]:
 	var context = _build_context()
