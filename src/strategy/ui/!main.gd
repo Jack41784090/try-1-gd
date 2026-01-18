@@ -235,23 +235,25 @@ func _on_travel_cancelled() -> void:
 	travel_gui.hide_travel_menu()
 
 func _create_travel_activity(location_id: String) -> Activity:
-	var activity = Activity.new()
-	activity.trigger_id = "travel-to-%s" % location_id
-	activity.trigger_name = "Travel"
-	activity.description = "Travel to another location"
-	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
-	activity.time_cost = 1
+	var activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
+	activity.destination_id = location_id
+
+	# activity.trigger_id = "travel-to-%s" % location_id
+	# activity.trigger_name = "Travel"
+	# activity.description = "Travel to another location"
+	# activity.activity_type = StrategyTypes.ActivityType.TRAVEL
+	# activity.time_cost = 1
 	
-	# Create result with travel costs - morale decreases, travel tools consumed
-	var travel_result = ActivityResult.new({"location_changed": location_id})
-	travel_result.event_chain_path = "empty"
+	# # Create result with travel costs - morale decreases, travel tools consumed
+	# var travel_result = ActivityResult.new({"location_changed": location_id})
+	# travel_result.event_chain_path = "empty"
 	
-	# Travel costs: morale penalty and travel tools consumption
-	# These can be modified based on distance, terrain, etc.
-	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
-	travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
+	# # Travel costs: morale penalty and travel tools consumption
+	# # These can be modified based on distance, terrain, etc.
+	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
+	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
 	
-	activity.result = travel_result
+	# activity.result = travel_result
 	return activity
 
 func _execute_activity_with_object(activity: Activity) -> void:
@@ -271,7 +273,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	var player_squad = game_scenario.player_squad
 	var world = game_scenario.world
 	print("\n[GameScenario] === execute_turn() START ===")
-	print("[GameScenario] Activity: ", activity.trigger_name)
+	print("[GameScenario] Activity: ", activity)
 	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
 	
 	
@@ -281,18 +283,27 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	);
 	await _apply_play_wait(preact_results)
 
-	var activity_result: ActivityResult = activity.execute(player_squad, world); print("[GameScenario] Activity result: %s" % activity_result)
-	await _apply_play_wait([activity_result])
+	var activity_results = activity.execute(game_scenario._build_context(activity))
+	print("[GameScenario] Activity result: %s" % activity_results)
+	var all_activity_result: Array[GenericResult] = []
+	for result in activity_results:
+		all_activity_result.append(result)
+	await _apply_play_wait(all_activity_result)
 	
 	# Check if combat was triggered by the activity
-	if activity_result.requires_combat:
-		assert(activity_result.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-		var enemy_squad = _find_enemy_squad(activity_result.combat_target_squad_id)
+	if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
+		var _combat;
+		for a in all_activity_result:
+			if a is ActivityResult and a.requires_combat:
+				_combat = a
+				break
+		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
+		var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
 		if enemy_squad:
 			start_encounter(enemy_squad, {"activity": activity.trigger_name})
 			await encounter_resolved
 		else:
-			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % activity_result.combat_target_squad_id)
+			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
 	
 	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
 		activity,
@@ -451,6 +462,7 @@ func _apply_play_wait(results: Array[GenericResult]):
 		game_scenario._apply_result(r)
 
 	# queue and play
+	
 	_queue_multiple_eventchains_from_results(results)
 	await _play_next_queued_chain()
 	
