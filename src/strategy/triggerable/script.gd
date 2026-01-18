@@ -4,7 +4,7 @@ class_name Triggerable extends Resource
 @export var trigger_name: String = ""
 @export var description: String = ""
 @export var conditions: Array[TriggerCondition] = []
-@export var trigger_chains: Array[TriggerChain] = []
+@export var trigger_chains: Array = []  # Can't use typed array - Godot resource loader doesn't support custom typed arrays
 @export var repeats: int = -1
 @export var emergency_priority: int = 0
 @export var chance: float = 1.0  # Probability of triggering when conditions are met (0.0 to 1.0)
@@ -15,12 +15,12 @@ signal execution_started()
 signal execution_completed(result: Dictionary)
 
 func _to_string() -> String:
-	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %d, Priority: %d, %s" % [
+	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %s, Priority: %d, %s" % [
 		trigger_name,
 		trigger_id,
 		repeats,
 		conditions.size(),
-		trigger_chains.size(),
+		trigger_chains,
 		emergency_priority,
 		description
 	]
@@ -45,9 +45,9 @@ func can_trigger(context: Dictionary) -> bool:
 	return check_conditions(context)
 
 
-func trigger(squad: StrategicSquad, world: World) -> GenericResult:
+func trigger(context: Dictionary) -> Array[Variant]:
 	execution_started.emit()
-	var result = execute(squad, world)
+	var result = execute(context)
 	
 	var result_dict: Dictionary = {}
 	if result is Dictionary:
@@ -60,10 +60,10 @@ func trigger(squad: StrategicSquad, world: World) -> GenericResult:
 	if not result_dict.get("requires_async", false):
 		execution_completed.emit(result_dict)
 
-	return result
+	return [result]
 
 
-func execute(_squad: StrategicSquad, _world: World) -> Variant:
+func execute(context: Dictionary) -> Variant:
 	push_error("Triggerable.execute() must be overridden in subclass")
 	return {
 		"trigger_id": trigger_id,
