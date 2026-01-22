@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://7wiqx3r6htjw"]
 
-[ext_resource type="Script" uid="uid://cdrf2o4xvkcgu" path="res://src/strategy/ui/warrior_item.gd" id="1_warrior_item"]
+[ext_resource type="Script" uid="uid://cdrf2o4xvkcgu" path="res://src/strategy/ui/manage_squad/warrior_item.gd" id="1_warrior_item"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.15, 0.15, 0.2, 0.9)
