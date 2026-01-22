@@ -1,5 +1,4 @@
-extends RefCounted
-class_name VisualNovelController
+class_name VisualNovelController extends RefCounted
 
 ## Controls Visual Novel state machine and dialogue progression
 ## Extracted from TrainingGUI for better separation of concerns
@@ -7,6 +6,8 @@ class_name VisualNovelController
 signal chain_completed()
 signal dialogue_advanced(index: int, total: int)
 
+var event_chain_queue = []
+var is_playing_chain = false
 var current_chain: EventChain
 var current_index: int = 0
 var character_ids_in_chain: Array[String] = []
@@ -91,3 +92,58 @@ func get_progress_text() -> String:
 	if not current_chain:
 		return ""
 	return "(%d/%d)" % [current_index + 1, current_chain.get_dialogue_count()]
+
+
+#region Event Chain Management
+
+func queue_event_chain(chain_path: String) -> void:
+	event_chain_queue.append(chain_path)
+	print("TrainingScreen: Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
+	# Don't auto-play here - let the caller decide when to start playback
+
+func play_next_queued_chain() -> bool:
+	if not event_chain_queue.is_empty():
+		is_playing_chain = true
+		var chain_path = event_chain_queue.pop_front()
+		await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
+	return event_chain_queue.is_empty()
+
+
+
+#endregion
+
+#region Visual Novel Functions
+
+func _play_event_chain(chain_path: String) -> void:
+	var chain = load(chain_path)
+	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
+	# _set_ui_mode(UIMode.VISUAL_NOVEL)
+	load_chain(chain)
+	# _vn_display_current_dialogue()
+
+func _on_dialogue_box_clicked(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			advance()
+
+# func _on_vn_chain_completed() -> void:
+# 	vn_controller.reset()
+# 	await _animate_stat_changes()
+# 	_capture_stat_snapshot()
+	
+# 	if event_chain_queue.size() > 0:
+# 		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
+# 		_play_next_queued_chain()
+# 	else:
+# 		print("[StatAnimation] All chains completed")
+# 		vn_completed.emit()
+
+# func _on_vn_dialogue_advanced(_index: int, _total: int) -> void:
+# 	_vn_display_current_dialogue()
+
+# func _on_vn_completed_signal() -> void:
+# 	is_playing_chain = false
+# 	_exit_from_vn_to_strategy()
+
+#endregion
+
