@@ -1,5 +1,4 @@
-extends Control
-class_name TravelGUI
+class_name TravelGUI extends Control
 
 enum TravelMode {
 	AUTOPILOT,
