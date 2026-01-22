@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ActivityResult" load_steps=3 format=3 uid="uid://bjkjmhrhmcw4"]
 
-[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior.gd" id="1_4ckb1"]
+[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior/_script.gd" id="1_4ckb1"]
 [ext_resource type="Script" uid="uid://wt0yotigi6ov" path="res://src/strategy/triggerable/activity/result.gd" id="1_jujb4"]
 
 [resource]

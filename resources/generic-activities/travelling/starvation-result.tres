@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="EventResult" load_steps=3 format=3 uid="uid://b8x2lavpn5wqh"]
 
-[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior.gd" id="1_32duv"]
+[ext_resource type="Script" uid="uid://c8pjxypgq7ygo" path="res://src/strategy/core/warrior/_script.gd" id="1_32duv"]
 [ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/triggerable/game-event/result.gd" id="1_result"]
 
 [resource]
