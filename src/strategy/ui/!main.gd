@@ -7,9 +7,12 @@ extends Control
 
 # const StatChangeAnimator = preload("res://src/strategy/core/stat_change_animator.gd")
 
+#region Signals
 signal vn_completed();
 signal combat_completed(result: CombatController.CombatResult);
 signal encounter_resolved(); # Emitted when combat encounter ends (regardless of outcome)
+
+#endregion
 
 enum UIMode {
 	STRATEGY, # Normal activity buttons visible
@@ -17,6 +20,7 @@ enum UIMode {
 	COMBAT_INTERMISSION # Combat choice screen (Flee/Negotiate/Fight)
 }
 
+#region UI Elements
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
 @onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/LocationLabel
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
@@ -68,6 +72,7 @@ enum UIMode {
 @onready var combat_overlay: CanvasLayer = $CombatOverlay
 @onready var battle_viewport: SubViewport = $CombatOverlay/BattleViewportContainer/BattleViewport
 @onready var battle_close_button: Button = $CombatOverlay/CloseButton
+#endregion
 
 #region State Variables
 var game_scenario: GameScenario
@@ -465,44 +470,6 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	if not activity:
 		return "Unknown activity"
 	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
-
-#endregion
-
-#region Activity Execution
-
-func _apply_play_wait(results: Array[GenericResult]):
-	# apply changes
-	for r in results:
-		game_scenario._apply_result(r)
-
-	# queue and play
-	
-	_queue_multiple_eventchains_from_results(results)
-	await _play_next_queued_chain()
-	
-	# 
-	if is_playing_chain: await vn_completed
-
-	_update_ui()
-
-func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
-	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
-		if triggerable is Activity and triggerable.activity_type == _getting_type:
-			return triggerable as Activity
-	return null
-
-func _execute_activity(activity_type: StrategyTypes.ActivityType) -> void:
-	var activity = _get_activity(activity_type)
-	assert(activity != null)
-
-	await _execute_activity_with_object(activity)
-
-func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
-	for result in results_list:
-		if result is GenericResult:
-			if result.has_event_chain(): _queue_event_chain(result.event_chain_path)
-		else:
-			assert(false, "%s" % result)
 
 #endregion
 
