@@ -1,19 +1,5 @@
 extends Control
 
-## Strategic Campaign UI Screen with integrated Visual Novel system
-## Displays squad state, world info, and allows activity selection
-## Seamlessly transitions to VN mode for EventChain playback
-## Handles combat encounters with intermission choices (Flee/Negotiate/Fight)
-
-# const StatChangeAnimator = preload("res://src/strategy/core/stat_change_animator.gd")
-
-#region Signals
-signal vn_completed();
-signal combat_completed(result: CombatController.CombatResult);
-signal encounter_resolved(); # Emitted when combat encounter ends (regardless of outcome)
-
-#endregion
-
 enum UIMode {
 	STRATEGY, # Normal activity buttons visible
 	VISUAL_NOVEL, # VN elements visible, strategy UI dimmed
@@ -54,7 +40,8 @@ enum UIMode {
 @onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
-@onready var travel_gui: TravelGUI = $TravelGUI
+# @onready var travel_gui: TravelGUI = $TravelGUI
+@onready var travel_gui = $TravelGUI
 @onready var manage_squad_screen: Control = $ManageSquadScreen
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
@@ -76,7 +63,24 @@ enum UIMode {
 
 #region State Variables
 var game_scenario: GameScenario
-var ui_mode: UIMode = UIMode.STRATEGY
+var ui_mode: UIMode = UIMode.STRATEGY:
+	set(mode):
+		ui_mode = mode
+		match mode:
+			UIMode.STRATEGY:
+				dialogue_box.visible = false
+				combat_panel.visible = false
+				_show_strategy_ui()
+			UIMode.VISUAL_NOVEL:
+				dialogue_box.visible = true
+				combat_panel.visible = false
+				_show_vn_ui()
+			UIMode.COMBAT_INTERMISSION:
+				dialogue_box.visible = false
+				combat_panel.visible = true
+				_show_combat_ui()
+
+
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
 var is_executing_activity: bool = false
@@ -92,6 +96,7 @@ var combat_options: Dictionary = {}
 #region Components
 var vn_controller: VisualNovelController = VisualNovelController.new()
 var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
+@onready var actor: ActivityExecuteManager = $ActivityExecuteManager
 #endregion
 
 @export var player__registered_squad: StrategicSquad = null
@@ -121,14 +126,14 @@ func _process(delta: float) -> void:
 func _initialize_scenario() -> void:
 	print(" --- Initialising scenario --- ")
 	if is_demo_scenario:
-		print (" \\=> DEMO ")
+		print(" \\=> DEMO ")
 		game_scenario = DemoScenarioFactory.create_demo_scenario()
 	else:
-		print (" \\=> loading ", scenario_path)
+		print(" \\=> loading ", scenario_path)
 		assert(not scenario_path.is_empty(), "Scenario path is empty")
 		assert(ResourceLoader.exists(scenario_path), "Scenario resource does not exist at path: %s" % scenario_path)
 		
-		var loaded = ResourceLoader.load(scenario_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+		var loaded = ResourceLoader.load(scenario_path)
 		if loaded == null:
 			var error_msg = "Failed to load scenario from path: %s\nPossible causes:\n" % scenario_path
 			error_msg += "  - Script class not found (check class_name matches)\n"
@@ -146,9 +151,8 @@ func _initialize_scenario() -> void:
 		})
 
 func _setup_components() -> void:
-	vn_controller.chain_completed.connect(_on_vn_chain_completed)
-	vn_controller.dialogue_advanced.connect(_on_vn_dialogue_advanced)
-	
+	# vn_controller.chain_completed.connect(_on_vn_chain_completed)
+	# vn_controller.dialogue_advanced.connect(_on_vn_dialogue_advanced)
 	# Initialize combat controller
 	combat_controller = CombatController.new()
 	print("[TrainingScreen] CombatController initialized")
@@ -156,6 +160,10 @@ func _setup_components() -> void:
 #endregion
 
 #region Signals
+signal vn_completed();
+signal combat_completed(result: CombatController.CombatResult);
+signal encounter_resolved(); # Emitted when combat encounter ends (regardless of outcome)
+
 func _connect_signals() -> void:
 	rest_button.pressed.connect(_on_rest_pressed)
 	drill_button.pressed.connect(_on_drill_pressed)
@@ -171,7 +179,7 @@ func _connect_signals() -> void:
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
 
-	vn_completed.connect(_on_vn_completed_signal)
+	# vn_completed.connect(_on_vn_completed_signal)
 	
 	# Combat button signals (only connect if nodes exist)
 	if encounter_flee_button:
@@ -188,13 +196,13 @@ func _connect_signals() -> void:
 	if manage_squad_screen:
 		manage_squad_screen.closed.connect(_on_manage_squad_closed)
 	
-	if game_scenario:
-		game_scenario.activity_executed.connect(_on_activity_executed)
-		game_scenario.turn_advanced.connect(_on_turn_advanced)
-		game_scenario.triggerable_fired.connect(_on_triggerable_fired)
+	#if game_scenario:
+		#game_scenario.activity_executed.connect(_on_activity_executed)
+		#game_scenario.turn_advanced.connect(_on_turn_advanced)
+		#game_scenario.triggerable_fired.connect(_on_triggerable_fired)
 
 	if dialogue_box:
-		dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
+		dialogue_box.gui_input.connect(vn_controller._on_dialogue_box_clicked)
 
 #region Button Signal Handlers
 
@@ -247,7 +255,7 @@ func _on_travel_confirmed(location_id: String) -> void:
 		travel_activity.time_cost = travel_time
 	
 	travel_gui.hide_travel_menu()
-	_execute_activity_with_object(travel_activity)
+	_execute_activity(travel_activity)
 
 func _on_travel_cancelled() -> void:
 	# if travel_gui:
@@ -274,81 +282,6 @@ func _create_travel_activity(location_id: String) -> Activity:
 	
 	# activity.result = travel_result
 	return activity
-
-func _execute_activity_with_object(activity: Activity) -> void:
-	# Guard against race conditions from double-clicking
-	if is_executing_activity:
-		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
-		return
-	
-	is_executing_activity = true
-
-	# Disable all buttons at the start of activity execution
-	_disable_all_activity_buttons()
-	
-	# First capture of stat does not require animations or updates (nothing has changed since last round)
-	_capture_stat_snapshot()
-	
-	var player_squad = game_scenario.player_squad
-	var world = game_scenario.world
-	print("\n[GameScenario] === execute_turn() START ===")
-	print("[GameScenario] Activity: ", activity)
-	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	
-	
-	var preact_results: Array[GenericResult] = game_scenario.execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
-	);
-	await _apply_play_wait(preact_results)
-
-	var activity_results = activity.execute(game_scenario._build_context(activity))
-	print("[GameScenario] Activity result: %s" % activity_results)
-	var all_activity_result: Array[GenericResult] = []
-	for result in activity_results:
-		all_activity_result.append(result)
-	await _apply_play_wait(all_activity_result)
-	
-	# Check if combat was triggered by the activity
-	if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
-		var _combat;
-		for a in all_activity_result:
-			if a is ActivityResult and a.requires_combat:
-				_combat = a
-				break
-		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-		var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
-		if enemy_squad:
-			start_encounter(enemy_squad, {"activity": activity.trigger_name})
-			await encounter_resolved
-		else:
-			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
-	
-	var postact_results: Array[GenericResult] = game_scenario.execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.AFTER_ACTIVITY
-	);
-	await _apply_play_wait(postact_results)
-	
-	var completed_missions: Array[Mission] = game_scenario._check_mission_completion()
-	for mission in completed_missions:
-		game_scenario.mission_completed.emit(mission)
-	
-	var ending: Ending = game_scenario._check_ending_conditions()
-	if ending:
-		game_scenario.game_ended = true
-		game_scenario.ending_triggered = ending
-		game_scenario.ending_reached.emit(ending)
-	
-	world.advance_turn(activity.time_cost)
-	game_scenario.turn_advanced.emit(world.turn_count)
-	
-	print("[GameScenario] Squad final: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	print("[GameScenario] === execute_turn() END ===\n")
-	
-	# Re-enable buttons after activity is complete
-	is_executing_activity = false
-	_reenable_activity_buttons()
 
 func _on_short_pressed() -> void:
 	var summary_text = "=== Campaign Summary ===\n"
@@ -471,272 +404,15 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 		return "Unknown activity"
 	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
 
-#endregion
-
-#region Stat Animation
-
-func _anim_update_capture() -> void:
-	await _animate_stat_changes()
-	_update_ui()
-	_capture_stat_snapshot()
-
-func _capture_stat_snapshot() -> void:
-	if not game_scenario:
-		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
-		return
-	
-	var squad = game_scenario.player_squad
-	var _location = game_scenario.current_location
-	
-	stat_snapshot = {
-		"money": squad.money,
-		"food": float(squad.food),
-		"karma": squad.karma,
-		"morale": squad.get_morale(),
-		#"stability": location.stability if location else 0.0,
-		#"development": float(location.development if location else 0)
-	}
-	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
-
-func _calculate_stat_deltas() -> Dictionary:
-	if not game_scenario:
-		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
-		return {}
-	if stat_snapshot.is_empty():
-		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
-		return {}
-	
-	var squad = game_scenario.player_squad
-	# var location = game_scenario.current_location
-	
-	var current_stats := {
-		"money": squad.money,
-		"food": float(squad.food),
-		"karma": squad.karma,
-		"morale": squad.get_morale(),
-		# "stability": location.stability if location else 0.0,
-		# "development": float(location.development if location else 0)
-	}
-	print("[StatAnimation] Current stats: ", current_stats)
-	
-	var deltas := {}
-	for stat_name in stat_snapshot:
-		var old_value = stat_snapshot[stat_name]
-		var new_value = current_stats[stat_name]
-		var delta = new_value - old_value
-		if abs(delta) >= 0.01: # Only include meaningful changes
-			deltas[stat_name] = delta
-			print("[StatAnimation] Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
-	
-	if deltas.is_empty():
-		print("[StatAnimation] No meaningful deltas detected (all changes < 0.01)")
-	else:
-		print("[StatAnimation] Total deltas to animate: ", deltas)
-	return deltas
-
-func _animate_stat_changes() -> void:
-	print("[StatAnimation] _animate_stat_changes() called")
-	var deltas = _calculate_stat_deltas()
-	if deltas.is_empty():
-		print("[StatAnimation] No deltas to animate, returning early")
-		return
-	
-	var ui_elements := {
-		"money": money_label,
-		"food": food_label,
-		"karma": karma_label,
-		"stability": stability_label,
-		"development": development_label,
-		"morale": morale_bar,
-		"morale_bar": morale_bar,
-		"new_morale_value": game_scenario.player_squad.get_morale() if game_scenario else 0.0,
-		"stats_panel": stats_panel
-	}
-	
-	print("[StatAnimation] Starting animation with %d delta(s)" % deltas.size())
-	await stat_animator.animate_changes(self, deltas, ui_elements)
-	print("[StatAnimation] Animation completed")
-
-#endregion
-
-#region Utility Functions
-
-func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
-	match loc_type:
-		StrategyTypes.LocationType.CITY:
-			return "City"
-		StrategyTypes.LocationType.TOWN:
-			return "Town"
-		StrategyTypes.LocationType.VILLAGE:
-			return "Village"
-		StrategyTypes.LocationType.FORT:
-			return "Fort"
-		StrategyTypes.LocationType.ROAD:
-			return "Road"
-		_:
-			return "Unknown"
-
-func _get_morale_condition(morale: float) -> String:
-	if morale >= 90.0:
-		return "Excellent"
-	elif morale >= 70.0:
-		return "Good"
-	elif morale >= 50.0:
-		return "Fair"
-	elif morale >= 30.0:
-		return "Poor"
-	else:
-		return "Critical"
-
-#endregion
-
-#region Event Chain Management
-
-func _queue_event_chain(chain_path: String) -> void:
-	event_chain_queue.append(chain_path)
-	print("TrainingScreen: Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
-	# Don't auto-play here - let the caller decide when to start playback
-
-func _play_next_queued_chain() -> void:
-	if event_chain_queue.is_empty():
-		_exit_from_vn_to_strategy()
-	else:
-		is_playing_chain = true
-		var chain_path = event_chain_queue.pop_front()
-		await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
-
-func _exit_from_vn_to_strategy():
-	print("exiting from vn to strategy")
-	is_playing_chain = false
-	_set_ui_mode(UIMode.STRATEGY)
-	_update_ui()
-	return
-
-
-#endregion
-
-#region Visual Novel Functions
-
-func _set_ui_mode(mode: UIMode) -> void:
-	ui_mode = mode
-	match mode:
-		UIMode.STRATEGY:
-			dialogue_box.visible = false
-			if combat_panel: combat_panel.visible = false
-			_show_strategy_ui()
-		UIMode.VISUAL_NOVEL:
-			dialogue_box.visible = true
-			if combat_panel: combat_panel.visible = false
-			_show_vn_ui()
-		UIMode.COMBAT_INTERMISSION:
-			dialogue_box.visible = false
-			if combat_panel: combat_panel.visible = true
-			_show_combat_ui()
-
-func _show_strategy_ui() -> void:
-	action_buttons.visible = true
-	stats_panel.modulate.a = 1.0
-	character_container.visible = false
-	speaker_label.visible = false
-	advance_prompt.visible = false
-	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-
-func _show_vn_ui() -> void:
-	action_buttons.visible = false
-	stats_panel.modulate.a = 0.5
-	character_container.visible = true
-	speaker_label.visible = true
-	advance_prompt.visible = true
-	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-
-func _play_event_chain(chain_path: String) -> void:
-	if chain_path.is_empty() or chain_path == "empty":
-		push_warning("TrainingScreen: Empty event chain path")
-		# await SceneManager.transition_quick(_exit_from_vn_to_strategy)
-		_exit_from_vn_to_strategy()
-		return
-	if not ResourceLoader.exists(chain_path):
-		push_error("TrainingScreen: EventChain resource not found: %s" % chain_path)
-		dialogue_label.text = "Error: EventChain resource not found"
-		_exit_from_vn_to_strategy()
-		return
-	
-	var chain = load(chain_path)
-	
-	if not chain or not chain is EventChain:
-		push_error("TrainingScreen: Failed to load EventChain from: %s" % chain_path)
-		dialogue_label.text = "Error: Failed to load EventChain"
-		_exit_from_vn_to_strategy()
-		return
-	if chain.get_dialogue_count() == 0:
-		push_warning("TrainingScreen: EventChain '%s' has no dialogues, skipping VN mode" % chain.chain_id)
-		dialogue_label.text = "EventChain has no content (add dialogues to the resource)"
-		_exit_from_vn_to_strategy()
-		return
-	
-	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
-	_set_ui_mode(UIMode.VISUAL_NOVEL)
-	
-	if vn_controller.load_chain(chain):
-		_vn_display_current_dialogue()
-
-func _vn_display_current_dialogue() -> void:
-	var dialogue_data = vn_controller.get_current_dialogue_data()
-	if dialogue_data.is_empty():
-		return
-	
-	speaker_label.text = dialogue_data.get("speaker_name", "")
-	dialogue_label.text = dialogue_data.get("line_spoken", "")
-	_update_vn_background(dialogue_data.get("background_id", ""))
-	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
-	advance_prompt.text = "Click to continue %s" % vn_controller.get_progress_text()
-
-func _update_vn_background(_bg_id: String) -> void:
-	pass
-
-func _update_vn_portraits(character_ids: Array) -> void:
-	for child in character_container.get_children():
-		child.queue_free()
-	for char_id in character_ids:
-		if char_id is String:
-			character_container.add_child(vn_controller.get_or_create_portrait(char_id))
-
-func _on_dialogue_box_clicked(event: InputEvent) -> void:
-	if ui_mode == UIMode.VISUAL_NOVEL and event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			vn_controller.advance()
-
-func _on_vn_chain_completed() -> void:
-	vn_controller.reset()
-	await _animate_stat_changes()
-	_capture_stat_snapshot()
-	
-	if event_chain_queue.size() > 0:
-		print("[StatAnimation] More chains in queue (%d), playing next..." % event_chain_queue.size())
-		_play_next_queued_chain()
-	else:
-		print("[StatAnimation] All chains completed")
-		vn_completed.emit()
-
-func _on_vn_dialogue_advanced(_index: int, _total: int) -> void:
-	_vn_display_current_dialogue()
-
-func _on_vn_completed_signal() -> void:
-	is_playing_chain = false
-	_exit_from_vn_to_strategy()
-
+func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
+	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
+		if triggerable is Activity and triggerable.activity_type == _getting_type:
+			return triggerable as Activity
+	return null
 #endregion
 
 #region Combat System
 
-## Finds an enemy squad by ID from the world's roaming squads
-func _find_enemy_squad(squad_id: String) -> StrategicSquad:
-	if not game_scenario or not game_scenario.world:
-		return null
-	for squad in game_scenario.world.roaming_squads:
-		if squad.squad_id == squad_id:
-			return squad
-	return null
 
 ## Initiates combat encounter with intermission screen
 ## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
@@ -774,7 +450,7 @@ func _update_combat_intermission_ui() -> void:
 	print("[TrainingScreen]   Flee chance: %.1f%%" % flee_chance)
 	print("[TrainingScreen]   Negotiate chance: %.1f%%" % negotiate_chance)
 
-func _update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance):	
+func _update_combat_intermission_labels(enemy_name, enemy_count, flee_chance, negotiate_chance):
 	combat_enemy_label.text = "⚔️ Encountered: %s (%d warriors)" % [enemy_name, enemy_count]
 
 	encounter_flee_button.text = "🏃 Flee (%.0f%% chance)" % flee_chance
@@ -1035,7 +711,6 @@ func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -
 	tween.tween_property(delta_label, "modulate:a", 0.0, 0.8).set_delay(0.4)
 
 
-
 func _apply_combat_loot(loot: Dictionary) -> void:
 	var squad = game_scenario.player_squad
 	if loot.has("money"):
@@ -1065,3 +740,208 @@ func _show_combat_ui() -> void:
 	combat_panel.visible = true
 
 #endregion
+
+func _exit_from_vn_to_strategy():
+	print("exiting from vn to strategy")
+	is_playing_chain = false
+	_set_ui_mode(UIMode.STRATEGY)
+	_update_ui()
+	return
+
+func _set_ui_mode(mode: UIMode) -> void:
+	ui_mode = mode
+
+func _show_strategy_ui() -> void:
+	action_buttons.visible = true
+	stats_panel.modulate.a = 1.0
+	character_container.visible = false
+	speaker_label.visible = false
+	advance_prompt.visible = false
+	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+func _show_vn_ui() -> void:
+	action_buttons.visible = false
+	stats_panel.modulate.a = 0.5
+	character_container.visible = true
+	speaker_label.visible = true
+	advance_prompt.visible = true
+	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+func _vn_display_current_dialogue() -> void:
+	var dialogue_data = vn_controller.get_current_dialogue_data()
+	if dialogue_data.is_empty():
+		return
+	
+	speaker_label.text = dialogue_data.get("speaker_name", "")
+	dialogue_label.text = dialogue_data.get("line_spoken", "")
+	_update_vn_background(dialogue_data.get("background_id", ""))
+	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
+	advance_prompt.text = "Click to continue %s" % vn_controller.get_progress_text()
+
+func _update_vn_background(_bg_id: String) -> void:
+	pass
+
+func _update_vn_portraits(character_ids: Array) -> void:
+	for child in character_container.get_children():
+		child.queue_free()
+	for char_id in character_ids:
+		if char_id is String:
+			character_container.add_child(vn_controller.get_or_create_portrait(char_id))
+
+func _vn_play_next_recurs():
+	_set_ui_mode(UIMode.VISUAL_NOVEL)
+	var play_empty = await vn_controller.play_next_queued_chain()
+	await vn_controller.chain_completed
+	if play_empty:
+		_set_ui_mode(UIMode.STRATEGY)
+	else:
+		await _vn_play_next_recurs()
+
+func _execute_activity(at: StrategyTypes.ActivityType) -> void:
+	if is_executing_activity:
+		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
+		return
+	else: is_executing_activity = true
+	
+	_disable_all_activity_buttons()
+	var activity = _get_activity(at);
+
+	for state in ['before', 'activity', 'after']:
+		_capture_stat_snapshot()
+		var all_activity_result = actor["exec_%s" % state].call(activity)
+		
+		# # Check if combat was triggered by the activity
+		# if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
+		# 	var _combat;
+		# 	for a in all_activity_result:
+		# 		if a is ActivityResult and a.requires_combat:
+		# 			_combat = a
+		# 			break
+		# 	assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
+		# 	var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
+		# 	if enemy_squad:
+		# 		all_activity_result.append(GenericResult.new({}))
+		# 	else:
+		# 		push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
+		
+		_queue_multiple_eventchains_from_results(all_activity_result)
+		await _vn_play_next_recurs()
+		await stat_animator._animate_stat_changes()
+
+	pass
+
+# func _anim_update_capture() -> void:
+# 	await stat_animator._animate_stat_changes()
+# 	_update_ui()
+# 	_capture_stat_snapshot()
+
+func _capture_stat_snapshot() -> void:
+	if not game_scenario:
+		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
+		return
+	
+	var squad = game_scenario.player_squad
+	var _location = game_scenario.current_location
+	
+	stat_snapshot = {
+		"money": squad.money,
+		"food": float(squad.food),
+		"karma": squad.karma,
+		"morale": squad.get_morale(),
+		#"stability": location.stability if location else 0.0,
+		#"development": float(location.development if location else 0)
+	}
+	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
+
+func _calculate_stat_deltas() -> Dictionary:
+	if not game_scenario:
+		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
+		return {}
+	if stat_snapshot.is_empty():
+		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
+		return {}
+	
+	var squad = game_scenario.player_squad
+	# var location = game_scenario.current_location
+	
+	var current_stats := {
+		"money": squad.money,
+		"food": float(squad.food),
+		"karma": squad.karma,
+		"morale": squad.get_morale(),
+		# "stability": location.stability if location else 0.0,
+		# "development": float(location.development if location else 0)
+	}
+	print("[StatAnimation] Current stats: ", current_stats)
+	
+	var deltas := {}
+	for stat_name in stat_snapshot:
+		var old_value = stat_snapshot[stat_name]
+		var new_value = current_stats[stat_name]
+		var delta = new_value - old_value
+		if abs(delta) >= 0.01: # Only include meaningful changes
+			deltas[stat_name] = delta
+			print("[StatAnimation] Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
+	
+	if deltas.is_empty():
+		print("[StatAnimation] No meaningful deltas detected (all changes < 0.01)")
+	else:
+		print("[StatAnimation] Total deltas to animate: ", deltas)
+	return deltas
+
+func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
+	match loc_type:
+		StrategyTypes.LocationType.CITY:
+			return "City"
+		StrategyTypes.LocationType.TOWN:
+			return "Town"
+		StrategyTypes.LocationType.VILLAGE:
+			return "Village"
+		StrategyTypes.LocationType.FORT:
+			return "Fort"
+		StrategyTypes.LocationType.ROAD:
+			return "Road"
+		_:
+			return "Unknown"
+
+func _get_morale_condition(morale: float) -> String:
+	if morale >= 90.0:
+		return "Excellent"
+	elif morale >= 70.0:
+		return "Good"
+	elif morale >= 50.0:
+		return "Fair"
+	elif morale >= 30.0:
+		return "Poor"
+	else:
+		return "Critical"
+
+func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
+	for result in results_list:
+		if result is GenericResult:
+			if result.has_event_chain():
+				vn_controller.queue_event_chain(result.event_chain_path)
+		else:
+			assert(false, "%s" % result)
+
+func _animate_stat_changes() -> void:
+	print("[StatAnimation] _animate_stat_changes() called")
+	var deltas = _calculate_stat_deltas()
+	if deltas.is_empty():
+		print("[StatAnimation] No deltas to animate, returning early")
+		return
+	
+	# var ui_elements := {
+	# 	"money": money_label,
+	# 	"food": food_label,
+	# 	"karma": karma_label,
+	# 	"stability": stability_label,
+	# 	"development": development_label,
+	# 	"morale": morale_bar,
+	# 	"morale_bar": morale_bar,
+	# 	"stats_panel": stats_panel
+	# }
+	
+	print("[StatAnimation] Starting animation with %d delta(s)" % deltas.size())
+	await stat_animator.animate_changes(deltas)
+	print("[StatAnimation] Animation completed")
