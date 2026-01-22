@@ -23,7 +23,7 @@ func exec_before(activity: Activity):
 	return exec_x_activity(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
 
 func exec_activity(activity: Activity):
-	var activity_results = activity.execute(game_scenario._build_context(activity))
+	var activity_results = activity.execute(_build_context(activity))
 	print("[GameScenario] Activity result: %s" % activity_results)
 	var all_activity_result: Array[GenericResult] = []
 	for result in activity_results:
@@ -54,7 +54,7 @@ func _execute_activity_with_object(activity: Activity) -> void:
 	);
 	# await _apply_play_wait(preact_results)
 
-	var activity_results = activity.execute(game_scenario._build_context(activity))
+	var activity_results = activity.execute(_build_context(activity))
 	print("[GameScenario] Activity result: %s" % activity_results)
 	var all_activity_result: Array[GenericResult] = []
 	for result in activity_results:
