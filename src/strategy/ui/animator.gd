@@ -1,5 +1,14 @@
-extends RefCounted
-class_name StatChangeAnimator
+class_name StatChangeAnimator extends Control
+
+@onready var ui_root = get_parent()
+@onready var morale_bar: ProgressBar = $MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
+@onready var stats_panel: PanelContainer = $MainVBox/StatusHeader/HeaderPanel
+@onready var stability_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability/Label")
+@onready var development_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development/Label")
+@onready var money_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer/Label")
+@onready var food_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer/Label")
+@onready var karma_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer/Label")
+
 
 ## Animates stat changes with floating delta labels and UI interpolation
 ## Similar to DamageNumbersManager but adapted for 2D strategic UI
@@ -18,7 +27,7 @@ var active_tweens: Array[Tween] = []
 
 ## Animates all stat changes with floating deltas, interpolation, and visual feedback
 ## Returns when all animations complete
-func animate_changes(ui_root: Control, stat_deltas: Dictionary, ui_elements: Dictionary) -> void:
+func animate_changes(stat_deltas: Dictionary) -> void:
 	print("[StatChangeAnimator] animate_changes() called with %d deltas" % stat_deltas.size())
 	print("[StatChangeAnimator] Deltas: ", stat_deltas)
 	active_tweens.clear()
@@ -46,7 +55,7 @@ func animate_changes(ui_root: Control, stat_deltas: Dictionary, ui_elements: Dic
 			print("[StatChangeAnimator] Skipping %s (delta %.4f below threshold)" % [stat_name, delta_value])
 			continue
 		
-		var label_node = ui_elements.get(stat_name)
+		var label_node = self[stat_name + "_label"]
 		if label_node and label_node is Label:
 			print("[StatChangeAnimator] Spawning floating delta for %s: %+.2f" % [stat_name, delta_value])
 			_spawn_floating_delta(ui_root, label_node, delta_value, stat_name)
@@ -57,7 +66,6 @@ func animate_changes(ui_root: Control, stat_deltas: Dictionary, ui_elements: Dic
 	print("[StatChangeAnimator] Spawned %d floating label(s)" % spawned_labels)
 	
 	# Flash stats panel background if available
-	var stats_panel = ui_elements.get("stats_panel")
 	if stats_panel and stats_panel is Control:
 		print("[StatChangeAnimator] Flashing background (net change: %.2f)" % net_change)
 		_flash_background(stats_panel, net_change)
@@ -65,8 +73,7 @@ func animate_changes(ui_root: Control, stat_deltas: Dictionary, ui_elements: Dic
 		print("[StatChangeAnimator] Stats panel not available for flashing")
 	
 	# Interpolate morale bar if available
-	var morale_bar = ui_elements.get("morale_bar")
-	var new_morale = ui_elements.get("new_morale_value")
+	var new_morale =morale_bar.value + stat_deltas.get("morale")
 	if morale_bar and morale_bar is ProgressBar and new_morale != null:
 		print("[StatChangeAnimator] Interpolating morale bar to %.2f" % new_morale)
 		_interpolate_progress_bar(morale_bar, new_morale)
