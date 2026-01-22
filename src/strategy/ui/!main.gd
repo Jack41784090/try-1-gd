@@ -791,10 +791,10 @@ func _update_vn_portraits(character_ids: Array) -> void:
 func _vn_play_next_recurs():
 	_set_ui_mode(UIMode.VISUAL_NOVEL)
 	var play_empty = await vn_controller.play_next_queued_chain()
-	await vn_controller.chain_completed
 	if play_empty:
 		_set_ui_mode(UIMode.STRATEGY)
 	else:
+		await vn_controller.chain_completed
 		await _vn_play_next_recurs()
 
 func _execute_activity(at: StrategyTypes.ActivityType) -> void:
