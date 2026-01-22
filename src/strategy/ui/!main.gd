@@ -804,7 +804,7 @@ func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 	else: is_executing_activity = true
 	
 	_disable_all_activity_buttons()
-	var activity = _get_activity(at);
+	var activity = _get_activity(at); assert(activity is Activity)
 
 	for state in ['before', 'activity', 'after']:
 		_capture_stat_snapshot()
@@ -826,7 +826,7 @@ func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 		
 		_queue_multiple_eventchains_from_results(all_activity_result)
 		await _vn_play_next_recurs()
-		await stat_animator._animate_stat_changes()
+		await stat_animator.animate_changes(self._calculate_stat_deltas())
 
 	pass
 
