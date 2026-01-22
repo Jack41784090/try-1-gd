@@ -1,5 +1,6 @@
 class_name GenericResult extends Resource
 
+@export var priority = 10
 @export var squad_stat_changes: Dictionary[StrategyTypes.SquadProperty, float] = {}
 @export var world_stat_changes: Dictionary[StrategyTypes.GlobalModifier, float] = {}
 @export var event_chain_path: String = ""
