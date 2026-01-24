@@ -126,25 +126,21 @@ func queue_event_chain(chain_path: String) -> void:
 	print("TrainingScreen: Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
 	# Don't auto-play here - let the caller decide when to start playback
 
+## Doesn't enable the visibility some neccessary UI's. That will require the main UI script to do.
 func play_next_queued_chain() -> bool:
 	var empty = event_chain_queue.is_empty()
 	if not empty:
 		is_playing_chain = true
-		var chain_path = event_chain_queue.pop_front()
-		_play_event_chain(chain_path)
+		var chain = load(event_chain_queue.pop_front())
+		print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
+		load_chain(chain)
+		_vn_display_current_dialogue()
 	return empty
 
 
 #endregion
 
 #region Visual Novel Functions
-
-func _play_event_chain(chain_path: String) -> void:
-	var chain = load(chain_path)
-	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
-	# _set_ui_mode(UIMode.VISUAL_NOVEL)
-	load_chain(chain)
-	_vn_display_current_dialogue()
 
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
