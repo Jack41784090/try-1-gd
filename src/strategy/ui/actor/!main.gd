@@ -1,6 +1,7 @@
-class_name ActivityExecuteManager extends Node
+class_name ActivityExecuteManager extends RefCounted
 
 #region ===== DATA =====
+var previous_location: Location
 var scenario: GameScenario
 var world: World:
 	get:
@@ -10,68 +11,23 @@ var player_squad: StrategicSquad:
 		return scenario.player_squad
 #endregion
 
-var is_executing_activity = false
 
-func exec_x_activity(activity: Activity, _when: StrategyTypes.TriggerWhen):
-	var res: Array[GenericResult] = execute_triggerables(
-		activity,
-		_when 
-	);
-	for result in res:
-		_apply_result(result)
-	return res
-
-func exec_before(activity: Activity):
-	return exec_x_activity(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
-
-func exec_activity(activity: Activity):
-	var activity_results = activity.execute(_build_context(activity))
-	print("[GameScenario] Activity result: %s" % activity_results)
-	var all_activity_result: Array[GenericResult] = []
-	for result in activity_results:
-		all_activity_result.append(result)
-		_apply_result(result)
-	return all_activity_result
-
-func exec_after(activity: Activity):
-	return exec_x_activity(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+func setup(_loaded_scenario, context = {}):
+	assert(_loaded_scenario is GameScenario)
+	scenario = _loaded_scenario
+	scenario.initialize(context)
 
 ## Finds an enemy squad by ID from the world's roaming squads
 func _find_enemy_squad(squad_id: String) -> StrategicSquad:
-	if not scenario or not scenario.world:
-		return null
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
 	return null
 
-func _apply_result(result: GenericResult) -> void:
-	print("[GameScenario] _apply_result() called")
-	print("[GameScenario]   Result type: ", result.get_class())
-	print("[GameScenario]   Squad changes: ", result.squad_stat_changes)
-	print("[GameScenario]   World changes: ", result.world_stat_changes)
-	
-	if result is ActivityResult and not result.location_changed.is_empty():
-		print("[GameScenario]   Location changed to: ", result.location_changed)
-		# Track previous location before changing
-		player_squad.previous_location = current_location
-		player_squad.current_location = world.get_location_by_id(result.location_changed)
-		player_squad.set_location(result.location_changed)
-		# Clear pending location change
-		#_pending_location_change = ""
-	
-	if result.world_stat_changes.has(StrategyTypes.GlobalModifier.END):
-		var end_change = result.world_stat_changes[StrategyTypes.GlobalModifier.END]
-		print("[GameScenario]   Applying END progression: %+.2f" % end_change)
-		# world.end_progression += end_change
-	
-	if result.squad_stat_changes.is_empty():
-		print("[GameScenario]   No squad stat changes to apply")
-	else:
-		print("[GameScenario]   Applying %d squad stat change(s)..." % result.squad_stat_changes.size())
-	
-	for stat_key in result.squad_stat_changes:
-		var value = result.squad_stat_changes[stat_key]
+func _apply_stats_changes_result(_scr: GenericResult):
+	print("[GameScenario]   Applying %d squad stat change(s)..." % _scr.squad_stat_changes.size())
+	for stat_key in _scr.squad_stat_changes:
+		var value = _scr.squad_stat_changes[stat_key]
 		print("[GameScenario]     Stat key %s (enum value %d) = %+.2f" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key, value])
 		match stat_key:
 			StrategyTypes.SquadProperty.MORALE:
@@ -90,6 +46,34 @@ func _apply_result(result: GenericResult) -> void:
 				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key]);
 
+
+func _apply_location_change_result(_lcr: GenericResult):
+	assert(_lcr is GenericResult)
+	assert(_lcr.location_changed != null)
+	print("[GameScenario]   Location changed to: ", _lcr.location_changed)
+
+	var current_location = world.get_location_by_id(player_squad.current_location_id)
+	previous_location = current_location
+	player_squad.set_location(_lcr.location_changed)
+
+
+func _apply_result(result: GenericResult) -> void:
+	print("[GameScenario] _apply_result() called")
+	print("[GameScenario]   Result type: ", result.get_class())
+	print("[GameScenario]   Squad changes: ", result.squad_stat_changes)
+	print("[GameScenario]   World changes: ", result.world_stat_changes)
+	
+	# Apply location changes
+	if result is ActivityResult and not result.location_changed.is_empty():
+		_apply_location_change_result(result)
+	
+	# Apply Squad Changes
+	if result.squad_stat_changes.is_empty():
+		print("[GameScenario]   No squad stat changes to apply")
+	else:
+		_apply_stats_changes_result(result)
+
+	# Add new recruits into Player Squad
 	if result.new_recruits.size() > 0:
 		print("[GameScenario]   Adding %d new recruit(s) to squad" % result.new_recruits.size())
 		for recruit in result.new_recruits:
@@ -97,10 +81,6 @@ func _apply_result(result: GenericResult) -> void:
 
 func _build_context(activity: Activity = null) -> Dictionary:
 	var completed_mission_ids: Array[String] = []
-	for faction in scenario.factions:
-		completed_mission_ids.append_array(faction.get_completed_mission_ids())
-	
-	# Determine if we're in a location transition (travel activity with destination)
 	var is_location_changing: bool = false
 	var next_location: Location = null
 	
@@ -109,27 +89,26 @@ func _build_context(activity: Activity = null) -> Dictionary:
 			var dest_id = (activity.result as ActivityResult).location_changed
 			if not dest_id.is_empty():
 				is_location_changing = true
-				# next_location = world.get_location_by_id(dest_id)
-		# Also check pending location change
-		# elif not _pending_location_change.is_empty():
-		# 	is_location_changing = true
-		# 	next_location = world.get_location_by_id(_pending_location_change)
+				next_location = world.get_location_by_id(dest_id)
 	
 	return {
 		"squad": player_squad,
-		 "world": world,
+		"world": world,
 		"activity": activity,
-		 "location": world.get_location_by_id(player_squad.current_location_id),
-		 "prev_location": scenario.previous_location,
+		"location": world.get_location_by_id(player_squad.current_location_id),
+		"prev_location": previous_location,
 		"next_location": next_location,
 		"is_location_changing": is_location_changing,
-		 #"turn": world.turn_count,
+		"turn": world.turn_count,
 		"completed_missions": completed_mission_ids
 	}
 
 func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
 	var context = _build_context(activity)
-	return _execute_triggerables(context, when );
+	var results = _execute_triggerables(context, when );
+	for result in results:
+		_apply_result(result)
+	return results
 
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	print("[GameScenario] _execute_triggerables() when=", StrategyTypes.TriggerWhen.keys()[ when ])
