@@ -1,7 +1,7 @@
 class_name StatChangeAnimator extends Control
 
 @onready var ui_root = get_parent()
-@onready var morale_bar: ProgressBar = $MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
+@onready var morale_label: ProgressBar = $MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
 @onready var stats_panel: PanelContainer = $MainVBox/StatusHeader/HeaderPanel
 @onready var stability_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability/Label")
 @onready var development_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development/Label")
@@ -73,12 +73,12 @@ func animate_changes(stat_deltas: Dictionary) -> void:
 		print("[StatChangeAnimator] Stats panel not available for flashing")
 	
 	# Interpolate morale bar if available
-	var new_morale =morale_bar.value + stat_deltas.get("morale")
-	if morale_bar and morale_bar is ProgressBar and new_morale != null:
+	var new_morale = morale_label.value + stat_deltas.get("morale")
+	if morale_label and morale_label is ProgressBar and new_morale != null:
 		print("[StatChangeAnimator] Interpolating morale bar to %.2f" % new_morale)
-		_interpolate_progress_bar(morale_bar, new_morale)
+		_interpolate_progress_bar(morale_label, new_morale)
 	else:
-		print("[StatChangeAnimator] Morale bar interpolation skipped (bar=%s, value=%s)" % [str(morale_bar != null), str(new_morale)])
+		print("[StatChangeAnimator] Morale bar interpolation skipped (bar=%s, value=%s)" % [str(morale_label != null), str(new_morale)])
 	
 	# Wait for all animations to complete
 	if active_tweens.size() > 0:
