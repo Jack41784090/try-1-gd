@@ -13,7 +13,6 @@ var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
 var ending_triggered: Ending = null
 var _initialized: bool = false
-var previous_location: Location = null  # Track for LOCATION_TRANSITION conditions
 
 func _init(config: Dictionary = {}) -> void:
 	print(" --- new scenario init --- ")
