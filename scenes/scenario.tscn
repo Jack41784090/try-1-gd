@@ -604,7 +604,6 @@ theme_override_font_sizes/font_size = 14
 text = "☰ Menu"
 
 [node name="TravelGUI" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -648,6 +647,11 @@ theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 22
 text = "Travel Menu"
+
+[node name="TravelProgressBar" type="ProgressBar" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
 
 [node name="SelectedLocationLabel" type="Label" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
