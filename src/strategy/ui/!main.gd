@@ -61,12 +61,12 @@ enum UIMode {
 #region State Variables
 var ui_mode: UIMode = UIMode.STRATEGY:
 	set(mode):
-		if ui_mode == mode: return;
+		if ui_mode == mode: return ;
 		ui_mode = mode;
 		match mode:
 			UIMode.STRATEGY:
 				combat_panel.visible = false
-				await SceneManager.transition_quick(func(): 
+				await SceneManager.transition_quick(func():
 					vn_controller.exit()
 					_show_strategy_ui()
 					_reenable_activity_buttons())
@@ -90,22 +90,22 @@ var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = {}
 
-#
 var game_scenario: GameScenario:
-	set(_gs):
-		activity_runner.scenario
+	get:
+		return activity_runner.data.scenario
 
 #endregion
 
 #region Components
 @onready var vn_controller: VisualNovelController = $PanelContainer/MainVBox/MainScreenArea
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
-@onready var actor: ActivityExecuteManager = $ActivityExecuteManager
+@onready var actor: ActivityRunner = $ActivityExecuteManager
 #endregion
 
 @export var player__registered_squad: StrategicSquad = null
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
+
 #region Initialization
 
 func _init() -> void:
@@ -131,7 +131,7 @@ func _initialize_scenario() -> void:
 	print(" --- Initialising scenario --- ")
 	if is_demo_scenario:
 		print(" \\=> DEMO ")
-		game_scenario = DemoScenarioFactory.create_demo_scenario()
+		activity_runner.setup(DemoScenarioFactory.create_demo_scenario())
 	else:
 		print(" \\=> loading ", scenario_path)
 		assert(not scenario_path.is_empty(), "Scenario path is empty")
@@ -149,8 +149,7 @@ func _initialize_scenario() -> void:
 		
 		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
 		
-		game_scenario = loaded
-		game_scenario.initialize({
+		activity_runner.setup(loaded, {
 			"player_squad": player__registered_squad
 		})
 
@@ -256,7 +255,7 @@ func _on_travel_confirmed(location_id: String) -> void:
 		travel_activity.time_cost = travel_time
 	
 	travel_gui.hide_travel_menu()
-	actor.exec_activity(travel_activity)
+	await _execute_activity_obj(travel_activity)
 
 func _on_travel_cancelled() -> void:
 	# if travel_gui:
@@ -762,8 +761,36 @@ func _show_vn_ui() -> void:
 	#advance_prompt.visible = true
 	#dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
+func _exec_play_animchanges_loop(activity, state):
+	# capture state before event triggers
+	_capture_stat_snapshot()
+	
+	# execute triggerables and return results
+	var all_activity_result = actor["exec_%s" % state].call(activity)
+	
+	# # Check if combat was triggered by the activity
+	# if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
+	# 	var _combat;
+	# 	for a in all_activity_result:
+	# 		if a is ActivityResult and a.requires_combat:
+	# 			_combat = a
+	# 			break
+	# 	assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
+	# 	var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
+	# 	if enemy_squad:
+	# 		all_activity_result.append(GenericResult.new({}))
+	# 	else:
+	# 		push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
+	
+	# play all VN stories
+	_queue_multiple_eventchains_from_results(all_activity_result)
+	await _vn_play_next_recurs()
+	
+	# VN stories done, animate changes, repeat
+	await stat_animator.animate_changes(self._calculate_stat_deltas())
+
 func _vn_play_next_recurs():
-	var play_empty = await vn_controller.play_next_queued_chain()
+	var play_empty = vn_controller.play_next_queued_chain()
 	if play_empty:
 		_set_ui_mode(UIMode.STRATEGY)
 	else:
@@ -771,51 +798,21 @@ func _vn_play_next_recurs():
 		await vn_controller.chain_completed
 		await _vn_play_next_recurs()
 
-func _execute_activity(at: StrategyTypes.ActivityType) -> void:
+func _execute_activity_obj(activity: Activity) -> void:
 	if is_executing_activity:
 		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
 		return
 	else: is_executing_activity = true
 	
 	_disable_all_activity_buttons()
-	var activity = _get_activity(at); assert(activity is Activity)
 
 	for state in ['before', 'activity', 'after']:
-		
-		# capture state before event triggers
-		_capture_stat_snapshot()
-		
-		# execute triggerables and return results
-		var all_activity_result = actor["exec_%s" % state].call(activity)
-		
-		# # Check if combat was triggered by the activity
-		# if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
-		# 	var _combat;
-		# 	for a in all_activity_result:
-		# 		if a is ActivityResult and a.requires_combat:
-		# 			_combat = a
-		# 			break
-		# 	assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-		# 	var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
-		# 	if enemy_squad:
-		# 		all_activity_result.append(GenericResult.new({}))
-		# 	else:
-		# 		push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
-		
-		# play all VN stories
-		_queue_multiple_eventchains_from_results(all_activity_result)
-		await _vn_play_next_recurs()
-		
-		# VN stories done, animate changes, repeat
-		await stat_animator.animate_changes(self._calculate_stat_deltas())
-
+		await _exec_play_animchanges_loop(activity, state)
 	is_executing_activity = false
-	pass
 
-# func _anim_update_capture() -> void:
-# 	await stat_animator._animate_stat_changes()
-# 	_update_ui()
-# 	_capture_stat_snapshot()
+func _execute_activity(at: StrategyTypes.ActivityType) -> void:
+	var activity = _get_activity(at); assert(activity is Activity)
+	await _execute_activity_obj(activity)
 
 func _capture_stat_snapshot() -> void:
 	if not game_scenario:
