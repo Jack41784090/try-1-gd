@@ -1,7 +1,14 @@
-class_name VisualNovelController extends RefCounted
+class_name VisualNovelController extends Control
 
 ## Controls Visual Novel state machine and dialogue progression
 ## Extracted from TrainingGUI for better separation of concerns
+
+@onready var character_container: HBoxContainer = $CharacterContainer
+# @onready var hint_icon: TextureRect = $PanelContainer/MainVBox/MainScreenArea/HintIcon
+@onready var dialogue_box: PanelContainer = $DialogueBox
+@onready var speaker_label: Label = $DialogueBox/MarginContainer/VBoxContainer/SpeakerLabel
+@onready var dialogue_label: Label = $DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
+@onready var advance_prompt: Label = $DialogueBox/AdvancePrompt
 
 signal chain_completed()
 signal dialogue_advanced(index: int, total: int)
@@ -12,6 +19,23 @@ var current_chain: EventChain
 var current_index: int = 0
 var character_ids_in_chain: Array[String] = []
 var portrait_cache: Dictionary = {}
+
+func _ready() -> void:
+	dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
+
+func exit() -> void:
+	character_container.visible = false
+	dialogue_box.visible = false
+	speaker_label.visible = false
+	dialogue_label.visible = false
+	advance_prompt.visible = false
+	
+func enter() -> void:
+	character_container.visible = true
+	dialogue_box.visible = true
+	speaker_label.visible = true
+	dialogue_label.visible = true
+	advance_prompt.visible = true
 
 func load_chain(chain: EventChain) -> bool:
 	if not chain:
@@ -39,9 +63,10 @@ func advance() -> void:
 	if is_complete():
 		print("EventChain '%s' completed (showed %d/%d dialogues)" % [current_chain.chain_id, current_index, current_chain.get_dialogue_count()])
 		chain_completed.emit()
+		reset()
 	else:
 		print("Advanced to dialogue %d/%d" % [current_index + 1, current_chain.get_dialogue_count()])
-		dialogue_advanced.emit(current_index, current_chain.get_dialogue_count())
+		_vn_display_current_dialogue()
 
 func get_current_dialogue_data() -> Dictionary:
 	if not current_chain or current_index >= current_chain.get_dialogue_count():
@@ -102,12 +127,12 @@ func queue_event_chain(chain_path: String) -> void:
 	# Don't auto-play here - let the caller decide when to start playback
 
 func play_next_queued_chain() -> bool:
-	if not event_chain_queue.is_empty():
+	var empty = event_chain_queue.is_empty()
+	if not empty:
 		is_playing_chain = true
 		var chain_path = event_chain_queue.pop_front()
-		await SceneManager.transition_quick(func(): _play_event_chain(chain_path))
-	return event_chain_queue.is_empty()
-
+		_play_event_chain(chain_path)
+	return empty
 
 
 #endregion
@@ -119,12 +144,33 @@ func _play_event_chain(chain_path: String) -> void:
 	print("TrainingScreen: Playing EventChain: %s (%d dialogues)" % [chain.chain_id, chain.get_dialogue_count()])
 	# _set_ui_mode(UIMode.VISUAL_NOVEL)
 	load_chain(chain)
-	# _vn_display_current_dialogue()
+	_vn_display_current_dialogue()
 
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			advance()
+
+func _vn_display_current_dialogue() -> void:
+	var dialogue_data = get_current_dialogue_data()
+	if dialogue_data.is_empty():
+		return
+	
+	speaker_label.text = dialogue_data.get("speaker_name", "")
+	dialogue_label.text = dialogue_data.get("line_spoken", "")
+	_update_vn_background(dialogue_data.get("background_id", ""))
+	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
+	advance_prompt.text = "Click to continue %s" % get_progress_text()
+	
+func _update_vn_background(_bg_id: String) -> void:
+	pass
+
+func _update_vn_portraits(character_ids: Array) -> void:
+	for child in character_container.get_children():
+		child.queue_free()
+	for char_id in character_ids:
+		if char_id is String:
+			character_container.add_child(get_or_create_portrait(char_id))	
 
 # func _on_vn_chain_completed() -> void:
 # 	vn_controller.reset()
@@ -146,4 +192,3 @@ func _on_dialogue_box_clicked(event: InputEvent) -> void:
 # 	_exit_from_vn_to_strategy()
 
 #endregion
-
