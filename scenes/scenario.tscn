@@ -14,8 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
+[ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/!main.gd" id="12_jx64g"]
 [ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/!main.gd" id="12_manage_squad"]
-[ext_resource type="Script" uid="uid://b67fdihcoauq" path="res://src/strategy/ui/actor.gd" id="15_ewb5q"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -362,8 +362,10 @@ text = "End Game"
 layout_mode = 2
 size_flags_vertical = 3
 expand_mode = 1
+script = ExtResource("12_jx64g")
 
 [node name="CharacterContainer" type="HBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -392,6 +394,7 @@ expand_mode = 3
 stretch_mode = 4
 
 [node name="DialogueBox" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
+visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -875,4 +878,3 @@ text = "⬅️ Return to Camp"
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("15_ewb5q")
