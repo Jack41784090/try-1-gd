@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=23 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/!main.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
 [ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/!main.gd" id="12_jx64g"]
 [ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/!main.gd" id="12_manage_squad"]
+[ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -878,3 +879,4 @@ text = "⬅️ Return to Camp"
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+script = ExtResource("17_jx64g")

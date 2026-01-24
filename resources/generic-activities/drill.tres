@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Activity" load_steps=6 format=3 uid="uid://dnot34o6jn56r"]
 
-[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/triggerable/activity/script.gd" id="1_activity"]
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/triggerable/conditon.gd" id="1_mj137"]
 [ext_resource type="Script" uid="uid://wt0yotigi6ov" path="res://src/strategy/triggerable/activity/result.gd" id="2_fa7ru"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/triggerable/chain.gd" id="4_15t42"]
