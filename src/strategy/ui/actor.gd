@@ -1,14 +1,16 @@
-class_name ActivityExecuteManager
-extends Control
+class_name ActivityExecuteManager extends Node
 
+#region ===== DATA =====
+var scenario: GameScenario
+var world: World:
+	get:
+		return scenario.world
 var player_squad: StrategicSquad:
 	get:
-		return get_parent().player__registered_squad
-var is_executing_activity = false
-var game_scenario: GameScenario:
-	get:
-		return get_parent().game_scenario
+		return scenario.player_squad
+#endregion
 
+var is_executing_activity = false
 
 func exec_x_activity(activity: Activity, _when: StrategyTypes.TriggerWhen):
 	var res: Array[GenericResult] = execute_triggerables(
@@ -28,107 +30,20 @@ func exec_activity(activity: Activity):
 	var all_activity_result: Array[GenericResult] = []
 	for result in activity_results:
 		all_activity_result.append(result)
-	# await _apply_play_wait(all_activity_result)
-	
+		_apply_result(result)
 	return all_activity_result
 
 func exec_after(activity: Activity):
 	return exec_x_activity(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
 
-func _execute_activity_with_object(activity: Activity) -> void:
-	# Guard against race conditions from double-clicking
-	if is_executing_activity:
-		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
-		return
-	is_executing_activity = true
-	
-	var player_squad = game_scenario.player_squad
-	var world = game_scenario.world
-	print("\n[GameScenario] === execute_turn() START ===")
-	print("[GameScenario] Activity: ", activity)
-	print("[GameScenario] Squad before: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	
-	var preact_results: Array[GenericResult] = execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.BEFORE_ACTIVITY
-	);
-	# await _apply_play_wait(preact_results)
-
-	var activity_results = activity.execute(_build_context(activity))
-	print("[GameScenario] Activity result: %s" % activity_results)
-	var all_activity_result: Array[GenericResult] = []
-	for result in activity_results:
-		all_activity_result.append(result)
-	# await _apply_play_wait(all_activity_result)
-	
-	# Check if combat was triggered by the activity
-	if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
-		var _combat;
-		for a in all_activity_result:
-			if a is ActivityResult and a.requires_combat:
-				_combat = a
-				break
-		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-		var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
-		# if enemy_squad:
-		# 	start_encounter(enemy_squad, {"activity": activity.trigger_name})
-		# 	await encounter_resolved
-		# else:
-		# 	push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
-	
-	var postact_results: Array[GenericResult] = execute_triggerables(
-		activity,
-		StrategyTypes.TriggerWhen.AFTER_ACTIVITY
-	);
-	# await _apply_play_wait(postact_results)
-	
-	var completed_missions: Array[Mission] = game_scenario._check_mission_completion()
-	for mission in completed_missions:
-		game_scenario.mission_completed.emit(mission)
-	
-	var ending: Ending = game_scenario._check_ending_conditions()
-	if ending:
-		game_scenario.game_ended = true
-		game_scenario.ending_triggered = ending
-		game_scenario.ending_reached.emit(ending)
-	
-	world.advance_turn(activity.time_cost)
-	game_scenario.turn_advanced.emit(world.turn_count)
-	
-	print("[GameScenario] Squad final: Money=%.1f, Food=%d, Morale=%.1f" % [player_squad.money, player_squad.food, player_squad.get_morale()])
-	print("[GameScenario] === execute_turn() END ===\n")
-	
-	# Re-enable buttons after activity is complete
-	is_executing_activity = false
-	# _reenable_activity_buttons()
-
-# func _apply_play_wait(results: Array[GenericResult]):
-# 	# apply changes
-# 	for r in results:
-# 		self._apply_result(r)
-
-# 	# queue and play
-# 	_queue_multiple_eventchains_from_results(results)
-# 	await _play_next_queued_chain()
-	
-# 	# 
-# 	if is_playing_chain: await vn_completed
-
-# 	_update_ui()
-
-
-
 ## Finds an enemy squad by ID from the world's roaming squads
 func _find_enemy_squad(squad_id: String) -> StrategicSquad:
-	if not game_scenario or not game_scenario.world:
+	if not scenario or not scenario.world:
 		return null
-	for squad in game_scenario.world.roaming_squads:
+	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
 	return null
-
-# func _on_triggerable_fired(triggerable: Triggerable, result: Variant) -> void:
-# 	triggerable_fired.emit(triggerable, result)
 
 func _apply_result(result: GenericResult) -> void:
 	print("[GameScenario] _apply_result() called")
@@ -139,11 +54,11 @@ func _apply_result(result: GenericResult) -> void:
 	if result is ActivityResult and not result.location_changed.is_empty():
 		print("[GameScenario]   Location changed to: ", result.location_changed)
 		# Track previous location before changing
-		# previous_location = current_location
-		# current_location = world.get_location_by_id(result.location_changed)
-		# player_squad.set_location(result.location_changed)
-		# # Clear pending location change
-		# _pending_location_change = ""
+		player_squad.previous_location = current_location
+		player_squad.current_location = world.get_location_by_id(result.location_changed)
+		player_squad.set_location(result.location_changed)
+		# Clear pending location change
+		#_pending_location_change = ""
 	
 	if result.world_stat_changes.has(StrategyTypes.GlobalModifier.END):
 		var end_change = result.world_stat_changes[StrategyTypes.GlobalModifier.END]
@@ -182,7 +97,7 @@ func _apply_result(result: GenericResult) -> void:
 
 func _build_context(activity: Activity = null) -> Dictionary:
 	var completed_mission_ids: Array[String] = []
-	for faction in game_scenario.factions:
+	for faction in scenario.factions:
 		completed_mission_ids.append_array(faction.get_completed_mission_ids())
 	
 	# Determine if we're in a location transition (travel activity with destination)
@@ -202,13 +117,13 @@ func _build_context(activity: Activity = null) -> Dictionary:
 	
 	return {
 		"squad": player_squad,
-		# "world": world,
+		 "world": world,
 		"activity": activity,
-		# "location": current_location,
-		# "prev_location": previous_location,
+		 "location": world.get_location_by_id(player_squad.current_location_id),
+		 "prev_location": scenario.previous_location,
 		"next_location": next_location,
 		"is_location_changing": is_location_changing,
-		# "turn": world.turn_count,
+		 #"turn": world.turn_count,
 		"completed_missions": completed_mission_ids
 	}
 
@@ -222,7 +137,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 		return t is GameEvent and (t as GameEvent).when_to_trigger == when
 	
 	# Triggers from universal Triggerables (e.g., Scenario cutscene)
-	var triggerables: Array[Triggerable] = game_scenario.triggerable_manager.get_triggerables_triggered(context, when_filter)
+	var triggerables: Array[Triggerable] = scenario.triggerable_manager.get_triggerables_triggered(context, when_filter)
 	print("[GameScenario]   Found %d triggered event(s)" % triggerables.size())
 	
 	_sort_triggerables_by_priority(triggerables)
