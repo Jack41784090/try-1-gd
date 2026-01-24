@@ -14,16 +14,16 @@ class_name Activity extends Triggerable
 
 func _to_string() -> String:
 	return "Activity(Name: %s, Type: %s, Time Cost: %d, Destination: %s, Min Stability to Block Attack: %.1f, Force March Supply Multiplier: %.1f, Force March Clue Multiplier: %d, Custom Script: %s, Result: %s, %s)" % [
-		trigger_name, 
-		StrategyTypes.ActivityType.keys()[activity_type], 
-		time_cost, 
-		destination_id, 
-		min_stability_to_block_attack, 
-		force_march_supply_multiplier, 
-		force_march_clue_multiplier, 
-		"custom_script" if custom_script else "None", 
-		result, 
-		super()
+		trigger_name,
+		StrategyTypes.ActivityType.keys()[activity_type],
+		time_cost,
+		destination_id,
+		min_stability_to_block_attack,
+		force_march_supply_multiplier,
+		force_march_clue_multiplier,
+		"custom_script" if custom_script else "None",
+		result,
+		super ()
 	]
 
 func can_execute(squad: StrategicSquad, location: Location) -> bool:
@@ -52,7 +52,6 @@ func execute(context: Dictionary) -> Array[ActivityResult]:
 	# 	# Call custom script if provided
 	# 	if custom_script.has_method("execute_custom"):
 	# 		return custom_script.execute_custom(squad, world, result)
-	
 	return _execute_generic(context)
 
 func _execute_generic(context: Dictionary) -> Array[ActivityResult]:

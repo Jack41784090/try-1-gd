@@ -170,7 +170,7 @@ func _update_vn_portraits(character_ids: Array) -> void:
 		child.queue_free()
 	for char_id in character_ids:
 		if char_id is String:
-			character_container.add_child(get_or_create_portrait(char_id))	
+			character_container.add_child(get_or_create_portrait(char_id))
 
 # func _on_vn_chain_completed() -> void:
 # 	vn_controller.reset()
