@@ -7,28 +7,25 @@ enum UIMode {
 }
 
 #region UI Elements
+@onready var activity_runner = $ActivityExecuteManager
+
+
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
 @onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/LocationLabel
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
-@onready var morale_bar: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
+@onready var morale_label: ProgressBar = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ProgressBar
 @onready var morale_panel: PanelContainer = $PanelContainer/MainVBox/StatusArea/StatusPanel
 @onready var condition_label: Label = $PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ConditionStatus/ConditionMargin/ConditionLabel
 
 @onready var main_background: TextureRect = $PanelContainer/MainBackground
 @onready var foreground: TextureRect = $PanelContainer/Foreground
-@onready var character_container: HBoxContainer = $PanelContainer/MainVBox/MainScreenArea/CharacterContainer
-# @onready var hint_icon: TextureRect = $PanelContainer/MainVBox/MainScreenArea/HintIcon
-@onready var dialogue_box: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/DialogueBox
-@onready var speaker_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/SpeakerLabel
-@onready var dialogue_label: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer/DialogueLabel
-@onready var advance_prompt: Label = $PanelContainer/MainVBox/MainScreenArea/DialogueBox/AdvancePrompt
 
-@onready var stats_panel: PanelContainer = $PanelContainer/MainVBox/StatusHeader/HeaderPanel
-@onready var stability_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability/Label")
-@onready var development_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development/Label")
-@onready var money_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer/Label")
-@onready var food_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer/Label")
-@onready var karma_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer/Label")
+#@onready var # stats_panel: PanelContainer = $PanelContainer/MainVBox/StatusHeader/HeaderPanel
+#@onready var stability_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability/MarginContainer/Stability/Label")
+#@onready var development_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development/MarginContainer/Development/Label")
+#@onready var money_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money/MarginContainer/BoxContainer/Label")
+#@onready var food_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food/MarginContainer/BoxContainer/Label")
+#@onready var karma_label: Label = get_node("PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer/Label")
 
 @onready var action_buttons: PanelContainer = $PanelContainer/MainVBox/ActionButtons
 @onready var rest_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/TrainingButton
@@ -62,24 +59,25 @@ enum UIMode {
 #endregion
 
 #region State Variables
-var game_scenario: GameScenario
 var ui_mode: UIMode = UIMode.STRATEGY:
 	set(mode):
-		ui_mode = mode
+		if ui_mode == mode: return;
+		ui_mode = mode;
 		match mode:
 			UIMode.STRATEGY:
-				dialogue_box.visible = false
 				combat_panel.visible = false
-				_show_strategy_ui()
+				await SceneManager.transition_quick(func(): 
+					vn_controller.exit()
+					_show_strategy_ui()
+					_reenable_activity_buttons())
 			UIMode.VISUAL_NOVEL:
-				dialogue_box.visible = true
 				combat_panel.visible = false
-				_show_vn_ui()
+				_disable_all_activity_buttons()
+				await SceneManager.transition_quick(func():
+					vn_controller.enter())
 			UIMode.COMBAT_INTERMISSION:
-				dialogue_box.visible = false
 				combat_panel.visible = true
 				_show_combat_ui()
-
 
 var event_chain_queue: Array[String] = []
 var is_playing_chain: bool = false
@@ -91,17 +89,24 @@ var combat_controller: CombatController = null
 var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = {}
+
+#
+var game_scenario: GameScenario:
+	set(_gs):
+		activity_runner.scenario
+
 #endregion
 
 #region Components
-var vn_controller: VisualNovelController = VisualNovelController.new()
-var stat_animator: StatChangeAnimator = StatChangeAnimator.new()
+@onready var vn_controller: VisualNovelController = $PanelContainer/MainVBox/MainScreenArea
+@onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityExecuteManager = $ActivityExecuteManager
 #endregion
 
 @export var player__registered_squad: StrategicSquad = null
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
+#region Initialization
 
 func _init() -> void:
 	print(" --- main gui init --- ")
@@ -121,7 +126,6 @@ func _process(delta: float) -> void:
 		if encounter_timeout_timer <= 0:
 			_on_combat_timeout()
 
-#region Initialization
 
 func _initialize_scenario() -> void:
 	print(" --- Initialising scenario --- ")
@@ -151,9 +155,6 @@ func _initialize_scenario() -> void:
 		})
 
 func _setup_components() -> void:
-	# vn_controller.chain_completed.connect(_on_vn_chain_completed)
-	# vn_controller.dialogue_advanced.connect(_on_vn_dialogue_advanced)
-	# Initialize combat controller
 	combat_controller = CombatController.new()
 	print("[TrainingScreen] CombatController initialized")
 
@@ -175,7 +176,7 @@ func _connect_signals() -> void:
 	manage_squad_button.pressed.connect(_on_manage_squad_pressed)
 	recruit_button.pressed.connect(_on_recruit_pressed)
 	
-	end_button.pressed.connect(_on_end_pressed)
+	#end_button.pressed.connect(_on_end_pressed)
 	skip_button.pressed.connect(_on_skip_pressed)
 	short_button.pressed.connect(_on_short_pressed)
 
@@ -201,8 +202,8 @@ func _connect_signals() -> void:
 		#game_scenario.turn_advanced.connect(_on_turn_advanced)
 		#game_scenario.triggerable_fired.connect(_on_triggerable_fired)
 
-	if dialogue_box:
-		dialogue_box.gui_input.connect(vn_controller._on_dialogue_box_clicked)
+	#if dialogue_box:
+		#dialogue_box.gui_input.connect(vn_controller._on_dialogue_box_clicked)
 
 #region Button Signal Handlers
 
@@ -236,8 +237,8 @@ func _on_manage_squad_closed() -> void:
 func _on_recruit_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.RECRUIT)
 
-func _on_end_pressed() -> void:
-	dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
+#func _on_end_pressed() -> void:
+	#dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
 
 func _on_skip_pressed() -> void:
 	# for i in 5:
@@ -255,7 +256,7 @@ func _on_travel_confirmed(location_id: String) -> void:
 		travel_activity.time_cost = travel_time
 	
 	travel_gui.hide_travel_menu()
-	_execute_activity(travel_activity)
+	actor.exec_activity(travel_activity)
 
 func _on_travel_cancelled() -> void:
 	# if travel_gui:
@@ -297,7 +298,7 @@ func _on_short_pressed() -> void:
 	summary_text += "Food: %d\n" % game_scenario.player_squad.food
 	summary_text += "Karma: %.0f\n" % game_scenario.player_squad.karma
 	
-	dialogue_label.text = summary_text
+	#dialogue_label.text = summary_text
 
 #endregion
 
@@ -330,15 +331,16 @@ func _update_ui() -> void:
 		_location_type_to_string(location.type) if location else "",
 	]
 	
-	morale_bar.value = squad.get_morale()
-	morale_bar.max_value = 100.0
+	morale_label.value = squad.get_morale()
+	morale_label.max_value = 100.0
 	condition_label.text = _get_morale_condition(squad.get_morale())
 	
-	stability_label.text = "%.0f" % (location.stability if location else 0.0)
-	development_label.text = "%d" % (location.development if location else 0)
-	money_label.text = "%.0f" % squad.money
-	food_label.text = "%d" % squad.food
-	karma_label.text = "%.0f" % squad.karma
+	
+	stat_animator.stability_label.text = "%.0f" % (location.stability if location else 0.0)
+	stat_animator.development_label.text = "%d" % (location.development if location else 0)
+	stat_animator.money_label.text = "%.0f" % squad.money
+	stat_animator.food_label.text = "%d" % squad.food
+	stat_animator.karma_label.text = "%.0f" % squad.karma
 	
 	_update_activity_buttons()
 
@@ -568,7 +570,7 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	# Show combat result with animated morale bar overlay
 	await _show_combat_result_overlay(result, morale_before)
 	
-	_exit_combat_to_strategy()
+	#_exit_combat_to_strategy()
 	
 	# Emit signal AFTER cleanup so _execute_activity_with_object can continue
 	encounter_resolved.emit(result)
@@ -613,8 +615,8 @@ func _show_combat_result_overlay(result: CombatController.CombatResult, morale_b
 	morale_panel.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	
 	# Set morale bar to "before" value
-	morale_bar.value = morale_before
-	morale_bar.visible = true
+	morale_label.value = morale_before
+	morale_label.visible = true
 	
 	# Wait for user to see the result
 	await get_tree().create_timer(0.5).timeout
@@ -622,7 +624,7 @@ func _show_combat_result_overlay(result: CombatController.CombatResult, morale_b
 	# Animate morale bar change
 	var morale_after = game_scenario.player_squad.get_morale()
 	var tween = create_tween()
-	tween.tween_property(morale_bar, "value", morale_after, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(morale_label, "value", morale_after, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	await tween.finished
 	
 	# Spawn floating delta label on the overlay
@@ -720,80 +722,52 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 		squad.food += int(loot.food)
 		print("[TrainingScreen] Gained food: %d" % int(loot.food))
 
-func _exit_combat_to_strategy() -> void:
-	print("[TrainingScreen] Exiting combat, returning to strategy mode")
-	is_in_combat_encounter = false
-	encounter_timeout_timer = 0
-	combat_options = {}
-	_set_ui_mode(UIMode.STRATEGY)
-	_update_ui()
-	# Note: encounter_resolved is emitted in _handle_encounter_result, not here
+#func _exit_combat_to_strategy() -> void:
+	#print("[TrainingScreen] Exiting combat, returning to strategy mode")
+	#is_in_combat_encounter = false
+	#encounter_timeout_timer = 0
+	#combat_options = {}
+	#_set_ui_mode(UIMode.STRATEGY)
+	#_update_ui()
+	## Note: encounter_resolved is emitted in _handle_encounter_result, not here
 
 func _show_combat_ui() -> void:
 	# Hide strategy elements
 	action_buttons.visible = false
-	stats_panel.modulate.a = 0.5
-	dialogue_box.visible = false
-	character_container.visible = false
+	## stats_panel.modulate.a = 0.5
+	#dialogue_box.visible = false
+	#character_container.visible = false
 	
 	# Show combat panel
 	combat_panel.visible = true
 
 #endregion
 
-func _exit_from_vn_to_strategy():
-	print("exiting from vn to strategy")
-	is_playing_chain = false
-	_set_ui_mode(UIMode.STRATEGY)
-	_update_ui()
-	return
-
 func _set_ui_mode(mode: UIMode) -> void:
 	ui_mode = mode
 
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
-	stats_panel.modulate.a = 1.0
-	character_container.visible = false
-	speaker_label.visible = false
-	advance_prompt.visible = false
-	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	# stats_panel.modulate.a = 1.0
+	#character_container.visible = false
+	#speaker_label.visible = false
+	#advance_prompt.visible = false
+	#dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _show_vn_ui() -> void:
 	action_buttons.visible = false
-	stats_panel.modulate.a = 0.5
-	character_container.visible = true
-	speaker_label.visible = true
-	advance_prompt.visible = true
-	dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-
-func _vn_display_current_dialogue() -> void:
-	var dialogue_data = vn_controller.get_current_dialogue_data()
-	if dialogue_data.is_empty():
-		return
-	
-	speaker_label.text = dialogue_data.get("speaker_name", "")
-	dialogue_label.text = dialogue_data.get("line_spoken", "")
-	_update_vn_background(dialogue_data.get("background_id", ""))
-	_update_vn_portraits(dialogue_data.get("on_screen_character_ids", []))
-	advance_prompt.text = "Click to continue %s" % vn_controller.get_progress_text()
-
-func _update_vn_background(_bg_id: String) -> void:
-	pass
-
-func _update_vn_portraits(character_ids: Array) -> void:
-	for child in character_container.get_children():
-		child.queue_free()
-	for char_id in character_ids:
-		if char_id is String:
-			character_container.add_child(vn_controller.get_or_create_portrait(char_id))
+	# stats_panel.modulate.a = 0.5
+	#character_container.visible = true
+	#speaker_label.visible = true
+	#advance_prompt.visible = true
+	#dialogue_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _vn_play_next_recurs():
-	_set_ui_mode(UIMode.VISUAL_NOVEL)
 	var play_empty = await vn_controller.play_next_queued_chain()
 	if play_empty:
 		_set_ui_mode(UIMode.STRATEGY)
 	else:
+		_set_ui_mode(UIMode.VISUAL_NOVEL)
 		await vn_controller.chain_completed
 		await _vn_play_next_recurs()
 
@@ -807,7 +781,11 @@ func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(at); assert(activity is Activity)
 
 	for state in ['before', 'activity', 'after']:
+		
+		# capture state before event triggers
 		_capture_stat_snapshot()
+		
+		# execute triggerables and return results
 		var all_activity_result = actor["exec_%s" % state].call(activity)
 		
 		# # Check if combat was triggered by the activity
@@ -824,10 +802,14 @@ func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 		# 	else:
 		# 		push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
 		
+		# play all VN stories
 		_queue_multiple_eventchains_from_results(all_activity_result)
 		await _vn_play_next_recurs()
+		
+		# VN stories done, animate changes, repeat
 		await stat_animator.animate_changes(self._calculate_stat_deltas())
 
+	is_executing_activity = false
 	pass
 
 # func _anim_update_capture() -> void:
@@ -937,9 +919,9 @@ func _animate_stat_changes() -> void:
 	# 	"karma": karma_label,
 	# 	"stability": stability_label,
 	# 	"development": development_label,
-	# 	"morale": morale_bar,
-	# 	"morale_bar": morale_bar,
-	# 	"stats_panel": stats_panel
+	# 	"morale": morale_label,
+	# 	"morale_label": morale_label,
+	# 	"# stats_panel": # stats_panel
 	# }
 	
 	print("[StatAnimation] Starting animation with %d delta(s)" % deltas.size())
