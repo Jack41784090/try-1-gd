@@ -82,7 +82,7 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 			if c_chance == 1.0 or (c_chance < 1.0 and RandomNumberGenerator.new().randf() <= c_chance):
 				print("[Activity] Executing chained activity: ", chained_trigger.trigger_name)
 				var chained_results = chained_trigger.execute(context)
-				all_triggered_results.append_array(chained_results)
+				all_triggered_results.append(chained_results)
 			else:
 				print("[Activity] Skipped chained activity (c_chance failed): ", chained_trigger.trigger_name)
 

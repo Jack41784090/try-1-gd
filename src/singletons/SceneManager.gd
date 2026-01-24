@@ -18,7 +18,7 @@ func transition_quick(sneak_in: Callable):
 	transition_in()
 	await transitioned_in
 
-	sneak_in.call();
+	await sneak_in.call();
 
 	transition_out()
 	await transitioned_out

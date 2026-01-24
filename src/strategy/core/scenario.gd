@@ -145,5 +145,3 @@ func _collect_activity_resources(base_path: String, target: Array) -> void:
 				push_warning("TrainingScreen: Skipping non-Activity resource: %s" % rp)
 		entry = dir.get_next()
 	dir.list_dir_end()
-
-
