@@ -87,4 +87,3 @@ func investigate_clues(perception: int, current_turn: int) -> Array[Dictionary]:
 		}
 		results.append(info)
 	return results
-

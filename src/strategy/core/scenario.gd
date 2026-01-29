@@ -7,7 +7,6 @@ var player_squad: StrategicSquad
 @export var world: World
 @export var factions: Array[Faction] = []
 @export var endings: Array[Ending] = []
-@export var current_location: Location
 
 var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
@@ -82,8 +81,6 @@ func _setup(config: Dictionary) -> void:
 	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
-	
-	current_location = world.get_location_by_id(starting_location_id)
 	player_squad.set_location(starting_location_id)
 	
 	# Initialize roaming squads from their starting locations

@@ -1,5 +1,4 @@
-extends RefCounted
-class_name TravelGraph
+class_name TravelGraph extends RefCounted
 
 var locations: Dictionary = {}
 
@@ -33,7 +32,7 @@ func find_path(from_id: String, to_id: String) -> Array:
 		
 		for neighbor_id in current_pathloc.connected_location_ids:
 			if neighbor_id == to_id:
-				var final_path: Array= path.duplicate() as Array;
+				var final_path: Array = path.duplicate() as Array;
 				final_path.append(to_id)
 				return final_path
 			
@@ -45,7 +44,13 @@ func find_path(from_id: String, to_id: String) -> Array:
 	
 	return []
 
-func calculate_path_travel_time(path: Array) -> int:
+func calculate_travel_time_from(from: String, to: String) -> int:
+	var path = find_path(from, to)
+	if path.is_empty():
+		return -1
+	return calculate_travel_time(path)
+
+func calculate_travel_time(path: Array) -> int:
 	if path.size() <= 1:
 		return 0
 	
@@ -71,33 +76,3 @@ func get_distance(from_id: String, to_id: String) -> int:
 	if path.is_empty():
 		return -1
 	return path.size() - 1
-
-func get_all_reachable_locations(from_id: String, max_hops: int = -1) -> Array[String]:
-	if not locations.has(from_id):
-		return []
-	
-	var reachable: Array[String] = []
-	var visited: Dictionary = {from_id: true}
-	var queue: Array = [[from_id, 0]]
-	
-	while queue.size() > 0:
-		var current = queue.pop_front()
-		var current_id: String = current[0]
-		var current_depth: int = current[1]
-		
-		if current_id != from_id:
-			reachable.append(current_id)
-		
-		if max_hops >= 0 and current_depth >= max_hops:
-			continue
-		
-		var current_location = get_location(current_id)
-		if not current_location:
-			continue
-		
-		for neighbor_id in current_location.connected_location_ids:
-			if not visited.has(neighbor_id):
-				visited[neighbor_id] = true
-				queue.append([neighbor_id, current_depth + 1])
-	
-	return reachable

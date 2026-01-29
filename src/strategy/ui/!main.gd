@@ -1,15 +1,14 @@
 extends Control
 
+#region ConstantsL
 enum UIMode {
 	STRATEGY, # Normal activity buttons visible
 	VISUAL_NOVEL, # VN elements visible, strategy UI dimmed
 	COMBAT_INTERMISSION # Combat choice screen (Flee/Negotiate/Fight)
 }
+#endregion
 
 #region UI Elements
-@onready var activity_runner = $ActivityExecuteManager
-
-
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
 @onready var location_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/LocationLabel
 @onready var end_button: Button = $PanelContainer/MainVBox/StatusArea/EndButton
@@ -37,8 +36,7 @@ enum UIMode {
 @onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
-# @onready var travel_gui: TravelGUI = $TravelGUI
-@onready var travel_gui = $TravelGUI
+@onready var travel_gui: TravelGUI = $TravelGUI
 @onready var manage_squad_screen: Control = $ManageSquadScreen
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
@@ -79,12 +77,12 @@ var ui_mode: UIMode = UIMode.STRATEGY:
 				combat_panel.visible = true
 				_show_combat_ui()
 
-var event_chain_queue: Array[String] = []
-var is_playing_chain: bool = false
+var walking_towards: Location:
+	get:
+		return travel_gui.walking_towards
 var is_executing_activity: bool = false
 var stat_snapshot: Dictionary = {}
 
-# Combat state
 var combat_controller: CombatController = null
 var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
@@ -92,8 +90,7 @@ var combat_options: Dictionary = {}
 
 var game_scenario: GameScenario:
 	get:
-		return activity_runner.data.scenario
-
+		return actor.data.scenario
 #endregion
 
 #region Components
@@ -102,7 +99,6 @@ var game_scenario: GameScenario:
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 #endregion
 
-@export var player__registered_squad: StrategicSquad = null
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
 
@@ -116,7 +112,7 @@ func _ready() -> void:
 	_initialize_scenario()
 	_setup_components()
 	_connect_signals()
-	_set_ui_mode(UIMode.STRATEGY)
+	ui_mode = UIMode.STRATEGY
 	_update_ui()
 
 func _process(delta: float) -> void:
@@ -126,12 +122,11 @@ func _process(delta: float) -> void:
 		if encounter_timeout_timer <= 0:
 			_on_combat_timeout()
 
-
 func _initialize_scenario() -> void:
 	print(" --- Initialising scenario --- ")
 	if is_demo_scenario:
 		print(" \\=> DEMO ")
-		activity_runner.setup(DemoScenarioFactory.create_demo_scenario())
+		actor.setup(DemoScenarioFactory.create_demo_scenario())
 	else:
 		print(" \\=> loading ", scenario_path)
 		assert(not scenario_path.is_empty(), "Scenario path is empty")
@@ -148,20 +143,16 @@ func _initialize_scenario() -> void:
 			assert(false, error_msg)
 		
 		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
-		
-		activity_runner.setup(loaded, {
-			"player_squad": player__registered_squad
-		})
+		actor.setup(loaded)
 
 func _setup_components() -> void:
 	combat_controller = CombatController.new()
+	travel_gui.setup(game_scenario.world.travel_graph)
 	print("[TrainingScreen] CombatController initialized")
 
 #endregion
 
 #region Signals
-signal vn_completed();
-signal combat_completed(result: CombatController.CombatResult);
 signal encounter_resolved(); # Emitted when combat encounter ends (regardless of outcome)
 
 func _connect_signals() -> void:
@@ -222,7 +213,9 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	travel_gui.show_travel_menu(game_scenario)
+	if actor.data.world.travel_graph.walking_towards != null:
+		actor
+	travel_gui.show_travel_menu(game_scenario, actor.locations)
 
 func _on_attack_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.ATTACK)
@@ -245,15 +238,17 @@ func _on_skip_pressed() -> void:
 	pass
 
 func _on_travel_confirmed(location_id: String) -> void:
+	var travel_graph = game_scenario.world.travel_graph
 	var travel_activity = _create_travel_activity(location_id)
 	travel_activity.result.location_changed = location_id
-	var travel_time = game_scenario.world.calculate_travel_time(
+	var travel_time = travel_graph.calculate_travel_time_from(
 		game_scenario.current_location.location_id,
 		location_id
 	)
 	if travel_time > 0:
 		travel_activity.time_cost = travel_time
-	
+		
+	location_label.text = "Travelling to %s" % travel_graph.get_location(location_id).location_name
 	travel_gui.hide_travel_menu()
 	await _execute_activity_obj(travel_activity)
 
@@ -432,7 +427,7 @@ func start_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> v
 	)
 	encounter_timeout_timer = combat_options.get("timeout_seconds", 30.0)
 	
-	_set_ui_mode(UIMode.COMBAT_INTERMISSION)
+	ui_mode = UIMode.COMBAT_INTERMISSION
 	_update_combat_intermission_ui()
 
 
@@ -742,9 +737,6 @@ func _show_combat_ui() -> void:
 
 #endregion
 
-func _set_ui_mode(mode: UIMode) -> void:
-	ui_mode = mode
-
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
 	# stats_panel.modulate.a = 1.0
@@ -792,9 +784,9 @@ func _exec_play_animchanges_loop(activity, state):
 func _vn_play_next_recurs():
 	var play_empty = vn_controller.play_next_queued_chain()
 	if play_empty:
-		_set_ui_mode(UIMode.STRATEGY)
+		ui_mode = UIMode.STRATEGY
 	else:
-		_set_ui_mode(UIMode.VISUAL_NOVEL)
+		ui_mode = UIMode.VISUAL_NOVEL
 		await vn_controller.chain_completed
 		await _vn_play_next_recurs()
 

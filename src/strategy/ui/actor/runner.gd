@@ -3,10 +3,60 @@ class_name ActivityRunner extends Node
 var is_executing_activity = false
 var data: ActivityExecuteManager;
 
+var locations:
+	get:
+		return data.world.travel_graph.locations
+
+var walking_towards: Variant:
+	set(_cl):
+		if _cl is String: walking_towards = data.scenario.travel_graph.get_location(_cl)
+		elif _cl is Location: walking_towards = _cl
+		else: assert(false)
+
+var current_location: Variant:
+	set(_cl):
+		if _cl is String: current_location = data.scenario.travel_graph.get_location(_cl)
+		elif _cl is Location: current_location = _cl
+		else: assert(false)
+
 func setup(_loaded_scenario, context = {}):
 	data = ActivityExecuteManager.new()
 	data.setup(_loaded_scenario, context)
 
+func embark_new_journey(towards: Location):
+	var squad = data.player_squad
+	current_location = data.scenario.starting_location_id
+	data.world.travel_graph.walking_towards = towards
+	
+
+func get_all_reachable_locations(from_id: String, max_hops: int = -1) -> Array[String]:
+	if not locations.has(from_id):
+		return []
+	
+	var reachable: Array[String] = []
+	var visited: Dictionary = {from_id: true}
+	var queue: Array = [[from_id, 0]]
+	
+	while queue.size() > 0:
+		var current = queue.pop_front()
+		var current_id: String = current[0]
+		var current_depth: int = current[1]
+		
+		if current_id != from_id:
+			reachable.append(current_id)
+		
+		if max_hops >= 0 and current_depth >= max_hops:
+			continue
+		
+		if not current_location:
+			continue
+		
+		for neighbor_id in current_location.connected_location_ids:
+			if not visited.has(neighbor_id):
+				visited[neighbor_id] = true
+				queue.append([neighbor_id, current_depth + 1])
+	
+	return reachable;
 
 func exec_x_activity(activity: Activity, _when: StrategyTypes.TriggerWhen):
 	var res: Array[GenericResult] = data.execute_triggerables(

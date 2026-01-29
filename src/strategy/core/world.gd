@@ -13,7 +13,13 @@ class_name World
 @export var turn_count: int = 0
 @export var roaming_squads: Array[StrategicSquad] = []
 
-var travel_graph: TravelGraph = null
+var travel_graph: TravelGraph = null:
+	get:
+		if travel_graph == null:
+			travel_graph = TravelGraph.new()
+			for location in locations:
+				travel_graph.add_location(location)
+		return travel_graph
 
 func modify_global_modifier(modifier: StrategyTypes.GlobalModifier, amount: float) -> void:
 	var key = _modifier_to_key(modifier)
@@ -50,9 +56,6 @@ func add_location(location: Location) -> void:
 		travel_graph.add_location(location)
 
 func build_travel_graph() -> void:
-	if not travel_graph:
-		travel_graph = TravelGraph.new()
-
 	for location in locations:
 		travel_graph.add_location(location)
 
@@ -63,19 +66,10 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	return travel_graph.find_path(from_id, to_id)
 
 func calculate_travel_time(from_id: String, to_id: String) -> int:
-	if not travel_graph:
-		build_travel_graph()
-	
 	var path = travel_graph.find_path(from_id, to_id)
 	if path.is_empty():
 		return -1
-	
-	return travel_graph.calculate_path_travel_time(path)
-
-func get_reachable_locations(from_id: String, max_hops: int = -1) -> Array[String]:
-	if not travel_graph:
-		build_travel_graph()
-	return travel_graph.get_all_reachable_locations(from_id, max_hops)
+	return travel_graph.calculate_travel_time(path)
 
 func advance_turn(amount: int = 1) -> void:
 	turn_count += amount
