@@ -77,9 +77,18 @@ var ui_mode: UIMode = UIMode.STRATEGY:
 				combat_panel.visible = true
 				_show_combat_ui()
 
-var walking_towards: Location:
+var current_location:
 	get:
-		return travel_gui.walking_towards
+		return actor.current_location
+var towards_location: Variant:
+	set(_loc):
+		if not _loc:
+			actor.walking_towards = null
+			return
+		assert(_loc is Location or _loc is String)
+		actor.walking_towards = _loc
+	get:
+		return actor.walking_towards["location"]
 var is_executing_activity: bool = false
 var stat_snapshot: Dictionary = {}
 
@@ -147,7 +156,7 @@ func _initialize_scenario() -> void:
 
 func _setup_components() -> void:
 	combat_controller = CombatController.new()
-	travel_gui.setup(game_scenario.world.travel_graph)
+	travel_gui.setup(actor)
 	print("[TrainingScreen] CombatController initialized")
 
 #endregion
@@ -213,8 +222,6 @@ func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
 
 func _on_travel_pressed() -> void:
-	if actor.data.world.travel_graph.walking_towards != null:
-		actor
 	travel_gui.show_travel_menu(game_scenario, actor.locations)
 
 func _on_attack_pressed() -> void:
@@ -237,18 +244,40 @@ func _on_skip_pressed() -> void:
 	# 	_execute_activity(StrategyTypes.ActivityType.REST)
 	pass
 
+func _get_travel_label():
+	if towards_location:
+		return "Travelling to %s" % towards_location.location_name
+	else:
+		return current_location.location_name
+
 func _on_travel_confirmed(location_id: String) -> void:
 	var travel_graph = game_scenario.world.travel_graph
 	var travel_activity = _create_travel_activity(location_id)
-	travel_activity.result.location_changed = location_id
-	var travel_time = travel_graph.calculate_travel_time_from(
-		game_scenario.current_location.location_id,
-		location_id
-	)
-	if travel_time > 0:
-		travel_activity.time_cost = travel_time
-		
-	location_label.text = "Travelling to %s" % travel_graph.get_location(location_id).location_name
+	# travel_activity.result.location_changed = location_id
+	
+	if towards_location == null:
+		var travel_time = travel_graph.calculate_travel_time_from(
+			actor.current_location.location_id,
+			location_id
+		)
+		if travel_time > 0:
+			travel_activity.time_cost = travel_time
+		towards_location = location_id
+	else:
+		if location_id == towards_location.location_id:
+			print("continuing down the path towards intended location")
+			towards_location = location_id # Assigning the same location will increment progres by 1, refer to setter
+			if actor.travel_progress >= actor.get_distance(actor.current_location, towards_location):
+				print("arrived at destination")
+				actor.current_location = towards_location
+				towards_location = null
+				travel_gui.current_mode = TravelGUI.TravelMode.AUTOPILOT
+			else:
+				travel_activity.result.location_changed = "" # no location change yet
+		else:
+			print("changing destination") # TODO
+
+	location_label.text = _get_travel_label()
 	travel_gui.hide_travel_menu()
 	await _execute_activity_obj(travel_activity)
 
@@ -260,15 +289,15 @@ func _create_travel_activity(location_id: String) -> Activity:
 	var activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
 	activity.destination_id = location_id
 
-	# activity.trigger_id = "travel-to-%s" % location_id
-	# activity.trigger_name = "Travel"
-	# activity.description = "Travel to another location"
-	# activity.activity_type = StrategyTypes.ActivityType.TRAVEL
-	# activity.time_cost = 1
+	activity.trigger_id = "travel-to-%s" % location_id
+	activity.trigger_name = "Travel"
+	activity.description = "Travel to another location"
+	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
+	activity.time_cost = 1
 	
 	# # Create result with travel costs - morale decreases, travel tools consumed
-	# var travel_result = ActivityResult.new({"location_changed": location_id})
-	# travel_result.event_chain_path = "empty"
+	var travel_result = ActivityResult.new({"location_changed": location_id})
+	travel_result.event_chain_path = "empty"
 	
 	# # Travel costs: morale penalty and travel tools consumption
 	# # These can be modified based on distance, terrain, etc.
@@ -279,18 +308,18 @@ func _create_travel_activity(location_id: String) -> Activity:
 	return activity
 
 func _on_short_pressed() -> void:
-	var summary_text = "=== Campaign Summary ===\n"
-	summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
-	summary_text += "Turn: %d\n" % game_scenario.world.turn_count
-	summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
-		game_scenario.current_location.location_name,
-		game_scenario.current_location.development,
-		game_scenario.current_location.stability
+	var _summary_text = "=== Campaign Summary ===\n"
+	_summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
+	_summary_text += "Turn: %d\n" % game_scenario.world.turn_count
+	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
+		actor.current_location.location_name,
+		actor.current_location.development,
+		actor.current_location.stability
 	]
-	summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
-	summary_text += "Money: %.0f\n" % game_scenario.player_squad.money
-	summary_text += "Food: %d\n" % game_scenario.player_squad.food
-	summary_text += "Karma: %.0f\n" % game_scenario.player_squad.karma
+	_summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
+	_summary_text += "Money: %.0f\n" % game_scenario.player_squad.money
+	_summary_text += "Food: %d\n" % game_scenario.player_squad.food
+	_summary_text += "Karma: %.0f\n" % game_scenario.player_squad.karma
 	
 	#dialogue_label.text = summary_text
 
@@ -317,7 +346,7 @@ func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
 func _update_ui() -> void:
 	var squad = game_scenario.player_squad
 	var world = game_scenario.world
-	var location = game_scenario.current_location
+	var location = actor.current_location
 	
 	turn_label.text = "Turn %d" % world.turn_count
 	location_label.text = "%s (%s)" % [
@@ -339,10 +368,10 @@ func _update_ui() -> void:
 	_update_activity_buttons()
 
 func _update_activity_buttons() -> void:
-	if not game_scenario or not game_scenario.current_location:
+	if not game_scenario or not actor.current_location:
 		return
 	
-	var location = game_scenario.current_location
+	var location = actor.current_location
 	
 	rest_button.text = "Rest"
 	rest_button.disabled = not location.has_activity_type(StrategyTypes.ActivityType.REST)
@@ -412,7 +441,7 @@ func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
 
 ## Initiates combat encounter with intermission screen
 ## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
-func start_encounter(enemy_squad: StrategicSquad, context: Dictionary = {}) -> void:
+func start_encounter(enemy_squad: StrategicSquad, _context: Dictionary = {}) -> void:
 	print("\n[TrainingScreen] ========================================")
 	print("[TrainingScreen] COMBAT ENCOUNTER INITIATED")
 	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
@@ -556,7 +585,7 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	
 	# Handle clues if victory
 	if result.clues_dropped.size() > 0:
-		var current_location = game_scenario.current_location
+		var current_location = actor.current_location
 		for clue in result.clues_dropped:
 			current_location.add_clue(clue)
 			print("[TrainingScreen] Clue dropped: %s" % clue.clue_name)
@@ -739,6 +768,7 @@ func _show_combat_ui() -> void:
 
 func _show_strategy_ui() -> void:
 	action_buttons.visible = true
+	_reenable_activity_buttons()
 	# stats_panel.modulate.a = 1.0
 	#character_container.visible = false
 	#speaker_label.visible = false
@@ -794,13 +824,15 @@ func _execute_activity_obj(activity: Activity) -> void:
 	if is_executing_activity:
 		print("[TrainingScreen] Activity already in progress, ignoring duplicate request")
 		return
-	else: is_executing_activity = true
 	
+	is_executing_activity = true
 	_disable_all_activity_buttons()
 
 	for state in ['before', 'activity', 'after']:
 		await _exec_play_animchanges_loop(activity, state)
+
 	is_executing_activity = false
+	_reenable_activity_buttons()
 
 func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 	var activity = _get_activity(at); assert(activity is Activity)
@@ -812,7 +844,7 @@ func _capture_stat_snapshot() -> void:
 		return
 	
 	var squad = game_scenario.player_squad
-	var _location = game_scenario.current_location
+	var _location = actor.current_location
 	
 	stat_snapshot = {
 		"money": squad.money,
@@ -833,7 +865,7 @@ func _calculate_stat_deltas() -> Dictionary:
 		return {}
 	
 	var squad = game_scenario.player_squad
-	# var location = game_scenario.current_location
+	# var location = actor.current_location
 	
 	var current_stats := {
 		"money": squad.money,
