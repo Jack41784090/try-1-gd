@@ -468,6 +468,7 @@ theme_override_constants/v_separation = 10
 columns = 3
 
 [node name="TrainingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+visible = false
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 tooltip_text = "Make camp and recover morale"
@@ -478,6 +479,7 @@ theme_override_font_sizes/font_size = 18
 text = "🏕️ Rest"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+visible = false
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 tooltip_text = "Train to improve combat skills"
@@ -488,6 +490,7 @@ theme_override_font_sizes/font_size = 18
 text = "⚔️ Drill"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+visible = false
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 tooltip_text = "Patrol the area and maintain order"
@@ -636,15 +639,6 @@ theme_override_constants/margin_bottom = 20
 [node name="VBoxContainer" type="VBoxContainer" parent="TravelGUI/OverlayPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
-
-[node name="TitleLabel" type="Label" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 22
-text = "Travel Menu"
 
 [node name="SelectedLocationLabel" type="Label" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
