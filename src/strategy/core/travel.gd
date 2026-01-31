@@ -44,7 +44,14 @@ func find_path(from_id: String, to_id: String) -> Array:
 	
 	return []
 
-func calculate_travel_time_from(from: String, to: String) -> int:
+func calculate_travel_time_from(from, to) -> int:
+	assert(from is String or from is Location)
+	assert(to is String or to is Location)
+	if from is Location:
+		from = from.location_id
+	if to is Location:
+		to = to.location_id
+
 	var path = find_path(from, to)
 	if path.is_empty():
 		return -1
