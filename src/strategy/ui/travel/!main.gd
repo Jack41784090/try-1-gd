@@ -2,46 +2,62 @@ class_name TravelGUI extends Control
 
 enum TravelMode {
 	AUTOPILOT,
-	MANUAL
+	MANUAL,
+	GOING
 }
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var locations_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll/LocationsContainer
 @onready var confirm_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ConfirmButton
 @onready var cancel_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/CancelButton
-@onready var title_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/TitleLabel
 @onready var selected_location_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/SelectedLocationLabel
 @onready var mode_toggle_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ModeToggleButton
 @onready var travel_progress: ProgressBar = $OverlayPanel/MarginContainer/VBoxContainer/TravelProgressBar
 
 # var game_scenario: GameScenario
-var walking_towards: Location:
+var towards_location: Location:
 	get:
-		return travel_graph.walking_towrads
-var travel_graph: TravelGraph # provided by parent in setup
+		towards_location = actor.walking_towards["location"]
+		return towards_location
+var towards_progress: float:
+	get:
+		towards_progress = actor.walking_towards["progress"]
+		return towards_progress
+var actor: ActivityRunner # provided by parent in setup
 var current_location: Location:
 	get:
-		return travel_graph.current_location
+		return actor.current_location
 
 var selected_location_id: String = ""
 var location_buttons: Dictionary = {}
 var current_mode: TravelMode = TravelMode.AUTOPILOT:
+	get:
+		if towards_location != null:
+			current_mode = TravelMode.GOING
+			return TravelMode.GOING
+		return current_mode
 	set(_mode):
+		if towards_location != null:
+			current_mode = TravelMode.GOING
+			return TravelMode.GOING
 		if current_mode == _mode: return ;
 		selected_location_id = ""
-		confirm_button.visible = false
+		# confirm_button.visible = false
 		selected_location_label.text = ""
 		_update_mode_button()
-		#_update_locations_list()
+		_update_locations_list()
 		current_mode = _mode
 
 signal location_selected(location_id: String)
 signal travel_confirmed(location_id: String)
 signal travel_cancelled()
 
-func setup(_travel_graph):
-	assert(_travel_graph is TravelGraph)
-	travel_graph = _travel_graph
+func setup(_actor):
+	assert(_actor is ActivityRunner)
+	actor = _actor
+
+func _process(delta: float) -> void:
+	pass
 
 func _ready() -> void:
 	overlay_panel.visible = false
@@ -51,38 +67,45 @@ func _ready() -> void:
 	if mode_toggle_button:
 		mode_toggle_button.pressed.connect(_on_mode_toggle_pressed)
 
-func show_travel_menu(scenario, locs) -> void:
-	# game_scenario = scenario
+func show_travel_menu(_scenario, locs) -> void:
 	self.visible = true
-	selected_location_id = ""
-	confirm_button.visible = false
-	selected_location_label.text = ""
-	current_mode = TravelMode.AUTOPILOT
+	match current_mode:
+		TravelMode.GOING:
+			travel_progress.visible = true
+			mode_toggle_button.visible = false
+		_:
+			travel_progress.visible = false
+			mode_toggle_button.visible = true
+			_update_locations_list()
+	#selected_location_id = ""
+	confirm_button.visible = true
+	#selected_location_label.text = ""
+	#current_mode = TravelMode.AUTOPILOT
 	overlay_panel.visible = true
 	_update_mode_button()
-	_update_locations_list(locs)
 
 func hide_travel_menu() -> void:
 	overlay_panel.visible = false
 	selected_location_id = ""
 	_clear_location_buttons()
 
-func _update_locations_list(reachable_ids) -> void:
+func _update_locations_list() -> void:
 	_clear_location_buttons()
-	var current_id = current_location.location_id
+	var current_loc_id = current_location.location_id
 	
 	var location_data: Array[Dictionary] = []
+	var reachable_ids = actor.get_all_reachable_locations(current_location)
 	
 	if current_mode == TravelMode.AUTOPILOT:
 		for location_id in reachable_ids:
-			var location = travel_graph.get_location(location_id)
+			var location = actor.get_location_by_id(location_id)
 			if not location:
 				continue
 			
 			if location.type not in [StrategyTypes.LocationType.CITY, StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.FORT]:
 				continue
 			
-			var distance = travel_graph.get_distance(current_id, location_id)
+			var distance = actor.get_distance(current_loc_id, location_id)
 			if distance < 0:
 				continue
 			
@@ -93,10 +116,10 @@ func _update_locations_list(reachable_ids) -> void:
 				"development": location.development
 			})
 	else:
-		var current_location = travel_graph.get_location(current_id)
-		if current_location:
-			for neighbor_id in current_location.connected_location_ids:
-				var location = travel_graph.get_location(neighbor_id)
+		var current_loc = actor.get_location_by_id(current_loc_id)
+		if current_loc:
+			for neighbor_id in current_loc.connected_location_ids:
+				var location = actor.get_location_by_id(neighbor_id)
 				if not location:
 					continue
 				
@@ -108,11 +131,6 @@ func _update_locations_list(reachable_ids) -> void:
 				})
 	
 	location_data.sort_custom(_sort_locations)
-	
-	if current_mode == TravelMode.AUTOPILOT:
-		title_label.text = "Autopilot from %s (Cities Only)" % current_location.location_name
-	else:
-		title_label.text = "Manual Travel from %s (Adjacent)" % current_location.location_name
 	
 	if location_data.is_empty():
 		var no_locations_label = Label.new()
@@ -198,10 +216,13 @@ func _location_type_to_icon(loc_type: StrategyTypes.LocationType) -> String:
 			return "❓"
 
 func _update_mode_button() -> void:
-	if current_mode == TravelMode.AUTOPILOT:
-		mode_toggle_button.text = "Switch to Manual"
-	else:
-		mode_toggle_button.text = "Switch to Autopilot"
+	match current_mode:
+		TravelMode.AUTOPILOT:
+			mode_toggle_button.text = "Switch to " + TravelMode.keys()[current_mode]
+		TravelMode.MANUAL:
+			mode_toggle_button.text = "Switch to " + TravelMode.keys()[current_mode]
+		TravelMode.GOING:
+			mode_toggle_button.visible = false
 
 func _on_mode_toggle_pressed() -> void:
 	if current_mode == TravelMode.AUTOPILOT:
@@ -211,13 +232,13 @@ func _on_mode_toggle_pressed() -> void:
 
 func _on_location_button_pressed(location_id: String) -> void:
 	selected_location_id = location_id
-	var location = travel_graph.get_location(location_id)
+	var location = actor.data.world.travel_graph.get_location(location_id)
 	# if location:
-	var distance = travel_graph.get_distance(
+	var distance = actor.data.world.travel_graph.get_distance(
 		current_location.location_id,
 		location_id
 	)
-	var travel_time = travel_graph.calculate_travel_time_from(
+	var travel_time = actor.data.world.travel_graph.calculate_travel_time_from(
 		current_location.location_id,
 		location_id
 	)
@@ -238,8 +259,11 @@ func _on_location_button_pressed(location_id: String) -> void:
 			button.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _on_confirm_pressed() -> void:
-	if not selected_location_id.is_empty():
-		var path = travel_graph.find_path(current_location.location_id, selected_location_id)
+	if current_mode == TravelMode.GOING:
+		travel_progress.value = towards_progress / actor.get_distance(current_location, towards_location) * 100.0
+		travel_confirmed.emit(towards_location.location_id)
+	elif not selected_location_id.is_empty():
+		var path = actor.data.world.travel_graph.find_path(current_location.location_id, selected_location_id)
 		travel_confirmed.emit(path[1])
 
 func _on_cancel_pressed() -> void:
