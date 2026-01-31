@@ -102,7 +102,7 @@ func get_adjacent_squads(location_id: String) -> Array[StrategicSquad]:
 	if not location:
 		return adjacent_squads
 	
-	for connected_id in location.connected_location_ids:
+	for connected_id in location.connections:
 		var squads_there = get_squads_at_location(connected_id)
 		for squad in squads_there:
 			adjacent_squads.append(squad)
@@ -117,7 +117,7 @@ func save_state() -> Dictionary:
 			"type": location.type,
 			"development": location.development,
 			"stability": location.stability,
-			"connections": location.connected_location_ids,
+			"connections": location.connections,
 			"activities": location.available_activity_types
 		})
 	
@@ -142,6 +142,6 @@ func load_state(data: Dictionary) -> void:
 		location.type = loc_dict.get("type", StrategyTypes.LocationType.VILLAGE)
 		location.development = loc_dict.get("development", 50)
 		location.stability = loc_dict.get("stability", 100.0)
-		location.connected_location_ids = loc_dict.get("connections", [])
+		location.connections = loc_dict.get("connections", [])
 		location.available_activity_types = loc_dict.get("activities", [])
 		locations.append(location)

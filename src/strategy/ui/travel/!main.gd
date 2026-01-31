@@ -118,7 +118,7 @@ func _update_locations_list() -> void:
 	else:
 		var current_loc = actor.get_location_by_id(current_loc_id)
 		if current_loc:
-			for neighbor_id in current_loc.connected_location_ids:
+			for neighbor_id in current_loc.connections:
 				var location = actor.get_location_by_id(neighbor_id)
 				if not location:
 					continue

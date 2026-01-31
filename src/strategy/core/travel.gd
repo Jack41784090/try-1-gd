@@ -30,7 +30,7 @@ func find_path(from_id: String, to_id: String) -> Array:
 		var current_pathloc = get_location(current_pathloc_id)
 		assert(current_pathloc != null)
 		
-		for neighbor_id in current_pathloc.connected_location_ids:
+		for neighbor_id in current_pathloc.connections:
 			if neighbor_id == to_id:
 				var final_path: Array = path.duplicate() as Array;
 				final_path.append(to_id)

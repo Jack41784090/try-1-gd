@@ -89,7 +89,7 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 		if not current_loc:
 			continue
 		
-		for neighbor_id in current_loc.connected_location_ids:
+		for neighbor_id in current_loc.connections:
 			if not visited.has(neighbor_id):
 				visited[neighbor_id] = true
 				queue.append([neighbor_id, current_depth + 1])

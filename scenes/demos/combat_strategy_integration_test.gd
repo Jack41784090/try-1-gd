@@ -281,19 +281,19 @@ func create_test_world() -> World:
 	loc1.location_name = "Moscow"
 	# Must use iterative assignment for typed arrays (GDScript requirement)
 	for conn_id in ["smolensk"]:
-		loc1.connected_location_ids.append(conn_id)
+		loc1.connections.append(conn_id)
 	
 	var loc2 = Location.new()
 	loc2.location_id = "smolensk"
 	loc2.location_name = "Smolensk"
 	for conn_id in ["moscow", "minsk"]:
-		loc2.connected_location_ids.append(conn_id)
+		loc2.connections.append(conn_id)
 	
 	var loc3 = Location.new()
 	loc3.location_id = "minsk"
 	loc3.location_name = "Minsk"
 	for conn_id in ["smolensk"]:
-		loc3.connected_location_ids.append(conn_id)
+		loc3.connections.append(conn_id)
 	
 	world.locations.append(loc1)
 	world.locations.append(loc2)
