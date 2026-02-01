@@ -1,5 +1,4 @@
-class_name Clue
-extends Resource
+class_name Clue extends Resource
 
 @export var clue_id: String = ""
 @export var clue_name: String = ""

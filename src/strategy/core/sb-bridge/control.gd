@@ -152,6 +152,9 @@ func _execute_combat() -> CombatResult:
 			result.morale_change = -5.0 - (result.player_casualties.size() * 2.0)
 			print("[CombatController] DRAW! Morale change: %.1f" % result.morale_change)
 	
+	# generate clues for the current location
+	result.clues_dropped = _generate_enemy_clues(current_enemy_squad)
+
 	return result
 
 func _attempt_flee() -> CombatResult:
@@ -289,21 +292,23 @@ func _generate_loot(enemy_squad: StrategicSquad) -> Dictionary:
 	print("[CombatController] Generated loot from %s: %s" % [enemy_squad.squad_name, loot])
 	return loot
 
+var _CHANCE = 1
 func _generate_enemy_clues(enemy_squad: StrategicSquad, current_turn: int = 0) -> Array[Clue]:
 	var clues: Array[Clue] = []
 	# 30% chance to drop a clue about enemy movements
-	if rng.randf() < 0.3 and enemy_squad.get_living_warriors().size() > 0:
-		var warrior = enemy_squad.get_living_warriors()[0]
-		var clue = Clue.create_clue(
-			Clue.get_random_clue_name(StrategyTypes.Religion.PAGAN),
-			enemy_squad.squad_id,
-			warrior.id,
-			current_turn,
-			3,  # stealth_failure_margin (detail level)
-			enemy_squad.current_location_id  # destination
-		)
-		clues.append(clue)
-		print("[CombatController] Enemy dropped clue: %s" % clue.clue_name)
+	
+	if rng.randf() < _CHANCE and enemy_squad.get_living_warriors().size() > 0:
+		for warrior in enemy_squad.get_living_warriors():
+			var clue = Clue.create_clue(
+				Clue.get_random_clue_name(warrior.religion),
+				enemy_squad.squad_id,
+				warrior.id,
+				current_turn,
+				3, # stealth_failure_margin (detail level)
+				enemy_squad.current_location_id # destination
+			)
+			clues.append(clue)
+			print("[CombatController] Enemy dropped clue: %s" % clue.clue_name)
 	return clues
 
 func _end_combat(result: CombatResult) -> void:
