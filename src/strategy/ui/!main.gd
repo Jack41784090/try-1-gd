@@ -38,6 +38,7 @@ enum UIMode {
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
 @onready var travel_gui: TravelGUI = $TravelGUI
 @onready var investigation_gui: InvestigationGUI = $InvestigationGUI
+@onready var recruitment_gui: RecruitmentGUI = $RecruitmentGUI
 @onready var manage_squad_screen: Control = $ManageSquadScreen
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
@@ -160,6 +161,7 @@ func _setup_components() -> void:
 	combat_controller = CombatController.new()
 	travel_gui.setup(actor)
 	investigation_gui.setup(actor)
+	recruitment_gui.setup(actor)
 	print("[TrainingScreen] CombatController initialized")
 
 #endregion
@@ -198,6 +200,10 @@ func _connect_signals() -> void:
 	
 	if investigation_gui:
 		investigation_gui.investigation_closed.connect(_on_investigation_closed)
+	
+	if recruitment_gui:
+		recruitment_gui.recruitment_completed.connect(_on_recruitment_completed)
+		recruitment_gui.closed.connect(_on_recruitment_closed)
 	
 	if manage_squad_screen:
 		manage_squad_screen.closed.connect(_on_manage_squad_closed)
@@ -240,7 +246,7 @@ func _on_manage_squad_closed() -> void:
 	pass
 
 func _on_recruit_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.RECRUIT)
+	recruitment_gui.show_recruitment_menu()
 
 #func _on_end_pressed() -> void:
 	#dialogue_label.text = "Game ended. Final turn: %d" % game_scenario.world.turn_count
@@ -293,6 +299,14 @@ func _on_travel_cancelled() -> void:
 
 func _on_investigation_closed() -> void:
 	investigation_gui.hide_investigation_menu()
+
+func _on_recruitment_completed(warrior: Warrior) -> void:
+	print("[TrainingScreen] Recruited warrior: %s" % warrior.name)
+	_update_ui()
+	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)
+
+func _on_recruitment_closed() -> void:
+	recruitment_gui.hide_recruitment_menu()
 
 func _create_travel_activity(location_id: String) -> Activity:
 	var activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
