@@ -11,19 +11,31 @@ class_name StrategicSquad
 @export var formation: Array[int] = []
 @export var starting_location_id: String = ""
 
-var aggregate_morale: float = 100.0
+var aggregate_morale: float = 0.0
 var current_location_id: String = ""
 var current_tactic: Tactic = null
+var _initialized: bool = false
 
 func _init() -> void:
 	print(" --- StrategicSquad init --- ")
-	warriors.append(Warrior.new())
+	# Initialization happens in ensure_initialized() after properties are loaded
+	if current_tactic == null:
+		current_tactic = Tactic.create_balanced()
+	print(" \\=> StrategicSquad _init complete")
+
+## Call this after the resource is fully loaded to initialize derived state
+func ensure_initialized() -> void:
+	if _initialized:
+		return
+	_initialized = true
+	print(" --- StrategicSquad ensure_initialized --- ")
+	print("  Warriors count: ", warriors.size())
+	for i in range(warriors.size()):
+		print("  Warrior %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
 	update_aggregate_morale()
-	current_tactic = Tactic.create_balanced()
-	# Initialize current_location_id from starting_location_id if set
-	if starting_location_id != "":
+	if starting_location_id != "" and current_location_id == "":
 		current_location_id = starting_location_id
-	print(" \\=> New squad created: ", _to_string())
+	print(" \\=> Squad initialized: ", _to_string())
 
 func _to_string() -> String:
 	return "StrategicSquad(id=%s, name=%s, warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [squad_id, squad_name, warriors, money, karma, food, travel_tools, formation, starting_location_id]
@@ -174,10 +186,6 @@ func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Wa
 
 func set_location(location_id: String) -> void:
 	current_location_id = location_id
-
-func ensure_initialized() -> void:
-	if current_location_id == "" and starting_location_id != "":
-		current_location_id = starting_location_id
 
 func get_location_id() -> String:
 	return current_location_id
