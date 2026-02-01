@@ -17,6 +17,7 @@ config/icon="res://assets/icon.svg"
 
 [autoload]
 
+StrategyEventBus="*res://src/singletons/StrategyEventBus.gd"
 StatusEffectEventBus="*res://src/singletons/StatusEffectEventBus.gd"
 DamageNumbersManager="*res://src/singletons/DamageNumbersManager.gd"
 SceneManager="*res://scenes/scene_manager.tscn"

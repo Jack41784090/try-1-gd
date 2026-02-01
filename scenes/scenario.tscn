@@ -604,6 +604,7 @@ theme_override_font_sizes/font_size = 14
 text = "☰ Menu"
 
 [node name="TravelGUI" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -684,6 +685,7 @@ theme_override_font_sizes/font_size = 18
 text = "Cancel"
 
 [node name="InvestigationGUI" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -751,6 +753,7 @@ theme_override_font_sizes/font_size = 18
 text = "Close"
 
 [node name="RecruitmentGUI" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1006,6 +1009,7 @@ theme_override_font_sizes/font_size = 18
 text = "⬅️ Return to Camp"
 
 [node name="ActivityExecuteManager" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0

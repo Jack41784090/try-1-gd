@@ -14,4 +14,3 @@ signal warrior_died(warrior_name: String)
 signal location_changed(old_location: String, new_location: String)
 signal turn_advanced(turn_number: int)
 signal game_ended(ending_name: String)
-

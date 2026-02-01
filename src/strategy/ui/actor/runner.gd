@@ -2,6 +2,9 @@ class_name ActivityRunner extends Node
 
 var is_executing_activity = false
 var data: ActivityExecuteManager;
+var turn_count: int = 0
+
+
 @onready var player_squad: StrategicSquad:
 	set(_ps):
 		player_squad = _ps
@@ -124,3 +127,7 @@ func exec_activity(activity: Activity):
 
 func exec_after(activity: Activity):
 	return exec_x_when(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+
+func advance_turn() -> void:
+	turn_count += 1
+	StrategyEventBus.turn_advanced.emit(turn_count)

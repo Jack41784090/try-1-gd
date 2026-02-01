@@ -71,9 +71,6 @@ func calculate_travel_time(from_id: String, to_id: String) -> int:
 		return -1
 	return travel_graph.calculate_travel_time(path)
 
-func advance_turn(amount: int = 1) -> void:
-	turn_count += amount
-
 func get_squads_at_location(location_id: String) -> Array[StrategicSquad]:
 	var squads_at_loc: Array[StrategicSquad] = []
 	for squad in roaming_squads:

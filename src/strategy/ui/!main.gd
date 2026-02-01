@@ -208,6 +208,8 @@ func _connect_signals() -> void:
 	if manage_squad_screen:
 		manage_squad_screen.closed.connect(_on_manage_squad_closed)
 	
+
+	StrategyEventBus.turn_advanced.connect(_on_turn_advanced)
 	#if game_scenario:
 		#game_scenario.activity_executed.connect(_on_activity_executed)
 		#game_scenario.turn_advanced.connect(_on_turn_advanced)
@@ -356,6 +358,7 @@ func _on_activity_executed(activity: Activity, _result: ActivityResult) -> void:
 
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)
+	turn_label.text = "Turn %d" % turn
 
 func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
 	print("TrainingScreen: Triggerable fired: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
@@ -855,6 +858,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 	for state in ['before', 'activity', 'after']:
 		await _exec_play_animchanges_loop(activity, state)
 
+	actor.advance_turn()
 	is_executing_activity = false
 	_reenable_activity_buttons()
 
