@@ -659,7 +659,7 @@ func test_scenario_priority_resolution() -> void:
 func create_test_entity(config: Dictionary) -> SquadEntity:
 	# Create entity with proper stats initialization
 	var stats = EntityBaseStats.new()
-	stats.endurance = 10.0  # Will give HP = 10*5 + 5*2 = 60
+	stats.endurance = 10.0 # Will give HP = 10*5 + 5*2 = 60
 	stats.siz = 5.0
 	stats.strength = 5.0
 	stats.dex = 5.0
