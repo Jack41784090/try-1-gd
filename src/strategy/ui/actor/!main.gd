@@ -8,7 +8,7 @@ var world: World:
 		return scenario.world
 var player_squad: StrategicSquad:
 	get:
-		return scenario.player_squad
+		return scenario.starting_player_squad
 #endregion
 
 

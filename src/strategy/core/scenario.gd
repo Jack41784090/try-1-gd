@@ -1,8 +1,8 @@
 class_name GameScenario extends Resource
 
 var triggerable_manager: TriggerableManager
-var player_squad: StrategicSquad
 
+@export var starting_player_squad: StrategicSquad
 @export var starting_location_id: String
 @export var world: World
 @export var factions: Array[Faction] = []
@@ -37,8 +37,9 @@ func _setup(config: Dictionary) -> void:
 	# Use exported properties if already set (from .tres), otherwise use config
 	if world == null:
 		world = config.get("world", World.new())
-	if player_squad == null:
-		player_squad = config.get("player_squad", StrategicSquad.new())
+	if starting_player_squad == null:
+		starting_player_squad = config.get("starting_player_squad")
+		assert(starting_player_squad != null, "GameScenario requires starting_player_squad to be set")
 	
 	# Register factions (either from exported array or config)
 	var config_factions = config.get("factions", [])
@@ -81,7 +82,8 @@ func _setup(config: Dictionary) -> void:
 	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
-	player_squad.set_location(starting_location_id)
+	starting_player_squad.ensure_initialized()
+	starting_player_squad.set_location(starting_location_id)
 	
 	# Initialize roaming squads from their starting locations
 	for roaming_squad in world.roaming_squads:

@@ -2,10 +2,17 @@ class_name ActivityRunner extends Node
 
 var is_executing_activity = false
 var data: ActivityExecuteManager;
+@onready var player_squad: StrategicSquad:
+	set(_ps):
+		player_squad = _ps
+	get:
+		if player_squad == null and data.scenario.starting_player_squad != null:
+			player_squad = data.scenario.starting_player_squad.duplicate(true)
+		return player_squad
 
 var locations:
 	get:
-		return data.world.travel_graph.locations
+		return data.scenario.world.travel_graph.locations
 
 var travel_progress:
 	get:
