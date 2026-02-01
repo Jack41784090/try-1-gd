@@ -3,7 +3,7 @@ class_name SquadEntity extends Resource
 var _debug_id = "Entity_script_unknown";
 
 #region Init from Resource
-@export var class_id: String
+@export var class_id: EntityFactory.EntityClasses
 
 @export var entity_name: String
 @export var stats: EntityBaseStats
@@ -40,7 +40,7 @@ var status_effects: Array[StatusEffect] = []
 
 static func quick_dummy():
 	return SquadEntity.new(EntityConfig.new(
-		"landsknecht",
+		EntityFactory.EntityClasses.Landsknecht,
 		0,
 		"Dummy",
 		"Dummy",
@@ -117,7 +117,7 @@ func init_after():
 
 
 func _validate_existence():
-	print(self)
+	print(self )
 	# assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
 	assert(class_id != null, "Class ID must not be null")
 
@@ -151,10 +151,10 @@ func _init(config: EntityConfig = null):
 	else:
 		armor_class = config.armor_class
 		armor = ArmorFactory.get_armor(armor_class)
-	armor.set_defender(self)
+	armor.set_defender(self )
 	
 	logic = SimplifiedSquadLogic.new({
-		"entity": self,
+		"entity": self ,
 		"our_squad": {},
 		"enemy_squad": {}
 	}, logic_config)
@@ -173,9 +173,9 @@ func init_from_resource():
 	
 	weapon = WeaponFactory.get_weapon(weapon_class)
 	armor = ArmorFactory.get_armor(armor_class)
-	armor.set_defender(self)
+	armor.set_defender(self )
 	logic = SimplifiedSquadLogic.new({
-		"entity": self,
+		"entity": self ,
 		"our_squad": {},
 		"enemy_squad": {}
 	}, logic_config)
@@ -267,11 +267,11 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 		return []
 	
 	var affected = player_id
-	var base_damage_deorg = -(dm * 1.5)
+	var base_damage_deorg = - (dm * 1.5)
 	var current_hp = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 	var max_hp = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	var hp_percentage = current_hp / max_hp
-	var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
+	var close_to_death_deorg = - ((1.0 - hp_percentage) * 10)
 	var changes: Array[EntityUpdate] = [
 		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
@@ -328,7 +328,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	print("[%s] Deciding action..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
-		"entity": self,
+		"entity": self ,
 		"our_squad": our_squad,
 		"enemy_squad": enemy_squad
 	})
@@ -356,7 +356,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	print("[%s] Deciding reaction..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
-		"entity": self,
+		"entity": self ,
 		"our_squad": our_squad,
 		"enemy_squad": enemy_squad
 	})

@@ -1,6 +1,12 @@
 extends Resource
 class_name Warrior
 
+var class_id: EntityFactory.EntityClasses:
+	# set(_ci):
+	# 	assert(false, "Warrior.class_id is read-only")
+	# 	return _ci;
+	get:
+		return class_id
 @export var id: String = ""
 @export var name: String = ""
 @export var morale: float = 50.0
@@ -73,7 +79,7 @@ func _attribute_to_key(attribute: StrategyTypes.WarriorAttribute) -> String:
 
 func convert_to_entity(entity_id, team, starting_loc, ) -> EntityConfig:
 	var e_config = EntityConfig.new(
-		self.id,
+		self.class_id,
 		entity_id,
 		self.name,
 		team,

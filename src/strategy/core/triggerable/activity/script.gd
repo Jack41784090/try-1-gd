@@ -153,7 +153,7 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 	var recruited_entity = EntityFactory.get_entity(EntityFactory.EntityClasses.Landsknecht)
 	var class_id = recruited_entity.class_id
 
-	var new_warrior = WarriorFactory.create_warrior(class_id, recruited_entity.entity_name, StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
+	var new_warrior = WarriorFactory.create_warrior(class_id, EntityFactory.EntityClasses.keys()[class_id], recruited_entity.entity_name, StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
 	new_warrior.name = "Recruit_%d" % world.turn_count
 	
 	print("[RecruitActivity] Recruited new warrior: %s" % new_warrior.name)

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name EntityConfig
 
-var entity_type_id: String
+var entity_type_id: EntityFactory.EntityClasses
 var side: SquadBattleTypes.Side
 var player_id: int
 var name: String
@@ -16,7 +16,7 @@ var innate_skills: Array[Skill]
 var starting_location: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Front
 
 func _init(
-    p_entity_type_id: String,
+    p_entity_type_id: EntityFactory.EntityClasses,
 	p_player_id: int,
 	p_name: String,
 	p_team: String,
