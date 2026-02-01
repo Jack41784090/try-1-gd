@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bsm6bruyb78co"
-path="res://.godot/imported/healer-defend.png-ad9f2bd08d78465e1cc6e1a6e8238ada.ctex"
+uid="uid://b7vd2v75jjmi0"
+path="res://.godot/imported/Healer-attack.png-4d749fb0444915dddb6d6aebfca193e8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/healer-defend.png"
-dest_files=["res://.godot/imported/healer-defend.png-ad9f2bd08d78465e1cc6e1a6e8238ada.ctex"]
+source_file="res://assets/Healer-attack.png"
+dest_files=["res://.godot/imported/Healer-attack.png-4d749fb0444915dddb6d6aebfca193e8.ctex"]
 
 [params]
 

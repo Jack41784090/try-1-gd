@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b7vd2v75jjmi0"
-path="res://.godot/imported/healer-attack.png-75778ce6158156bd8e5dba134e368a5b.ctex"
+uid="uid://b6uuefkxyjnog"
+path="res://.godot/imported/Landsknecht-defend.png-05a116b5f81b1dfd6a9ef54f04f7337c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/healer-attack.png"
-dest_files=["res://.godot/imported/healer-attack.png-75778ce6158156bd8e5dba134e368a5b.ctex"]
+source_file="res://assets/Landsknecht-defend.png"
+dest_files=["res://.godot/imported/Landsknecht-defend.png-05a116b5f81b1dfd6a9ef54f04f7337c.ctex"]
 
 [params]
 

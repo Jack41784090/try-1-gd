@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6uuefkxyjnog"
-path="res://.godot/imported/landsknecht-defend.png-0dc8db89f89b7d0ac3cb364ba2c1228f.ctex"
+uid="uid://bubk1q5x1n63h"
+path="res://.godot/imported/Healer-idle.png-0b2ace3b0f270f458797e41b1a031936.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/landsknecht-defend.png"
-dest_files=["res://.godot/imported/landsknecht-defend.png-0dc8db89f89b7d0ac3cb364ba2c1228f.ctex"]
+source_file="res://assets/Healer-idle.png"
+dest_files=["res://.godot/imported/Healer-idle.png-0b2ace3b0f270f458797e41b1a031936.ctex"]
 
 [params]
 
