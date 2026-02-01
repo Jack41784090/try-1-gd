@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ActivityResult" load_steps=3 format=3 uid="uid://dnxw8gex5ke6h"]
+
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/strategy/core/warrior/_script.gd" id="1_enwc5"]
+[ext_resource type="Script" uid="uid://wt0yotigi6ov" path="res://src/strategy/core/triggerable/activity/result.gd" id="2_wspy5"]
+
+[resource]
+script = ExtResource("2_wspy5")
+metadata/_custom_type_script = "uid://wt0yotigi6ov"

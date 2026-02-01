@@ -69,6 +69,9 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 		StrategyTypes.ActivityType.TRAVEL:
 			activity_result = _execute_travel(context)
 
+		StrategyTypes.ActivityType.INVESTIGATE:
+			activity_result = _execute_investigate(context)
+
 		_:
 			return [activity_result]
 
@@ -157,5 +160,19 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 	
 	# Append the new recruit to the result
 	result.append_new_recruits([new_warrior])
+	
+	return result
+
+func _execute_investigate(context: Dictionary) -> ActivityResult:
+	var squad = context.get("squad") as StrategicSquad
+	var world = context.get("world") as World
+	var location = world.get_location_by_id(squad.current_location_id)
+	
+	if not location:
+		return result
+	
+	# Simple investigate logic: leave clues based on location's intrigue level
+	var clues_found = randf() * 5 # TODO: Example: 1 clue per 20 intrigue level
+	result.clues_left += clues_found
 	
 	return result

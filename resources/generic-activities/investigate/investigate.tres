@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Activity" load_steps=4 format=3 uid="uid://bnqtc72ulgd3y"]
+
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_llsr8"]
+[ext_resource type="Resource" uid="uid://dnxw8gex5ke6h" path="res://resources/generic-activities/investigate/result.tres" id="2_1ames"]
+
+[resource]
+script = ExtResource("1_activity")
+result = ExtResource("2_1ames")
+activity_type = 4
+trigger_id = "investigate-generic"
+trigger_name = "Investigate"
+description = "Gather intelligence and search for leads. May discover new missions or locations."

@@ -37,6 +37,7 @@ enum UIMode {
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
 @onready var travel_gui: TravelGUI = $TravelGUI
+@onready var investigation_gui: InvestigationGUI = $InvestigationGUI
 @onready var manage_squad_screen: Control = $ManageSquadScreen
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
@@ -157,6 +158,7 @@ func _initialize_scenario() -> void:
 func _setup_components() -> void:
 	combat_controller = CombatController.new()
 	travel_gui.setup(actor)
+	investigation_gui.setup(actor)
 	print("[TrainingScreen] CombatController initialized")
 
 #endregion
@@ -193,6 +195,9 @@ func _connect_signals() -> void:
 		travel_gui.travel_confirmed.connect(_on_travel_confirmed)
 		travel_gui.travel_cancelled.connect(_on_travel_cancelled)
 	
+	if investigation_gui:
+		investigation_gui.investigation_closed.connect(_on_investigation_closed)
+	
 	if manage_squad_screen:
 		manage_squad_screen.closed.connect(_on_manage_squad_closed)
 	
@@ -216,7 +221,7 @@ func _on_patrol_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.PATROL)
 
 func _on_investigate_pressed() -> void:
-	_execute_activity(StrategyTypes.ActivityType.INVESTIGATE)
+	investigation_gui.show_investigation_menu()
 
 func _on_hold_mass_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.HOLD_MASS)
@@ -284,6 +289,9 @@ func _on_travel_confirmed(location_id: String) -> void:
 func _on_travel_cancelled() -> void:
 	# if travel_gui:
 	travel_gui.hide_travel_menu()
+
+func _on_investigation_closed() -> void:
+	investigation_gui.hide_investigation_menu()
 
 func _create_travel_activity(location_id: String) -> Activity:
 	var activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
