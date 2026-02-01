@@ -103,7 +103,7 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 	
 	return reachable;
 
-func exec_x_activity(activity: Activity, _when: StrategyTypes.TriggerWhen):
+func exec_x_when(activity: Activity, _when: StrategyTypes.TriggerWhen):
 	var res: Array[GenericResult] = data.execute_triggerables(
 		activity,
 		_when
@@ -111,7 +111,7 @@ func exec_x_activity(activity: Activity, _when: StrategyTypes.TriggerWhen):
 	return res
 
 func exec_before(activity: Activity):
-	return exec_x_activity(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+	return exec_x_when(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
 
 func exec_activity(activity: Activity):
 	var activity_results = activity.execute(data._build_context(activity))
@@ -123,4 +123,4 @@ func exec_activity(activity: Activity):
 	return all_activity_result
 
 func exec_after(activity: Activity):
-	return exec_x_activity(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+	return exec_x_when(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)

@@ -55,7 +55,7 @@ func animate_changes(stat_deltas: Dictionary) -> void:
 			print("[StatChangeAnimator] Skipping %s (delta %.4f below threshold)" % [stat_name, delta_value])
 			continue
 		
-		var label_node = self[stat_name + "_label"]
+		var label_node = self [stat_name + "_label"]
 		if label_node and label_node is Label:
 			print("[StatChangeAnimator] Spawning floating delta for %s: %+.2f" % [stat_name, delta_value])
 			_spawn_floating_delta(ui_root, label_node, delta_value, stat_name)
@@ -120,13 +120,13 @@ func _spawn_floating_delta(ui_root: Control, anchor_label: Label, delta_value: f
 	active_tweens.append(tween)
 	
 	var target_y := delta_label.global_position.y - FLOAT_HEIGHT
-	tween.tween_property(delta_label, "global_position:y", target_y, FLOAT_DURATION)\
+	tween.tween_property(delta_label, "global_position:y", target_y, FLOAT_DURATION) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	
-	tween.tween_property(delta_label, "modulate:a", 0.0, FADE_DURATION)\
+	tween.tween_property(delta_label, "modulate:a", 0.0, FADE_DURATION) \
 		.set_delay(FADE_DELAY).set_ease(Tween.EASE_IN)
 	
-	tween.tween_property(delta_label, "scale", Vector2(0.5, 0.5), FADE_DURATION)\
+	tween.tween_property(delta_label, "scale", Vector2(0.5, 0.5), FADE_DURATION) \
 		.set_delay(FADE_DELAY).set_ease(Tween.EASE_IN)
 	
 	# Scale bounce on anchor label
@@ -143,18 +143,18 @@ func _bounce_scale(node: Control, tween_parent: Node) -> void:
 	var tween := tween_parent.create_tween()
 	active_tweens.append(tween)
 	
-	tween.tween_property(node, "scale", bounce_scale, SCALE_BOUNCE_DURATION * 0.5)\
+	tween.tween_property(node, "scale", bounce_scale, SCALE_BOUNCE_DURATION * 0.5) \
 		.set_ease(Tween.EASE_OUT)
-	tween.tween_property(node, "scale", original_scale, SCALE_BOUNCE_DURATION * 0.5)\
+	tween.tween_property(node, "scale", original_scale, SCALE_BOUNCE_DURATION * 0.5) \
 		.set_ease(Tween.EASE_IN)
 
 func _flash_background(panel: Control, net_change: float) -> void:
 	var flash_color := Color.WHITE
 	if net_change > 0:
-		flash_color = Color(0.5, 1.0, 0.5, 1.0)  # Green tint
+		flash_color = Color(0.5, 1.0, 0.5, 1.0) # Green tint
 		print("[StatChangeAnimator] _flash_background: GREEN (net positive)")
 	else:
-		flash_color = Color(1.0, 0.5, 0.5, 1.0)  # Red tint
+		flash_color = Color(1.0, 0.5, 0.5, 1.0) # Red tint
 		print("[StatChangeAnimator] _flash_background: RED (net negative)")
 	
 	var original_modulate := panel.modulate
@@ -170,5 +170,5 @@ func _interpolate_progress_bar(bar: ProgressBar, new_value: float) -> void:
 	var tween := bar.create_tween()
 	active_tweens.append(tween)
 	
-	tween.tween_property(bar, "value", new_value, BAR_INTERPOLATE_DURATION)\
+	tween.tween_property(bar, "value", new_value, BAR_INTERPOLATE_DURATION) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)

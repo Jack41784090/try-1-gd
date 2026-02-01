@@ -1,9 +1,8 @@
-[gd_resource type="Resource" script_class="World" load_steps=29 format=3 uid="uid://b7x8xhqm8n315"]
+[gd_resource type="Resource" script_class="World" load_steps=28 format=3 uid="uid://b7x8xhqm8n315"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_isety"]
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="2_0wsl6"]
 [ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="2_h8tv2"]
-[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="3_l5l6c"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/strategy/core/squad.gd" id="3_nnhn3"]
 
 [sub_resource type="Resource" id="Resource_konigsberg"]

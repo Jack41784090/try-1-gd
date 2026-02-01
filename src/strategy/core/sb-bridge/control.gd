@@ -178,13 +178,13 @@ func _attempt_flee() -> CombatResult:
 	if roll < flee_chance:
 		print("[CombatController]   SUCCESS - Squad escaped!")
 		result.fled = true
-		result.morale_change = -10.0  # Morale penalty for fleeing
+		result.morale_change = -10.0 # Morale penalty for fleeing
 	else:
 		print("[CombatController]   FAILED - Forced to fight!")
 		# Failed flee attempt - fight with penalty
-		current_tactic = Tactic.create_defensive_formation()  # Forced defensive
+		current_tactic = Tactic.create_defensive_formation() # Forced defensive
 		result = await _execute_combat()
-		result.morale_change -= 15.0  # Additional penalty for failed flee
+		result.morale_change -= 15.0 # Additional penalty for failed flee
 	
 	return result
 
@@ -209,12 +209,12 @@ func _attempt_negotiate() -> CombatResult:
 	if roll < negotiate_chance:
 		print("[CombatController]   SUCCESS - Conflict resolved peacefully!")
 		result.negotiated = true
-		result.morale_change = 5.0  # Small morale boost for diplomatic solution
+		result.morale_change = 5.0 # Small morale boost for diplomatic solution
 	else:
 		print("[CombatController]   FAILED - Negotiations broke down!")
 		# Failed negotiate - fight normally
 		result = await _execute_combat()
-		result.morale_change -= 5.0  # Small penalty for wasted time
+		result.morale_change -= 5.0 # Small penalty for wasted time
 	
 	return result
 
@@ -252,7 +252,7 @@ func _get_squad_survival_stat(squad: StrategicSquad) -> float:
 			# Survival based on ACR (agility) + WIL
 			total += warrior.combat_stats.acr + warrior.combat_stats.wil
 		count += 1
-	return total / max(count, 1) / 2.0  # Average of ACR+WIL
+	return total / max(count, 1) / 2.0 # Average of ACR+WIL
 
 func _get_squad_diplomacy_stat(squad: StrategicSquad) -> float:
 	var total: float = 0.0
@@ -262,8 +262,7 @@ func _get_squad_diplomacy_stat(squad: StrategicSquad) -> float:
 			# Diplomacy based on CHA + INT
 			total += warrior.combat_stats.cha + warrior.combat_stats.int_stat
 		count += 1
-	return total / max(count, 1) / 2.0  # Average of CHA+INT
-
+	return total / max(count, 1) / 2.0 # Average of CHA+INT
 
 
 func _log_entity_update(update: EntityUpdate) -> void:
