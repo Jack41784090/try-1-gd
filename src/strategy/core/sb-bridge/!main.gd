@@ -106,7 +106,7 @@ func apply_results(strategic_squad: StrategicSquad, updates: Array[EntityUpdate]
 					var morale_loss = damage_ratio * 20.0
 					warrior.modify_morale(-morale_loss)
 					result.injuries.append(warrior_id)
-					result.morale_changes[warrior_id] = -morale_loss
+					result.morale_changes[warrior_id] = - morale_loss
 			
 			SquadBattleTypes.EntityChangeable.ORG:
 				var org_change = update.change.to - update.change.from

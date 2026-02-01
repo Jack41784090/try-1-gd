@@ -76,7 +76,7 @@ func animate_changes(stat_deltas: Dictionary) -> void:
 	var new_morale = morale_label.value + stat_deltas.get("morale")
 	if morale_label and morale_label is ProgressBar and new_morale != null:
 		print("[StatChangeAnimator] Interpolating morale bar to %.2f" % new_morale)
-		_interpolate_progress_bar(morale_label, new_morale)
+		_interpolate_progress_bar(new_morale)
 	else:
 		print("[StatChangeAnimator] Morale bar interpolation skipped (bar=%s, value=%s)" % [str(morale_label != null), str(new_morale)])
 	
@@ -165,10 +165,12 @@ func _flash_background(panel: Control, net_change: float) -> void:
 	tween.tween_property(panel, "modulate", flash_color, FLASH_DURATION * 0.5)
 	tween.tween_property(panel, "modulate", original_modulate, FLASH_DURATION * 0.5)
 
-func _interpolate_progress_bar(bar: ProgressBar, new_value: float) -> void:
-	print("[StatChangeAnimator] _interpolate_progress_bar: %.2f -> %.2f" % [bar.value, new_value])
-	var tween := bar.create_tween()
+func _interpolate_progress_bar(new_value: float) -> void:
+	print("[StatChangeAnimator] _interpolate_progress_bar: %.2f -> %.2f" % [morale_label.value, new_value])
+	var tween := morale_label.create_tween()
 	active_tweens.append(tween)
 	
-	tween.tween_property(bar, "value", new_value, BAR_INTERPOLATE_DURATION) \
+	# var diff = new_value - bar.value
+	# bar.value = bar.value + diff
+	tween.tween_property(morale_label, "value", new_value, BAR_INTERPOLATE_DURATION) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)

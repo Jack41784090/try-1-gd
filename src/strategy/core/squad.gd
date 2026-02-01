@@ -11,7 +11,10 @@ class_name StrategicSquad
 @export var formation: Array[int] = []
 @export var starting_location_id: String = ""
 
-var aggregate_morale: float = 0.0
+var aggregate_morale: float:
+	get:
+		update_aggregate_morale()
+		return aggregate_morale
 var current_location_id: String = ""
 var current_tactic: Tactic = null
 var _initialized: bool = false
@@ -32,7 +35,7 @@ func ensure_initialized() -> void:
 	print("  Warriors count: ", warriors.size())
 	for i in range(warriors.size()):
 		print("  Warrior %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
-	update_aggregate_morale()
+	# update_aggregate_morale()
 	if starting_location_id != "" and current_location_id == "":
 		current_location_id = starting_location_id
 	print(" \\=> Squad initialized: ", _to_string())
@@ -72,7 +75,7 @@ func modify_morale(amount: float) -> void:
 		var old_morale := warrior.morale
 		warrior.modify_morale(amount)
 		print("  warrior=%s is_dead=%s morale: %.2f -> %.2f" % [warrior.name, str(warrior.is_dead), old_morale, warrior.morale])
-	update_aggregate_morale()
+	# update_aggregate_morale()
 
 func update_aggregate_morale() -> void:
 	if warriors.size() == 0:
@@ -97,12 +100,12 @@ func update_aggregate_morale() -> void:
 		squad_name,
 		living_count,
 		total_morale,
-		aggregate_morale
+		#aggregate_morale
 	])
 
 func modify_aggregate_morale(mod: float) -> void:
 	modify_morale(mod)
-	update_aggregate_morale()
+	# update_aggregate_morale()
 
 func get_morale() -> float:
 	return aggregate_morale
@@ -110,7 +113,7 @@ func get_morale() -> float:
 func add_warrior(warrior: Warrior) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	update_aggregate_morale()
+	# update_aggregate_morale()
 
 func remove_dead_warriors() -> Array[Warrior]:
 	var dead_warriors: Array[Warrior] = []
@@ -129,7 +132,7 @@ func remove_dead_warriors() -> Array[Warrior]:
 	
 	warriors = new_warriors
 	formation = new_formation
-	update_aggregate_morale()
+	# update_aggregate_morale()
 	
 	return dead_warriors
 
@@ -225,7 +228,7 @@ func from_combat_results(updates: Array[EntityUpdate]) -> void:
 		if update.target_id >= 0 and update.target_id < warriors.size():
 			warriors[update.target_id].from_combat_result(update)
 	
-	update_aggregate_morale()
+	# update_aggregate_morale()
 	remove_dead_warriors()
 
 func save_state() -> Dictionary:

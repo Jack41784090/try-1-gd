@@ -123,6 +123,7 @@ func _ready() -> void:
 	_setup_components()
 	_connect_signals()
 	ui_mode = UIMode.STRATEGY
+	morale_label.value = actor.player_squad.get_morale()
 	_update_ui()
 
 func _process(delta: float) -> void:
@@ -362,8 +363,8 @@ func _update_ui() -> void:
 		_location_type_to_string(location.type) if location else "",
 	]
 	
-	morale_label.value = squad.get_morale()
-	morale_label.max_value = 100.0
+	# morale_label.value = squad.get_morale() # Note: allow for stat animator to change morale values
+	# morale_label.max_value = 100.0
 	condition_label.text = _get_morale_condition(squad.get_morale())
 	
 	
@@ -743,7 +744,6 @@ func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -
 	tween.tween_property(delta_label, "anchor_bottom", 0.20, 1.2).set_ease(Tween.EASE_OUT)
 	tween.tween_property(delta_label, "modulate:a", 0.0, 0.8).set_delay(0.4)
 
-
 func _apply_combat_loot(loot: Dictionary) -> void:
 	var squad = actor.player_squad
 	if loot.has("money"):
@@ -803,7 +803,8 @@ func _exec_play_animchanges_loop(activity, state):
 	await _vn_play_next_recurs()
 
 	# Check if combat was triggered by the activity
-	if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
+	var has_combat = all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat)
+	if has_combat:
 		var _combat: ActivityResult;
 		for a in all_activity_result:
 			if a is ActivityResult and a.requires_combat:
@@ -817,9 +818,8 @@ func _exec_play_animchanges_loop(activity, state):
 		else:
 			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
 
-	
 	# VN stories done, animate changes, repeat
-	await stat_animator.animate_changes(self._calculate_stat_deltas())
+	if not has_combat: await _animate_stat_changes()
 
 func _vn_play_next_recurs():
 	var play_empty = vn_controller.play_next_queued_chain()
