@@ -228,7 +228,7 @@ func _on_attack_pressed() -> void:
 	_execute_activity(StrategyTypes.ActivityType.ATTACK)
 
 func _on_manage_squad_pressed() -> void:
-	manage_squad_screen.call("show_squad", game_scenario.player_squad)
+	manage_squad_screen.call("show_squad", actor.player_squad)
 
 func _on_manage_squad_closed() -> void:
 	pass
@@ -309,17 +309,17 @@ func _create_travel_activity(location_id: String) -> Activity:
 
 func _on_short_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
-	_summary_text += "Squad: %s\n" % game_scenario.player_squad.squad_name
+	_summary_text += "Squad: %s\n" % actor.player_squad.squad_name
 	_summary_text += "Turn: %d\n" % game_scenario.world.turn_count
 	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
 		actor.current_location.location_name,
 		actor.current_location.development,
 		actor.current_location.stability
 	]
-	_summary_text += "Morale: %.1f\n" % game_scenario.player_squad.get_morale()
-	_summary_text += "Money: %.0f\n" % game_scenario.player_squad.money
-	_summary_text += "Food: %d\n" % game_scenario.player_squad.food
-	_summary_text += "Karma: %.0f\n" % game_scenario.player_squad.karma
+	_summary_text += "Morale: %.1f\n" % actor.player_squad.get_morale()
+	_summary_text += "Money: %.0f\n" % actor.player_squad.money
+	_summary_text += "Food: %d\n" % actor.player_squad.food
+	_summary_text += "Karma: %.0f\n" % actor.player_squad.karma
 	
 	#dialogue_label.text = summary_text
 
@@ -344,7 +344,7 @@ func _on_triggerable_fired(triggerable: Triggerable, _result: Variant) -> void:
 #region UI Helpers
 
 func _update_ui() -> void:
-	var squad = game_scenario.player_squad
+	var squad = actor.player_squad
 	var world = game_scenario.world
 	var location = actor.current_location
 	
@@ -449,7 +449,7 @@ func start_encounter(enemy_squad: StrategicSquad, _context: Dictionary = {}) -> 
 	
 	is_in_combat_encounter = true
 	combat_options = combat_controller.inject_context(
-		game_scenario.player_squad,
+		actor.player_squad,
 		enemy_squad,
 		battle_viewport,
 		combat_overlay
@@ -565,16 +565,16 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	print("[TrainingScreen] ========================================")
 	
 	# Capture morale before changes for animation
-	var morale_before = game_scenario.player_squad.get_morale()
+	var morale_before = actor.player_squad.get_morale()
 	
 	# Apply morale changes to squad
 	if result.morale_change != 0:
-		game_scenario.player_squad.modify_aggregate_morale(result.morale_change)
+		actor.player_squad.modify_aggregate_morale(result.morale_change)
 		print("[TrainingScreen] Applied morale change: %.1f" % result.morale_change)
 	
 	# Handle casualties
 	for casualty_id in result.player_casualties:
-		var warrior = game_scenario.player_squad.get_warrior_by_id(casualty_id)
+		var warrior = actor.player_squad.get_warrior_by_id(casualty_id)
 		if warrior:
 			print("[TrainingScreen] Casualty: %s" % warrior.name)
 	
@@ -645,7 +645,7 @@ func _show_combat_result_overlay(result: CombatController.CombatResult, morale_b
 	await get_tree().create_timer(0.5).timeout
 	
 	# Animate morale bar change
-	var morale_after = game_scenario.player_squad.get_morale()
+	var morale_after = actor.player_squad.get_morale()
 	var tween = create_tween()
 	tween.tween_property(morale_label, "value", morale_after, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	await tween.finished
@@ -737,7 +737,7 @@ func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -
 
 
 func _apply_combat_loot(loot: Dictionary) -> void:
-	var squad = game_scenario.player_squad
+	var squad = actor.player_squad
 	if loot.has("money"):
 		squad.money += loot.money
 		print("[TrainingScreen] Gained money: %.0f" % loot.money)
@@ -790,23 +790,25 @@ func _exec_play_animchanges_loop(activity, state):
 	# execute triggerables and return results
 	var all_activity_result = actor["exec_%s" % state].call(activity)
 	
-	# # Check if combat was triggered by the activity
-	# if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
-	# 	var _combat;
-	# 	for a in all_activity_result:
-	# 		if a is ActivityResult and a.requires_combat:
-	# 			_combat = a
-	# 			break
-	# 	assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-	# 	var enemy_squad = _find_enemy_squad(_combat.combat_target_squad_id)
-	# 	if enemy_squad:
-	# 		all_activity_result.append(GenericResult.new({}))
-	# 	else:
-	# 		push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
-	
 	# play all VN stories
 	_queue_multiple_eventchains_from_results(all_activity_result)
 	await _vn_play_next_recurs()
+
+	# Check if combat was triggered by the activity
+	if all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat):
+		var _combat: ActivityResult;
+		for a in all_activity_result:
+			if a is ActivityResult and a.requires_combat:
+				_combat = a
+				break
+		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
+		var enemy_squad = actor.data._find_enemy_squad(_combat.combat_target_squad_id)
+		if enemy_squad:
+			start_encounter(enemy_squad, actor.data._build_context(activity))
+			await encounter_resolved
+		else:
+			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
+
 	
 	# VN stories done, animate changes, repeat
 	await stat_animator.animate_changes(self._calculate_stat_deltas())
@@ -843,7 +845,7 @@ func _capture_stat_snapshot() -> void:
 		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
 		return
 	
-	var squad = game_scenario.player_squad
+	var squad = actor.player_squad
 	var _location = actor.current_location
 	
 	stat_snapshot = {
@@ -864,7 +866,7 @@ func _calculate_stat_deltas() -> Dictionary:
 		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
 		return {}
 	
-	var squad = game_scenario.player_squad
+	var squad = actor.player_squad
 	# var location = actor.current_location
 	
 	var current_stats := {

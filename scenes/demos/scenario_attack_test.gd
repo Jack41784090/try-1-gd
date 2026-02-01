@@ -132,14 +132,14 @@ func test_load_scenario() -> bool:
 	
 	if not assert_true(game_scenario.world != null, "World initialized"):
 		return false
-	if not assert_true(game_scenario.player_squad != null, "Player squad assigned"):
+	if not assert_true(game_scenario.starting_player_squad != null, "Player squad assigned"):
 		return false
 	if not assert_true(game_scenario.current_location != null, "Current location set"):
 		return false
 	
 	print("\n  [INFO] Scenario initialized successfully:")
 	print("    - World: %s" % game_scenario.world)
-	print("    - Player Squad: %s" % game_scenario.player_squad.squad_name)
+	print("    - Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
 	print("    - Starting Location: %s" % game_scenario.current_location.location_name)
 	print("    - Turn: %d" % game_scenario.world.turn_count)
 	
@@ -157,7 +157,7 @@ func test_verify_world_state() -> void:
 	assert_greater_than(game_scenario.world.roaming_squads.size(), 0, "World has roaming squads")
 	
 	start_test("Player squad has warriors")
-	var living_warriors = game_scenario.player_squad.get_living_warriors()
+	var living_warriors = game_scenario.starting_player_squad.get_living_warriors()
 	assert_greater_than(living_warriors.size(), 0, "Player squad has living warriors")
 	
 	print("\n  [INFO] World state:")
@@ -206,8 +206,8 @@ func test_find_forest_bandits() -> bool:
 	start_test("Move player to bandit location for attack")
 	var bandit_location = forest_bandits.current_location_id
 	game_scenario.current_location = game_scenario.world.get_location_by_id(bandit_location)
-	game_scenario.player_squad.set_location(bandit_location)
-	assert_equal(game_scenario.player_squad.current_location_id, bandit_location, "Player moved to bandit location")
+	game_scenario.starting_player_squad.set_location(bandit_location)
+	assert_equal(game_scenario.starting_player_squad.current_location_id, bandit_location, "Player moved to bandit location")
 	
 	return true
 
@@ -241,7 +241,7 @@ func test_execute_attack() -> void:
 	add_child(mock_overlay)
 	
 	var combat_options = combat_controller.inject_context(
-		game_scenario.player_squad,
+		game_scenario.starting_player_squad,
 		enemy_squad,
 		mock_viewport,
 		mock_overlay
@@ -291,18 +291,18 @@ func test_verify_combat_results() -> void:
 	assert_true(not combat_controller.is_in_combat, "Combat is no longer active")
 	
 	start_test("Player squad still exists after combat")
-	assert_not_null(game_scenario.player_squad, "Player squad still valid")
+	assert_not_null(game_scenario.starting_player_squad, "Player squad still valid")
 	
 	start_test("Player squad has warriors (some may be dead)")
-	var player_warriors = game_scenario.player_squad.warriors
+	var player_warriors = game_scenario.starting_player_squad.warriors
 	assert_greater_than(player_warriors.size(), 0, "Player squad has warriors array")
 	
 	print("\n  [POST-COMBAT STATUS]")
-	print("    Player Squad: %s" % game_scenario.player_squad.squad_name)
-	print("    Living Warriors: %d" % game_scenario.player_squad.get_living_warriors().size())
-	print("    Morale: %.1f" % game_scenario.player_squad.get_morale())
-	print("    Money: %.1f" % game_scenario.player_squad.money)
-	print("    Food: %d" % game_scenario.player_squad.food)
+	print("    Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
+	print("    Living Warriors: %d" % game_scenario.starting_player_squad.get_living_warriors().size())
+	print("    Morale: %.1f" % game_scenario.starting_player_squad.get_morale())
+	print("    Money: %.1f" % game_scenario.starting_player_squad.money)
+	print("    Food: %d" % game_scenario.starting_player_squad.food)
 
 #endregion
 
