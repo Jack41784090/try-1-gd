@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c5r77n5yq2yh0" path="res://src/squad-battle/entity/display.gd" id="1_gr72c"]
 [ext_resource type="Shader" uid="uid://dcqe3wc0vmcxc" path="res://assets/shaders/entity.gdshader" id="2_gr72c"]
-[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/landsknecht-idle.png" id="3_m0cyi"]
+[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/Landsknecht-idle.png" id="3_m0cyi"]
 [ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="4_51v4c"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_m0cyi"]

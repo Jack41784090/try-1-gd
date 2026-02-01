@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SquadEntity" load_steps=5 format=3 uid="uid://cr22weec251r6"]
 
-[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/landsknecht-idle.png" id="1_ly5kv"]
+[ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/Landsknecht-idle.png" id="1_ly5kv"]
 [ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/logic/test-frontline.tres" id="2_8tqtp"]
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/squad-battle/entity/_script.gd" id="3_q2fet"]
 [ext_resource type="Resource" uid="uid://cc7myluyxivt1" path="res://resources/strategy-warrior/BS_test-Landsnecht.tres" id="4_ly5kv"]
