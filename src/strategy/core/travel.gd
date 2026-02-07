@@ -16,37 +16,71 @@ func is_adjacent(from_id: String, to_id: String) -> bool:
 
 func find_path(from_id: String, to_id: String) -> Array:
 	assert(locations.has(from_id))
-	assert(locations.has(to_id));
+	assert(locations.has(to_id))
 
 	if from_id == to_id:
 		return [from_id]
 	
-	var queue: Array = [[from_id]]
-	var visited: Dictionary = {from_id: true}
+	# A* data structures
+	var open_set: Array = [from_id]
+	var came_from: Dictionary = {}
+	var g_score: Dictionary = {from_id: 0}
+	var f_score: Dictionary = {from_id: _heuristic(from_id, to_id)}
 	
-	while queue.size() > 0:
-		var path: Array = queue.pop_front()
-		var current_pathloc_id: String = path[path.size() - 1]
-		var current_pathloc = get_location(current_pathloc_id)
-		assert(current_pathloc != null)
+	while open_set.size() > 0:
+		# Find node in open_set with lowest f_score
+		var current = _get_lowest_f_score_node(open_set, f_score)
 		
-		for neighbor_id in current_pathloc.connections:
-			if neighbor_id == to_id:
-				var final_path: Array = path.duplicate() as Array;
-				final_path.append(to_id)
-				return final_path
+		if current == to_id:
+			return _reconstruct_path(came_from, current)
+		
+		open_set.erase(current)
+		var current_location = get_location(current)
+		assert(current_location != null)
+		
+		# Check all neighbors
+		for connection in current_location.connections.tt:
+			var neighbor_id = connection.to_location_id
+			var tentative_g_score = g_score[current] + connection.travel_time
 			
-			if not visited.has(neighbor_id):
-				visited[neighbor_id] = true
-				var new_path: Array = path.duplicate()
-				new_path.append(neighbor_id)
-				queue.append(new_path)
+			if not g_score.has(neighbor_id) or tentative_g_score < g_score[neighbor_id]:
+				came_from[neighbor_id] = current
+				g_score[neighbor_id] = tentative_g_score
+				f_score[neighbor_id] = tentative_g_score + _heuristic(neighbor_id, to_id)
+				
+				if neighbor_id not in open_set:
+					open_set.append(neighbor_id)
 	
 	return []
 
-func calculate_travel_time_from(from, to) -> int:
+func _heuristic(from_id: String, to_id: String) -> int:
+	# Simple heuristic: assume minimum travel time of 1 per connection
+	# In future could use euclidean distance if locations had coordinates
+	return 0
+
+func _get_lowest_f_score_node(open_set: Array, f_score: Dictionary) -> String:
+	var lowest_node = open_set[0]
+	var lowest_score = f_score.get(lowest_node, INF)
+	
+	for node in open_set:
+		var score = f_score.get(node, INF)
+		if score < lowest_score:
+			lowest_score = score
+			lowest_node = node
+	
+	return lowest_node
+
+func _reconstruct_path(came_from: Dictionary, current: String) -> Array:
+	var total_path: Array = [current]
+	while came_from.has(current):
+		current = came_from[current]
+		total_path.insert(0, current)
+	return total_path
+
+func calculate_travel_time_between(from, to) -> int:
 	assert(from is String or from is Location)
 	assert(to is String or to is Location)
+	
 	if from is Location:
 		from = from.location_id
 	if to is Location:
