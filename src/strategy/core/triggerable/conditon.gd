@@ -10,7 +10,7 @@ enum ConditionType {
 	TIME,
 	MISSION_STATUS,
 	PATH_SEGMENT,
-	LOCATION_TRANSITION,  # Checks if squad just arrived at/left a location
+	LOCATION_TRANSITION, # Checks if squad just arrived at/left a location
 	COMPOUND
 };
 
@@ -159,14 +159,6 @@ func _check_path_segment(context: Dictionary) -> bool:
 	if to_type >= 0 and current_location.type != to_type:
 		return false
 	
-	var from_id = parameters.get("from_location_id", "")
-	if not from_id.is_empty() and prev_location.location_id != from_id:
-		return false
-	
-	var to_id = parameters.get("to_location_id", "")
-	if not to_id.is_empty() and current_location.location_id != to_id:
-		return false
-	
 	return true
 
 func _check_location_transition(context: Dictionary) -> bool:
@@ -176,7 +168,6 @@ func _check_location_transition(context: Dictionary) -> bool:
 	##   - location_id: specific location ID to check (optional)
 	##   - location_type: LocationType enum value to check (optional)
 	##   - require_travel_activity: if true, only triggers on TRAVEL activity (default: true)
-	
 	var transition_type = parameters.get("transition_type", "arriving")
 	var require_travel = parameters.get("require_travel_activity", true)
 	
@@ -192,8 +183,8 @@ func _check_location_transition(context: Dictionary) -> bool:
 		return false
 	
 	var prev_location: Location = context.get("prev_location")
-	var next_location: Location = context.get("next_location")  # The location being traveled to
-	var current_location: Location = context.get("location")  # Current location before change
+	var next_location: Location = context.get("next_location") # The location being traveled to
+	var current_location: Location = context.get("location") # Current location before change
 	
 	# Determine which location to check based on transition type
 	var check_location: Location = null
