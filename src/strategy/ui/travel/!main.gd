@@ -238,7 +238,7 @@ func _on_location_button_pressed(location_id: String) -> void:
 		current_location.location_id,
 		location_id
 	)
-	var travel_time = actor.data.world.travel_graph.calculate_travel_time_from(
+	var travel_time = actor.data.world.travel_graph.calculate_travel_time_between(
 		current_location.location_id,
 		location_id
 	)

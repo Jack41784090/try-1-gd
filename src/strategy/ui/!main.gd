@@ -82,7 +82,7 @@ var ui_mode: UIMode = UIMode.STRATEGY:
 var current_location:
 	get:
 		return actor.current_location
-var towards_location: Variant:
+var walking_towards: Variant:
 	set(_loc):
 		if not _loc:
 			actor.walking_towards = null
@@ -259,41 +259,18 @@ func _on_skip_pressed() -> void:
 	pass
 
 func _get_travel_label():
-	if towards_location:
-		return "Travelling to %s" % towards_location.location_name
+	if walking_towards:
+		return "Travelling to %s" % walking_towards.location_name
 	else:
 		return current_location.location_name
 
-func _on_travel_confirmed(location_id: String) -> void:
-	var travel_graph = game_scenario.world.travel_graph
-	var travel_activity = _create_travel_activity(location_id)
-	# travel_activity.result.location_changed = location_id
-	
-	if towards_location == null:
-		var travel_time = travel_graph.calculate_travel_time_from(
-			actor.current_location.location_id,
-			location_id
-		)
-		if travel_time > 0:
-			travel_activity.time_cost = travel_time
-		towards_location = location_id
-	else:
-		if location_id == towards_location.location_id:
-			print("continuing down the path towards intended location")
-			towards_location = location_id # Assigning the same location will increment progres by 1, refer to setter
-			if actor.travel_progress >= actor.get_distance(actor.current_location, towards_location):
-				print("arrived at destination")
-				actor.current_location = towards_location
-				towards_location = null
-				travel_gui.current_mode = TravelGUI.TravelMode.AUTOPILOT
-			else:
-				travel_activity.result.location_changed = "" # no location change yet
-		else:
-			print("changing destination") # TODO
-
+func _on_travel_confirmed(confirmed_location_id: String) -> void:
+	var travel_activity = actor.create_travel_activity(confirmed_location_id)
 	location_label.text = _get_travel_label()
 	travel_gui.hide_travel_menu()
 	await _execute_activity_obj(travel_activity)
+	if travel_activity.result.location_changed == confirmed_location_id: # Arrived
+		travel_gui.current_mode = TravelGUI.TravelMode.AUTOPILOT
 
 func _on_travel_cancelled() -> void:
 	# if travel_gui:
@@ -310,27 +287,6 @@ func _on_recruitment_completed(warrior: Warrior) -> void:
 func _on_recruitment_closed() -> void:
 	recruitment_gui.hide_recruitment_menu()
 
-func _create_travel_activity(location_id: String) -> Activity:
-	var activity = _get_activity(StrategyTypes.ActivityType.TRAVEL)
-	activity.destination_id = location_id
-
-	activity.trigger_id = "travel-to-%s" % location_id
-	activity.trigger_name = "Travel"
-	activity.description = "Travel to another location"
-	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
-	activity.time_cost = 1
-	
-	# # Create result with travel costs - morale decreases, travel tools consumed
-	var travel_result = ActivityResult.new({"location_changed": location_id})
-	travel_result.event_chain_path = "empty"
-	
-	# # Travel costs: morale penalty and travel tools consumption
-	# # These can be modified based on distance, terrain, etc.
-	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
-	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
-	
-	# activity.result = travel_result
-	return activity
 
 func _on_short_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
@@ -450,16 +406,11 @@ func _reenable_activity_buttons() -> void:
 	_update_activity_buttons()
 
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
-	var activity = _get_activity(activity_type)
+	var activity = actor.get_activity(activity_type)
 	if not activity:
 		return "Unknown activity"
 	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
 
-func _get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
-	for triggerable in game_scenario.triggerable_manager.registered_triggerables:
-		if triggerable is Activity and triggerable.activity_type == _getting_type:
-			return triggerable as Activity
-	return null
 #endregion
 
 #region Combat System
@@ -863,7 +814,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 	_reenable_activity_buttons()
 
 func _execute_activity(at: StrategyTypes.ActivityType) -> void:
-	var activity = _get_activity(at); assert(activity is Activity)
+	var activity = actor.get_activity(at); assert(activity is Activity)
 	await _execute_activity_obj(activity)
 
 func _capture_stat_snapshot() -> void:

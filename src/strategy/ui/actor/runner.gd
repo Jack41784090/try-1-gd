@@ -31,7 +31,7 @@ var travel_progress:
 var walking_towards: Variant:
 	get:
 		if walking_towards == null:
-			walking_towards = null
+			walking_towards = null # {"location": null, "progress": 0}
 		return walking_towards
 	set(_cl):
 		if !_cl:
@@ -53,7 +53,7 @@ var current_location: Variant:
 			current_location = data.scenario.starting_location_id
 		return current_location
 	set(_cl):
-		if _cl is String: current_location = data.scenario.world.travel_graph.get_location(_cl)
+		if _cl is String: current_location = data.scenario.world.travel_graph.get_location(_cl).duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
 		elif _cl is Location: current_location = _cl
 		else: assert(false)
 
@@ -67,7 +67,7 @@ func embark_new_journey(towards: Location):
 	walking_towards = towards
 
 func get_distance(current_id, location_id):
-	return data.scenario.world.travel_graph.calculate_travel_time_from(current_id, location_id)
+	return data.scenario.world.travel_graph.calculate_travel_time_between(current_id, location_id)
 
 func get_location_by_id(location_id):
 	return data.scenario.world.get_location_by_id(location_id)
@@ -131,3 +131,49 @@ func exec_after(activity: Activity):
 func advance_turn() -> void:
 	turn_count += 1
 	StrategyEventBus.turn_advanced.emit(turn_count)
+
+
+func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
+	for triggerable in data.scenario.triggerable_manager.registered_triggerables:
+		if triggerable is Activity and triggerable.activity_type == _getting_type:
+			return triggerable as Activity
+	return null
+
+func create_travel_activity(location_id: String) -> Activity:
+	var activity = get_activity(StrategyTypes.ActivityType.TRAVEL)
+	activity.destination_id = location_id
+
+	activity.trigger_id = "travel-to-%s" % location_id
+	activity.trigger_name = "Travel"
+	activity.description = "Travel to another location"
+	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
+	activity.time_cost = 1
+	
+	# # Create result with travel costs - morale decreases, travel tools consumed
+	var travel_result = ActivityResult.new({"location_changed": location_id})
+	travel_result.event_chain_path = "empty"
+	
+	# # Travel costs: morale penalty and travel tools consumption
+	# # These can be modified based on distance, terrain, etc.
+	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
+	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
+
+
+	var walking_towards_location = walking_towards["location"]
+	if walking_towards_location == null: # if we are not already travelling
+		walking_towards = location_id # set to { "location": confirmed_location_id, "progress": 0 } by setters
+	elif location_id == walking_towards_location.location_id:
+		print("continuing down the path towards intended location")
+		(current_location as Location).type = StrategyTypes.LocationType.ROAD # temporarily set current location to road to allow travel between towns
+		walking_towards = location_id # Assigning the same location will increment progres by 1, refer to setter
+		if travel_progress >= get_distance(current_location, walking_towards_location):
+			print("arrived at destination")
+			current_location = walking_towards_location
+			walking_towards = null
+		else:
+			activity.result.location_changed = "" # no location change yet
+	else:
+		print("changing destination") # TODO
+	
+	# activity.result = travel_result
+	return activity
