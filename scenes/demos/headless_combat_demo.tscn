@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dg5ewpqp5umya"]
+
+[ext_resource type="Script" path="res://src/demos/headless_combat_demo.gd" id="1_demo"]
+
+[node name="HeadlessCombatDemo" type="Node"]
+script = ExtResource("1_demo")

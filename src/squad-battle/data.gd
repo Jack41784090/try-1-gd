@@ -189,3 +189,50 @@ func remove_dead_entities():
 			
 			for i in range(entities_to_remove.size() - 1, -1, -1):
 				squad.entities.remove_at(entities_to_remove[i])
+
+## Run battle to completion without scene instantiation or visualization
+## Returns all EntityUpdate objects collected across all rounds
+## Used for AI vs AI combat resolution
+func run_headless() -> Array[EntityUpdate]:
+	var all_updates: Array[EntityUpdate] = []
+	
+	print("[SquadBattle.run_headless] Starting headless combat simulation")
+	print("  Attacker tactic: %s (max_rounds=%d)" % [attacker_tactic, max_rounds])
+	print("  Defender tactic: %s" % defender_tactic)
+	
+	round_count = 0
+	
+	while not check_victory() and round_count < max_rounds:
+		round_count += 1
+		
+		print("[SquadBattle.run_headless] === Round %d/%d ===" % [round_count, max_rounds])
+		
+		# Execute squad recoveries
+		squad_recoveries()
+		
+		# Execute all squad actions for this round
+		var round_updates = squad_actions()
+		
+		# Collect updates
+		for update in round_updates:
+			all_updates.append(update)
+		
+		# Remove dead/capitulated entities
+		remove_dead_entities()
+		
+		# Check battle state
+		var outcome = get_battle_outcome()
+		print("[SquadBattle.run_headless] Round %d outcome: %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome]])
+		print("  Attacker strength: %d, Defender strength: %d" % [
+			check_team_strength(SquadBattleTypes.Side.ATTACKER),
+			check_team_strength(SquadBattleTypes.Side.DEFENDER)
+		])
+	
+	var final_outcome = get_battle_outcome()
+	print("[SquadBattle.run_headless] Battle complete after %d rounds: %s" % [
+		round_count,
+		SquadBattleTypes.BattleOutcome.keys()[final_outcome]
+	])
+	print("  Total updates: %d" % all_updates.size())
+	
+	return all_updates
