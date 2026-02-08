@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="World" load_steps=14 format=3 uid="uid://dsmbbso4d8jxx"]
+[gd_resource type="Resource" script_class="World" load_steps=19 format=3 uid="uid://dsmbbso4d8jxx"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_location"]
 [ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="2_5wn4r"]
@@ -7,6 +7,11 @@
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_d8gha"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/strategy/core/squad.gd" id="3_squad"]
 [ext_resource type="Resource" uid="uid://dqekkd30ffwmi" path="res://resources/strategy-squads/test-squad-bandits.tres" id="4_5wn4r"]
+[ext_resource type="Resource" uid="uid://bvmnx8q3fy7qi" path="res://resources/strategy-squads/test-squad-mercenaries.tres" id="5_merc"]
+[ext_resource type="Resource" uid="uid://cp3nx9q4gz8rj" path="res://resources/strategy-squads/test-squad-rebels.tres" id="6_rebel"]
+[ext_resource type="Resource" uid="uid://dq4ny0r5h09sk" path="res://resources/strategy-squads/test-squad-raiders.tres" id="7_raider"]
+[ext_resource type="Resource" uid="uid://cr5oz1s6i10tl" path="res://resources/strategy-squads/test-squad-cultists.tres" id="8_cult"]
+[ext_resource type="Resource" uid="uid://cs6p02t7j21um" path="res://resources/strategy-squads/test-squad-outlaws.tres" id="9_outlaw"]
 
 [sub_resource type="Resource" id="Resource_6275e"]
 script = ExtResource("3_1wmke")
@@ -53,4 +58,4 @@ available_activity_types = Array[int]([0, 1, 3])
 [resource]
 script = ExtResource("2_world")
 locations = Array[ExtResource("1_location")]([SubResource("Resource_camp"), SubResource("Resource_enemy_fort")])
-roaming_squads = Array[ExtResource("3_squad")]([ExtResource("4_5wn4r")])
+roaming_squads = Array[ExtResource("3_squad")]([ExtResource("4_5wn4r"), ExtResource("5_merc"), ExtResource("6_rebel"), ExtResource("7_raider"), ExtResource("8_cult"), ExtResource("9_outlaw")])
