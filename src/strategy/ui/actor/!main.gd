@@ -16,12 +16,14 @@ var player_squad: StrategicSquad:
 		return player_squad
 #endregion
 
-func _init(is_ai = false):
+func _init(is_ai = false, _ai_squad: StrategicSquad = null) -> void:
 	_IS_AI = is_ai
 
 func setup(_loaded_scenario, context = {}):
 	assert(_loaded_scenario is GameScenario)
+	assert(not _IS_AI or context.get("squad") != null, "AI must be initialized with a squad")
 	scenario = _loaded_scenario
+	player_squad = context.get("squad", player_squad)
 	# scenario.initialize(context)
 
 ## Finds an enemy squad by ID from the world's roaming squads

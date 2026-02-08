@@ -814,7 +814,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 		await _exec_play_animchanges_loop(activity, state)
 
 	# Execute AI turns before advancing turn counter
-	var ai_results = ai_fleet.execute_all_ai_turns()
+	var ai_results = ai_fleet.return_all_ai_turns()
 	if ai_results["combats"].size() > 0:
 		print("[TrainingScreen] AI combats occurred: %d" % ai_results["combats"].size())
 	if ai_results["movements"].size() > 0:

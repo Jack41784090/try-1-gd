@@ -56,6 +56,7 @@ var current_location: Variant:
 		if _cl is String: current_location = data.scenario.world.travel_graph.get_location(_cl).duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
 		elif _cl is Location: current_location = _cl
 		else: assert(false)
+		player_squad.set_location(current_location.location_id)
 
 func setup(_loaded_scenario, context = {}):
 	data = ActivityExecuteManager.new()
