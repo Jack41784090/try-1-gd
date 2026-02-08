@@ -1,5 +1,7 @@
 class_name ActivityExecuteManager extends RefCounted
 
+var _IS_AI: bool = false
+
 #region ===== DATA =====
 var previous_location: Location
 var scenario: GameScenario
@@ -8,9 +10,14 @@ var world: World:
 		return scenario.world
 var player_squad: StrategicSquad:
 	get:
-		return scenario.starting_player_squad
+		if player_squad == null and \
+			(not _IS_AI and scenario.starting_player_squad != null):
+			player_squad = scenario.starting_player_squad.duplicate(true)
+		return player_squad
 #endregion
 
+func _init(is_ai = false):
+	_IS_AI = is_ai
 
 func setup(_loaded_scenario, context = {}):
 	assert(_loaded_scenario is GameScenario)
