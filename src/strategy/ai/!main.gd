@@ -33,7 +33,7 @@ func setup(scenario: GameScenario, squad: StrategicSquad) -> void:
 	assert(scenario != null, "AIRunner requires a GameScenario")
 	assert(squad != null, "AIRunner requires a StrategicSquad assignment")
 	
-	executor.setup(scenario, {})
+	executor.setup(scenario, {"squad": squad})
 	assigned_squad = squad
 	squad_id = squad.squad_id
 	
@@ -108,7 +108,7 @@ func _decide_survival_mode(world: World, current_location: Location, context: Di
 	# Priority 1: If critically low on food, try to get some
 	if assigned_squad.food < SURVIVAL_FOOD_THRESHOLD:
 		# Check if we can forage here
-		if current_location.has_activity_type(StrategyTypes.ActivityType.FORAGE):
+		if current_location != null and current_location.has_activity_type(StrategyTypes.ActivityType.FORAGE):
 			print("[AIRunner:%s] SURVIVAL: Foraging for food" % squad_id)
 			return StrategyTypes.ActivityType.FORAGE
 		
@@ -230,8 +230,17 @@ func _choose_attack_target(enemies: Array) -> StrategicSquad:
 		return null
 	
 	# For now, choose the weakest target (lowest morale)
-	var weakest = enemies[0]
+	# Filter out self (squad attacking itself)
+	var valid_enemies: Array[StrategicSquad] = []
 	for enemy in enemies:
+		if enemy.squad_id != executor.squad.squad_id:
+			valid_enemies.append(enemy)
+	
+	if valid_enemies.is_empty():
+		return null
+	
+	var weakest = valid_enemies[0]
+	for enemy in valid_enemies:
 		if enemy.get_morale() < weakest.get_morale():
 			weakest = enemy
 	
