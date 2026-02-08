@@ -26,12 +26,33 @@ func _init() -> void:
 		current_tactic = Tactic.create_balanced()
 	print(" \\=> StrategicSquad _init complete")
 
+## Duplicate warrior resources to prevent resource sharing between squads
+func _duplicate_warriors() -> void:
+	if warriors.is_empty():
+		print("  WARNING: No warriors to duplicate!")
+		return
+		
+	var duplicated_warriors: Array[Warrior] = []
+	for i in range(warriors.size()):
+		var warrior = warriors[i]
+		if warrior != null:
+			var dup = warrior.duplicate(true)
+			# Give each duplicated warrior a unique ID  
+			dup.id = "%s_copy%d" % [warrior.id, i]
+			duplicated_warriors.append(dup)
+			print("  Duplicated warrior: %s -> %s" % [warrior.id, dup.id])
+	warriors = duplicated_warriors
+
 ## Call this after the resource is fully loaded to initialize derived state
 func ensure_initialized() -> void:
 	if _initialized:
 		return
 	_initialized = true
 	print(" --- StrategicSquad ensure_initialized --- ")
+	
+	# Duplicate warriors to prevent resource sharing (must happen after load)
+	_duplicate_warriors()
+	
 	print("  Warriors count: ", warriors.size())
 	for i in range(warriors.size()):
 		print("  Warrior %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
@@ -87,6 +108,8 @@ func update_aggregate_morale() -> void:
 	var living_count := 0
 	
 	for warrior in warriors:
+		if warrior == null:
+			continue
 		if not warrior.is_dead:
 			total_morale += warrior.morale
 			living_count += 1
@@ -96,11 +119,10 @@ func update_aggregate_morale() -> void:
 	else:
 		aggregate_morale = 0.0
 	
-	print("StrategicSquad.update_aggregate_morale squad=%s living=%d total=%.2f aggregate=%.2f" % [
+	print("StrategicSquad.update_aggregate_morale squad=%s living=%d total=%.2f " % [
 		squad_name,
 		living_count,
 		total_morale,
-		#aggregate_morale
 	])
 
 func modify_aggregate_morale(mod: float) -> void:
