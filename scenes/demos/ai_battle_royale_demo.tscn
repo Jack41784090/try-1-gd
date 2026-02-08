@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cg3k8wvyxqy0t"]
+
+[ext_resource type="Script" path="res://src/demos/ai_battle_royale_demo.gd" id="1_battle"]
+
+[node name="AIBattleRoyaleDemo" type="Node"]
+script = ExtResource("1_battle")
