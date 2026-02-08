@@ -12,7 +12,6 @@ var player_combat_squad: Squad = null
 var enemy_combat_squad: Squad = null
 var current_tactic: Tactic = null
 var _next_entity_id: int = 1
-
 func create_battle(
 	player_squad: StrategicSquad,
 	enemy_squad: StrategicSquad,
@@ -90,7 +89,13 @@ func apply_results(strategic_squad: StrategicSquad, updates: Array[EntityUpdate]
 	
 	for update in updates:
 		var warrior_id = get_warrior_for_entity(update.affected)
+		if warrior_id.is_empty():
+			continue
+		
 		var warrior = strategic_squad.get_warrior_by_id(warrior_id)
+		if warrior == null:
+			continue
+		
 		match update.change.property:
 			SquadBattleTypes.EntityChangeable.HP:
 				var from_hp = update.change.from
@@ -129,7 +134,9 @@ func apply_results(strategic_squad: StrategicSquad, updates: Array[EntityUpdate]
 	return result
 
 func get_warrior_for_entity(entity_id: int) -> String:
-	return entity_to_warrior.get(entity_id, "")
+	if entity_to_warrior.has(entity_id):
+		return entity_to_warrior[entity_id]
+	return ""
 
 func get_entity_for_warrior(warrior_id: String) -> int:
 	return warrior_to_entity.get(warrior_id, -1)
