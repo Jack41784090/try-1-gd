@@ -22,7 +22,7 @@ func _init(is_ai = false):
 func setup(_loaded_scenario, context = {}):
 	assert(_loaded_scenario is GameScenario)
 	scenario = _loaded_scenario
-	scenario.initialize(context)
+	# scenario.initialize(context)
 
 ## Finds an enemy squad by ID from the world's roaming squads
 func _find_enemy_squad(squad_id: String) -> StrategicSquad:

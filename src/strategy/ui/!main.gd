@@ -108,6 +108,7 @@ var game_scenario: GameScenario:
 @onready var vn_controller: VisualNovelController = $PanelContainer/MainVBox/MainScreenArea
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
+@onready var ai_fleet: AIFleetManager = $AIFleetManager
 #endregion
 
 @export var scenario_path: String
@@ -125,6 +126,7 @@ func _ready() -> void:
 	_connect_signals()
 	ui_mode = UIMode.STRATEGY
 	morale_label.value = actor.player_squad.get_morale()
+	game_scenario.initialize(actor.data._build_context())
 	_update_ui()
 
 func _process(delta: float) -> void:
@@ -162,7 +164,9 @@ func _setup_components() -> void:
 	travel_gui.setup(actor)
 	investigation_gui.setup(actor)
 	recruitment_gui.setup(actor)
+	ai_fleet.setup(game_scenario)
 	print("[TrainingScreen] CombatController initialized")
+	print("[TrainingScreen] AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
 #endregion
 
@@ -809,6 +813,13 @@ func _execute_activity_obj(activity: Activity) -> void:
 	for state in ['before', 'activity', 'after']:
 		await _exec_play_animchanges_loop(activity, state)
 
+	# Execute AI turns before advancing turn counter
+	var ai_results = ai_fleet.execute_all_ai_turns()
+	if ai_results["combats"].size() > 0:
+		print("[TrainingScreen] AI combats occurred: %d" % ai_results["combats"].size())
+	if ai_results["movements"].size() > 0:
+		print("[TrainingScreen] AI movements: %d" % ai_results["movements"].size())
+	
 	actor.advance_turn()
 	is_executing_activity = false
 	_reenable_activity_buttons()
