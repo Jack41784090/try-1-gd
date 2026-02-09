@@ -11,7 +11,7 @@ var all_updates: Array[EntityUpdate] = []
 
 signal battle_completed(outcome: SquadBattleTypes.BattleOutcome)
 
-func _is_attacker(entity: SquadEntity) -> bool:
+func _is_attacker(entity: CharacterCombatStats) -> bool:
 	return entity.side == SquadBattleTypes.Side.ATTACKER
 
 func _ready() -> void:
@@ -50,26 +50,26 @@ func setup_row_mappings() -> void:
 func setup_mock_battle() -> void:
 	var battle_config = {
 		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [{
+			SquadBattleTypes.Side.ATTACKER: [ {
 				"side": SquadBattleTypes.Side.ATTACKER,
 				"name": "Heroes",
 				"team": "heroes",
 				"entities": [
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Healer
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Healer
 				]
 			}],
-			SquadBattleTypes.Side.DEFENDER: [{
+			SquadBattleTypes.Side.DEFENDER: [ {
 				"side": SquadBattleTypes.Side.DEFENDER,
 				"name": "Monsters",
 				"team": "monsters",
 				"entities": [
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Landsknecht,
-					EntityFactory.EntityClasses.Healer
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Landsknecht,
+					EntityClasses.Types.Healer
 				]
 			}]
 		},
@@ -98,7 +98,7 @@ func spawn_all_entities() -> void:
 		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 
 		for squad: Squad in squads:
-			for entity: SquadEntity in squad.entities:
+			for entity: CharacterCombatStats in squad.entities:
 				var location = entity.get_changeable_stat_num(
 					SquadBattleTypes.EntityChangeable.LOC
 				) as int
@@ -213,10 +213,10 @@ func _update_row_positions(row_node: Node3D) -> void:
 
 	# Find opposing row (attacker rows oppose defender rows in reverse order)
 	var opposing_index = -1
-	if current_index < 3:  # Attacker side
-		opposing_index = 5 - current_index  # Front-Back, Middle-Middle, Back-Front
-	else:  # Defender side
-		opposing_index = 2 - (current_index - 3)  # Same logic
+	if current_index < 3: # Attacker side
+		opposing_index = 5 - current_index # Front-Back, Middle-Middle, Back-Front
+	else: # Defender side
+		opposing_index = 2 - (current_index - 3) # Same logic
 
 	if opposing_index >= 0 and opposing_index < all_rows.size():
 		battlefield_controller.update_row_positions(all_rows[opposing_index])
