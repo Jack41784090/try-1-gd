@@ -204,23 +204,11 @@ func run_headless() -> Array[EntityUpdate]:
 	
 	while not check_victory() and round_count < max_rounds:
 		round_count += 1
-		
 		print("[SquadBattle.run_headless] === Round %d/%d ===" % [round_count, max_rounds])
-		
-		# Execute squad recoveries
 		squad_recoveries()
-		
-		# Execute all squad actions for this round
-		var round_updates = squad_actions()
-		
-		# Collect updates
-		for update in round_updates:
+		for update in squad_actions():
 			all_updates.append(update)
-		
-		# Remove dead/capitulated entities
 		remove_dead_entities()
-		
-		# Check battle state
 		var outcome = get_battle_outcome()
 		print("[SquadBattle.run_headless] Round %d outcome: %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome]])
 		print("  Attacker strength: %d, Defender strength: %d" % [
