@@ -3,7 +3,7 @@ class_name EntityDisplay
 signal animation_completed
 
 # Reference to the data model
-var squad_entity: SquadEntity
+var squad_entity: CharacterCombatStats
 
 # Visual components (may be created programmatically or from scene)
 @onready var sprite: Sprite3D = $Sprite3D
@@ -36,7 +36,7 @@ var _debug_id: String = ""
 
 ## Initialize the display with entity data (scene-based mode for old 2D system)
 ## This is called by the GUI when spawning entities from entity.tscn
-func setup(entity: SquadEntity) -> void:
+func setup(entity: CharacterCombatStats) -> void:
 	print("[EntityDisplay] Setting up display for entity %s [%d]" % [entity.entity_name, entity.player_id])
 	squad_entity = entity
 	_debug_id = "[Display:%s[%d]]" % [entity.entity_name, entity.player_id]
@@ -136,7 +136,7 @@ func _update_hp_bar_display() -> void:
 	
 	# Offset the fill bar to align left edge
 	var offset = (HP_BAR_MAX_WIDTH - new_width) / 2.0
-	hp_bar_fill.position.x = -offset
+	hp_bar_fill.position.x = - offset
 	
 	# Update HP label text
 	hp_label.text = "%.0f/%.0f" % [hp, max_hp]
@@ -148,11 +148,11 @@ func _update_hp_bar_display() -> void:
 		hp_bar_fill.material = fill_material
 		
 		if hp_ratio > 0.6:
-			fill_material.albedo_color = Color(0.2, 0.85, 0.3, 1.0)  # Green
+			fill_material.albedo_color = Color(0.2, 0.85, 0.3, 1.0) # Green
 		elif hp_ratio > 0.3:
-			fill_material.albedo_color = Color(0.95, 0.75, 0.2, 1.0)  # Yellow/Orange
+			fill_material.albedo_color = Color(0.95, 0.75, 0.2, 1.0) # Yellow/Orange
 		else:
-			fill_material.albedo_color = Color(0.9, 0.2, 0.2, 1.0)  # Red
+			fill_material.albedo_color = Color(0.9, 0.2, 0.2, 1.0) # Red
 
 func _animate_hp_bar_change(old_hp: float, new_hp: float) -> Tween:
 	if not squad_entity or not hp_bar_fill or not hp_label:
@@ -176,7 +176,7 @@ func _animate_hp_bar_change(old_hp: float, new_hp: float) -> Tween:
 		func(width: float):
 			hp_bar_fill.size.x = maxf(width, 0.01)
 			var offset = (HP_BAR_MAX_WIDTH - width) / 2.0
-			hp_bar_fill.position.x = -offset,
+			hp_bar_fill.position.x = - offset,
 		old_width, new_width, 0.3
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	
@@ -228,7 +228,7 @@ func _create_org_icons(count: int) -> void:
 		return
 	
 	var total_width = (count - 1) * ORG_ICON_SPACING
-	var start_x = -total_width / 2.0
+	var start_x = - total_width / 2.0
 	
 	for i in range(count):
 		var icon = Sprite3D.new()
@@ -237,7 +237,7 @@ func _create_org_icons(count: int) -> void:
 		icon.pixel_size = 0.008
 		icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		icon.render_priority = 105
-		icon.modulate = Color(1.0, 0.85, 0.2, 1.0)  # Golden yellow
+		icon.modulate = Color(1.0, 0.85, 0.2, 1.0) # Golden yellow
 		icon.position = Vector3(start_x + i * ORG_ICON_SPACING, 0, 0)
 		
 		org_container.add_child(icon)
@@ -336,7 +336,7 @@ func _jump() -> Tween:
 	return tween
 
 func switch_sprite(sprite_mode):
-	var sprite_name = "res://assets/%s-%s.png" % [EntityFactory.EntityClasses.keys()[squad_entity.class_id], sprite_mode]
+	var sprite_name = "res://assets/%s-%s.png" % [EntityClasses.Types.keys()[squad_entity.class_id], sprite_mode]
 	var texture = load(sprite_name)
 	assert(texture != null, "%s not found." % sprite_name)
 	sprite.material_override.set_shader_parameter("albedo_texture", texture)
@@ -358,9 +358,9 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	var hp_tween = _animate_hp_bar_change(old_val, new_val)
 	
 	if change < 0:
-		_flash_colour(Color(1.5,.5,.5))
+		_flash_colour(Color(1.5, .5, .5))
 	else:
-		_flash_colour(Color(.5,1.5,.5))
+		_flash_colour(Color(.5, 1.5, .5))
 
 	var jump_tween = _jump()
 	
@@ -383,7 +383,7 @@ func _handle_hp_change(old_val: float, new_val: float) -> void:
 	while not (completion["jump"] and completion["hp"]):
 		await get_tree().process_frame
 		wait_frames += 1
-		if wait_frames > 300:  # Safety timeout ~5 seconds at 60fps
+		if wait_frames > 300: # Safety timeout ~5 seconds at 60fps
 			push_warning("%s [HP] TIMEOUT waiting for animations! State: %s" % [_debug_id, completion])
 			break
 	
@@ -462,8 +462,8 @@ func _handle_dodge() -> void:
 	print("%s 💨 DODGE" % _debug_id)
 	
 	var tween = create_tween()
-	tween.tween_property(self, "position:z", position.z + 0.5, 0.1)
-	tween.tween_property(self, "position:z", position.z, 0.1)
+	tween.tween_property(self , "position:z", position.z + 0.5, 0.1)
+	tween.tween_property(self , "position:z", position.z, 0.1)
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 func _handle_proc() -> void:

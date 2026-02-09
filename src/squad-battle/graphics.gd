@@ -21,7 +21,7 @@ const META_ORIGINAL_POSITION: String = "original_position"
 
 func add_unit_to_row(
 		row_node: Node3D, unit_index: int,
-		unit_name: String, entity: SquadEntity) -> Node3D:
+		unit_name: String, entity: CharacterCombatStats) -> Node3D:
 	var unit_node: Node3D
 	
 	var display = ENTITY_SCENE.instantiate() as EntityDisplay
@@ -61,7 +61,7 @@ func update_row_positions(row_node: Node3D, animate: bool = false) -> void:
 			if animate and is_instance_valid(child):
 				var tween = create_tween()
 				tween.tween_property(child, "position", target_pos,
-					MOVE_ANIMATION_DURATION * 0.6)\
+					MOVE_ANIMATION_DURATION * 0.6) \
 					.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 			else:
 				child.position = target_pos
@@ -136,9 +136,9 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 	
 	unit_node.global_position = start_world_pos
 	var tween = create_tween()
-	tween\
-		.tween_property(unit_node, "position", target_local_pos, MOVE_ANIMATION_DURATION)\
-		.set_trans(Tween.TRANS_CUBIC)\
+	tween \
+		.tween_property(unit_node, "position", target_local_pos, MOVE_ANIMATION_DURATION) \
+		.set_trans(Tween.TRANS_CUBIC) \
 		.set_ease(Tween.EASE_IN_OUT)
 	
 	for child in ally_old_positions.keys():
@@ -146,9 +146,9 @@ func animate_move_to_row(unit_node: Node3D, target_row: Node3D, _target_index: i
 			var new_pos = final_positions[child]
 			if ally_old_positions[child].distance_to(new_pos) > 0.01:
 				var ally_tween = create_tween()
-				ally_tween\
-					.tween_property(child, "position", new_pos, MOVE_ANIMATION_DURATION * 0.6)\
-					.set_trans(Tween.TRANS_CUBIC)\
+				ally_tween \
+					.tween_property(child, "position", new_pos, MOVE_ANIMATION_DURATION * 0.6) \
+					.set_trans(Tween.TRANS_CUBIC) \
 					.set_ease(Tween.EASE_IN_OUT)
 			else:
 				child.position = new_pos
@@ -180,10 +180,10 @@ func animate_attack_recoil(unit_node: Node3D, attack_direction: Vector3 = Vector
 	
 	var recoil_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
 	var recoil_tween = create_tween()
-	await recoil_tween\
-		.tween_property(unit_node, "position", recoil_pos,RECOIL_ANIMATION_DURATION)\
-		.set_trans(Tween.TRANS_QUAD)\
-		.set_ease(Tween.EASE_OUT)\
+	await recoil_tween \
+		.tween_property(unit_node, "position", recoil_pos, RECOIL_ANIMATION_DURATION) \
+		.set_trans(Tween.TRANS_QUAD) \
+		.set_ease(Tween.EASE_OUT) \
 		.finished
 
 func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3.ZERO) -> void:
@@ -202,10 +202,10 @@ func animate_attack_lunge(unit_node: Node3D, attack_direction: Vector3 = Vector3
 
 	var lunge_pos = unit_node.position + attack_direction.normalized() * RECOIL_DISTANCE
 	var lunge_tween = create_tween()
-	await lunge_tween\
-		.tween_property(unit_node, "position", lunge_pos,RECOIL_ANIMATION_DURATION)\
-		.set_trans(Tween.TRANS_QUAD)\
-		.set_ease(Tween.EASE_OUT)\
+	await lunge_tween \
+		.tween_property(unit_node, "position", lunge_pos, RECOIL_ANIMATION_DURATION) \
+		.set_trans(Tween.TRANS_QUAD) \
+		.set_ease(Tween.EASE_OUT) \
 		.finished
 
 func animate_clink(unit_node: Node3D) -> void:
@@ -215,16 +215,16 @@ func animate_clink(unit_node: Node3D) -> void:
 	var original_pos = unit_node.position
 	var forward_push = original_pos + Vector3(0, 0.1, 0)
 	var tween = create_tween()
-	tween.tween_property(unit_node, "position", forward_push, RECOIL_ANIMATION_DURATION * 0.3)\
-		.set_trans(Tween.TRANS_QUAD)\
+	tween.tween_property(unit_node, "position", forward_push, RECOIL_ANIMATION_DURATION * 0.3) \
+		.set_trans(Tween.TRANS_QUAD) \
 		.set_ease(Tween.EASE_OUT)
-	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3)\
-		.set_trans(Tween.TRANS_ELASTIC)\
+	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3) \
+		.set_trans(Tween.TRANS_ELASTIC) \
 		.set_ease(Tween.EASE_OUT)
 	await tween.finished
 
 func animate_return_to_position(unit_node: Node3D) -> void:
-	if not unit_node or not is_instance_valid(unit_node)\
+	if not unit_node or not is_instance_valid(unit_node) \
 	or not unit_node.has_meta(META_ORIGINAL_POSITION):
 		return
 	
@@ -232,9 +232,9 @@ func animate_return_to_position(unit_node: Node3D) -> void:
 	if unit_node.position.distance_to(original_pos) < 0.01:
 		return
 	
-	await create_tween()\
-		.tween_property(unit_node, "position", original_pos, RETURN_ANIMATION_DURATION)\
-		.set_trans(Tween.TRANS_CUBIC)\
+	await create_tween() \
+		.tween_property(unit_node, "position", original_pos, RETURN_ANIMATION_DURATION) \
+		.set_trans(Tween.TRANS_CUBIC) \
 		.set_ease(Tween.EASE_IN_OUT).finished
 
 func animate_return_all_to_positions() -> void:
