@@ -69,7 +69,7 @@ func _to_string() -> String:
 		use_comparison
 	]
 
-func _get_glanceable_value(entity: SquadEntity, glanceable: Glanceable) -> float:
+func _get_glanceable_value(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
 		var value = entity.get_changeable_stat_num(_glanceable_translate(glanceable))
 		if inverse:
@@ -86,7 +86,7 @@ func _get_glanceable_value(entity: SquadEntity, glanceable: Glanceable) -> float
 		assert(false, "Invalid glanceable: %s" % glanceable)
 	return 0.0
 
-func _get_glanceable_value_max(entity: SquadEntity, glanceable: Glanceable) -> float:
+func _get_glanceable_value_max(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
 		return entity.get_ceiling_changeable_stat(_glanceable_translate(glanceable))
 	elif glanceable in realities:
@@ -97,10 +97,10 @@ func _get_glanceable_value_max(entity: SquadEntity, glanceable: Glanceable) -> f
 		assert(false, "Invalid glanceable: %s" % glanceable)
 	return 0.0
 
-func evaluate(entity: SquadEntity) -> float:
+func evaluate(entity: CharacterCombatStats) -> float:
 	var value = _get_glanceable_value(entity, property)
 
-	print("Evaluating glance: %s, value=%s" % [self, value])
+	print("Evaluating glance: %s, value=%s" % [ self , value])
 	
 	if normalize_as_percentage:
 		var max_v = _get_glanceable_value_max(entity, property)

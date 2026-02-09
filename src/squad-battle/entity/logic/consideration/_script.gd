@@ -35,7 +35,7 @@ func _score_with_glances(entity, situation, _context) -> float:
 	
 	# 1. Glance at each entity to evaluate and return a value for each, stored in glance_scores
 	var glance_scores: Array[float] = []
-	var best_score_so_far = -INF;
+	var best_score_so_far = - INF;
 	for entity_to_check in entities_to_evaluate:
 		var entity_score = glances.reduce(func(acc: float, glance: Glance): return acc + glance.evaluate(entity_to_check), 0.0)
 		if average_score_between_glances: entity_score = entity_score / glances.size()
@@ -70,7 +70,7 @@ func _score_with_glances(entity, situation, _context) -> float:
 		CsdrTypes.OP.keys()[op], entities_to_evaluate.size(), weight, result])
 	return result
 
-func _get_weapon_range_entities(entity: SquadEntity, situation: Situation) -> Array:
+func _get_weapon_range_entities(entity: CharacterCombatStats, situation: Situation) -> Array:
 	var countable_entities: Array = []
 	match entity_limiter:
 		"allies":
@@ -88,7 +88,7 @@ func _get_weapon_range_entities(entity: SquadEntity, situation: Situation) -> Ar
 	var targetable_locs = entity.weapon.get_range_at_location(situation.my_location())
 	var weapon_range_entities = targetable_locs.reduce(func(acc: Array, loc: SquadBattleTypes.SquadEntityInSquadLocation):
 		print("  [Consideration] Location: %s" % loc)
-		for e in countable_entities.filter(func(e: SquadEntity): return e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) == loc):
+		for e in countable_entities.filter(func(e: CharacterCombatStats): return e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) == loc):
 			print("  [Consideration] Entity: %s" % e.entity_name)
 			acc.append(e)
 		return acc
@@ -97,7 +97,7 @@ func _get_weapon_range_entities(entity: SquadEntity, situation: Situation) -> Ar
 	print("  [Consideration] Weapon range entities: %s" % [str(weapon_range_entities)])
 	return weapon_range_entities
 
-func _get_entities_to_evaluate(entity: SquadEntity, situation: Situation) -> Array:
+func _get_entities_to_evaluate(entity: CharacterCombatStats, situation: Situation) -> Array:
 	assert(entity_limiter in ["self", "allies", "enemies", "all"], "Invalid entity limiter: %s" % entity_limiter)
 	var entities: Array = []
 	match entity_limiter:

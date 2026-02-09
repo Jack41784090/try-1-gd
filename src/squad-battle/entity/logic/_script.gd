@@ -6,7 +6,7 @@
 # Runtime: Executes logic using the configuration
 class_name SimplifiedSquadLogic extends RefCounted
 
-var entity: SquadEntity
+var entity: CharacterCombatStats
 var situation: Situation
 var context: Dictionary
 var logic_specific_skills: Array[Skill] = []
@@ -63,9 +63,9 @@ func get_default_attack() -> Skill:
 func choose_clash() -> OneClash:
 	return choose_clash_with_skill(choose_skill())
 
-func choose_clash_with_skill(selected_skill: Skill) -> OneClash:	
+func choose_clash_with_skill(selected_skill: Skill) -> OneClash:
 	var target = selected_skill.targeting_consideration.score_then_return(entity, situation, context)
-	assert(target is SquadEntity or target == null);
+	assert(target is CharacterCombatStats or target == null);
 	if target == null:
 		print("No target found for skill %s" % selected_skill.name)
 		return null
