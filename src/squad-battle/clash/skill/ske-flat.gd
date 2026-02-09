@@ -5,8 +5,8 @@ class_name SkillEffectFlat extends SkillEffect
 
 # func _init(
 # 	_name: String = '',
-# 	_source: SquadEntity = null,
-# 	_affected: SquadEntity = null,
+# 	_source: CharacterCombatStats = null,
+# 	_affected: CharacterCombatStats = null,
 # 	# _targeting: Targeting = Targeting.SENTINEL,
 # 	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect,
 # 	_triggers: Array[StatusEffectEventBus.Signals] = [],
@@ -22,7 +22,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 		for t in triggers:
 			StatusEffectEventBus.Disconnect(t, commit)
 	else:
-		stacks -=1
+		stacks -= 1
 	
 	if updates_collector != null:
 		match SquadBattleTypes.EntityChangeable:

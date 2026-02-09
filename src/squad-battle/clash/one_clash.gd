@@ -2,16 +2,16 @@ class_name OneClash extends Resource
 
 var updates: Array[EntityUpdate] = []
 
-@export var affecteds: Array[SquadEntity] = []
-@export var attacker: SquadEntity
-@export var targeted: SquadEntity
+@export var affecteds: Array[CharacterCombatStats] = []
+@export var attacker: CharacterCombatStats
+@export var targeted: CharacterCombatStats
 @export var skill: Skill
 var situation: Situation;
 var context: Dictionary
 
 func _init(
-	_attacker: SquadEntity = null,
-	_targeted: SquadEntity = null,
+	_attacker: CharacterCombatStats = null,
+	_targeted: CharacterCombatStats = null,
 	_skill: Skill = null,
 	_situation: Situation = null,
 	_context: Dictionary = {}
@@ -191,4 +191,4 @@ func _format_triggers(trigger_array: Array) -> String:
 	return ", ".join(names)
 
 func _emit_seeb(_signal: StatusEffectEventBus.Signals):
-	StatusEffectEventBus.EmitSignal(_signal, self)
+	StatusEffectEventBus.EmitSignal(_signal, self )
