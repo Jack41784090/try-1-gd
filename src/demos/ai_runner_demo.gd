@@ -249,9 +249,9 @@ func create_test_squad(id: String, name: String, location: String) -> StrategicS
 	
 	# Add some warriors
 	for i in range(3):
-		var warrior = Warrior.new()
+		var warrior = CharacterSocialStats.new()
 		warrior.id = "%s_warrior_%d" % [id, i]
-		warrior.name = "Warrior %d" % i
+		warrior.name = "CharacterSocialStats %d" % i
 		warrior.morale = 50.0
 		warrior.combat_stats = EntityBaseStats.new()
 		squad.add_warrior(warrior)

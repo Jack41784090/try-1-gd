@@ -86,7 +86,7 @@ func _ready():
 				print("   Money: %d" % squad.money)
 				print("   Food: %d" % squad.food)
 				print("\n   Warriors:")
-				for warrior: Warrior in squad.warriors:
+				for warrior: CharacterSocialStats in squad.warriors:
 					if warrior != null and not warrior.is_dead:
 						print("     - %s (Injured: %s)" % [
 							warrior.name,
