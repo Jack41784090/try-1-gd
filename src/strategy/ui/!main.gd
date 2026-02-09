@@ -283,7 +283,7 @@ func _on_travel_cancelled() -> void:
 func _on_investigation_closed() -> void:
 	investigation_gui.hide_investigation_menu()
 
-func _on_recruitment_completed(warrior: Warrior) -> void:
+func _on_recruitment_completed(warrior: CharacterSocialStats) -> void:
 	print("[TrainingScreen] Recruited warrior: %s" % warrior.name)
 	_update_ui()
 	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)

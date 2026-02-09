@@ -150,10 +150,10 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
 
 	# Simple recruit logic: add a new warrior to the squad
-	var recruited_entity = EntityFactory.get_entity(EntityFactory.EntityClasses.Landsknecht)
+	var recruited_entity = EntityFactory.get_entity(EntityClasses.Types.Landsknecht)
 	var class_id = recruited_entity.class_id
 
-	var new_warrior = WarriorFactory.create_warrior(class_id, EntityFactory.EntityClasses.keys()[class_id], recruited_entity.entity_name, StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
+	var new_warrior = WarriorFactory.create_warrior(class_id, EntityClasses.Types.keys()[class_id], recruited_entity.entity_name, StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
 	new_warrior.name = "Recruit_%d" % world.turn_count
 	
 	print("[RecruitActivity] Recruited new warrior: %s" % new_warrior.name)

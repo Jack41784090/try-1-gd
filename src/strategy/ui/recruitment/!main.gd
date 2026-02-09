@@ -1,6 +1,6 @@
 class_name RecruitmentGUI extends Control
 
-signal recruitment_completed(warrior: Warrior)
+signal recruitment_completed(warrior: CharacterSocialStats)
 signal closed
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
@@ -43,10 +43,10 @@ func _update_display() -> void:
 	title_label.text = "Recruit Warriors"
 	money_label.text = "Available Money: %.0f" % current_squad.money
 	
-	for class_enum in EntityFactory.EntityClasses.values():
+	for class_enum in EntityClasses.Types.values():
 		_create_class_item(class_enum)
 
-func _create_class_item(class_enum: EntityFactory.EntityClasses) -> void:
+func _create_class_item(class_enum: EntityClasses.Types) -> void:
 	var entity_template = EntityFactory.get_entity(class_enum)
 	var class_id = entity_template.class_id
 	var cost = recruitment_costs.get(class_id, 100.0)
@@ -123,7 +123,7 @@ func _format_stats(stats: EntityBaseStats) -> String:
 		stats.int_stat
 	]
 
-func _on_recruit_pressed(class_enum: EntityFactory.EntityClasses, cost: float) -> void:
+func _on_recruit_pressed(class_enum: EntityClasses.Types, cost: float) -> void:
 	if current_squad.money < cost:
 		return
 	
