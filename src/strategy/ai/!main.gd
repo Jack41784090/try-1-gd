@@ -15,10 +15,10 @@ var squad_id: String = ""
 var survival_urgency: float = 0.0 # 0.0 = comfortable, 1.0 = desperate
 
 # Decision mode thresholds
-const SURVIVAL_FOOD_THRESHOLD: int = 20
-const SURVIVAL_MONEY_THRESHOLD: float = 50.0
-const COMFORTABLE_FOOD_LEVEL: int = 40
-const COMFORTABLE_MONEY_LEVEL: float = 150.0
+const SURVIVAL_FOOD_THRESHOLD: int = 5
+const SURVIVAL_MONEY_THRESHOLD: float = 20.0
+const COMFORTABLE_FOOD_LEVEL: int = 15
+const COMFORTABLE_MONEY_LEVEL: float = 60.0
 
 # Activity preferences by mode
 enum DecisionMode {
@@ -59,11 +59,11 @@ func calculate_survival_urgency() -> float:
 	# Take the maximum urgency (most desperate need)
 	var urgency = max(food_urgency, money_urgency)
 	
-	# If below critical thresholds, urgency jumps higher
+	# If below critical thresholds, urgency increases but not overwhelmingly
 	if assigned_squad.food < SURVIVAL_FOOD_THRESHOLD:
-		urgency = max(urgency, 0.8)
+		urgency = max(urgency, 0.6)
 	if assigned_squad.money < SURVIVAL_MONEY_THRESHOLD:
-		urgency = max(urgency, 0.7)
+		urgency = max(urgency, 0.55)
 	
 	return clamp(urgency, 0.0, 1.0)
 
@@ -149,34 +149,48 @@ func _decide_survival_mode(world: World, current_location: Location, context: Di
 ## Achievement mode: pursue objectives and eliminate threats
 func _decide_achievement_mode(world: World, current_location: Location, context: Dictionary) -> StrategyTypes.ActivityType:
 	# Priority 1: Investigate for clues about enemy squads
-	if current_location.has_activity_type(StrategyTypes.ActivityType.INVESTIGATE):
+	if current_location != null and current_location.has_activity_type(StrategyTypes.ActivityType.INVESTIGATE):
 		var active_clues = current_location.get_active_clues(world.turn_count)
 		if active_clues.size() > 0:
 			print("[AIRunner:%s] ACHIEVEMENT: Investigating clues at current location" % squad_id)
 			return StrategyTypes.ActivityType.INVESTIGATE
 	
 	# Priority 2: Attack enemies at current location
-	var enemies = world.get_squads_at_location(current_location.location_id)
+	var enemies = world.get_squads_at_location(assigned_squad.current_location_id)
+	print("[AIRunner:%s] Checking for enemies at %s: found %d squads" % [
+		squad_id,
+		assigned_squad.current_location_id,
+		enemies.size()
+	])
 	if not enemies.is_empty():
 		var target = _choose_attack_target(enemies)
 		if target:
 			print("[AIRunner:%s] ACHIEVEMENT: Attacking enemy squad %s" % [squad_id, target.squad_id])
 			context["attack_target"] = target.squad_id
 			return StrategyTypes.ActivityType.ATTACK
+		else:
+			print("[AIRunner:%s] No valid targets after filtering" % squad_id)
 	
-	# Priority 3: Track down known enemy locations via clues
+	# Priority 3: Hunt for enemy squads at other locations
+	var enemy_location = _find_nearest_enemy_location(world, current_location)
+	if enemy_location and enemy_location.location_id != current_location.location_id:
+		print("[AIRunner:%s] ACHIEVEMENT: Hunting enemies at %s" % [squad_id, enemy_location.location_name])
+		context["travel_destination"] = enemy_location.location_id
+		return StrategyTypes.ActivityType.FORCE_MARCH
+	
+	# Priority 4: Track down known enemy locations via clues
 	var clue_destination = _find_clue_destination(current_location, world)
 	if clue_destination:
 		print("[AIRunner:%s] ACHIEVEMENT: Pursuing clue to %s" % [squad_id, clue_destination])
 		context["travel_destination"] = clue_destination
 		return StrategyTypes.ActivityType.FORCE_MARCH # Fast pursuit
 	
-	# Priority 4: Patrol to generate clues or find enemies
-	if current_location.has_activity_type(StrategyTypes.ActivityType.PATROL):
+	# Priority 5: Patrol to generate clues or find enemies
+	if current_location != null and current_location.has_activity_type(StrategyTypes.ActivityType.PATROL):
 		print("[AIRunner:%s] ACHIEVEMENT: Patrolling area" % squad_id)
 		return StrategyTypes.ActivityType.PATROL
 	
-	# Priority 5: Move to high-value locations (cities, forts)
+	# Priority 6: Move to high-value locations (cities, forts)
 	var strategic_location = _find_nearest_location_of_type(
 		world,
 		current_location,
@@ -188,7 +202,7 @@ func _decide_achievement_mode(world: World, current_location: Location, context:
 		return StrategyTypes.ActivityType.TRAVEL
 	
 	# Default: Drill to improve combat effectiveness
-	if current_location.has_activity_type(StrategyTypes.ActivityType.DRILL):
+	if current_location != null and current_location.has_activity_type(StrategyTypes.ActivityType.DRILL):
 		print("[AIRunner:%s] ACHIEVEMENT: Drilling squad" % squad_id)
 		return StrategyTypes.ActivityType.DRILL
 	
@@ -224,21 +238,58 @@ func _find_nearest_location_of_type(world: World, from_location: Location, types
 	
 	return null
 
+## Find nearest location with enemy squads
+func _find_nearest_enemy_location(world: World, from_location: Location) -> Location:
+	if not world.travel_graph:
+		return null
+	
+	var visited: Dictionary = {}
+	var queue: Array = [from_location.location_id]
+	visited[from_location.location_id] = true
+	
+	while queue.size() > 0:
+		var current_id = queue.pop_front()
+		var current_loc = world.get_location_by_id(current_id)
+		
+		if not current_loc:
+			continue
+		
+		# Check if this location has enemy squads (excluding self)
+		if current_id != from_location.location_id:
+			var squads = world.get_squads_at_location(current_id)
+			for squad in squads:
+				if squad.squad_id != squad_id: # Use squad_id not executor.squad.squad_id
+					return current_loc
+		
+		# Add neighbors to queue
+		for neighbor_id in current_loc.connections:
+			if not visited.has(neighbor_id):
+				visited[neighbor_id] = true
+				queue.append(neighbor_id)
+	
+	return null
+
 ## Choose which enemy squad to attack based on strategic considerations
 func _choose_attack_target(enemies: Array) -> StrategicSquad:
 	if enemies.is_empty():
 		return null
 	
-	# For now, choose the weakest target (lowest morale)
 	# Filter out self (squad attacking itself)
 	var valid_enemies: Array[StrategicSquad] = []
 	for enemy in enemies:
-		if enemy.squad_id != executor.squad.squad_id:
+		if enemy.squad_id != squad_id: # Use squad_id not executor.squad.squad_id
 			valid_enemies.append(enemy)
+	
+	print("[AIRunner:%s] Filtered %d enemies down to %d valid targets" % [
+		squad_id,
+		enemies.size(),
+		valid_enemies.size()
+	])
 	
 	if valid_enemies.is_empty():
 		return null
 	
+	# Choose the weakest target (lowest morale)
 	var weakest = valid_enemies[0]
 	for enemy in valid_enemies:
 		if enemy.get_morale() < weakest.get_morale():

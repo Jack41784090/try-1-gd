@@ -3,7 +3,7 @@ class_name CombatController
 
 ## Controls combat flow between strategic and tactical layers
 ## Manages pre-combat intermission, combat execution, and post-combat resolution
-## Integrates with CombatBridge for Warrior↔Entity mapping
+## Integrates with CombatBridge for CharacterSocialStats↔Entity mapping
 
 signal combat_ended()
 

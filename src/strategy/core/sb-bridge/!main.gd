@@ -56,7 +56,7 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 	var formation = strategic_squad.formation
 	
 	for i in range(living_warriors.size()):
-		var warrior: Warrior = living_warriors[i]
+		var warrior: CharacterSocialStats = living_warriors[i]
 		var entity_id = _next_entity_id
 		_next_entity_id += 1
 		

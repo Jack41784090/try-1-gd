@@ -93,12 +93,12 @@ static func _create_demo_locations(demo_values: Dictionary) -> Array[Location]:
 static func _create_demo_squad(demo_values: Dictionary) -> StrategicSquad:
 	var squad_values = demo_values["squad"]
 	return _create_squad(
-		squad_values["squad_id"], 
-		squad_values["squad_name"], 
-		squad_values["money"], 
-		squad_values["food"], 
-		squad_values["travel_tools"], 
-		squad_values["karma"], 
+		squad_values["squad_id"],
+		squad_values["squad_name"],
+		squad_values["money"],
+		squad_values["food"],
+		squad_values["travel_tools"],
+		squad_values["karma"],
 		squad_values["starting_location_id"]
 	)
 
@@ -146,8 +146,8 @@ static func _create_world(turn_count: int, end_progression: float, locations: Ar
 	world.build_travel_graph()
 	return world
 
-static func _create_warriors() -> Array[Warrior]:
-	var warriors: Array[Warrior] = []
+static func _create_warriors() -> Array[CharacterSocialStats]:
+	var warriors: Array[CharacterSocialStats] = []
 	var names = ["Marcus", "Giovanni", "Alessandro", "Francesco", "Lorenzo"]
 	var religions = [
 		StrategyTypes.Religion.CATHOLIC,
@@ -158,7 +158,7 @@ static func _create_warriors() -> Array[Warrior]:
 	]
 	
 	for i in range(5):
-		var warrior = Warrior.new()
+		var warrior = CharacterSocialStats.new()
 		warrior.id = "warrior_%d" % i
 		warrior.name = names[i]
 		warrior.morale = randf_range(70.0, 100.0)
