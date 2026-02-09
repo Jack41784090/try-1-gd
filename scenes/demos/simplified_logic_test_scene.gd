@@ -656,7 +656,7 @@ func test_scenario_priority_resolution() -> void:
 # Helper Functions
 # ============================================================================
 
-func create_test_entity(config: Dictionary) -> SquadEntity:
+func create_test_entity(config: Dictionary) -> CharacterCombatStat:
 	# Create entity with proper stats initialization
 	var stats = EntityBaseStats.new()
 	stats.endurance = 10.0 # Will give HP = 10*5 + 5*2 = 60
@@ -694,7 +694,7 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 		var desired_max_org = config["max_org"]
 		stats.wil = (desired_max_org - 1) / stats.fai
 
-	var entity = SquadEntity.new(entity_config)
+	var entity = CharacterCombatStat.new(entity_config)
 	
 	# Override HP if specified (after initialise_changeables is called by constructor)
 	if config.has("hp"):
@@ -706,7 +706,7 @@ func create_test_entity(config: Dictionary) -> SquadEntity:
 	
 	return entity
 
-func create_basic_context(entity: SquadEntity) -> Dictionary:
+func create_basic_context(entity: CharacterCombatStat) -> Dictionary:
 	var our_squad = {}
 	# var enemy_squad = {}
 
@@ -717,7 +717,7 @@ func create_basic_context(entity: SquadEntity) -> Dictionary:
 		"enemy_squad": {}
 	}
 
-func create_outnumbered_scenario(entity: SquadEntity, ally_count: int, enemy_count: int) -> Dictionary:
+func create_outnumbered_scenario(entity: CharacterCombatStat, ally_count: int, enemy_count: int) -> Dictionary:
 	var allies = create_entities_at_location(ally_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	var enemies = create_entities_at_location(enemy_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	
