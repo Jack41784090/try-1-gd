@@ -92,7 +92,7 @@ func get_raw_weapon_damage(attacker) -> float:
 	
 	return damage
 
-# func get_weapon_skills(source: SquadEntity) -> Array[Skill]:
+# func get_weapon_skills(source: CharacterCombatStats) -> Array[Skill]:
 # 	return [
 # 		Skill.new(
 # 			weapon_name + "-basic-attack",
