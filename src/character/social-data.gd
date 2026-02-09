@@ -1,14 +1,7 @@
-extends Resource
-class_name Warrior
+class_name CharacterSocialStats extends Resource
 
-var class_id: EntityFactory.EntityClasses:
-	# set(_ci):
-	# 	assert(false, "Warrior.class_id is read-only")
-	# 	return _ci;
-	get:
-		return class_id
-@export var id: String = ""
-@export var name: String = ""
+# @export var id: String = ""
+# @export var name: String = ""
 @export var morale: float = 50.0
 @export var religion: StrategyTypes.Religion = StrategyTypes.Religion.CATHOLIC
 @export var attributes: Dictionary = {
@@ -37,7 +30,7 @@ func _init() -> void:
 		combat_stats = EntityBaseStats.new()
 
 func _to_string() -> String:
-	return "Warrior(id=%s, name=%s, morale=%f, religion=%s, attributes=%s)" % [id, name, morale, _religion_tostring(religion), attributes]
+	return "CharacterSocialStats(morale=%f, religion=%s, attributes=%s)" % [morale, _religion_tostring(religion), attributes]
 
 func modify_morale(amount: float) -> void:
 	morale = clamp(morale + amount, 0.0, 200.0)
@@ -92,19 +85,19 @@ func convert_to_entity(entity_id, team, starting_loc, ) -> EntityConfig:
 		e_config.weapon = self.equipment_weapon
 	else:
 		e_config.weapon_class = WeaponFactory.WeaponClasses.Unarmed
-		print("[CombatBridge]   Warrior '%s' has no weapon, using Unarmed" % self.name)
+		print("[CombatBridge]   CharacterSocialStats '%s' has no weapon, using Unarmed" % self.name)
 	
 	if self.equipment_armor:
 		e_config.armor = self.equipment_armor
 	else:
 		e_config.armor_class = ArmorFactory.ArmorClasses.Unarmored
-		print("[CombatBridge]   Warrior '%s' has no armor, using Unarmored" % self.name)
+		print("[CombatBridge]   CharacterSocialStats '%s' has no armor, using Unarmored" % self.name)
 
 	return e_config
 		
 
 func from_combat_result(entity_update: EntityUpdate) -> void:
-	push_warning("Warrior.from_combat_result() - Combat bridge not yet fully implemented")
+	push_warning("CharacterSocialStats.from_combat_result() - Combat bridge not yet fully implemented")
 	
 	match entity_update.change.property:
 		SquadBattleTypes.EntityChangeable.HP:
