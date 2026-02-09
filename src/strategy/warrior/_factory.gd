@@ -1,7 +1,7 @@
 class_name WarriorFactory
 
-static func create_warrior(class_id: EntityFactory.EntityClasses, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats) -> Warrior:
-	var warrior = Warrior.new()
+static func create_warrior(class_id: EntityClasses.Types, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats) -> CharacterSocialStats:
+	var warrior = CharacterSocialStats.new()
 	warrior.class_id = class_id
 	warrior.id = id
 	warrior.name = name
