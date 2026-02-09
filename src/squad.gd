@@ -3,7 +3,7 @@ class_name StrategicSquad
 
 @export var squad_id: String = ""
 @export var squad_name: String = "Unnamed Squad"
-@export var warriors: Array[Warrior] = []
+@export var warriors: Array[CharacterSocialStats] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0
 @export var food: int = 0
@@ -32,7 +32,7 @@ func _duplicate_warriors() -> void:
 		print("  WARNING: No warriors to duplicate!")
 		return
 		
-	var duplicated_warriors: Array[Warrior] = []
+	var duplicated_warriors: Array[CharacterSocialStats] = []
 	for i in range(warriors.size()):
 		var warrior = warriors[i]
 		if warrior != null:
@@ -55,7 +55,7 @@ func ensure_initialized() -> void:
 	
 	print("  Warriors count: ", warriors.size())
 	for i in range(warriors.size()):
-		print("  Warrior %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
+		print("  CharacterSocialStats %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
 	# update_aggregate_morale()
 	if starting_location_id != "" and current_location_id == "":
 		current_location_id = starting_location_id
@@ -132,14 +132,14 @@ func modify_aggregate_morale(mod: float) -> void:
 func get_morale() -> float:
 	return aggregate_morale
 
-func add_warrior(warrior: Warrior) -> void:
+func add_warrior(warrior: CharacterSocialStats) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	# update_aggregate_morale()
 
-func remove_dead_warriors() -> Array[Warrior]:
-	var dead_warriors: Array[Warrior] = []
-	var new_warriors: Array[Warrior] = []
+func remove_dead_warriors() -> Array[CharacterSocialStats]:
+	var dead_warriors: Array[CharacterSocialStats] = []
+	var new_warriors: Array[CharacterSocialStats] = []
 	var new_formation: Array[int] = []
 	
 	for i in range(warriors.size()):
@@ -158,14 +158,14 @@ func remove_dead_warriors() -> Array[Warrior]:
 	
 	return dead_warriors
 
-func get_living_warriors() -> Array[Warrior]:
-	var living: Array[Warrior] = []
+func get_living_warriors() -> Array[CharacterSocialStats]:
+	var living: Array[CharacterSocialStats] = []
 	for warrior in warriors:
 		if not warrior.is_dead:
 			living.append(warrior)
 	return living
 
-func get_warrior_by_id(warrior_id: String) -> Warrior:
+func get_warrior_by_id(warrior_id: String) -> CharacterSocialStats:
 	for warrior in warriors:
 		if warrior.id == warrior_id:
 			return warrior
@@ -202,8 +202,8 @@ func attempt_stealth_at_location(location: Location, destination_id: String, cur
 	
 	return clues_left
 
-func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Warrior]:
-	var matching: Array[Warrior] = []
+func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[CharacterSocialStats]:
+	var matching: Array[CharacterSocialStats] = []
 	for warrior in warriors:
 		if warrior.check_religion(religion_type):
 			matching.append(warrior)
