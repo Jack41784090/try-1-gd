@@ -18,7 +18,7 @@
 [ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/!main.gd" id="12_jx64g"]
 [ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/!main.gd" id="12_manage_squad"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
-[ext_resource type="Script" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
+[ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
