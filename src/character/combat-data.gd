@@ -1,11 +1,11 @@
-class_name SquadEntity extends Resource
+class_name CharacterCombatStats extends Resource
 
 var _debug_id = "Entity_script_unknown";
 
 #region Init from Resource
-@export var class_id: EntityFactory.EntityClasses
+# @export var class_id: EntityClasses.Types
+# @export var entity_name: String
 
-@export var entity_name: String
 @export var stats: EntityBaseStats
 @export var icon: Texture2D
 
@@ -39,8 +39,8 @@ var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
 
 static func quick_dummy():
-	return SquadEntity.new(EntityConfig.new(
-		EntityFactory.EntityClasses.Landsknecht,
+	return CharacterCombatStats.new(EntityConfig.new(
+		EntityClasses.Types.Landsknecht,
 		0,
 		"Dummy",
 		"Dummy",
@@ -67,7 +67,7 @@ func _to_string() -> String:
 	var mag = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.MAG)
 	var loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
 	
-	var class_id_str = class_id if class_id else "NULL"
+	# var class_id_str = class_id if class_id else "NULL"
 	var weapon_str = weapon.weapon_name if weapon else "NULL"
 	var armor_str = armor.armor_name if armor else "NULL"
 	var icon_str = icon.resource_path if icon else "NULL"
@@ -91,14 +91,14 @@ func _to_string() -> String:
 	else:
 		status_effects_str = "NULL"
 	
-	return "SquadEntity(ClassID:%s Name:%s[%d] Team:%s %s%s | HP:%.1f/%.1f ORG:%.1f/%.1f STA:%.1f POS:%.1f MAG:%.1f LOC:%d | Weapon:%s Armor:%s Icon:%s | Skills:[%s] Status:[%s])" % [
-		class_id_str, entity_name, player_id, team, status_str, retreat_str,
+	return "CharacterCombatStats(PlayerID:%s Team:%s %s%s | HP:%.1f/%.1f ORG:%.1f/%.1f STA:%.1f POS:%.1f MAG:%.1f LOC:%d | Weapon:%s Armor:%s Icon:%s | Skills:[%s] Status:[%s])" % [
+		player_id, team, status_str, retreat_str,
 		hp, hp_max, org, org_max, sta, pos, mag, loc,
 		weapon_str, armor_str, icon_str, skills_str, status_effects_str
 	]
 
 func set_player_id(_id):
-	_debug_id = "%s[%d]" % [entity_name, _id]
+	_debug_id = "[%d]" % [_id]
 	player_id = _id
 
 
@@ -106,7 +106,7 @@ func set_team(_team):
 	team = _team
 
 func init_after():
-	_debug_id = "%s[%d]" % [entity_name, player_id]
+	_debug_id = "[%d]" % [player_id]
 	print(" --- %s initialized after --- " % _debug_id)
 	
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
@@ -119,7 +119,7 @@ func init_after():
 func _validate_existence():
 	print(self )
 	# assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
-	assert(class_id != null, "Class ID must not be null")
+	# assert(class_id != null, "Class ID must not be null")
 
 
 func _init(config: EntityConfig = null):
@@ -133,8 +133,8 @@ func _init(config: EntityConfig = null):
 		print(" --- %s initialized with config, should expect init_after() call afterwards --- " % _debug_id)
 	
 	player_id = config.player_id
-	class_id = config.entity_type_id
-	entity_name = config.name
+	# class_id = config.entity_type_id
+	# entity_name = config.name
 	side = config.side
 	team = config.team
 	stats = config.stats
