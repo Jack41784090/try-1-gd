@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="2_world"]
 [ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="3_1wmke"]
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_d8gha"]
-[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad.gd" id="3_squad"]
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_squad"]
 [ext_resource type="Resource" uid="uid://dqekkd30ffwmi" path="res://resources/strategy-squads/test-squad-bandits.tres" id="4_5wn4r"]
 [ext_resource type="Resource" uid="uid://bvmnx8q3fy7qi" path="res://resources/strategy-squads/test-squad-mercenaries.tres" id="5_merc"]
 [ext_resource type="Resource" uid="uid://cp3nyaq4g08rj" path="res://resources/strategy-squads/test-squad-rebels.tres" id="6_rebel"]
