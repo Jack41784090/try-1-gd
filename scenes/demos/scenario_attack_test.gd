@@ -139,7 +139,7 @@ func test_load_scenario() -> bool:
 	
 	print("\n  [INFO] Scenario initialized successfully:")
 	print("    - World: %s" % game_scenario.world)
-	print("    - Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
+	print("    - Player SquadCombatData: %s" % game_scenario.starting_player_squad.squad_name)
 	print("    - Starting Location: %s" % game_scenario.current_location.location_name)
 	print("    - Turn: %d" % game_scenario.world.turn_count)
 	
@@ -178,7 +178,7 @@ func test_verify_world_state() -> void:
 func test_find_forest_bandits() -> bool:
 	start_test("Search for Forest Bandits in roaming squads")
 	
-	var forest_bandits: StrategicSquad = null
+	var forest_bandits: SquadStrategicData = null
 	for squad in game_scenario.world.roaming_squads:
 		print("    [SEARCH] Checking squad: %s" % squad.squad_name)
 		if squad.squad_name == "Forest Bandits":
@@ -196,7 +196,7 @@ func test_find_forest_bandits() -> bool:
 	assert_true(forest_bandits.current_location_id != "", "Bandits have current location")
 	
 	print("\n  [INFO] Forest Bandits details:")
-	print("    - Squad ID: %s" % forest_bandits.squad_id)
+	print("    - SquadCombatData ID: %s" % forest_bandits.squad_id)
 	print("    - Location: %s" % forest_bandits.current_location_id)
 	print("    - Warriors: %d" % bandit_warriors.size())
 	for warrior in bandit_warriors:
@@ -298,7 +298,7 @@ func test_verify_combat_results() -> void:
 	assert_greater_than(player_warriors.size(), 0, "Player squad has warriors array")
 	
 	print("\n  [POST-COMBAT STATUS]")
-	print("    Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
+	print("    Player SquadCombatData: %s" % game_scenario.starting_player_squad.squad_name)
 	print("    Living Warriors: %d" % game_scenario.starting_player_squad.get_living_warriors().size())
 	print("    Morale: %.1f" % game_scenario.starting_player_squad.get_morale())
 	print("    Money: %.1f" % game_scenario.starting_player_squad.money)

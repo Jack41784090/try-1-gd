@@ -30,7 +30,7 @@ func _init(config: Dictionary):
 		teams_and_squads[team_name] = []
 		
 		for squad_config in squad_configs:
-			var squad = Squad.new(squad_config)
+			var squad = SquadCombatData.new(squad_config)
 			teams_and_squads[team_name].append(squad)
 		
 		team_names.append(team_name)

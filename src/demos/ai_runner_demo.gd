@@ -39,8 +39,8 @@ func test_survival_mode_low_food():
 	var decision = ai_runner.decide_activity(scenario.world, context)
 	
 	print("\nResult:")
-	print("  Squad food: %d (critical threshold: 20)" % ai_squad.food)
-	print("  Squad money: %.1f" % ai_squad.money)
+	print("  SquadCombatData food: %d (critical threshold: 20)" % ai_squad.food)
+	print("  SquadCombatData money: %.1f" % ai_squad.money)
 	print("  Survival urgency: %.2f" % ai_runner.survival_urgency)
 	print("  Decision mode: %s" % AIRunner.DecisionMode.keys()[ai_runner.get_decision_mode()])
 	print("  Decided activity: %s" % StrategyTypes.ActivityType.keys()[decision])
@@ -71,8 +71,8 @@ func test_survival_mode_low_money():
 	var decision = ai_runner.decide_activity(scenario.world, context)
 	
 	print("\nResult:")
-	print("  Squad food: %d" % ai_squad.food)
-	print("  Squad money: %.1f (critical threshold: 50)" % ai_squad.money)
+	print("  SquadCombatData food: %d" % ai_squad.food)
+	print("  SquadCombatData money: %.1f (critical threshold: 50)" % ai_squad.money)
 	print("  Survival urgency: %.2f" % ai_runner.survival_urgency)
 	print("  Decision mode: %s" % AIRunner.DecisionMode.keys()[ai_runner.get_decision_mode()])
 	print("  Decided activity: %s" % StrategyTypes.ActivityType.keys()[decision])
@@ -93,7 +93,7 @@ func test_achievement_mode_with_enemies():
 	ai_squad.money = 300.0 # Plenty
 	
 	# Add enemy squad at same location
-	var enemy_squad = create_test_squad("target_squad", "Target Squad", "city_1")
+	var enemy_squad = create_test_squad("target_squad", "Target SquadCombatData", "city_1")
 	scenario.world.roaming_squads.append(enemy_squad)
 	
 	var ai_runner = AIRunner.new()
@@ -103,8 +103,8 @@ func test_achievement_mode_with_enemies():
 	var decision = ai_runner.decide_activity(scenario.world, context)
 	
 	print("\nResult:")
-	print("  Squad food: %d" % ai_squad.food)
-	print("  Squad money: %.1f" % ai_squad.money)
+	print("  SquadCombatData food: %d" % ai_squad.food)
+	print("  SquadCombatData money: %.1f" % ai_squad.money)
 	print("  Survival urgency: %.2f" % ai_runner.survival_urgency)
 	print("  Decision mode: %s" % AIRunner.DecisionMode.keys()[ai_runner.get_decision_mode()])
 	print("  Decided activity: %s" % StrategyTypes.ActivityType.keys()[decision])
@@ -143,8 +143,8 @@ func test_achievement_mode_with_clues():
 	var decision = ai_runner.decide_activity(scenario.world, context)
 	
 	print("\nResult:")
-	print("  Squad food: %d" % ai_squad.food)
-	print("  Squad money: %.1f" % ai_squad.money)
+	print("  SquadCombatData food: %d" % ai_squad.food)
+	print("  SquadCombatData money: %.1f" % ai_squad.money)
 	print("  Survival urgency: %.2f" % ai_runner.survival_urgency)
 	print("  Decision mode: %s" % AIRunner.DecisionMode.keys()[ai_runner.get_decision_mode()])
 	print("  Decided activity: %s" % StrategyTypes.ActivityType.keys()[decision])
@@ -174,7 +174,7 @@ func test_survival_urgency_calculation():
 	
 	print("\nResults:")
 	for test_case in test_cases:
-		var squad = create_test_squad("test_squad", "Test Squad", "city_1")
+		var squad = create_test_squad("test_squad", "Test SquadCombatData", "city_1")
 		squad.food = test_case["food"]
 		squad.money = test_case["money"]
 		
@@ -237,8 +237,8 @@ func create_test_scenario() -> GameScenario:
 	
 	return scenario
 
-func create_test_squad(id: String, name: String, location: String) -> StrategicSquad:
-	var squad = StrategicSquad.new()
+func create_test_squad(id: String, name: String, location: String) -> SquadStrategicData:
+	var squad = SquadStrategicData.new()
 	squad.squad_id = id
 	squad.squad_name = name
 	squad.money = 100.0

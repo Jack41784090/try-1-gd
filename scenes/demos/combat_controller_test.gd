@@ -112,8 +112,8 @@ func create_test_warrior(id: String, warrior_name: String) -> CharacterSocialSta
 	
 	return warrior
 
-func create_test_player_squad() -> StrategicSquad:
-	var squad = StrategicSquad.new()
+func create_test_player_squad() -> SquadStrategicData:
+	var squad = SquadStrategicData.new()
 	squad.squad_id = "player_squad"
 	squad.squad_name = "Test Heroes"
 	squad.current_location_id = "test_location"
@@ -126,8 +126,8 @@ func create_test_player_squad() -> StrategicSquad:
 	squad.update_aggregate_morale()
 	return squad
 
-func create_test_enemy_squad() -> StrategicSquad:
-	var squad = StrategicSquad.new()
+func create_test_enemy_squad() -> SquadStrategicData:
+	var squad = SquadStrategicData.new()
 	squad.squad_id = "enemy_squad"
 	squad.squad_name = "Test Enemies"
 	squad.current_location_id = "test_location"

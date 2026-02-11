@@ -26,7 +26,7 @@ func _ready() -> void:
 	spawn_all_entities()
 	is_running = true
 
-	SBLog.section("Squad Battle Started!", 0, 2, 1)
+	SBLog.section("SquadCombatData Battle Started!", 0, 2, 1)
 	await get_tree().create_timer(1.0).timeout
 	process_round()
 
@@ -97,8 +97,8 @@ func spawn_all_entities() -> void:
 		var is_attacker = (team_name == SquadBattleTypes.Side.ATTACKER)
 		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 
-		for squad: Squad in squads:
-			for entity: CharacterCombatStats in squad.entities:
+		for squad: SquadCombatData in squads:
+			for entity: CharacterCombatStats in squad.combat_characters:
 				var location = entity.get_changeable_stat_num(
 					SquadBattleTypes.EntityChangeable.LOC
 				) as int

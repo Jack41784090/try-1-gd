@@ -17,7 +17,7 @@ func test_basic_headless_combat():
 	
 	var attacker_squad_config = {
 		"entities": attacker_entities,
-		"name": "Attacker Squad",
+		"name": "Attacker SquadCombatData",
 		"team": "player",
 		"side": SquadBattleTypes.Side.ATTACKER
 	}
@@ -30,7 +30,7 @@ func test_basic_headless_combat():
 	
 	var defender_squad_config = {
 		"entities": defender_entities,
-		"name": "Defender Squad",
+		"name": "Defender SquadCombatData",
 		"team": "enemy",
 		"side": SquadBattleTypes.Side.DEFENDER
 	}
