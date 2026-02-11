@@ -1,20 +1,20 @@
 extends RefCounted
 class_name CombatBridge
 
-# signal combat_requested(player_squad: StrategicSquad, enemy_squad: StrategicSquad, context: Dictionary)
+# signal combat_requested(player_squad: SquadStrategicData, enemy_squad: SquadStrategicData, context: Dictionary)
 # signal combat_phase_completed(updates: Array[EntityUpdate])
 # signal combat_ended(result: Dictionary)
 
 var warrior_to_entity: Dictionary = {}
 var entity_to_warrior: Dictionary = {}
 var current_battle: SquadBattle = null
-var player_combat_squad: Squad = null
-var enemy_combat_squad: Squad = null
+var player_combat_squad: SquadCombatData = null
+var enemy_combat_squad: SquadCombatData = null
 var current_tactic: Tactic = null
 var _next_entity_id: int = 1
 func create_battle(
-	player_squad: StrategicSquad,
-	enemy_squad: StrategicSquad,
+	player_squad: SquadStrategicData,
+	enemy_squad: SquadStrategicData,
 	tactic: Tactic
 ) -> SquadBattle:
 	clear_mappings()
@@ -42,7 +42,7 @@ func create_battle(
 		"defender_tactic": enemy_tactic
 	})
 	
-	# Store Squad references after battle creation
+	# Store SquadCombatData references after battle creation
 	if current_battle.teams_and_squads.has("player") and current_battle.teams_and_squads["player"].size() > 0:
 		player_combat_squad = current_battle.teams_and_squads["player"][0]
 	if current_battle.teams_and_squads.has("enemy") and current_battle.teams_and_squads["enemy"].size() > 0:
@@ -50,7 +50,7 @@ func create_battle(
 	
 	return current_battle
 
-func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: SquadBattleTypes.Side) -> Dictionary:
+func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side: SquadBattleTypes.Side) -> Dictionary:
 	var entity_configs: Array = []
 	var living_warriors = strategic_squad.get_living_warriors()
 	var formation = strategic_squad.formation
@@ -80,7 +80,7 @@ func _build_squad_config(strategic_squad: StrategicSquad, team: String, side: Sq
 	
 	return squad_config
 
-func apply_results(strategic_squad: StrategicSquad, updates: Array[EntityUpdate]) -> Dictionary:
+func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpdate]) -> Dictionary:
 	var result = {
 		"deaths": [],
 		"injuries": [],

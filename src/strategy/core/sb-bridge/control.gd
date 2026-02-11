@@ -41,8 +41,8 @@ class CombatResult extends RefCounted:
 			return "CombatResult[DEFEAT, casualties=%d]" % player_casualties.size()
 
 var combat_bridge: CombatBridge
-var current_player_squad: StrategicSquad
-var current_enemy_squad: StrategicSquad
+var current_player_squad: SquadStrategicData
+var current_enemy_squad: SquadStrategicData
 var current_tactic: Tactic
 var is_in_combat: bool = false
 var combat_phase: int = 0
@@ -176,7 +176,7 @@ func _attempt_flee() -> CombatResult:
 	# intermission_choice_made.emit("FLEE", roll_result)
 	
 	if roll < flee_chance:
-		print("[CombatController]   SUCCESS - Squad escaped!")
+		print("[CombatController]   SUCCESS - SquadCombatData escaped!")
 		result.fled = true
 		result.morale_change = -10.0 # Morale penalty for fleeing
 	else:
@@ -244,7 +244,7 @@ func _build_intermission_options() -> Dictionary:
 		"enemy_count": current_enemy_squad.get_living_warriors().size()
 	}
 
-func _get_squad_survival_stat(squad: StrategicSquad) -> float:
+func _get_squad_survival_stat(squad: SquadStrategicData) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
@@ -254,7 +254,7 @@ func _get_squad_survival_stat(squad: StrategicSquad) -> float:
 		count += 1
 	return total / max(count, 1) / 2.0 # Average of ACR+WIL
 
-func _get_squad_diplomacy_stat(squad: StrategicSquad) -> float:
+func _get_squad_diplomacy_stat(squad: SquadStrategicData) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
@@ -283,7 +283,7 @@ func _get_entity_name(entity_id: int) -> String:
 			return entity.entity_name
 	return "Entity#%d" % entity_id
 
-func _generate_loot(enemy_squad: StrategicSquad) -> Dictionary:
+func _generate_loot(enemy_squad: SquadStrategicData) -> Dictionary:
 	var loot = {
 		"money": rng.randi_range(10, 50) * enemy_squad.get_living_warriors().size(),
 		"food": rng.randi_range(1, 5)
@@ -292,7 +292,7 @@ func _generate_loot(enemy_squad: StrategicSquad) -> Dictionary:
 	return loot
 
 var _CHANCE = 1
-func _generate_enemy_clues(enemy_squad: StrategicSquad, current_turn: int = 0) -> Array[Clue]:
+func _generate_enemy_clues(enemy_squad: SquadStrategicData, current_turn: int = 0) -> Array[Clue]:
 	var clues: Array[Clue] = []
 	# 30% chance to drop a clue about enemy movements
 	

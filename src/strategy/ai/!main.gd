@@ -7,8 +7,8 @@ class_name AIRunner
 # Activity execution engine
 var executor: ActivityExecuteManager = ActivityExecuteManager.new(true)
 
-# Squad assignment
-var assigned_squad: StrategicSquad = null
+# SquadCombatData assignment
+var assigned_squad: SquadStrategicData = null
 var squad_id: String = ""
 
 # Game theory metrics
@@ -29,9 +29,9 @@ enum DecisionMode {
 func _ready():
 	pass
 
-func setup(scenario: GameScenario, squad: StrategicSquad) -> void:
+func setup(scenario: GameScenario, squad: SquadStrategicData) -> void:
 	assert(scenario != null, "AIRunner requires a GameScenario")
-	assert(squad != null, "AIRunner requires a StrategicSquad assignment")
+	assert(squad != null, "AIRunner requires a SquadStrategicData assignment")
 	
 	executor.setup(scenario, {"squad": squad})
 	assigned_squad = squad
@@ -79,7 +79,7 @@ func get_decision_mode() -> DecisionMode:
 ## Main decision-making function - determines which activity to execute
 ## Returns ActivityType that should be executed this turn
 func decide_activity(world: World, context: Dictionary) -> StrategyTypes.ActivityType:
-	assert(assigned_squad != null, "Squad must be assigned before making decisions")
+	assert(assigned_squad != null, "SquadCombatData must be assigned before making decisions")
 	
 	var mode = get_decision_mode()
 	var current_location = world.get_location_by_id(assigned_squad.current_location_id)
@@ -270,12 +270,12 @@ func _find_nearest_enemy_location(world: World, from_location: Location) -> Loca
 	return null
 
 ## Choose which enemy squad to attack based on strategic considerations
-func _choose_attack_target(enemies: Array) -> StrategicSquad:
+func _choose_attack_target(enemies: Array) -> SquadStrategicData:
 	if enemies.is_empty():
 		return null
 	
 	# Filter out self (squad attacking itself)
-	var valid_enemies: Array[StrategicSquad] = []
+	var valid_enemies: Array[SquadStrategicData] = []
 	for enemy in enemies:
 		if enemy.squad_id != squad_id: # Use squad_id not executor.squad.squad_id
 			valid_enemies.append(enemy)

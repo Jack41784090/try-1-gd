@@ -78,7 +78,7 @@ func return_all_ai_turns() -> Dictionary:
 		var context: Dictionary = decision["context"]
 		
 		# Execute activity (currently just logs, full execution needs activity system integration)
-		print("[AIFleetManager] Squad %s wants to %s" % [
+		print("[AIFleetManager] SquadCombatData %s wants to %s" % [
 			runner.assigned_squad.squad_name,
 			StrategyTypes.ActivityType.keys()[activity_type]
 		])
@@ -132,7 +132,7 @@ func _resolve_attack_conflicts() -> Array:
 		
 		# Get target from context or location
 		var target_id: String = context.get("attack_target", "")
-		var target_squad: StrategicSquad = null
+		var target_squad: SquadStrategicData = null
 		
 		if not target_id.is_empty():
 			# Specific target specified
@@ -140,7 +140,7 @@ func _resolve_attack_conflicts() -> Array:
 		else:
 			# Attack enemies at current location (excluding self)
 			var enemies = scenario.world.get_squads_at_location(runner.assigned_squad.current_location_id)
-			var valid_enemies: Array[StrategicSquad] = []
+			var valid_enemies: Array[SquadStrategicData] = []
 			for enemy in enemies:
 				if enemy.squad_id != attacker_id:
 					valid_enemies.append(enemy)
@@ -150,7 +150,7 @@ func _resolve_attack_conflicts() -> Array:
 				target_id = target_squad.squad_id
 		
 		if not target_squad:
-			print("[AIFleetManager] Squad %s has no valid target, skipping attack" % attacker_id)
+			print("[AIFleetManager] SquadCombatData %s has no valid target, skipping attack" % attacker_id)
 			continue
 		
 		# Check if target is also attacking this squad (mutual attack)
@@ -188,7 +188,7 @@ func _resolve_attack_conflicts() -> Array:
 	return combat_pairs
 
 ## Find squad by ID from both roaming squads and player squad
-func _find_squad_by_id(squad_id: String) -> StrategicSquad:
+func _find_squad_by_id(squad_id: String) -> SquadStrategicData:
 	# Check roaming squads
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
@@ -312,14 +312,14 @@ func _cleanup_defeated_squads() -> void:
 			if warrior != null and not warrior.is_dead:
 				living_count += 1
 		
-		print("[AIFleetManager] Squad %s: %d/%d warriors alive" % [
+		print("[AIFleetManager] SquadCombatData %s: %d/%d warriors alive" % [
 			runner.assigned_squad.squad_name,
 			living_count,
 			total_count
 		])
 		
 		if living_count == 0:
-			print("[AIFleetManager] Squad %s eliminated - removing from fleet" % runner.assigned_squad.squad_name)
+			print("[AIFleetManager] SquadCombatData %s eliminated - removing from fleet" % runner.assigned_squad.squad_name)
 			to_remove.append(runner)
 	
 	# Remove defeated squads from world and runners

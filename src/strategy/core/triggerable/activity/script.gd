@@ -26,7 +26,7 @@ func _to_string() -> String:
 		super ()
 	]
 
-func can_execute(squad: StrategicSquad, location: Location) -> bool:
+func can_execute(squad: SquadStrategicData, location: Location) -> bool:
 	match activity_type:
 		StrategyTypes.ActivityType.ATTACK:
 			return location.stability < min_stability_to_block_attack
@@ -93,7 +93,7 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 
 func _execute_attack(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
-	var squad = context.get("squad") as StrategicSquad
+	var squad = context.get("squad") as SquadStrategicData
 
 	var enemies_here = world.get_squads_at_location(squad.current_location_id)
 	
@@ -108,7 +108,7 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 	return result
 
 func _execute_travel(context: Dictionary) -> ActivityResult:
-	var squad = context.get("squad") as StrategicSquad
+	var squad = context.get("squad") as SquadStrategicData
 
 	# Simple travel logic: move the squad to a new location
 	var consumed = squad.consume_food(1)
@@ -121,7 +121,7 @@ func _execute_travel(context: Dictionary) -> ActivityResult:
 
 func _execute_force_march(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
-	var squad = context.get("squad") as StrategicSquad
+	var squad = context.get("squad") as SquadStrategicData
 
 	var food_cost = int(1 * force_march_supply_multiplier)
 	squad.consume_food(food_cost)
@@ -164,7 +164,7 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 	return result
 
 func _execute_investigate(context: Dictionary) -> ActivityResult:
-	var squad = context.get("squad") as StrategicSquad
+	var squad = context.get("squad") as SquadStrategicData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 	

@@ -7,7 +7,7 @@ class_name Faction
 @export var leader_squad_id: String = ""
 @export var missions: Array[Mission] = []
 @export var reputation: float = 0.0
-@export var armies: Array[StrategicSquad] = []
+@export var armies: Array[SquadStrategicData] = []
 
 func get_available_missions() -> Array[Mission]:
 	var available: Array[Mission] = []
@@ -64,14 +64,14 @@ func check_mission_completions(context: Dictionary) -> Array[Mission]:
 	
 	return completed
 
-func get_armies_at_location(location_id: String) -> Array[StrategicSquad]:
-	var armies_at_loc: Array[StrategicSquad] = []
+func get_armies_at_location(location_id: String) -> Array[SquadStrategicData]:
+	var armies_at_loc: Array[SquadStrategicData] = []
 	for army in armies:
 		if army.current_location_id == location_id:
 			armies_at_loc.append(army)
 	return armies_at_loc
 
-func add_army(squad: StrategicSquad) -> void:
+func add_army(squad: SquadStrategicData) -> void:
 	armies.append(squad)
 
 func remove_army(squad_id: String) -> void:
@@ -80,9 +80,8 @@ func remove_army(squad_id: String) -> void:
 			armies.remove_at(i)
 			break
 
-func get_army_by_id(squad_id: String) -> StrategicSquad:
+func get_army_by_id(squad_id: String) -> SquadStrategicData:
 	for army in armies:
 		if army.squad_id == squad_id:
 			return army
 	return null
-

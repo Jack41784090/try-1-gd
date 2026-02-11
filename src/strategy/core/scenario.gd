@@ -2,7 +2,7 @@ class_name GameScenario extends Resource
 
 var triggerable_manager: TriggerableManager
 
-@export var starting_player_squad: StrategicSquad
+@export var starting_player_squad: SquadStrategicData
 @export var starting_location_id: String
 @export var world: World
 @export var factions: Array[Faction] = []
