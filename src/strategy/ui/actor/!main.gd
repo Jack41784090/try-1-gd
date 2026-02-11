@@ -8,7 +8,7 @@ var scenario: GameScenario
 var world: World:
 	get:
 		return scenario.world
-var player_squad: StrategicSquad:
+var player_squad: SquadStrategicData:
 	get:
 		if player_squad == null and \
 			(not _IS_AI and scenario.starting_player_squad != null):
@@ -16,7 +16,7 @@ var player_squad: StrategicSquad:
 		return player_squad
 #endregion
 
-func _init(is_ai = false, _ai_squad: StrategicSquad = null) -> void:
+func _init(is_ai = false, _ai_squad: SquadStrategicData = null) -> void:
 	_IS_AI = is_ai
 
 func setup(_loaded_scenario, context = {}):
@@ -27,7 +27,7 @@ func setup(_loaded_scenario, context = {}):
 	# scenario.initialize(context)
 
 ## Finds an enemy squad by ID from the world's roaming squads
-func _find_enemy_squad(squad_id: String) -> StrategicSquad:
+func _find_enemy_squad(squad_id: String) -> SquadStrategicData:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
@@ -69,20 +69,20 @@ func _apply_location_change_result(_lcr: GenericResult):
 func _apply_result(result: GenericResult) -> void:
 	print("[GameScenario] _apply_result() called")
 	print("[GameScenario]   Result type: ", result.get_class())
-	print("[GameScenario]   Squad changes: ", result.squad_stat_changes)
+	print("[GameScenario]   SquadCombatData changes: ", result.squad_stat_changes)
 	print("[GameScenario]   World changes: ", result.world_stat_changes)
 	
 	# Apply location changes
 	if result is ActivityResult and not result.location_changed.is_empty():
 		_apply_location_change_result(result)
 	
-	# Apply Squad Changes
+	# Apply SquadCombatData Changes
 	if result.squad_stat_changes.is_empty():
 		print("[GameScenario]   No squad stat changes to apply")
 	else:
 		_apply_stats_changes_result(result)
 
-	# Add new recruits into Player Squad
+	# Add new recruits into Player SquadCombatData
 	if result.new_recruits.size() > 0:
 		print("[GameScenario]   Adding %d new recruit(s) to squad" % result.new_recruits.size())
 		for recruit in result.new_recruits:

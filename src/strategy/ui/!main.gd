@@ -294,7 +294,7 @@ func _on_recruitment_closed() -> void:
 
 func _on_short_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
-	_summary_text += "Squad: %s\n" % actor.player_squad.squad_name
+	_summary_text += "SquadCombatData: %s\n" % actor.player_squad.squad_name
 	_summary_text += "Turn: %d\n" % game_scenario.world.turn_count
 	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
 		actor.current_location.location_name,
@@ -392,7 +392,7 @@ func _update_activity_buttons() -> void:
 	else:
 		attack_button.tooltip_text = "No enemies at this location"
 	
-	manage_squad_button.text = "Manage Squad"
+	manage_squad_button.text = "Manage SquadCombatData"
 	manage_squad_button.disabled = false
 	manage_squad_button.tooltip_text = "View and manage your warriors"
 
@@ -422,7 +422,7 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 
 ## Initiates combat encounter with intermission screen
 ## Called when player encounters enemies (via patrol, attack activity, or enemy ambush)
-func start_encounter(enemy_squad: StrategicSquad, _context: Dictionary = {}) -> void:
+func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {}) -> void:
 	print("\n[TrainingScreen] ========================================")
 	print("[TrainingScreen] COMBAT ENCOUNTER INITIATED")
 	print("[TrainingScreen] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])

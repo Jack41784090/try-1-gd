@@ -5,7 +5,7 @@ var data: ActivityExecuteManager;
 var turn_count: int = 0
 
 
-@onready var player_squad: StrategicSquad:
+@onready var player_squad: SquadStrategicData:
 	set(_ps):
 		player_squad = _ps
 	get:

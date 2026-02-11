@@ -12,7 +12,7 @@ signal closed
 const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
 
 var actor: ActivityRunner
-var current_squad: StrategicSquad:
+var current_squad: SquadStrategicData:
 	get:
 		return actor.player_squad
 

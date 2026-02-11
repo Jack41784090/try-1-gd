@@ -117,7 +117,7 @@ func _get_squad_name(squad_id: String) -> String:
 	for squad in world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad.squad_name
-	return "Unknown Squad"
+	return "Unknown SquadCombatData"
 
 func _show_no_clues_message(message: String) -> void:
 	no_clues_label.text = message
