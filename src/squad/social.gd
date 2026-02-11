@@ -1,9 +1,6 @@
-extends Resource
-class_name StrategicSquad
+class_name SquadStrategicData extends Resource
 
-@export var squad_id: String = ""
-@export var squad_name: String = "Unnamed Squad"
-@export var warriors: Array[CharacterSocialStats] = []
+var warriors: Array[CharacterSocialStats] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0
 @export var food: int = 0
@@ -20,49 +17,14 @@ var current_tactic: Tactic = null
 var _initialized: bool = false
 
 func _init() -> void:
-	print(" --- StrategicSquad init --- ")
-	# Initialization happens in ensure_initialized() after properties are loaded
+	print(" --- SquadStrategicData init --- ")
 	if current_tactic == null:
 		current_tactic = Tactic.create_balanced()
-	print(" \\=> StrategicSquad _init complete")
+	print(" \\=> SquadStrategicData _init complete")
 
-## Duplicate warrior resources to prevent resource sharing between squads
-func _duplicate_warriors() -> void:
-	if warriors.is_empty():
-		print("  WARNING: No warriors to duplicate!")
-		return
-		
-	var duplicated_warriors: Array[CharacterSocialStats] = []
-	for i in range(warriors.size()):
-		var warrior = warriors[i]
-		if warrior != null:
-			var dup = warrior.duplicate(true)
-			# Give each duplicated warrior a unique ID  
-			dup.id = "%s_copy%d" % [warrior.id, i]
-			duplicated_warriors.append(dup)
-			print("  Duplicated warrior: %s -> %s" % [warrior.id, dup.id])
-	warriors = duplicated_warriors
-
-## Call this after the resource is fully loaded to initialize derived state
-func ensure_initialized() -> void:
-	if _initialized:
-		return
-	_initialized = true
-	print(" --- StrategicSquad ensure_initialized --- ")
-	
-	# Duplicate warriors to prevent resource sharing (must happen after load)
-	_duplicate_warriors()
-	
-	print("  Warriors count: ", warriors.size())
-	for i in range(warriors.size()):
-		print("  CharacterSocialStats %d: %s" % [i, warriors[i].name if warriors[i] else "null"])
-	# update_aggregate_morale()
-	if starting_location_id != "" and current_location_id == "":
-		current_location_id = starting_location_id
-	print(" \\=> Squad initialized: ", _to_string())
 
 func _to_string() -> String:
-	return "StrategicSquad(id=%s, name=%s, warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [squad_id, squad_name, warriors, money, karma, food, travel_tools, formation, starting_location_id]
+	return "SquadStrategicData(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
 
 func consume_food(amount: int) -> bool:
 	if food >= amount:
@@ -91,7 +53,7 @@ func modify_karma(amount: float) -> void:
 	karma = clamp(karma + amount, -100.0, 100.0)
 
 func modify_morale(amount: float) -> void:
-	print("StrategicSquad.modify_morale squad=%s amount=%.2f warrior_count=%d" % [squad_name, amount, warriors.size()])
+	print("SquadStrategicData.modify_morale amount=%.2f warrior_count=%d" % [amount, warriors.size()])
 	for warrior in warriors:
 		var old_morale := warrior.morale
 		warrior.modify_morale(amount)
@@ -101,7 +63,7 @@ func modify_morale(amount: float) -> void:
 func update_aggregate_morale() -> void:
 	if warriors.size() == 0:
 		aggregate_morale = 0.0
-		print("StrategicSquad.update_aggregate_morale squad=%s no_warriors aggregate=0" % squad_name)
+		print("SquadStrategicData.update_aggregate_morale no_warriors aggregate=0")
 		return
 	
 	var total_morale := 0.0
@@ -119,8 +81,7 @@ func update_aggregate_morale() -> void:
 	else:
 		aggregate_morale = 0.0
 	
-	print("StrategicSquad.update_aggregate_morale squad=%s living=%d total=%.2f " % [
-		squad_name,
+	print("SquadStrategicData.update_aggregate_morale living=%d total=%.2f " % [
 		living_count,
 		total_morale,
 	])
@@ -179,8 +140,8 @@ func get_tactic() -> Tactic:
 		current_tactic = Tactic.create_balanced()
 	return current_tactic
 
-func attempt_stealth_at_location(location: Location, destination_id: String, current_turn: int) -> Array[Clue]:
-	var clues_left: Array[Clue] = []
+func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[CharacterSocialStats]:
+	var clues_left: Array[CharacterSocialStats] = []
 	
 	for warrior in get_living_warriors():
 		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
@@ -188,17 +149,7 @@ func attempt_stealth_at_location(location: Location, destination_id: String, cur
 		
 		if roll > stealth_value:
 			var failure_margin = roll - stealth_value
-			var clue_name = Clue.get_random_clue_name(warrior.religion)
-			var clue = Clue.create_clue(
-				clue_name,
-				squad_id,
-				warrior.id,
-				current_turn,
-				failure_margin,
-				destination_id
-			)
-			location.add_clue(clue)
-			clues_left.append(clue)
+			clues_left.append(warrior)
 	
 	return clues_left
 
@@ -215,8 +166,8 @@ func set_location(location_id: String) -> void:
 func get_location_id() -> String:
 	return current_location_id
 
-func to_combat_squad(team: String = "player") -> Squad:
-	push_warning("StrategicSquad.to_combat_squad() - Combat bridge not yet fully implemented")
+func to_combat_squad(team: String = "player") -> SquadCombatData:
+	push_warning("SquadStrategicData.to_combat_squad() - Combat bridge not yet fully implemented")
 	
 	var entity_configs: Array = []
 	var living_warriors = get_living_warriors()
@@ -237,14 +188,14 @@ func to_combat_squad(team: String = "player") -> Squad:
 		}
 		entity_configs.append(entity_config)
 	
-	return Squad.new({
+	return SquadCombatData.new({
 		"entities": entity_configs,
-		"name": squad_name,
+		# "name": squad_name,
 		"team": team
 	})
 
 func from_combat_results(updates: Array[EntityUpdate]) -> void:
-	push_warning("StrategicSquad.from_combat_results() - Combat bridge not yet fully implemented")
+	push_warning("SquadStrategicData.from_combat_results() - Combat bridge not yet fully implemented")
 	
 	for update in updates:
 		if update.target_id >= 0 and update.target_id < warriors.size():
@@ -267,8 +218,6 @@ func save_state() -> Dictionary:
 		})
 	
 	return {
-		"squad_id": squad_id,
-		"squad_name": squad_name,
 		"money": money,
 		"karma": karma,
 		"food": food,

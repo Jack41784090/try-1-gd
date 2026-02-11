@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Squad" load_steps=9 format=3 uid="uid://cn640bxufihkb"]
+
+[ext_resource type="Script" uid="uid://lowv2v71pigd" path="res://src/squad/combat.gd" id="1_41rx8"]
+[ext_resource type="Script" uid="uid://dbqhqjinb2un" path="res://src/character/__init__.gd" id="1_ihvy0"]
+[ext_resource type="Script" uid="uid://7rqf2dwc5ndy" path="res://src/squad/__init__.gd" id="1_rrk5v"]
+[ext_resource type="Script" uid="uid://bfnvh6pblvwsa" path="res://src/squad/base.gd" id="2_unhrn"]
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_ihvy0"]
+
+[sub_resource type="Resource" id="Resource_1erx8"]
+script = ExtResource("2_unhrn")
+metadata/_custom_type_script = "uid://bfnvh6pblvwsa"
+
+[sub_resource type="Resource" id="Resource_sq1r7"]
+script = ExtResource("1_41rx8")
+metadata/_custom_type_script = "uid://lowv2v71pigd"
+
+[sub_resource type="Resource" id="Resource_mn0hn"]
+script = ExtResource("3_ihvy0")
+metadata/_custom_type_script = "uid://cjilk34mc47ja"
+
+[resource]
+script = ExtResource("1_rrk5v")
+base_data = SubResource("Resource_1erx8")
+strategic_data = SubResource("Resource_mn0hn")
+combat_data = SubResource("Resource_sq1r7")
+metadata/_custom_type_script = "uid://7rqf2dwc5ndy"
