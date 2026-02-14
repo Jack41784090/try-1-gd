@@ -1,4 +1,4 @@
-class_name RecruitmentGUI extends Control
+class_name RecruitmentView extends Control
 
 signal recruitment_completed(warrior: CharacterSocialStats)
 signal closed
@@ -145,7 +145,7 @@ func _on_recruit_pressed(class_enum: EntityClasses.Types, cost: float) -> void:
 	current_squad.add_warrior(new_warrior)
 	current_squad.money -= cost
 	
-	print("[RecruitmentGUI] Recruited %s for %.0f gold" % [new_warrior.name, cost])
+	print("[RecruitmentView] Recruited %s for %.0f gold" % [new_warrior.name, cost])
 	
 	recruitment_completed.emit(new_warrior)
 	hide_recruitment_menu()

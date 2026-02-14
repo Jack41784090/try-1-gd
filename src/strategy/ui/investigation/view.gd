@@ -1,4 +1,4 @@
-class_name InvestigationGUI extends Control
+class_name InvestigationView extends Control
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var clues_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer

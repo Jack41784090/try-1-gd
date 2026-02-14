@@ -1,5 +1,4 @@
-extends Control
-class_name ManageSquadScreen
+class_name ManageSquadView extends Control
 
 signal closed
 
@@ -27,7 +26,7 @@ func _populate_warrior_list() -> void:
 	for child in warriors_container.get_children():
 		child.queue_free()
 	
-	title_label.text = "SquadCombatData: %s" % current_squad.squad_name
+	title_label.text = "Sieges der Mannschaft"
 	
 	for warrior in current_squad.warriors:
 		var warrior_item = WARRIOR_ITEM_SCENE.instantiate()
