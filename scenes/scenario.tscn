@@ -1,10 +1,11 @@
-[gd_scene load_steps=25 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=28 format=3 uid="uid://dmbcxxfr6jwmu"]
 
-[ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/!main.gd" id="1_5eukr"]
+[ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/view.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
-[ext_resource type="Script" uid="uid://w5s063c3y2to" path="res://src/strategy/ui/investigation/!main.gd" id="2_investigation"]
-[ext_resource type="Script" uid="uid://bri6t7s2ftx8g" path="res://src/strategy/ui/recruitment/!main.gd" id="2_recruitment"]
-[ext_resource type="Script" uid="uid://dwmwc6606btdb" path="res://src/strategy/ui/travel/!main.gd" id="2_travel"]
+[ext_resource type="Script" uid="uid://w5s063c3y2to" path="res://src/strategy/ui/investigation/view.gd" id="2_investigation"]
+[ext_resource type="Script" uid="uid://bri6t7s2ftx8g" path="res://src/strategy/ui/recruitment/view.gd" id="2_recruitment"]
+[ext_resource type="Script" uid="uid://dwmwc6606btdb" path="res://src/strategy/ui/travel/view.gd" id="2_travel"]
+[ext_resource type="Script" uid="uid://cv0ckwd22qom1" path="res://src/strategy/ui/travel/presenter.gd" id="2_travel_presenter"]
 [ext_resource type="Script" uid="uid://tp4io8gth20u" path="res://src/strategy/ui/animator.gd" id="3_vmu77"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
 [ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="4_s06fx"]
@@ -15,10 +16,12 @@
 [ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
 [ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
-[ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/!main.gd" id="12_jx64g"]
-[ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/!main.gd" id="12_manage_squad"]
+[ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/view.gd" id="12_jx64g"]
+[ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/view.gd" id="12_manage_squad"]
+[ext_resource type="Script" uid="uid://dhgjoxu2jsets" path="res://src/strategy/ui/vn/presenter.gd" id="12_vn_presenter"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
+[ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -70,8 +73,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_5eukr")
-scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
-is_demo_scenario = false
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -452,6 +453,9 @@ text = "Click to continue"
 horizontal_alignment = 2
 vertical_alignment = 2
 
+[node name="VnPresenter" type="Node" parent="PanelContainer/MainVBox/MainScreenArea"]
+script = ExtResource("12_vn_presenter")
+
 [node name="ActionButtons" type="PanelContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_transparent")
@@ -604,7 +608,7 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
 text = "☰ Menu"
 
-[node name="TravelGUI" type="Control" parent="."]
+[node name="TravelView" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -615,7 +619,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_travel")
 
-[node name="OverlayPanel" type="PanelContainer" parent="TravelGUI"]
+[node name="OverlayPanel" type="PanelContainer" parent="TravelView"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -630,29 +634,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="MarginContainer" type="MarginContainer" parent="TravelGUI/OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="TravelView/OverlayPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TravelGUI/OverlayPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="SelectedLocationLabel" type="Label" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="SelectedLocationLabel" type="Label" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 
-[node name="TravelProgressBar" type="ProgressBar" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TravelProgressBar" type="ProgressBar" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="ModeToggleButton" type="Button" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ModeToggleButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
@@ -660,16 +664,16 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
 text = "Switch to Manual"
 
-[node name="LocationsScroll" type="ScrollContainer" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="LocationsScroll" type="ScrollContainer" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LocationsContainer" type="VBoxContainer" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll"]
+[node name="LocationsContainer" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="ConfirmButton" type="Button" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ConfirmButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
@@ -677,7 +681,7 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Confirm Travel"
 
-[node name="CancelButton" type="Button" parent="TravelGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="CancelButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
@@ -685,7 +689,10 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Cancel"
 
-[node name="InvestigationGUI" type="Control" parent="."]
+[node name="TravelPresenter" type="Node" parent="TravelView"]
+script = ExtResource("2_travel_presenter")
+
+[node name="InvestigationView" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -696,7 +703,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_investigation")
 
-[node name="OverlayPanel" type="PanelContainer" parent="InvestigationGUI"]
+[node name="OverlayPanel" type="PanelContainer" parent="InvestigationView"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -711,41 +718,41 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="MarginContainer" type="MarginContainer" parent="InvestigationGUI/OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="InvestigationView/OverlayPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="InvestigationGUI/OverlayPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="InvestigationView/OverlayPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="TitleLabel" type="Label" parent="InvestigationGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_font_sizes/font_size = 20
 text = "Investigating Location"
 horizontal_alignment = 1
 
-[node name="NoCluesLabel" type="Label" parent="InvestigationGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="NoCluesLabel" type="Label" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 14
 text = "No clues found"
 horizontal_alignment = 1
 
-[node name="CluesScroll" type="ScrollContainer" parent="InvestigationGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="CluesScroll" type="ScrollContainer" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CluesContainer" type="VBoxContainer" parent="InvestigationGUI/OverlayPanel/MarginContainer/VBoxContainer/CluesScroll"]
+[node name="CluesContainer" type="VBoxContainer" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer/CluesScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="ConfirmButton" type="Button" parent="InvestigationGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ConfirmButton" type="Button" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
@@ -753,7 +760,7 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="RecruitmentGUI" type="Control" parent="."]
+[node name="RecruitmentView" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -764,7 +771,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_recruitment")
 
-[node name="OverlayPanel" type="PanelContainer" parent="RecruitmentGUI"]
+[node name="OverlayPanel" type="PanelContainer" parent="RecruitmentView"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -779,41 +786,41 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="MarginContainer" type="MarginContainer" parent="RecruitmentGUI/OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="RecruitmentView/OverlayPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="RecruitmentGUI/OverlayPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="RecruitmentView/OverlayPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="TitleLabel" type="Label" parent="RecruitmentGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_font_sizes/font_size = 20
 text = "Recruit Warriors"
 horizontal_alignment = 1
 
-[node name="MoneyLabel" type="Label" parent="RecruitmentGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="MoneyLabel" type="Label" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
 theme_override_font_sizes/font_size = 14
 text = "Available Money: 0"
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="RecruitmentGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ClassesContainer" type="VBoxContainer" parent="RecruitmentGUI/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="ClassesContainer" type="VBoxContainer" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="CloseButton" type="Button" parent="RecruitmentGUI/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="CloseButton" type="Button" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
@@ -821,7 +828,7 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="ManageSquadScreen" type="Control" parent="."]
+[node name="ManageSquadView" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -832,7 +839,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("12_manage_squad")
 
-[node name="OverlayPanel" type="PanelContainer" parent="ManageSquadScreen"]
+[node name="OverlayPanel" type="PanelContainer" parent="ManageSquadView"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -847,18 +854,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="MarginContainer" type="MarginContainer" parent="ManageSquadScreen/OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="ManageSquadView/OverlayPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ManageSquadView/OverlayPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="TitleLabel" type="Label" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
@@ -867,17 +874,17 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 22
 text = "Squad Management"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="WarriorsContainer" type="VBoxContainer" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="WarriorsContainer" type="VBoxContainer" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="CloseButton" type="Button" parent="ManageSquadScreen/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="CloseButton" type="Button" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
@@ -1018,3 +1025,8 @@ script = ExtResource("17_jx64g")
 
 [node name="AIFleetManager" type="Node" parent="."]
 script = ExtResource("18_fleet")
+
+[node name="StrategyPresenter" type="Node" parent="."]
+script = ExtResource("19_presenter")
+scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
+is_demo_scenario = false
