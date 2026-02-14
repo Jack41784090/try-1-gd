@@ -173,7 +173,7 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 - `src/strategy/triggerable/ending/`: Ending implementation and result
 - `src/strategy/vn/`: Visual novel system (EventChain, Dialogue, VisualNovelComponent)
 - `src/strategy/sb-bridge/`: Combat integration bridge (!main.gd = CombatBridge, control.gd = CombatController)
-- `src/strategy/ui/`: UI components (!main.gd = TrainingScreen, travel.gd = TravelGUI)
+- `src/strategy/ui/`: UI components (view.gd = StrategyView, presenter.gd = StrategyPresenter; child dirs: travel/, vn/, investigation/, recruitment/, manage_squad/)
 - `src/demos/`: Demo implementations
 - `src/singletons/`: Autoloaded event buses
 - `scenes/`: Godot scene files (.tscn)

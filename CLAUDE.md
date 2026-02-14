@@ -39,9 +39,15 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
-- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result
+- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for display and `VnPresenter` (presenter.gd) for chain queue/progression state machine.
 - **AI** (`src/strategy/ai/`): `FleetManager` for roaming squads; `SimplifiedSquadLogic` with Consideration pattern for combat decisions
-- **UI** (`src/strategy/ui/`): TrainingScreen manages modes — `STRATEGY`, `VISUAL_NOVEL`, `COMBAT_INTERMISSION`
+- **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter.
+  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
+  - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback
+  - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
+  - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
+  - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
 
 ### Key Enums and Types
 
@@ -101,7 +107,12 @@ return updates
 - `src/squad-battle/` — combat engine (entity, weapon, armor, clash, AI logic)
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable system
 - `src/strategy/core/sb-bridge/` — combat bridge and controller
-- `src/strategy/ui/` — UI components and visual novel
+- `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)
+- `src/strategy/ui/vn/` — visual novel system
+- `src/strategy/ui/travel/` — travel menu
+- `src/strategy/ui/investigation/` — investigation overlay
+- `src/strategy/ui/recruitment/` — warrior recruitment
+- `src/strategy/ui/manage_squad/` — squad roster
 - `src/strategy/ai/` — strategic AI (fleet manager)
 - `src/character/` — character data classes
 - `src/singletons/` — autoloaded event buses
