@@ -27,7 +27,7 @@ func setup(_loaded_scenario, context = {}):
 	# scenario.initialize(context)
 
 ## Finds an enemy squad by ID from the world's roaming squads
-func _find_enemy_squad(squad_id: String) -> SquadStrategicData:
+func _find_enemy_squad(squad_id: String) -> Squad:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad

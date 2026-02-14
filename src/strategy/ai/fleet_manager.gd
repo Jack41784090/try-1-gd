@@ -29,7 +29,7 @@ func setup(_scenario: GameScenario) -> void:
 	# Create AIRunner for each roaming squad
 	for squad in scenario.world.roaming_squads:
 		var runner = AIRunner.new()
-		runner.name = "AIRunner_%s" % squad.squad_id
+		runner.name = "AIRunner_"
 		add_child(runner)
 		runner.setup(scenario, squad)
 		ai_runners.append(runner)
@@ -192,7 +192,7 @@ func _find_squad_by_id(squad_id: String) -> SquadStrategicData:
 	# Check roaming squads
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
-			return squad
+			return squad.strategic_data
 	
 	# Check player squad
 	if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:

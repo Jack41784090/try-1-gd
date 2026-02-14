@@ -8,7 +8,7 @@ class_name AIRunner
 var executor: ActivityExecuteManager = ActivityExecuteManager.new(true)
 
 # SquadCombatData assignment
-var assigned_squad: SquadStrategicData = null
+var assigned_squad: Squad = null
 var squad_id: String = ""
 
 # Game theory metrics
@@ -29,13 +29,13 @@ enum DecisionMode {
 func _ready():
 	pass
 
-func setup(scenario: GameScenario, squad: SquadStrategicData) -> void:
+func setup(scenario: GameScenario, squad: Squad) -> void:
 	assert(scenario != null, "AIRunner requires a GameScenario")
-	assert(squad != null, "AIRunner requires a SquadStrategicData assignment")
+	assert(squad != null, "AIRunner requires a Squad assignment")
 	
 	executor.setup(scenario, {"squad": squad})
 	assigned_squad = squad
-	squad_id = squad.squad_id
+	#squad_id = squad.squad_id
 	
 	print("[AIRunner:%s] Setup complete" % squad_id)
 

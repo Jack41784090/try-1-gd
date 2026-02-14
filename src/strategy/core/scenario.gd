@@ -82,12 +82,8 @@ func _setup(config: Dictionary) -> void:
 	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
-	starting_player_squad.ensure_initialized()
+	#starting_player_squad.ensure_initialized()
 	starting_player_squad.set_location(starting_location_id)
-	
-	# Initialize roaming squads from their starting locations
-	for roaming_squad in world.roaming_squads:
-		roaming_squad.ensure_initialized()
 	
 	# triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
 
