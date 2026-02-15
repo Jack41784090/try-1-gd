@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StrategicAction" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/action.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+action_name = "pursue-clue"
+activity_type = 9
+requires_destination = true
+destination_strategy = 2
+requires_target = false

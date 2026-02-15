@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StrategicConsideration" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/glance.gd" id="2_glance_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/glances/location-has-patrol.tres" id="3_glance1"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/patrol.tres" id="4_action"]
+
+[resource]
+script = ExtResource("1_script")
+name = "patrol-for-info"
+weight = 3.0
+op = 2
+glances = Array[ExtResource("2_glance_type")]([ExtResource("3_glance1")])
+returning = ExtResource("4_action")

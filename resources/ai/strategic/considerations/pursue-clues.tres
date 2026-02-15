@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StrategicConsideration" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/glance.gd" id="2_glance_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/glances/has-clues.tres" id="3_glance1"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/glances/location-has-investigate.tres" id="4_glance2"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/investigate.tres" id="5_action"]
+
+[resource]
+script = ExtResource("1_script")
+name = "pursue-clues"
+weight = 5.0
+op = 2
+glances = Array[ExtResource("2_glance_type")]([ExtResource("3_glance1"), ExtResource("4_glance2")])
+returning = ExtResource("5_action")
