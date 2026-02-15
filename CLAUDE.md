@@ -13,6 +13,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `combat_controller_test.tscn` — combat system
   - `combat_strategy_integration_test.tscn` — bridge between strategy and combat
   - `scenario_attack_test.tscn` — activity/combat flow
+  - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
+  - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat
 - **No linter, test runner, or build step** — all verification is manual via Godot editor console output
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
 
@@ -40,7 +42,18 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
 - **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for display and `VnPresenter` (presenter.gd) for chain queue/progression state machine.
-- **AI** (`src/strategy/ai/`): `FleetManager` for roaming squads; `SimplifiedSquadLogic` with Consideration pattern for combat decisions
+- **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat, turn execution
+  - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action
+  - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
+  - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
+  - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
+  - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies
+  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances
+  - `FactionBrain` (faction_brain.gd) — stub for faction-level coordination (returns NONE directives)
+  - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
+  - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
+  - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
   - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter.
   - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
@@ -53,6 +66,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
 - Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier)
+- Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable, LocationGlanceable, WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
+- Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
 
 ## GDScript Conventions
 
@@ -113,7 +128,9 @@ return updates
 - `src/strategy/ui/investigation/` — investigation overlay
 - `src/strategy/ui/recruitment/` — warrior recruitment
 - `src/strategy/ui/manage_squad/` — squad roster
-- `src/strategy/ai/` — strategic AI (fleet manager)
+- `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
+- `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
+- `resources/ai/faction/` — faction brain profiles
 - `src/character/` — character data classes
 - `src/singletons/` — autoloaded event buses
 - `resources/` — `.tres` files: scenarios, squads, warriors, events, activities, event chains
