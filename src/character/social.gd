@@ -1,7 +1,8 @@
 class_name CharacterSocialStats extends Resource
 
-# @export var id: String = ""
-# @export var name: String = ""
+@export var id: String = ""
+@export var name: String = ""
+@export var class_id: EntityClasses.Types = EntityClasses.Types.Landsknecht
 @export var morale: float = 50.0
 @export var religion: StrategyTypes.Religion = StrategyTypes.Religion.CATHOLIC
 @export var attributes: Dictionary = {

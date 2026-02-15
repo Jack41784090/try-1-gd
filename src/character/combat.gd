@@ -3,8 +3,8 @@ class_name CharacterCombatStats extends Resource
 var _debug_id = "Entity_script_unknown";
 
 #region Init from Resource
-# @export var class_id: EntityClasses.Types
-# @export var entity_name: String
+@export var class_id: EntityClasses.Types
+@export var entity_name: String
 
 @export var stats: EntityBaseStats
 @export var icon: Texture2D
@@ -133,8 +133,8 @@ func _init(config: EntityConfig = null):
 		print(" --- %s initialized with config, should expect init_after() call afterwards --- " % _debug_id)
 	
 	player_id = config.player_id
-	# class_id = config.entity_type_id
-	# entity_name = config.name
+	class_id = config.entity_type_id
+	entity_name = config.name
 	side = config.side
 	team = config.team
 	stats = config.stats
