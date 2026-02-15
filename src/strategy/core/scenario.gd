@@ -133,9 +133,9 @@ func _collect_activity_resources(base_path: String, target: Array) -> void:
 		elif entry.ends_with(".tres"):
 			var rp = "%s/%s" % [base_path, entry]
 			var resource = load(rp)
-			if resource:
+			if resource and resource is Activity:
 				target.append(resource)
 			else:
-				push_warning("TrainingScreen: Skipping non-Activity resource: %s" % rp)
+				push_warning("GameScenario: Skipping non-Activity resource: %s" % rp)
 		entry = dir.get_next()
 	dir.list_dir_end()

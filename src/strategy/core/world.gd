@@ -11,7 +11,7 @@ class_name World
 }
 @export var locations: Array[Location] = []
 @export var turn_count: int = 0
-@export var roaming_squads: Array[Squad] = []
+@export var roaming_squads: Array[SquadStrategicData] = []
 
 var travel_graph: TravelGraph = null:
 	get:

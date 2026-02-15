@@ -470,7 +470,7 @@ func _update_activity_buttons() -> void:
 	var enemies_here = game_scenario.world.get_squads_at_location(location.location_id)
 	var attack_tooltip: String
 	if not enemies_here.is_empty():
-		attack_tooltip = "Attack %s" % enemies_here
+		attack_tooltip = "Attack %s" % [enemies_here]
 	else:
 		attack_tooltip = "No enemies at this location"
 	view.update_activity_button(view.attack_button, "Attack",
