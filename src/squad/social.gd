@@ -1,5 +1,7 @@
 class_name SquadStrategicData extends Resource
 
+@export var squad_id: String = ""
+@export var squad_name: String = ""
 var warriors: Array[CharacterSocialStats] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0

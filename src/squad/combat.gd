@@ -1,10 +1,12 @@
 class_name SquadCombatData extends Resource
 
-var combat_characters: Array[CharacterCombatStats] = []
+var entities: Array[CharacterCombatStats] = []
+var squad_name: String = ""
 var last_round_received_attack: int = -1
 
 func _init(config: Dictionary):
-	var entity_configs = config.get("combat_characters", [])
+	squad_name = config.get("name", "")
+	var entity_configs = config.get("entities", [])
 	var next_player_id = randi() % 1000 + 1
 	
 	for entity_config in entity_configs:
@@ -25,15 +27,15 @@ func _init(config: Dictionary):
 			continue
 
 		entity.side = config.get("side"); assert(entity.side != null)
-		combat_characters.append(entity)
+		entities.append(entity)
 
 func is_crippled() -> bool:
-	return combat_characters.size() == 0
+	return entities.size() == 0
 
 func get_all_entities() -> Dictionary:
 	var result = {}
 	
-	for entity in combat_characters:
+	for entity in entities:
 		if entity.is_dead():
 			continue
 		
@@ -47,7 +49,7 @@ func get_all_entities() -> Dictionary:
 
 func recovery():
 	SBLog.line(3, "offered a recovery", SBLog.prefix(self ))
-	for entity in combat_characters:
+	for entity in entities:
 		entity.recover()
 
 func get_last_attacked_at_round() -> int:
@@ -69,7 +71,7 @@ func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[Entit
 	
 	last_round_received_attack = round_count
 	
-	for our_entity in combat_characters:
+	for our_entity in entities:
 		var our_squad_metadata = get_all_entities()
 		var enemy_squad_metadata = enemy_squad.get_all_entities()
 		
@@ -81,7 +83,7 @@ func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[Entit
 	
 	SBLog.line(4, "↻ Refreshing positions after actions, before reactions", SBLog.prefix(self ))
 	
-	for enemy_entity in enemy_squad.combat_characters:
+	for enemy_entity in enemy_squad.entities:
 		var our_squad_metadata = get_all_entities()
 		var enemy_squad_metadata = enemy_squad.get_all_entities()
 		var reaction_results = enemy_entity.reaction(enemy_squad_metadata, our_squad_metadata)
@@ -99,7 +101,7 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 	
 	SBLog.line(3, "Performing %d action(s)" % action_count, SBLog.prefix(self ))
 	
-	for entity in combat_characters:
+	for entity in entities:
 		entity.new_round_reset()
 	
 	# Each entity gets to act up to action_count times
@@ -113,7 +115,7 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 		
 		last_round_received_attack = round_count
 		
-		for our_entity in combat_characters:
+		for our_entity in entities:
 			if our_entity.is_dead():
 				continue
 				
@@ -148,7 +150,7 @@ func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: i
 			SBLog.line(4, "No enemy squad to react against", SBLog.prefix(self ))
 			break
 		
-		for our_entity in combat_characters:
+		for our_entity in entities:
 			if our_entity.is_dead():
 				continue
 				
@@ -185,7 +187,7 @@ func act_idle():
 func round(enemy_squads: Array, round_count: int) -> Array[EntityUpdate]:
 	SBLog.section("SQUAD ROUND", 2, 1, 0)
 	
-	for entity in combat_characters:
+	for entity in entities:
 		entity.new_round_reset()
 	
 	var result = act_attack_random(enemy_squads, round_count)
