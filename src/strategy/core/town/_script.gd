@@ -8,6 +8,7 @@ class_name Location
 @export var stability: float = 100.0
 @export var connections: TownConnections
 @export var available_activity_types: Array[StrategyTypes.ActivityType] = []
+@export var shop: Shop
 @export var clues: Array[Clue] = []
 
 func modify_stability(amount: float) -> void:
@@ -37,6 +38,9 @@ func calculate_base_travel_time(to_location: Location) -> int:
 		base_time += 1
 	
 	return base_time
+
+func has_shop() -> bool:
+	return shop != null and shop.items.size() > 0
 
 func has_activity_type(activity_type: StrategyTypes.ActivityType) -> bool:
 	return activity_type in available_activity_types
