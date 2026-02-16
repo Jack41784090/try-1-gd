@@ -131,6 +131,11 @@ func on_recruit_requested() -> void:
 func on_manage_squad_requested() -> void:
 	view.show_manage_squad(actor.player_squad)
 
+func on_shop_requested() -> void:
+	var location = actor.current_location
+	assert(location.has_shop(), "Shop requested but location has no shop")
+	view.show_shop(location.shop, actor.player_squad)
+
 func on_travel_confirmed(location_id: String) -> void:
 	var travel_activity = actor.create_travel_activity(location_id)
 	view.update_location(_get_travel_label())
@@ -154,6 +159,13 @@ func on_recruitment_closed() -> void:
 	view.hide_recruitment_menu()
 
 func on_manage_squad_closed() -> void:
+	pass
+
+func on_purchase_completed(purchases: Dictionary) -> void:
+	print("[StrategyPresenter] Purchase completed: %s" % [purchases])
+	_update_ui()
+
+func on_shop_closed() -> void:
 	pass
 
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
@@ -478,6 +490,11 @@ func _update_activity_buttons() -> void:
 
 	view.update_activity_button(view.manage_squad_button, "Manage SquadCombatData",
 		false, "View and manage your warriors")
+
+	var has_shop = location.has_shop()
+	view.update_activity_button(view.shop_button, "Shop",
+		not has_shop,
+		"Browse the local shop" if has_shop else "No shop at this location")
 
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	var activity = actor.get_activity(activity_type)

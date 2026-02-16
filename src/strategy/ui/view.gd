@@ -21,10 +21,12 @@ class_name StrategyView extends Control
 @onready var attack_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/AttackButton
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
+@onready var shop_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ShopButton
 @onready var travel_view: TravelView = $TravelView
 @onready var investigation_view: InvestigationView = $InvestigationView
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
 @onready var manage_squad_view: ManageSquadView = $ManageSquadView
+@onready var shop_view: ShopView = $ShopView
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
@@ -74,6 +76,7 @@ func _connect_signals() -> void:
 	attack_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.ATTACK))
 	manage_squad_button.pressed.connect(func(): presenter.on_manage_squad_requested())
 	recruit_button.pressed.connect(func(): presenter.on_recruit_requested())
+	shop_button.pressed.connect(func(): presenter.on_shop_requested())
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
@@ -98,6 +101,10 @@ func _connect_signals() -> void:
 
 	if manage_squad_view:
 		manage_squad_view.closed.connect(func(): presenter.on_manage_squad_closed())
+
+	if shop_view:
+		shop_view.presenter.purchase_completed.connect(func(purchases): presenter.on_purchase_completed(purchases))
+		shop_view.presenter.shop_closed.connect(func(): presenter.on_shop_closed())
 
 	if battle_close_button:
 		battle_close_button.pressed.connect(func(): presenter.on_battle_close())
@@ -139,6 +146,7 @@ func disable_all_activity_buttons() -> void:
 	travel_button.disabled = true
 	attack_button.disabled = true
 	manage_squad_button.disabled = true
+	shop_button.disabled = true
 
 #endregion
 
@@ -312,6 +320,12 @@ func hide_recruitment_menu() -> void:
 
 func show_manage_squad(squad) -> void:
 	manage_squad_view.call("show_squad", squad)
+
+func show_shop(shop: Shop, squad: SquadStrategicData) -> void:
+	shop_view.presenter.open(shop, squad)
+
+func hide_shop() -> void:
+	shop_view.presenter._on_closed()
 
 #endregion
 
