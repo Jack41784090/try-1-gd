@@ -61,11 +61,17 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
   - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
+  - `ShopView` (shop/view.gd) + `ShopPresenter` (shop/presenter.gd) — shop with cart system, quantity controls, confirmation flow
+- **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
+  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
+  - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
+  - `Location.shop: Shop` — optional exported property; `has_shop()` helper
+  - Purchase effects mapped in `ShopPresenter._apply_item_effect()`: SUPPLY → food
 
 ### Key Enums and Types
 
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
-- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier, ItemType)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable, LocationGlanceable, WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
 
@@ -120,7 +126,7 @@ return updates
 ## File Organization
 
 - `src/squad-battle/` — combat engine (entity, weapon, armor, clash, AI logic)
-- `src/strategy/core/` — world, scenario, faction, travel, triggerable system
+- `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop
 - `src/strategy/core/sb-bridge/` — combat bridge and controller
 - `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)
 - `src/strategy/ui/vn/` — visual novel system
@@ -128,6 +134,7 @@ return updates
 - `src/strategy/ui/investigation/` — investigation overlay
 - `src/strategy/ui/recruitment/` — warrior recruitment
 - `src/strategy/ui/manage_squad/` — squad roster
+- `src/strategy/ui/shop/` — shop with cart UI
 - `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
 - `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
 - `resources/ai/faction/` — faction brain profiles
