@@ -87,8 +87,15 @@ static func _create_demo_locations(demo_values: Dictionary) -> Array[Location]:
 		[city_values["location_id"], village_values["location_id"]],
 		[village_values["location_id"], city_values["location_id"]]
 	]
-	
-	return _create_locations_with_connections(location_configs, connections)
+
+	var locations = _create_locations_with_connections(location_configs, connections)
+
+	for location in locations:
+		if location.location_id == city_values["location_id"]:
+			location.shop = _create_demo_shop()
+			break
+
+	return locations
 
 static func _create_demo_squad(demo_values: Dictionary) -> SquadStrategicData:
 	var squad_values = demo_values["squad"]
@@ -101,6 +108,18 @@ static func _create_demo_squad(demo_values: Dictionary) -> SquadStrategicData:
 		squad_values["karma"],
 		squad_values["starting_location_id"]
 	)
+
+static func _create_demo_shop() -> Shop:
+	var supply_item = ShopItem.new()
+	supply_item.item_type = StrategyTypes.ItemType.SUPPLY
+	supply_item.price = 5.0
+	supply_item.display_name = "Supply"
+	supply_item.description = "Replenish food stores"
+
+	var shop = Shop.new()
+	shop.shop_name = "Ravenna Market"
+	shop.items.append(supply_item)
+	return shop
 
 static func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
 	var location = Location.new()

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="World" load_steps=19 format=3 uid="uid://dsmbbso4d8jxx"]
+[gd_resource type="Resource" script_class="World" load_steps=23 format=3 uid="uid://dsmbbso4d8jxx"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_location"]
 [ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="2_5wn4r"]
@@ -7,8 +7,10 @@
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_d8gha"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_squad"]
 [ext_resource type="Resource" uid="uid://dqekkd30ffwmi" path="res://resources/strategy-squads/test-squad-bandits.tres" id="4_5wn4r"]
+[ext_resource type="Script" uid="uid://circeq7y0hj5g" path="res://src/strategy/core/shop/item.gd" id="5_juk78"]
 [ext_resource type="Resource" uid="uid://bvmnx8q3fy7qi" path="res://resources/strategy-squads/test-squad-mercenaries.tres" id="5_merc"]
 [ext_resource type="Resource" uid="uid://cp3nyaq4g08rj" path="res://resources/strategy-squads/test-squad-rebels.tres" id="6_rebel"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="6_s5v8c"]
 [ext_resource type="Resource" uid="uid://dq4ny0r5h1ask" path="res://resources/strategy-squads/test-squad-raiders.tres" id="7_raider"]
 [ext_resource type="Resource" uid="uid://cr5o01s6i10tl" path="res://resources/strategy-squads/test-squad-cultists.tres" id="8_cult"]
 [ext_resource type="Resource" uid="uid://cs6p02t7j21um" path="res://resources/strategy-squads/test-squad-outlaws.tres" id="9_outlaw"]
@@ -25,6 +27,16 @@ script = ExtResource("3_d8gha")
 tt = Array[ExtResource("3_1wmke")]([SubResource("Resource_6275e")])
 metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 
+[sub_resource type="Resource" id="Resource_1i11f"]
+script = ExtResource("5_juk78")
+description = "Supply, duh"
+metadata/_custom_type_script = "uid://circeq7y0hj5g"
+
+[sub_resource type="Resource" id="Resource_w6qqo"]
+script = ExtResource("6_s5v8c")
+items = Array[ExtResource("5_juk78")]([SubResource("Resource_1i11f")])
+metadata/_custom_type_script = "uid://b136kr6rocls5"
+
 [sub_resource type="Resource" id="Resource_camp"]
 script = ExtResource("1_location")
 location_id = "camp"
@@ -32,6 +44,7 @@ location_name = "Base Camp"
 development = 60
 connections = SubResource("Resource_iomub")
 available_activity_types = Array[int]([0, 1, 3, 4, 5, 9])
+shop = SubResource("Resource_w6qqo")
 
 [sub_resource type="Resource" id="Resource_d5lsg"]
 script = ExtResource("3_1wmke")
