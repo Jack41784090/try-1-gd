@@ -112,3 +112,7 @@ enum SquadProperty {
 	DISCIPLINE,
 	EXPERIENCE
 }
+
+enum ItemType {
+	SUPPLY
+}
