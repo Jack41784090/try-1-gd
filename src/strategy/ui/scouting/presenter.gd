@@ -1,0 +1,112 @@
+class_name ScoutingPresenter extends Node
+
+var view: ScoutingView
+
+func _ready() -> void:
+	view = get_parent() as ScoutingView
+
+func refresh(world: World, player_squad: SquadStrategicData) -> void:
+	var tracker = world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(player_squad.squad_id)
+	var contacts_on_us = tracker.get_contacts_on(player_squad.squad_id)
+
+	_display_warnings(contacts_on_us, world)
+	_display_contact_cards(our_contacts, world)
+
+func _display_warnings(contacts_on_us: Array, world: World) -> void:
+	var warnings: Array[String] = []
+	for contact in contacts_on_us:
+		if contact.progress <= 0.0:
+			continue
+		var state = contact.get_state()
+		match state:
+			StrategyTypes.ContactState.SUSPECTED:
+				warnings.append("An unknown force is watching you")
+			StrategyTypes.ContactState.TRACKED, StrategyTypes.ContactState.LOCKED:
+				var squad = _find_squad(contact.observer_id, world)
+				var name = squad.squad_name if squad else "Unknown"
+				warnings.append("%s is tracking you (%.0f%%)" % [name, contact.progress])
+	view.display_warnings(warnings)
+
+func _display_contact_cards(contacts: Array, world: World) -> void:
+	var active: Array[Dictionary] = []
+	for contact in contacts:
+		if contact.progress <= 0.0:
+			continue
+		var target_squad = _find_squad(contact.target_id, world)
+		if not target_squad:
+			continue
+		active.append(_build_card_data(contact, target_squad))
+
+	active.sort_custom(func(a, b): return a["progress"] > b["progress"])
+
+	if active.is_empty():
+		view.show_no_contacts()
+	else:
+		view.hide_no_contacts()
+
+	view.display_contacts(active)
+
+func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
+	var state = contact.get_state()
+	var data := {
+		"state": state,
+		"progress": contact.progress,
+		"target_id": contact.target_id,
+	}
+	match state:
+		StrategyTypes.ContactState.SUSPECTED:
+			data["title"] = "Unknown Force"
+			data["size_hint"] = _get_size_hint(target_squad)
+			data["area_hint"] = target_squad.current_location_id
+		StrategyTypes.ContactState.TRACKED:
+			data["title"] = target_squad.squad_name
+			data["warrior_count"] = target_squad.get_living_warriors().size()
+			data["location"] = target_squad.current_location_id
+			data["morale_hint"] = _get_morale_category(target_squad.get_morale())
+		StrategyTypes.ContactState.LOCKED:
+			data["title"] = target_squad.squad_name
+			data["warrior_count"] = target_squad.get_living_warriors().size()
+			data["location"] = target_squad.current_location_id
+			data["morale"] = target_squad.get_morale()
+			data["warriors"] = _get_warrior_details(target_squad)
+			data["stance"] = target_squad.engagement_stance
+	return data
+
+func _get_size_hint(squad: SquadStrategicData) -> String:
+	var count = squad.get_living_warriors().size()
+	if count <= 2:
+		return "Small (1-2 warriors)"
+	elif count <= 5:
+		return "Medium (3-5 warriors)"
+	else:
+		return "Large (6+ warriors)"
+
+func _get_morale_category(morale: float) -> String:
+	if morale >= 90.0:
+		return "Excellent"
+	elif morale >= 70.0:
+		return "Good"
+	elif morale >= 50.0:
+		return "Fair"
+	elif morale >= 30.0:
+		return "Poor"
+	else:
+		return "Critical"
+
+func _get_warrior_details(squad: SquadStrategicData) -> Array[Dictionary]:
+	var details: Array[Dictionary] = []
+	for warrior in squad.warriors:
+		var status := "Healthy"
+		if warrior.is_dead:
+			status = "Dead"
+		elif warrior.is_injured:
+			status = "Injured"
+		details.append({"name": warrior.name, "status": status})
+	return details
+
+func _find_squad(squad_id: String, world: World) -> SquadStrategicData:
+	for squad in world.roaming_squads:
+		if squad.squad_id == squad_id:
+			return squad
+	return null
