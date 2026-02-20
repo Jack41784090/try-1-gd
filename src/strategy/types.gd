@@ -116,3 +116,22 @@ enum SquadProperty {
 enum ItemType {
 	SUPPLY
 }
+
+enum ContactState {
+	NONE,
+	SUSPECTED,
+	TRACKED,
+	LOCKED
+}
+
+enum EngagementType {
+	AMBUSH,
+	SET_PIECE,
+	MEETING,
+	AVOIDANCE
+}
+
+enum EngagementStance {
+	ALWAYS_ENGAGE,
+	ENGAGE_WHEN_CONFIRMED
+}

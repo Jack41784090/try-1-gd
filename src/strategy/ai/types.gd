@@ -14,6 +14,9 @@ enum SquadGlanceable {
 	WARRIOR_COUNT,
 	KARMA,
 	TRAVEL_TOOLS,
+	HIGHEST_ENEMY_CONTACT,
+	OUR_BEST_CONTACT,
+	CAN_AMBUSH,
 }
 
 enum LocationGlanceable {
@@ -42,6 +45,7 @@ enum DestinationStrategy {
 	NEAREST_ENEMY,
 	CLUE_DESTINATION,
 	DIRECTIVE_LOCATION,
+	AWAY_FROM_ENEMY,
 }
 
 enum TargetStrategy {
