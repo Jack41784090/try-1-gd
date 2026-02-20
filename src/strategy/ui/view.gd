@@ -27,9 +27,11 @@ class_name StrategyView extends Control
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
 @onready var manage_squad_view: ManageSquadView = $ManageSquadView
 @onready var shop_view: ShopView = $ShopView
+@onready var scouting_view: ScoutingView = $ScoutingView
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
+@onready var scout_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ScoutButton
 
 @onready var combat_panel: PanelContainer = $CombatIntermission
 @onready var combat_enemy_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/EnemyInfoLabel
@@ -80,6 +82,10 @@ func _connect_signals() -> void:
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
+	scout_button.pressed.connect(func(): presenter.on_scouting_requested())
+
+	if scouting_view:
+		scouting_view.closed.connect(func(): presenter.on_scouting_closed())
 
 	if encounter_flee_button:
 		encounter_flee_button.pressed.connect(func(): presenter.on_combat_choice(CombatController.IntermissionChoice.FLEE))
@@ -326,6 +332,12 @@ func show_shop(shop: Shop, squad: SquadStrategicData) -> void:
 
 func hide_shop() -> void:
 	shop_view.presenter._on_closed()
+
+func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
+	scouting_view.show_scouting(world, player_squad)
+
+func hide_scouting() -> void:
+	scouting_view.hide_scouting()
 
 #endregion
 
