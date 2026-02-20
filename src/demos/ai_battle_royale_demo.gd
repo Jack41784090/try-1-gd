@@ -58,8 +58,20 @@ func _ready():
 		
 		# Commit the decisions
 		fleet_manager.commit_ai_decisions(ai_results)
-		
-	# Advance world turn counter
+
+		# Update contacts for next turn
+		var activity_log: Dictionary = {}
+		var edge_log: Dictionary = {}
+		fleet_manager.fill_activity_log(activity_log, edge_log)
+		scenario.world.contact_tracker.update_all_contacts(
+			scenario.world,
+			scenario.world.roaming_squads,
+			activity_log,
+			edge_log,
+			round
+		)
+
+		scenario.world.turn_count = round
 		print("\n[DEMO] End of round %d status:" % round)
 		_print_squad_status(scenario)
 		
