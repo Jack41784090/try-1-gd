@@ -62,6 +62,21 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
   - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
   - `ShopView` (shop/view.gd) + `ShopPresenter` (shop/presenter.gd) — shop with cart system, quantity controls, confirmation flow
+  - `ScoutingView` (scouting/view.gd) + `ScoutingPresenter` (scouting/presenter.gd) — scouting intelligence overlay with progressive contact revelation
+- **Contact & Spotting System** (`src/strategy/core/contact/`): HOI4-inspired gradual awareness between squads
+  - `Contact` (contact.gd) — RefCounted, tracks one squad's awareness of another (0-100 progress → NONE/SUSPECTED/TRACKED/LOCKED)
+  - `ContactTracker` (tracker.gd) — RefCounted, central manager on `World.contact_tracker`. Update loop, proximity detection, engagement checks, tracking capacity
+  - Spotting formula: `BASE_SPOTTING_RATE * proximity * (eff_scouting / (eff_scouting + eff_stealth)) * size_factor`
+  - Proximity levels: SAME_LOCATION (1.0), SAME_EDGE (0.7), ADJACENT (0.3), none (0.0 → decay)
+  - Activity modifiers: PATROL boosts scouting (1.5x), REST boosts stealth (1.3x), ATTACK reduces stealth (0.4x)
+  - Tracking capacity per squad: `1 + floor(avg_perception / 30)`, PATROL adds +1 slot
+  - ATTACK activity gated on TRACKED+ contact (30+ progress)
+  - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
+  - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
+  - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender
+  - AI integration: `StrategicSituation` has `highest_contact_on_us`, `our_best_contact`, `can_ambush` lazy properties
+  - AI considerations: `ambush-opportunity.tres` (weight 8), `break-contact.tres` (weight 5, travel away)
+  - New `DestinationStrategy.AWAY_FROM_ENEMY` — BFS for location maximizing distance from nearest enemy
 - **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
   - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
   - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
@@ -71,7 +86,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 ### Key Enums and Types
 
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
-- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier, ItemType)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable, LocationGlanceable, WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
 
@@ -126,7 +141,7 @@ return updates
 ## File Organization
 
 - `src/squad-battle/` — combat engine (entity, weapon, armor, clash, AI logic)
-- `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop
+- `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop, contact
 - `src/strategy/core/sb-bridge/` — combat bridge and controller
 - `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)
 - `src/strategy/ui/vn/` — visual novel system
@@ -135,6 +150,7 @@ return updates
 - `src/strategy/ui/recruitment/` — warrior recruitment
 - `src/strategy/ui/manage_squad/` — squad roster
 - `src/strategy/ui/shop/` — shop with cart UI
+- `src/strategy/ui/scouting/` — scouting report overlay (progressive contact intel)
 - `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
 - `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
 - `resources/ai/faction/` — faction brain profiles
