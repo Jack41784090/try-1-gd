@@ -1,0 +1,26 @@
+class_name Contact extends RefCounted
+
+var observer_id: String
+var target_id: String
+var progress: float = 0.0
+var last_updated_turn: int = 0
+
+static func create(p_observer: String, p_target: String):
+	var ContactScript = load("res://src/strategy/core/contact/contact.gd")
+	var c = ContactScript.new()
+	c.observer_id = p_observer
+	c.target_id = p_target
+	return c
+
+func get_state() -> StrategyTypes.ContactState:
+	if progress >= 100.0:
+		return StrategyTypes.ContactState.LOCKED
+	elif progress >= 30.0:
+		return StrategyTypes.ContactState.TRACKED
+	elif progress >= 1.0:
+		return StrategyTypes.ContactState.SUSPECTED
+	return StrategyTypes.ContactState.NONE
+
+func apply_delta(delta: float, current_turn: int) -> void:
+	progress = clampf(progress + delta, 0.0, 100.0)
+	last_updated_turn = current_turn
