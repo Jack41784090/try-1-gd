@@ -141,6 +141,14 @@ func _resolve_attack_conflicts() -> Array:
 			print("[AIFleetManager] Squad %s has no valid target, skipping attack" % attacker_id)
 			continue
 
+		var contact = scenario.world.contact_tracker.get_contact(attacker_id, target_id)
+		if not contact or contact.get_state() < StrategyTypes.ContactState.TRACKED:
+			var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
+			print("[AIFleetManager] Squad %s attack blocked — contact on %s only %s" % [
+				attacker_id, target_id, state_name
+			])
+			continue
+
 		var is_mutual = false
 		if decisions_this_turn.has(target_id):
 			var target_decision = decisions_this_turn[target_id]
@@ -337,11 +345,26 @@ func _cleanup_defeated_squads() -> void:
 	for squad_id in to_remove:
 		var brain: SquadBrain = squad_brains[squad_id]
 		scenario.world.roaming_squads.erase(brain.squad)
+		scenario.world.contact_tracker.clear_contacts_for(squad_id)
 		squad_brains.erase(squad_id)
 		squad_executors.erase(squad_id)
 
 	if to_remove.size() > 0:
 		print("[AIFleetManager] %d squads eliminated. Remaining: %d" % [to_remove.size(), squad_brains.size()])
+
+func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
+	for squad_id in decisions_this_turn:
+		var decision = decisions_this_turn[squad_id]
+		var squad: SquadStrategicData = decision["squad"]
+		var activity_type: StrategyTypes.ActivityType = decision["activity_type"]
+		var context: Dictionary = decision["context"]
+
+		activity_log[squad_id] = activity_type
+
+		if activity_type in [StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH]:
+			var destination = context.get("travel_destination", "")
+			if not destination.is_empty():
+				edge_log[squad_id] = {"from": squad.current_location_id, "to": destination}
 
 func _ensure_unique_warriors(squad: SquadStrategicData) -> void:
 	var unique_warriors: Array[CharacterSocialStats] = []

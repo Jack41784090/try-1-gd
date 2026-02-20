@@ -61,6 +61,33 @@ var clue_destination_id: String:
 			_clue_destination_computed = true
 		return _clue_destination_id
 
+var highest_contact_on_us: float:
+	get:
+		if not _highest_contact_on_us_computed:
+			_highest_contact_on_us = _compute_highest_contact_on_us()
+			_highest_contact_on_us_computed = true
+		return _highest_contact_on_us
+
+var our_best_contact: float:
+	get:
+		if not _our_best_contact_computed:
+			_our_best_contact = _compute_our_best_contact()
+			_our_best_contact_computed = true
+		return _our_best_contact
+
+var can_ambush: bool:
+	get:
+		if not _can_ambush_computed:
+			_can_ambush = _compute_can_ambush()
+			_can_ambush_computed = true
+		return _can_ambush
+
+var ambush_target_id: String:
+	get:
+		if not _ambush_target_computed:
+			_compute_can_ambush()
+		return _ambush_target_id
+
 var _enemies_here: Array[SquadStrategicData] = []
 var _enemies_here_computed: bool = false
 var _adjacent_enemies: Array[SquadStrategicData] = []
@@ -75,6 +102,14 @@ var _nearest_enemy_distance: int = -1
 var _nearest_enemy_distance_computed: bool = false
 var _clue_destination_id: String = ""
 var _clue_destination_computed: bool = false
+var _highest_contact_on_us: float = 0.0
+var _highest_contact_on_us_computed: bool = false
+var _our_best_contact: float = 0.0
+var _our_best_contact_computed: bool = false
+var _can_ambush: bool = false
+var _can_ambush_computed: bool = false
+var _ambush_target_id: String = ""
+var _ambush_target_computed: bool = false
 
 func _init(p_squad: SquadStrategicData, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
 	squad = p_squad
@@ -163,3 +198,36 @@ func _find_clue_destination() -> String:
 			freshest = clue
 
 	return freshest.destination_id
+
+func _compute_highest_contact_on_us() -> float:
+	var tracker = world.contact_tracker
+	var contacts_on = tracker.get_contacts_on(squad.squad_id)
+	var highest := 0.0
+	for c in contacts_on:
+		if c.progress > highest:
+			highest = c.progress
+	return highest
+
+func _compute_our_best_contact() -> float:
+	var tracker = world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(squad.squad_id)
+	var best := 0.0
+	for c in our_contacts:
+		if c.progress > best:
+			best = c.progress
+	return best
+
+func _compute_can_ambush() -> bool:
+	_can_ambush_computed = true
+	_ambush_target_computed = true
+	var tracker = world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(squad.squad_id)
+	for c in our_contacts:
+		if c.get_state() != StrategyTypes.ContactState.LOCKED:
+			continue
+		var their_contact = tracker.get_contact(c.target_id, squad.squad_id)
+		if not their_contact or their_contact.get_state() in [StrategyTypes.ContactState.NONE, StrategyTypes.ContactState.SUSPECTED]:
+			_ambush_target_id = c.target_id
+			return true
+	_ambush_target_id = ""
+	return false

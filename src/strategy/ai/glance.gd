@@ -69,6 +69,12 @@ func _get_squad_value(situation: StrategicSituation) -> float:
 			return situation.squad.karma
 		StrategicAITypes.SquadGlanceable.TRAVEL_TOOLS:
 			return float(situation.squad.travel_tools)
+		StrategicAITypes.SquadGlanceable.HIGHEST_ENEMY_CONTACT:
+			return situation.highest_contact_on_us
+		StrategicAITypes.SquadGlanceable.OUR_BEST_CONTACT:
+			return situation.our_best_contact
+		StrategicAITypes.SquadGlanceable.CAN_AMBUSH:
+			return 1.0 if situation.can_ambush else 0.0
 		_:
 			assert(false, "Unknown SquadGlanceable: %s" % squad_property)
 			return 0.0

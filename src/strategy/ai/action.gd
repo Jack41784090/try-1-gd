@@ -49,12 +49,47 @@ func _resolve_destination(situation: StrategicSituation) -> String:
 		StrategicAITypes.DestinationStrategy.DIRECTIVE_LOCATION:
 			if situation.directive != null and not situation.directive.target_location_id.is_empty():
 				return situation.directive.target_location_id
+		StrategicAITypes.DestinationStrategy.AWAY_FROM_ENEMY:
+			return _resolve_away_from_enemy(situation)
 	return ""
+
+func _resolve_away_from_enemy(situation: StrategicSituation) -> String:
+	var best_id := ""
+	var best_distance := -1
+
+	for connection in situation.location.connections.tt:
+		var neighbor_id = connection.to_location_id
+		var neighbor_loc = situation.world.get_location_by_id(neighbor_id)
+		if not neighbor_loc:
+			continue
+
+		var enemy_dist := 0
+		if situation.nearest_enemy_location:
+			enemy_dist = situation.world.travel_graph.get_distance(neighbor_id, situation.nearest_enemy_location.location_id)
+		else:
+			enemy_dist = 999
+
+		if enemy_dist > best_distance:
+			best_distance = enemy_dist
+			best_id = neighbor_id
+
+	return best_id
 
 func _resolve_target(situation: StrategicSituation) -> SquadStrategicData:
 	var enemies = situation.enemies_here
 	if enemies.is_empty():
 		return null
+
+	if activity_type == StrategyTypes.ActivityType.ATTACK:
+		var tracker = situation.world.contact_tracker
+		var tracked: Array[SquadStrategicData] = []
+		for enemy in enemies:
+			var contact = tracker.get_contact(situation.squad.squad_id, enemy.squad_id)
+			if contact and contact.get_state() >= StrategyTypes.ContactState.TRACKED:
+				tracked.append(enemy)
+		if tracked.is_empty():
+			return null
+		enemies = tracked
 
 	match target_strategy:
 		StrategicAITypes.TargetStrategy.WEAKEST:
