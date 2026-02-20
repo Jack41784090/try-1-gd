@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
 [ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
@@ -10,10 +10,12 @@
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/hunt-enemies.tres" id="8_hunt"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="9_patrol"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/drill-when-idle.tres" id="10_drill"]
-[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="11_fallback"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/ambush-opportunity.tres" id="11_ambush"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/break-contact.tres" id="12_break"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="13_fallback"]
 
 [resource]
 script = ExtResource("1_script")
 profile_name = "balanced-roamer"
-considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_attack"), ExtResource("7_clues"), ExtResource("8_hunt"), ExtResource("9_patrol"), ExtResource("10_drill")])
-fallback_action = ExtResource("11_fallback")
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_attack"), ExtResource("7_clues"), ExtResource("8_hunt"), ExtResource("9_patrol"), ExtResource("10_drill"), ExtResource("11_ambush"), ExtResource("12_break")])
+fallback_action = ExtResource("13_fallback")

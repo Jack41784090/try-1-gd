@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StrategicGlance" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/glance.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+subject = 0
+squad_property = 8
+use_comparison = true
+comparison = 1
+threshold = 0.0
