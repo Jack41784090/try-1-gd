@@ -13,6 +13,13 @@ class_name World
 @export var turn_count: int = 0
 @export var roaming_squads: Array[SquadStrategicData] = []
 
+var contact_tracker:
+	get:
+		if contact_tracker == null:
+			var TrackerClass = load("res://src/strategy/core/contact/tracker.gd")
+			contact_tracker = TrackerClass.new()
+		return contact_tracker
+
 var travel_graph: TravelGraph = null:
 	get:
 		if travel_graph == null:

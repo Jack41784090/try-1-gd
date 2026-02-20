@@ -10,6 +10,8 @@ var warriors: Array[CharacterSocialStats] = []
 @export var formation: Array[int] = []
 @export var starting_location_id: String = ""
 
+var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
+
 var aggregate_morale: float:
 	get:
 		update_aggregate_morale()
@@ -141,6 +143,24 @@ func get_tactic() -> Tactic:
 	if not current_tactic:
 		current_tactic = Tactic.create_balanced()
 	return current_tactic
+
+func get_aggregate_scouting() -> float:
+	var total := 0.0
+	var living = get_living_warriors()
+	if living.is_empty():
+		return 0.0
+	for warrior in living:
+		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.PERCEPTION))
+	return total / living.size()
+
+func get_aggregate_stealth() -> float:
+	var total := 0.0
+	var living = get_living_warriors()
+	if living.is_empty():
+		return 0.0
+	for warrior in living:
+		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH))
+	return total / living.size()
 
 func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[CharacterSocialStats]:
 	var clues_left: Array[CharacterSocialStats] = []
