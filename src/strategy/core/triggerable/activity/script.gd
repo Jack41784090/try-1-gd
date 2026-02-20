@@ -94,17 +94,32 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 func _execute_attack(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
 	var squad = context.get("squad") as SquadStrategicData
+	var tracker = world.contact_tracker
 
 	var enemies_here = world.get_squads_at_location(squad.current_location_id)
-	
+
 	if enemies_here.is_empty():
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
 		return result
-	
+
 	var target_enemy = enemies_here[0]
+
+	var contact = tracker.get_contact(squad.squad_id, target_enemy.squad_id)
+	if not contact or contact.get_state() < StrategyTypes.ContactState.TRACKED:
+		var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
+		print("[Activity] ATTACK blocked — contact on %s is only %s (need TRACKED+)" % [
+			target_enemy.squad_name,
+			state_name
+		])
+		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -3.0)
+		return result
+
 	result.requires_combat = true
 	result.combat_target_squad_id = target_enemy.squad_id
 	result.requires_async = true
+	result.engagement_type = tracker.classify_engagement(squad.squad_id, target_enemy.squad_id)
+
+	print("[Activity] ATTACK engagement classified as %s" % StrategyTypes.EngagementType.keys()[result.engagement_type])
 	return result
 
 func _execute_travel(context: Dictionary) -> ActivityResult:
