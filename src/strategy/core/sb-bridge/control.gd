@@ -48,6 +48,8 @@ var is_in_combat: bool = false
 var combat_phase: int = 0
 var all_updates: Array[EntityUpdate] = []
 var rng := RandomNumberGenerator.new()
+var current_engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE
+var contact_tracker = null
 
 var battle_viewport
 var combat_overlay
@@ -57,11 +59,11 @@ func _init() -> void:
 	rng.randomize()
 	print("[CombatController] Initialized")
 
-## Injecting the context first to let control knows how to translate between strategy and combat. This is the first point of contact between strategy and combat.
-func inject_context(player_squad, enemy_squad, _battle_viewport, _combat_overlay):
+func inject_context(player_squad, enemy_squad, _battle_viewport, _combat_overlay, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE):
 	current_player_squad = player_squad
 	current_enemy_squad = enemy_squad
 	current_tactic = player_squad.get_tactic()
+	current_engagement_type = engagement_type
 	is_in_combat = true
 	combat_phase = 0
 	all_updates.clear()
@@ -223,26 +225,54 @@ func _attempt_negotiate() -> CombatResult:
 func _build_intermission_options() -> Dictionary:
 	var player_survival = _get_squad_survival_stat(current_player_squad)
 	var player_diplomacy = _get_squad_diplomacy_stat(current_player_squad)
-	
+
 	var flee_chance = clampf(FLEE_BASE_CHANCE + (player_survival * FLEE_SURVIVAL_MODIFIER), 0.0, 0.9)
 	var negotiate_chance = clampf(NEGOTIATE_BASE_CHANCE + (player_diplomacy * NEGOTIATE_DIPLOMACY_MODIFIER), 0.0, 0.9)
-	
-	print("[CombatController] Building intermission options:")
+
+	var can_flee := true
+	var can_negotiate := true
+	var is_player_attacker := true
+
+	match current_engagement_type:
+		StrategyTypes.EngagementType.AMBUSH:
+			var player_contact = _get_player_contact_state()
+			is_player_attacker = player_contact == StrategyTypes.ContactState.LOCKED
+			if is_player_attacker:
+				can_negotiate = false
+				flee_chance = 1.0
+			else:
+				can_flee = false
+				can_negotiate = false
+		StrategyTypes.EngagementType.MEETING:
+			pass
+
+	print("[CombatController] Building intermission options (%s):" % StrategyTypes.EngagementType.keys()[current_engagement_type])
 	print("[CombatController]   Player SURVIVAL stat: %.1f → Flee chance: %.1f%%" % [player_survival, flee_chance * 100])
 	print("[CombatController]   Player DIPLOMACY stat: %.1f → Negotiate chance: %.1f%%" % [player_diplomacy, negotiate_chance * 100])
-	
+
 	return {
 		"can_fight": true,
-		"can_flee": true,
+		"can_flee": can_flee,
 		"flee_chance": flee_chance,
 		"flee_stat": player_survival,
-		"can_negotiate": true,
+		"can_negotiate": can_negotiate,
 		"negotiate_chance": negotiate_chance,
 		"negotiate_stat": player_diplomacy,
 		"timeout_seconds": INTERMISSION_TIMEOUT_SECONDS,
 		"enemy_name": current_enemy_squad.squad_name,
-		"enemy_count": current_enemy_squad.get_living_warriors().size()
+		"enemy_count": current_enemy_squad.get_living_warriors().size(),
+		"engagement_type": current_engagement_type,
+		"is_player_attacker": is_player_attacker
 	}
+
+func _get_player_contact_state() -> StrategyTypes.ContactState:
+	if not contact_tracker:
+		return StrategyTypes.ContactState.LOCKED
+	var contact = contact_tracker.get_contact(current_player_squad.squad_id, current_enemy_squad.squad_id)
+	return contact.get_state() if contact else StrategyTypes.ContactState.NONE
+
+func set_contact_tracker(tracker) -> void:
+	contact_tracker = tracker
 
 func _get_squad_survival_stat(squad: SquadStrategicData) -> float:
 	var total: float = 0.0
