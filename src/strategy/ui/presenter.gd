@@ -87,6 +87,7 @@ func _initialize_scenario() -> void:
 
 func _setup_components() -> void:
 	combat_controller = CombatController.new()
+	combat_controller.set_contact_tracker(game_scenario.world.contact_tracker)
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	print("[StrategyPresenter] CombatController initialized")
@@ -168,6 +169,12 @@ func on_purchase_completed(purchases: Dictionary) -> void:
 func on_shop_closed() -> void:
 	pass
 
+func on_scouting_requested() -> void:
+	view.show_scouting(game_scenario.world, actor.player_squad)
+
+func on_scouting_closed() -> void:
+	pass
+
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
@@ -211,6 +218,8 @@ func _execute_activity_obj(activity: Activity) -> void:
 	is_executing_activity = true
 	view.disable_all_activity_buttons()
 
+	var player_location_before = actor.player_squad.current_location_id
+
 	for state in ['before', 'activity', 'after']:
 		await _exec_play_animchanges_loop(activity, state)
 
@@ -220,9 +229,76 @@ func _execute_activity_obj(activity: Activity) -> void:
 	if ai_results["movements"].size() > 0:
 		print("[StrategyPresenter] AI movements: %d" % ai_results["movements"].size())
 
+	_update_contacts(activity, player_location_before, ai_results)
+
 	actor.advance_turn()
 	is_executing_activity = false
 	_update_activity_buttons()
+
+func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
+	var world = game_scenario.world
+	var tracker = world.contact_tracker
+	var player = actor.player_squad
+
+	var activity_log: Dictionary = {}
+	var edge_log: Dictionary = {}
+
+	activity_log[player.squad_id] = activity.activity_type
+
+	var player_location_after = player.current_location_id
+	if player_location_before != player_location_after:
+		edge_log[player.squad_id] = {"from": player_location_before, "to": player_location_after}
+
+	ai_fleet.fill_activity_log(activity_log, edge_log)
+
+	var all_squads: Array = [player]
+	for sq in world.roaming_squads:
+		all_squads.append(sq)
+
+	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count)
+
+	var location = world.get_location_by_id(player.current_location_id)
+	if location:
+		var active_clues = location.get_active_clues(world.turn_count)
+		for clue in active_clues:
+			for enemy in world.roaming_squads:
+				if clue.left_by_squad_id == enemy.squad_id:
+					tracker.apply_clue_bonus(clue, enemy, player)
+
+	var engagements = tracker.check_engagements(world, all_squads)
+	for engagement in engagements:
+		var involves_player = engagement["attacker_id"] == player.squad_id or engagement["defender_id"] == player.squad_id
+		if involves_player:
+			await _handle_player_engagement(engagement)
+
+func _handle_player_engagement(engagement: Dictionary) -> void:
+	var engagement_type: StrategyTypes.EngagementType = engagement["type"]
+	var player = actor.player_squad
+
+	var enemy_id: String
+	if engagement["attacker_id"] == player.squad_id:
+		enemy_id = engagement["defender_id"]
+	else:
+		enemy_id = engagement["attacker_id"]
+
+	var enemy_squad = actor.data._find_enemy_squad(enemy_id)
+	if not enemy_squad:
+		return
+
+	if player.engagement_stance == StrategyTypes.EngagementStance.ALWAYS_ENGAGE:
+		print("[StrategyPresenter] Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
+			enemy_squad.squad_name,
+			StrategyTypes.EngagementType.keys()[engagement_type]
+		])
+		start_encounter(enemy_squad, {}, engagement_type)
+		await encounter_resolved
+	else:
+		print("[StrategyPresenter] Contact LOCKED with %s (type: %s) — player decides" % [
+			enemy_squad.squad_name,
+			StrategyTypes.EngagementType.keys()[engagement_type]
+		])
+		start_encounter(enemy_squad, {}, engagement_type)
+		await encounter_resolved
 
 func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[GenericResult]) -> bool:
 	var has_combat = all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat)
@@ -237,7 +313,7 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 		
 		var enemy_squad = actor.data._find_enemy_squad(_combat.combat_target_squad_id)
 		if enemy_squad:
-			start_encounter(enemy_squad.strategic_data, actor.data._build_context(activity))
+			start_encounter(enemy_squad.strategic_data, actor.data._build_context(activity), _combat.engagement_type)
 			await encounter_resolved
 		else:
 			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
@@ -274,9 +350,9 @@ func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]
 
 #region Combat System
 
-func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {}) -> void:
+func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {}, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	print("\n[StrategyPresenter] ========================================")
-	print("[StrategyPresenter] COMBAT ENCOUNTER INITIATED")
+	print("[StrategyPresenter] COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	print("[StrategyPresenter] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 	print("[StrategyPresenter] ========================================")
 
@@ -285,7 +361,8 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {})
 		actor.player_squad,
 		enemy_squad,
 		view.battle_viewport,
-		view.combat_overlay
+		view.combat_overlay,
+		engagement_type
 	)
 	encounter_timeout_timer = combat_options.get("timeout_seconds", 30.0)
 
