@@ -15,6 +15,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `scenario_attack_test.tscn` — activity/combat flow
   - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
   - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat
+  - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
 - **No linter, test runner, or build step** — all verification is manual via Godot editor console output
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
 
@@ -22,10 +23,15 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 ### Three-Layer System
 
-1. **Tactical Combat** (`src/squad-battle/`) — Turn-based battle engine
-   - `SquadBattle` (master.gd) orchestrates rounds
+1. **Tactical Combat** (`src/squad-battle/`) — Turn-based battle engine, View/Presenter/Model split
+   - `SquadBattle` (data.gd) — Model: battle state, round logic, headless execution
+   - `SquadBattleView` (view.gd) — View: entity spawning, animations, visual rendering (Node3D)
+   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View)
+   - `SBGraphics` (graphics.gd) — 3D battlefield rendering, row management, attack/movement animations
+   - `SquadBattleMasterFactory` (_factory.gd) — creates configured battle scene instances
    - Flow: `squad_actions() → choose_action() → action() → OneClash.execute() → Array[EntityUpdate]`
    - All state changes produce immutable `EntityUpdate`/`EntityChange` objects
+   - External consumers access `battle_scene.presenter.battle_completed` signal
 
 2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
    - `GameScenario` (core/scenario.gd) is the main orchestrator
@@ -140,7 +146,7 @@ return updates
 
 ## File Organization
 
-- `src/squad-battle/` — combat engine (entity, weapon, armor, clash, AI logic)
+- `src/squad-battle/` — combat engine: View/Presenter/Model (view.gd, presenter.gd, data.gd), entity, weapon, armor, clash, AI logic
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop, contact
 - `src/strategy/core/sb-bridge/` — combat bridge and controller
 - `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)

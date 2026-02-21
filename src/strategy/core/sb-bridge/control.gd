@@ -110,13 +110,13 @@ func _execute_combat() -> CombatResult:
 	var battle = combat_bridge.create_battle(current_player_squad, current_enemy_squad, current_tactic)
 	print("[CombatController] Battle created with tactic: %s" % current_tactic.tactic_name)
 	
-	# Use factory to create master scene with battle
 	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)
 	battle_viewport.add_child(battle_scene)
 	combat_overlay.visible = true
-	
+
 	print("[CombatController] Awaiting battle completion...")
-	var outcome = await battle_scene.battle_completed
+	var battle_presenter = battle_scene.get_node("SquadBattlePresenter")
+	var outcome = await battle_presenter.battle_completed
 	print("[CombatController] Battle outcome: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
 	
 	# NOTE: Battle scene and overlay are kept visible for the summary display
