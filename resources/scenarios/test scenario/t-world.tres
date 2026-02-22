@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="World" load_steps=28 format=3 uid="uid://b7x8xhqm8n315"]
+[gd_resource type="Resource" script_class="World" load_steps=29 format=3 uid="uid://b7x8xhqm8n315"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_isety"]
 [ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="2_0wsl6"]
 [ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="2_h8tv2"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_nnhn3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/maps/test_scenario_map.tscn" id="4_map"]
 
 [sub_resource type="Resource" id="Resource_konigsberg"]
 script = ExtResource("1_isety")
@@ -233,4 +234,5 @@ metadata/_custom_type_script = "uid://c7brxo8k1l70l"
 [resource]
 script = ExtResource("2_0wsl6")
 locations = Array[ExtResource("1_isety")]([SubResource("Resource_konigsberg"), SubResource("Resource_road_konigsberg_tilsit"), SubResource("Resource_tilsit"), SubResource("Resource_road_tilsit_kaunas"), SubResource("Resource_kaunas"), SubResource("Resource_road_kaunas_vilnius"), SubResource("Resource_vilnius"), SubResource("Resource_road_vilnius_minsk"), SubResource("Resource_minsk"), SubResource("Resource_road_minsk_dorogobuzh"), SubResource("Resource_dorogobuzh"), SubResource("Resource_road_dorogobuzh_vyazma"), SubResource("Resource_vyazma"), SubResource("Resource_road_vyazma_tsaryovo"), SubResource("Resource_tsaryovo"), SubResource("Resource_road_tsaryovo_gzhatsk"), SubResource("Resource_gzhatsk"), SubResource("Resource_road_gzhatsk_mozhaysk"), SubResource("Resource_mozhaysk"), SubResource("Resource_road_mozhaysk_smolensk"), SubResource("Resource_smolensk"), SubResource("Resource_road_mozhaysk_moscow"), SubResource("Resource_moscow")])
+map_scene = ExtResource("4_map")
 metadata/_custom_type_script = "uid://c7nmmrwqy6hlh"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=35 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/view.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
@@ -26,6 +26,9 @@
 [ext_resource type="Script" uid="uid://bkdkhwvv23ehq" path="res://src/strategy/ui/shop/presenter.gd" id="21_shop_presenter"]
 [ext_resource type="Script" uid="uid://drx2deebk8hc5" path="res://src/strategy/ui/scouting/view.gd" id="22_scouting_view"]
 [ext_resource type="Script" uid="uid://dr5yremilx6n" path="res://src/strategy/ui/scouting/presenter.gd" id="23_scouting_presenter"]
+[ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
+[ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="25_stage_presenter"]
+[ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="26_stage_camera"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -371,6 +374,48 @@ size_flags_vertical = 3
 expand_mode = 1
 script = ExtResource("12_jx64g")
 
+[node name="StageView" type="Control" parent="PanelContainer/MainVBox/MainScreenArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("24_stage_view")
+
+[node name="StageContainer" type="SubViewportContainer" parent="PanelContainer/MainVBox/MainScreenArea/StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="StageViewport" type="SubViewport" parent="PanelContainer/MainVBox/MainScreenArea/StageView/StageContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1916, 577)
+render_target_update_mode = 4
+
+[node name="StageCamera" type="Camera2D" parent="PanelContainer/MainVBox/MainScreenArea/StageView/StageContainer/StageViewport"]
+script = ExtResource("26_stage_camera")
+
+[node name="WarriorContainer" type="Node2D" parent="PanelContainer/MainVBox/MainScreenArea/StageView/StageContainer/StageViewport"]
+
+[node name="BubbleLayer" type="Control" parent="PanelContainer/MainVBox/MainScreenArea/StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StagePresenter" type="Node" parent="PanelContainer/MainVBox/MainScreenArea/StageView"]
+script = ExtResource("25_stage_presenter")
+
 [node name="CharacterContainer" type="HBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
 visible = false
 layout_mode = 1
@@ -578,6 +623,17 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Shop"
 
+[node name="ContinueTravelButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
+visible = false
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+tooltip_text = "Continue travelling towards your destination"
+theme_override_colors/font_color = Color(0.3, 0.85, 0.5, 1)
+theme_override_colors/font_pressed_color = Color(0.2, 0.65, 0.4, 1)
+theme_override_colors/font_hover_color = Color(0.4, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+text = "▶ Continue Travel"
+
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -649,67 +705,80 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
+offset_left = -550.0
+offset_top = -325.0
+offset_right = 550.0
+offset_bottom = 325.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
 [node name="MarginContainer" type="MarginContainer" parent="TravelView/OverlayPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TravelView/OverlayPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
-[node name="SelectedLocationLabel" type="Label" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="MapPanel" type="PanelContainer" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.8
+
+[node name="ListPanel" type="PanelContainer" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ListVBox" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SelectedLocationLabel" type="Label" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 horizontal_alignment = 1
 
-[node name="TravelProgressBar" type="ProgressBar" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TravelProgressBar" type="ProgressBar" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="ModeToggleButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 40)
+[node name="ModeToggleButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "Switch to Manual"
 
-[node name="LocationsScroll" type="ScrollContainer" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="LocationsScroll" type="ScrollContainer" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LocationsContainer" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll"]
+[node name="LocationsContainer" type="VBoxContainer" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="ConfirmButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
+[node name="ConfirmButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Confirm Travel"
 
-[node name="CancelButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
+[node name="CancelButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Cancel"
 
 [node name="TravelPresenter" type="Node" parent="TravelView"]

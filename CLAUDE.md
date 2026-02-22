@@ -16,6 +16,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
   - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat
   - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
+  - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
+  - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
 - **No linter, test runner, or build step** — all verification is manual via Godot editor console output
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
 
@@ -47,7 +49,35 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
-- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for display and `VnPresenter` (presenter.gd) for chain queue/progression state machine.
+- **Animation Composition System** (`src/animation/`): Five-layer system for 2D skeletal warrior characters
+  - Layer 1 — **Clips**: Raw `AnimationPlayer` tracks in two domains: Body (Skeleton2D bone transforms) and Face (sprite frame indices)
+  - Layer 2 — **iExpression** (expression.gd): Resource combining an eye clip + mouth clip. Predefined `.tres` in `resources/animation/expressions/`
+  - Layer 3 — **AnimAction** (action.gd): Resource pairing a body clip + iExpression. Predefined `.tres` in `resources/animation/actions/`
+  - Layer 4 — **Behavior**: Named states in an `AnimationNodeStateMachine` on the `AnimationTree` (idle, walking, attacking, defending, hurt, dying, talking, gesturing)
+  - Layer 5 — **WarriorAnimController** (warrior_anim_controller.gd): Node that translates high-level `play_behavior()`/`set_expression()`/`play_action()` into AnimationTree parameter changes
+  - `WarriorRig` (warrior_rig.gd) — Node2D scene with Skeleton2D, Face (Eyes+Mouth sprites), AnimPlayer, AnimTree, controller. Generates **placeholder Polygon2D body parts** at runtime via `_build_placeholder_body()`: top-level Polygon2D children synced to bone transforms each frame in `_process()`. Class-based palettes (Landsknecht=red, Healer=blue). Visuals tracked per bone name in `_limb_nodes` — `_replace_limb(bone_name, texture)` swaps placeholder polygons for a Sprite2D on a single bone. `apply_config()` does per-bone replacement (only bones with textures are replaced; others keep placeholders)
+  - `WarriorRigConfig` (rig_config.gd) — Resource with per-bone-segment textures (Head, Torso, Hips, LeftArm/Forearm/Hand, RightArm/Forearm/Hand, LeftLeg/Shin/Foot, RightLeg/Shin/Foot) + face spritesheets. `get_bone_textures()` returns bone_name→Texture2D dictionary for only the populated fields
+  - `WarriorRigConfigFactory` (rig_config_factory.gd) — Static loader + cache (same pattern as `AIProfileFactory`)
+  - `WarriorRigFactory` (rig_factory.gd) — Creates rigs from warriors or NPC character IDs (NPC appearance seeded from ID hash)
+  - `AnimTypes` (types.gd) — `Behavior` enum
+  - Adding expressions/actions = create `.tres` files, no code changes
+- **Warrior Stage** (`src/strategy/ui/stage/`): Shared 2D viewport for animated warriors, used by both march and VN
+  - `StageView` (view.gd) — Control with SubViewportContainer (renders 2D WarriorRigs) + BubbleLayer (UI speech bubbles). Manages rig spawning, march movement, bubble positioning
+  - `StagePresenter` (presenter.gd) — Mode switching (MARCH/VN/HIDDEN), march API, VN API (dialogue positioning, camera focus, NPC rig spawning)
+  - `StageCamera` (stage_camera.gd) — Camera2D with tween-based `focus_on()`, `focus_between()`, `reset_to_wide()`, `get_screen_position()` for world→viewport projection
+  - `SpeechBubble` (speech_bubble.gd) — PanelContainer rendered in BubbleLayer, positioned above WarriorRig heads via camera projection. Scale-up appear, fade-out dismiss. **Typewriter effect**: `start_typewriter()` reveals text character-by-character via `visible_characters`. Punctuation pauses (`.!?` = 0.22s, `,:;` = 0.12s, other = 0.03s). `set_speed(multiplier)` for fast-forward (5x). `word_revealed` signal emits each word for interrupt detection. `stop_typewriter()` freezes mid-word, `complete_immediately()` reveals all. `typewriter_finished` signal on completion
+  - Mode transitions: MARCH (warriors walk, wide camera) ↔ VN (warriors rearrange, camera zooms, speech bubbles) ↔ HIDDEN (combat)
+- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines).
+  - `Dialogue` (dialogue.gd) — Stage-aware Resource with cutscene properties:
+    - Core: `id` (unique within chain for referencing), `speaker_name`, `line_spoken`
+    - Stage display: `keep_previous_bubbles` (overlay mode), `camera_target` (focus override), `expression_override`
+    - Sequencing: `delay_ms` (pause before showing), `after_id` (dependency on another dialogue), `duration_ms` (auto-advance timer, 0 = manual)
+    - Interruption: `interrupt_by_id` + `interrupt_on_word` (cut short when referenced dialogue says keyword)
+    - Stage direction: `walk_to` (Vector2 stage coords), `behavior` (animation override), `face_direction` (-1/0/1)
+    - Helpers: `has_walk_to()`, `has_interrupt()`, `has_after_dependency()`, `is_auto_advance()`
+  - `EventChain` (event_chain.gd) — `get_dialogue_by_id()` for ID-based lookup
+  - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
+  - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
   - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat, turn execution
   - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action
@@ -61,9 +91,10 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
-  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. References `stage_view` for warrior stage delegation.
+  - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
   - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
-  - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback
+  - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
   - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
   - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
@@ -95,13 +126,14 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable, LocationGlanceable, WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
+- Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ## GDScript Conventions
 
 ### Class Hierarchy
 
 - **RefCounted** for logic classes (SquadBattle, GameScenario, TriggerableManager, TravelGraph)
-- **Resource** for serializable data (World, Faction, Mission, Squad, Character data)
+- **Resource** for serializable data (World, Faction, Mission, Squad, Character data, iExpression, AnimAction, WarriorRigConfig)
 - **Node** for scene-attached UI
 
 ### Coding Rules
@@ -146,11 +178,13 @@ return updates
 
 ## File Organization
 
+- `src/animation/` — animation composition system: types, expression, action, rig config/factory, warrior rig, anim controller
 - `src/squad-battle/` — combat engine: View/Presenter/Model (view.gd, presenter.gd, data.gd), entity, weapon, armor, clash, AI logic
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop, contact
 - `src/strategy/core/sb-bridge/` — combat bridge and controller
 - `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)
-- `src/strategy/ui/vn/` — visual novel system
+- `src/strategy/ui/stage/` — warrior stage: 2D viewport, camera, speech bubbles, march/VN mode switching
+- `src/strategy/ui/vn/` — visual novel system (delegates display to stage)
 - `src/strategy/ui/travel/` — travel menu
 - `src/strategy/ui/investigation/` — investigation overlay
 - `src/strategy/ui/recruitment/` — warrior recruitment
@@ -160,7 +194,13 @@ return updates
 - `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
 - `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
 - `resources/ai/faction/` — faction brain profiles
+- `resources/animation/` — animation data files
+  - `expressions/` — iExpression .tres (eye + mouth clip pairs)
+  - `actions/` — AnimAction .tres (body clip + expression pairs)
+  - `configs/` — WarriorRigConfig .tres (per-class textures)
 - `src/character/` — character data classes
 - `src/singletons/` — autoloaded event buses
 - `resources/` — `.tres` files: scenarios, squads, warriors, events, activities, event chains
 - `scenes/` — `.tscn` scene files; `scenes/demos/` for test scenes
+  - `warrior_rig.tscn` — WarriorRig scene (Skeleton2D + Face + AnimPlayer + AnimTree + controller)
+  - `speech_bubble.tscn` — SpeechBubble scene (PanelContainer with speaker name + text + tail)

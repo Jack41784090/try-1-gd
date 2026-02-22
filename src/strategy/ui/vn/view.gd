@@ -23,11 +23,7 @@ func exit() -> void:
 	advance_prompt.visible = false
 
 func enter() -> void:
-	character_container.visible = true
-	dialogue_box.visible = true
-	speaker_label.visible = true
-	dialogue_label.visible = true
-	advance_prompt.visible = true
+	pass
 
 func queue_event_chain(chain_path: String) -> void:
 	presenter.queue_event_chain(chain_path)
@@ -43,6 +39,19 @@ func display_dialogue(data: Dictionary, progress_text: String) -> void:
 	_update_background(data.get("background_id", ""))
 	_update_portraits(data.get("on_screen_character_ids", []))
 	advance_prompt.text = "Click to continue %s" % progress_text
+	dialogue_box.visible = true
+	speaker_label.visible = true
+	dialogue_label.visible = true
+	advance_prompt.visible = true
+
+func show_narrator_line(speaker_name: String, text: String, progress_text: String) -> void:
+	speaker_label.text = speaker_name if not speaker_name.is_empty() else "Narrator"
+	dialogue_label.text = text
+	advance_prompt.text = "Click to continue %s" % progress_text
+	dialogue_box.visible = true
+	speaker_label.visible = true
+	dialogue_label.visible = true
+	advance_prompt.visible = true
 
 #endregion
 
@@ -52,6 +61,14 @@ func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			presenter.on_advance()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not presenter.has_chain():
+		return
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			presenter.on_advance()
+			get_viewport().set_input_as_handled()
 
 func _update_background(_bg_id: String) -> void:
 	pass

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AnimAction" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://m7po4joqlqx3" path="res://src/animation/action.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/animation/expressions/hurt.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+action_id = "hurt_react"
+body_clip = &"hurt_body"
+expression = ExtResource("2")

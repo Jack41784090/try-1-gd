@@ -11,6 +11,8 @@ var actor: ActivityRunner
 
 var selected_location_id: String = ""
 var current_mode: TravelMode = TravelMode.AUTOPILOT
+var _map_initialized: bool = false
+var _selected_path: Array = []
 
 var towards_location: Location:
 	get:
@@ -36,6 +38,10 @@ func get_effective_mode() -> TravelMode:
 	return current_mode
 
 func on_show(_scenario, _locs) -> void:
+	if not _map_initialized:
+		view.setup_map(actor.data.scenario.world)
+		_map_initialized = true
+	view.set_current_location_on_map(current_location.location_id)
 	var mode = get_effective_mode()
 	match mode:
 		TravelMode.GOING:
@@ -48,6 +54,8 @@ func on_show(_scenario, _locs) -> void:
 
 func on_hide() -> void:
 	selected_location_id = ""
+	_selected_path = []
+	view.clear_map_highlights()
 	view.hide_menu()
 
 func on_mode_toggle() -> void:
@@ -74,6 +82,14 @@ func on_location_selected(location_id: String) -> void:
 		current_location.location_id,
 		location_id
 	)
+	_selected_path = actor.data.world.travel_graph.find_path(
+		current_location.location_id,
+		location_id
+	)
+	var path_typed: Array[String] = []
+	for p in _selected_path:
+		path_typed.append(p)
+	view.highlight_path_on_map(path_typed)
 	view.update_selected_location("Selected: %s (%d locations, %d turns)" % [
 		location.location_name,
 		distance,

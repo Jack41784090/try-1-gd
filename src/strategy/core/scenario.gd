@@ -37,6 +37,7 @@ func _setup(config: Dictionary) -> void:
 	# Use exported properties if already set (from .tres), otherwise use config
 	if world == null:
 		world = config.get("world", World.new())
+	assert(world.map_scene != null, "World requires a map_scene PackedScene to be set")
 	if starting_player_squad == null:
 		starting_player_squad = config.get("starting_player_squad")
 		assert(starting_player_squad != null, "GameScenario requires starting_player_squad to be set")

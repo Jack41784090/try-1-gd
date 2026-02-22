@@ -1,18 +1,20 @@
 class_name TravelView extends Control
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
-@onready var locations_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/LocationsScroll/LocationsContainer
-@onready var confirm_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ConfirmButton
-@onready var cancel_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/CancelButton
-@onready var selected_location_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/SelectedLocationLabel
-@onready var mode_toggle_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/ModeToggleButton
-@onready var travel_progress: ProgressBar = $OverlayPanel/MarginContainer/VBoxContainer/TravelProgressBar
+@onready var locations_container: VBoxContainer = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer
+@onready var confirm_button: Button = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/ConfirmButton
+@onready var cancel_button: Button = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/CancelButton
+@onready var selected_location_label: Label = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/SelectedLocationLabel
+@onready var mode_toggle_button: Button = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/ModeToggleButton
+@onready var travel_progress: ProgressBar = $OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/TravelProgressBar
+@onready var map_container: PanelContainer = $OverlayPanel/MarginContainer/HBoxContainer/MapPanel
 @onready var presenter: TravelPresenter = $TravelPresenter
 
 signal travel_confirmed(location_id: String)
 signal travel_cancelled()
 
 var location_buttons: Dictionary = {}
+var map_view: TravelMapView
 
 func _ready() -> void:
 	overlay_panel.visible = false
@@ -21,7 +23,15 @@ func _ready() -> void:
 	cancel_button.pressed.connect(func(): presenter.on_cancel())
 	if mode_toggle_button:
 		mode_toggle_button.pressed.connect(func(): presenter.on_mode_toggle())
-	presenter.bind_view(self)
+	presenter.bind_view(self )
+
+	map_view = TravelMapView.new()
+	map_view.name = "TravelMapView"
+	map_view.set_anchors_preset(PRESET_FULL_RECT)
+	map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	map_container.add_child(map_view)
+	map_view.location_selected.connect(func(id): presenter.on_location_selected(id))
 
 func setup(_actor) -> void:
 	presenter.setup(_actor)
@@ -34,6 +44,18 @@ func hide_travel_menu() -> void:
 
 func set_mode_autopilot() -> void:
 	presenter.set_mode_autopilot()
+
+func setup_map(world: World) -> void:
+	map_view.setup(world)
+
+func set_current_location_on_map(location_id: String) -> void:
+	map_view.set_current_location(location_id)
+
+func highlight_path_on_map(path: Array[String]) -> void:
+	map_view.highlight_path(path)
+
+func clear_map_highlights() -> void:
+	map_view.clear_highlights()
 
 #region Display Methods
 
@@ -100,7 +122,7 @@ func highlight_location_button(location_id: String) -> void:
 
 func _create_location_button(location: Location, distance: int, mode: TravelPresenter.TravelMode) -> void:
 	var button = Button.new()
-	button.custom_minimum_size = Vector2(0, 60)
+	button.custom_minimum_size = Vector2(0, 50)
 	button.text = _format_location_text(location, distance, mode)
 	button.pressed.connect(func(): presenter.on_location_selected(location.location_id))
 	location_buttons[location.location_id] = button

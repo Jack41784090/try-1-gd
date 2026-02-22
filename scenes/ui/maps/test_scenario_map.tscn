@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ui/travel/location_marker.gd" id="1_marker"]
+
+[node name="TestScenarioMap" type="Node2D"]
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1600.0
+offset_bottom = 600.0
+color = Color(0.08, 0.1, 0.14, 1)
+
+[node name="Konigsberg" type="Area2D" parent="."]
+position = Vector2(80, 300)
+script = ExtResource("1_marker")
+location_id = "konigsberg"
+location_type = 0
+
+[node name="Tilsit" type="Area2D" parent="."]
+position = Vector2(220, 260)
+script = ExtResource("1_marker")
+location_id = "tilsit"
+location_type = 1
+
+[node name="Kaunas" type="Area2D" parent="."]
+position = Vector2(370, 280)
+script = ExtResource("1_marker")
+location_id = "kaunas"
+location_type = 0
+
+[node name="Vilnius" type="Area2D" parent="."]
+position = Vector2(520, 240)
+script = ExtResource("1_marker")
+location_id = "vilnius"
+location_type = 0
+
+[node name="Minsk" type="Area2D" parent="."]
+position = Vector2(680, 300)
+script = ExtResource("1_marker")
+location_id = "minsk"
+location_type = 0
+
+[node name="Dorogobuzh" type="Area2D" parent="."]
+position = Vector2(830, 340)
+script = ExtResource("1_marker")
+location_id = "dorogobuzh"
+location_type = 3
+
+[node name="Vyazma" type="Area2D" parent="."]
+position = Vector2(960, 290)
+script = ExtResource("1_marker")
+location_id = "vyazma"
+location_type = 1
+
+[node name="TsaryovoZaymishche" type="Area2D" parent="."]
+position = Vector2(1080, 320)
+script = ExtResource("1_marker")
+location_id = "tsaryovo_zaymishche"
+location_type = 0
+
+[node name="Gzhatsk" type="Area2D" parent="."]
+position = Vector2(1200, 280)
+script = ExtResource("1_marker")
+location_id = "gzhatsk"
+location_type = 1
+
+[node name="Mozhaysk" type="Area2D" parent="."]
+position = Vector2(1320, 300)
+script = ExtResource("1_marker")
+location_id = "mozhaysk"
+location_type = 3
+
+[node name="Smolensk" type="Area2D" parent="."]
+position = Vector2(1320, 450)
+script = ExtResource("1_marker")
+location_id = "smolensk"
+location_type = 3
+
+[node name="Moscow" type="Area2D" parent="."]
+position = Vector2(1500, 250)
+script = ExtResource("1_marker")
+location_id = "moscow"
+location_type = 0

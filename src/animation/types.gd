@@ -1,0 +1,3 @@
+class_name AnimTypes
+
+enum Behavior {IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING}

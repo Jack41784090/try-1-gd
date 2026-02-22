@@ -1,0 +1,118 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/demos/dialogue_demo.gd" id="1_demo"]
+[ext_resource type="Script" path="res://src/strategy/ui/stage/view.gd" id="2_stage_view"]
+[ext_resource type="Script" path="res://src/strategy/ui/stage/presenter.gd" id="3_stage_presenter"]
+[ext_resource type="Script" path="res://src/strategy/ui/stage/stage_camera.gd" id="4_stage_camera"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_narrator"]
+bg_color = Color(0.08, 0.08, 0.12, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.4, 0.25, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 4
+
+[node name="DialogueDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="StageView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stage_view")
+
+[node name="StageContainer" type="SubViewportContainer" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="StageViewport" type="SubViewport" parent="StageView/StageContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="WarriorContainer" type="Node2D" parent="StageView/StageContainer/StageViewport"]
+
+[node name="StageCamera" type="Camera2D" parent="StageView/StageContainer/StageViewport"]
+script = ExtResource("4_stage_camera")
+
+[node name="BubbleLayer" type="Control" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StagePresenter" type="Node" parent="StageView"]
+script = ExtResource("3_stage_presenter")
+
+[node name="NarratorBox" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchor_left = 0.1
+anchor_top = 0.75
+anchor_right = 0.9
+anchor_bottom = 0.95
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_narrator")
+
+[node name="MarginContainer" type="MarginContainer" parent="NarratorBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NarratorBox/MarginContainer"]
+layout_mode = 2
+
+[node name="SpeakerLabel" type="Label" parent="NarratorBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.7, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+text = "Speaker"
+
+[node name="TextLabel" type="Label" parent="NarratorBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.88, 0.82, 1)
+theme_override_font_sizes/font_size = 15
+text = "Dialogue text goes here..."
+autowrap_mode = 2
+
+[node name="StatusLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -30.0
+offset_right = 800.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.7)
+theme_override_font_sizes/font_size = 13
+text = "SPACE: advance | R: restart"

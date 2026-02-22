@@ -22,6 +22,7 @@ class_name StrategyView extends Control
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
 @onready var shop_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ShopButton
+@onready var continue_travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ContinueTravelButton
 @onready var travel_view: TravelView = $TravelView
 @onready var investigation_view: InvestigationView = $InvestigationView
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
@@ -49,6 +50,7 @@ class_name StrategyView extends Control
 #region Components
 @onready var presenter: StrategyPresenter = $StrategyPresenter
 @onready var vn_view: VnView = $PanelContainer/MainVBox/MainScreenArea
+@onready var stage_view: StageView = $PanelContainer/MainVBox/MainScreenArea/StageView
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
@@ -79,6 +81,10 @@ func _connect_signals() -> void:
 	manage_squad_button.pressed.connect(func(): presenter.on_manage_squad_requested())
 	recruit_button.pressed.connect(func(): presenter.on_recruit_requested())
 	shop_button.pressed.connect(func(): presenter.on_shop_requested())
+
+	if continue_travel_button:
+		continue_travel_button.pressed.connect(func(): presenter.on_continue_travel())
+		continue_travel_button.visible = false
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
@@ -153,6 +159,8 @@ func disable_all_activity_buttons() -> void:
 	attack_button.disabled = true
 	manage_squad_button.disabled = true
 	shop_button.disabled = true
+	if continue_travel_button:
+		continue_travel_button.visible = false
 
 #endregion
 
@@ -312,6 +320,15 @@ func hide_travel_menu() -> void:
 func set_travel_mode_autopilot() -> void:
 	travel_view.set_mode_autopilot()
 
+func show_continue_travel_button(dest_name: String) -> void:
+	if continue_travel_button:
+		continue_travel_button.text = "▶ Continue to %s" % dest_name
+		continue_travel_button.visible = true
+
+func hide_continue_travel_button() -> void:
+	if continue_travel_button:
+		continue_travel_button.visible = false
+
 func show_investigation_menu() -> void:
 	investigation_view.show_investigation_menu()
 
@@ -345,6 +362,19 @@ func hide_scouting() -> void:
 
 func animate_stat_changes(deltas: Dictionary) -> void:
 	await stat_animator.animate_changes(deltas)
+
+#endregion
+
+#region Stage Delegation
+
+func get_stage_presenter() -> StagePresenter:
+	return stage_view.presenter
+
+func show_stage() -> void:
+	stage_view.visible = true
+
+func hide_stage() -> void:
+	stage_view.visible = false
 
 #endregion
 

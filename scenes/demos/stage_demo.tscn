@@ -1,0 +1,80 @@
+[gd_scene load_steps=5 format=3 uid="uid://doopd3wl8lbrg"]
+
+[ext_resource type="Script" uid="uid://bcdj6phou6x2o" path="res://src/demos/squad_stage_demo.gd" id="1_demo"]
+[ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="2_stage_view"]
+[ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="3_stage_presenter"]
+[ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="4_stage_camera"]
+
+[node name="StageDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Background" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.7712063, 0.7729229, 0.8419716, 1)
+
+[node name="Instructions" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -100.0
+offset_right = 600.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "1: March mode | 2: VN mode | 3: Hidden | Space: Show bubble | C: Camera focus | R: Reset camera | D: Dismiss bubbles"
+
+[node name="StageView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stage_view")
+
+[node name="StageContainer" type="SubViewportContainer" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="StageViewport" type="SubViewport" parent="StageView/StageContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="WarriorContainer" type="Node2D" parent="StageView/StageContainer/StageViewport"]
+
+[node name="StageCamera" type="Camera2D" parent="StageView/StageContainer/StageViewport"]
+script = ExtResource("4_stage_camera")
+
+[node name="BubbleLayer" type="Control" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StagePresenter" type="Node" parent="StageView"]
+script = ExtResource("3_stage_presenter")

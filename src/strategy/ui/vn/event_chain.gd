@@ -54,6 +54,13 @@ func get_dialogue_count() -> int:
 func get_all_character_ids() -> Array[String]:
 	return character_ids.duplicate()
 
+func get_dialogue_by_id(dialogue_id: String) -> Dialogue:
+	assert(not dialogue_id.is_empty(), "Cannot look up dialogue with empty id")
+	for dialogue in dialogues:
+		if dialogue is Dialogue and dialogue.id == dialogue_id:
+			return dialogue
+	return null
+
 static func load_from_json_file(file_path: String) -> EventChain:
 	if not FileAccess.file_exists(file_path):
 		push_error("EventChain JSON file not found: " + file_path)

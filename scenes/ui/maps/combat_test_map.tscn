@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://e44icl82uqkp"]
+
+[ext_resource type="Script" uid="uid://cx5og2nd64b64" path="res://src/strategy/ui/travel/location_marker.gd" id="1_marker"]
+
+[node name="CombatTestMap" type="Node2D"]
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 800.0
+offset_bottom = 600.0
+color = Color(0.84027904, 0.86169183, 0.90360475, 1)
+
+[node name="BaseCamp" type="Area2D" parent="."]
+position = Vector2(200, 300)
+script = ExtResource("1_marker")
+location_id = "camp"
+
+[node name="EnemyFortress" type="Area2D" parent="."]
+position = Vector2(600, 300)
+script = ExtResource("1_marker")
+location_id = "enemy_fort"
+location_type = 3

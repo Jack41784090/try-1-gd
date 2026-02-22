@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=3 format=3 uid="uid://r8iwdy2ftnqa"]
+
+[ext_resource type="Texture2D" uid="uid://ds0fmmrc65itd" path="res://assets/icon.svg" id="1_m255t"]
+[ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="1_ongcq"]
+
+[resource]
+script = ExtResource("1_ongcq")
+head_texture = ExtResource("1_m255t")
+metadata/_custom_type_script = "uid://dkvdiaugwveib"

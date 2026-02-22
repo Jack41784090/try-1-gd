@@ -12,6 +12,7 @@ class_name World
 @export var locations: Array[Location] = []
 @export var turn_count: int = 0
 @export var roaming_squads: Array[SquadStrategicData] = []
+@export var map_scene: PackedScene
 
 var contact_tracker:
 	get:

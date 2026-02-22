@@ -163,6 +163,8 @@ static func _create_world(turn_count: int, end_progression: float, locations: Ar
 	for location in locations:
 		world.add_location(location)
 	world.build_travel_graph()
+	world.map_scene = load("res://scenes/ui/maps/demo_map.tscn")
+	assert(world.map_scene != null, "Demo map scene not found at res://scenes/ui/maps/demo_map.tscn")
 	return world
 
 static func _create_warriors() -> Array[CharacterSocialStats]:

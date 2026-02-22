@@ -15,6 +15,7 @@ var view: StrategyView
 var actor: ActivityRunner
 var ai_fleet: AIFleetManager
 var vn_view: VnView
+var stage_presenter: StagePresenter
 var combat_controller: CombatController
 
 var game_scenario: GameScenario:
@@ -46,12 +47,14 @@ func bind_view(v: StrategyView) -> void:
 	actor = view.actor
 	ai_fleet = view.ai_fleet
 	vn_view = view.vn_view
+	stage_presenter = view.get_stage_presenter()
 	_initialize_scenario()
 	_setup_components()
 	StrategyEventBus.turn_advanced.connect(_on_turn_advanced)
 	view.update_morale_bar(actor.player_squad.get_morale())
 	game_scenario.initialize(actor.data._build_context())
 	_update_ui()
+	stage_presenter.start_march(actor.player_squad)
 
 func _process(delta: float) -> void:
 	if is_in_combat_encounter and encounter_timeout_timer > 0:
@@ -90,6 +93,7 @@ func _setup_components() -> void:
 	combat_controller.set_contact_tracker(game_scenario.world.contact_tracker)
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
+	vn_view.presenter.set_stage_presenter(stage_presenter)
 	print("[StrategyPresenter] CombatController initialized")
 	print("[StrategyPresenter] AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
@@ -104,13 +108,16 @@ func set_ui_mode(mode: UIMode) -> void:
 	match mode:
 		UIMode.STRATEGY:
 			view.hide_combat_panel()
+			stage_presenter.set_mode(StagePresenter.StageMode.MARCH)
 			await view.transition_to_strategy()
 			_update_activity_buttons()
 		UIMode.VISUAL_NOVEL:
 			view.hide_combat_panel()
 			view.disable_all_activity_buttons()
+			stage_presenter.set_mode(StagePresenter.StageMode.VN)
 			await view.transition_to_vn()
 		UIMode.COMBAT_INTERMISSION:
+			stage_presenter.set_mode(StagePresenter.StageMode.HIDDEN)
 			view.show_combat_ui()
 
 #endregion
@@ -148,12 +155,22 @@ func on_travel_confirmed(location_id: String) -> void:
 func on_travel_cancelled() -> void:
 	view.hide_travel_menu()
 
+func on_continue_travel() -> void:
+	var dest_location = actor.walking_towards["location"]
+	assert(dest_location != null, "Continue travel called but no destination set")
+	var travel_activity = actor.create_travel_activity(dest_location.location_id)
+	view.update_location(_get_travel_label())
+	await _execute_activity_obj(travel_activity)
+	if travel_activity.result.location_changed == dest_location.location_id:
+		view.set_travel_mode_autopilot()
+
 func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
 func on_recruitment_completed(warrior: CharacterSocialStats) -> void:
 	print("[StrategyPresenter] Recruited warrior: %s" % warrior.name)
 	_update_ui()
+	stage_presenter.refresh_warriors(actor.player_squad)
 	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)
 
 func on_recruitment_closed() -> void:
@@ -524,6 +541,12 @@ func _update_ui() -> void:
 	view.update_stats(squad.money, squad.food, squad.karma,
 		location.stability if location else 0.0,
 		location.development if location else 0)
+
+	var walking = actor.walking_towards
+	if walking != null and walking["location"] != null:
+		view.show_continue_travel_button(walking["location"].location_name)
+	else:
+		view.hide_continue_travel_button()
 
 	_update_activity_buttons()
 
