@@ -218,6 +218,12 @@ func commit_ai_decisions(ai_results: Dictionary) -> void:
 
 		_execute_activity(squad_id, activity_type, context)
 
+	for squad_id in squad_brains:
+		var brain: SquadBrain = squad_brains[squad_id]
+		var squad = brain.squad
+		if squad.food > 0:
+			squad.consume_food(1)
+
 	print("[AIFleetManager] Commit complete")
 
 func _execute_activity(squad_id: String, activity_type: StrategyTypes.ActivityType, context: Dictionary) -> void:
@@ -239,6 +245,8 @@ func _execute_activity(squad_id: String, activity_type: StrategyTypes.ActivityTy
 				push_error("[AIFleetManager] TRAVEL activity requires destination in context")
 				return
 			activity.destination_id = destination
+			if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
+				activity.ultimate_destination_id = context.get("ultimate_destination", "")
 
 	var exec_context = executor._build_context(activity)
 	var results = activity.execute(exec_context)
@@ -273,50 +281,46 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		print("[AIFleetManager] ERROR: Could not find squads for combat")
 		return
 
-	var combat_bridge = CombatBridge.new()
-	var attacker_tactic = Tactic.create_balanced()
+	var atk_living = attacker.get_living_warriors()
+	var def_living = defender.get_living_warriors()
+	var atk_strength := atk_living.size() * (attacker.get_morale() + 50.0)
+	var def_strength := def_living.size() * (defender.get_morale() + 50.0)
 
-	var squad_battle = combat_bridge.create_battle(attacker, defender, attacker_tactic)
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	atk_strength *= rng.randf_range(0.7, 1.3)
+	def_strength *= rng.randf_range(0.7, 1.3)
 
-	var attacker_eids: Dictionary = {}
-	var defender_eids: Dictionary = {}
-	for entity in squad_battle.teams_and_squads[SquadBattleTypes.Side.ATTACKER][0].entities:
-		attacker_eids[entity.player_id] = true
-	for entity in squad_battle.teams_and_squads[SquadBattleTypes.Side.DEFENDER][0].entities:
-		defender_eids[entity.player_id] = true
+	print("[AIFleetManager] Strength: %s=%.0f vs %s=%.0f" % [
+		attacker.squad_name, atk_strength, defender.squad_name, def_strength
+	])
 
-	var all_updates = squad_battle.run_headless()
-
-	var attacker_updates: Array[EntityUpdate] = []
-	var defender_updates: Array[EntityUpdate] = []
-	for update in all_updates:
-		if attacker_eids.has(update.affected):
-			attacker_updates.append(update)
-		elif defender_eids.has(update.affected):
-			defender_updates.append(update)
-
-	var outcome = squad_battle.get_battle_outcome()
-
-	print("[AIFleetManager] Combat complete: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
-	print("[AIFleetManager] Rounds: %d, Updates: %d" % [squad_battle.round_count, all_updates.size()])
-
-	combat_bridge.apply_results(attacker, attacker_updates)
-	combat_bridge.apply_results(defender, defender_updates)
-
-	if outcome == SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY:
-		attacker.modify_morale(15)
-		defender.modify_morale(-20)
-		print("[AIFleetManager] %s VICTORIOUS (morale: %d)" % [attacker.squad_name, attacker.get_morale()])
-		print("[AIFleetManager] %s DEFEATED (morale: %d)" % [defender.squad_name, defender.get_morale()])
-	elif outcome == SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY:
-		defender.modify_morale(15)
-		attacker.modify_morale(-20)
-		print("[AIFleetManager] %s VICTORIOUS (morale: %d)" % [defender.squad_name, defender.get_morale()])
-		print("[AIFleetManager] %s DEFEATED (morale: %d)" % [attacker.squad_name, attacker.get_morale()])
+	var winner: SquadStrategicData
+	var loser: SquadStrategicData
+	if atk_strength >= def_strength:
+		winner = attacker
+		loser = defender
 	else:
-		attacker.modify_morale(-5)
-		defender.modify_morale(-5)
-		print("[AIFleetManager] DRAW - both squads withdraw")
+		winner = defender
+		loser = attacker
+
+	var loser_living = loser.get_living_warriors()
+	var casualties = maxi(1, loser_living.size() / 2)
+	for i in range(mini(casualties, loser_living.size())):
+		loser_living[i].is_dead = true
+	print("[AIFleetManager] %s lost %d warriors" % [loser.squad_name, casualties])
+
+	var winner_living = winner.get_living_warriors()
+	if winner_living.size() > 1 and rng.randf() < 0.4:
+		winner_living[0].is_injured = true
+		print("[AIFleetManager] %s had 1 warrior injured" % winner.squad_name)
+
+	winner.modify_morale(15)
+	loser.modify_morale(-20)
+	print("[AIFleetManager] %s VICTORIOUS (morale: %d)" % [winner.squad_name, winner.get_morale()])
+	print("[AIFleetManager] %s DEFEATED (morale: %d, living: %d)" % [
+		loser.squad_name, loser.get_morale(), loser.get_living_warriors().size()
+	])
 
 func _cleanup_defeated_squads() -> void:
 	var to_remove: Array[String] = []

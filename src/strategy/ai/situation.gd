@@ -88,6 +88,13 @@ var ambush_target_id: String:
 			_compute_can_ambush()
 		return _ambush_target_id
 
+var weakest_tracked_enemy_warriors: int:
+	get:
+		if not _weakest_tracked_enemy_warriors_computed:
+			_weakest_tracked_enemy_warriors = _compute_weakest_tracked_enemy_warriors()
+			_weakest_tracked_enemy_warriors_computed = true
+		return _weakest_tracked_enemy_warriors
+
 var _enemies_here: Array[SquadStrategicData] = []
 var _enemies_here_computed: bool = false
 var _adjacent_enemies: Array[SquadStrategicData] = []
@@ -110,6 +117,8 @@ var _can_ambush: bool = false
 var _can_ambush_computed: bool = false
 var _ambush_target_id: String = ""
 var _ambush_target_computed: bool = false
+var _weakest_tracked_enemy_warriors: int = 0
+var _weakest_tracked_enemy_warriors_computed: bool = false
 
 func _init(p_squad: SquadStrategicData, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
 	squad = p_squad
@@ -231,3 +240,22 @@ func _compute_can_ambush() -> bool:
 			return true
 	_ambush_target_id = ""
 	return false
+
+func _compute_weakest_tracked_enemy_warriors() -> int:
+	var tracker = world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(squad.squad_id)
+	var min_warriors := 999
+	for c in our_contacts:
+		if c.get_state() < StrategyTypes.ContactState.TRACKED:
+			continue
+		var target = _find_squad_by_id(c.target_id)
+		if target:
+			var living = target.get_living_warriors().size()
+			min_warriors = mini(min_warriors, living)
+	return min_warriors if min_warriors < 999 else 0
+
+func _find_squad_by_id(target_id: String) -> SquadStrategicData:
+	for s in world.roaming_squads:
+		if s.squad_id == target_id:
+			return s
+	return null

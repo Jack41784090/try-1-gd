@@ -11,10 +11,15 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 	var context: Dictionary = {}
 
 	if requires_destination:
-		var dest_id = _resolve_destination(situation)
-		if dest_id.is_empty():
+		var ultimate_dest = _resolve_destination(situation)
+		if ultimate_dest.is_empty():
 			return {}
-		context["travel_destination"] = dest_id
+		var next_hop = _get_next_hop(situation, ultimate_dest)
+		if next_hop.is_empty():
+			return {}
+		context["travel_destination"] = next_hop
+		if activity_type == StrategyTypes.ActivityType.FORCE_MARCH and ultimate_dest != next_hop:
+			context["ultimate_destination"] = ultimate_dest
 
 	if requires_target:
 		var target = _resolve_target(situation)
@@ -23,6 +28,16 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 		context["attack_target"] = target.squad_id
 
 	return context
+
+func _get_next_hop(situation: StrategicSituation, ultimate_dest: String) -> String:
+	if situation.location.is_connected_to(ultimate_dest):
+		return ultimate_dest
+	if not situation.world.travel_graph:
+		return ""
+	var path = situation.world.travel_graph.find_path(situation.location.location_id, ultimate_dest)
+	if path.size() > 1:
+		return path[1]
+	return ""
 
 func can_resolve(situation: StrategicSituation) -> bool:
 	if requires_destination:
