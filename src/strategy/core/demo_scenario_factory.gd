@@ -152,7 +152,7 @@ static func _create_locations_with_connections(location_configs: Array[Dictionar
 			var from_location = locations.filter(func(loc): return loc.location_id == from_id)
 			var to_location = locations.filter(func(loc): return loc.location_id == to_id)
 			if from_location.size() > 0 and to_location.size() > 0:
-				from_location[0].add_connection(to_id)
+				from_location[0].add_connection(to_id, 1)
 	return locations
 
 static func _create_world(turn_count: int, end_progression: float, locations: Array[Location]) -> World:
@@ -216,9 +216,11 @@ static func _create_squad(squad_id: String, squad_name: String, money: float, fo
 	return squad
 
 static func _create_scenario_config(world: World, squad: SquadStrategicData, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:
+	var wrapped_squad := Squad.new()
+	wrapped_squad.strategic_data = squad
 	return {
 		"world": world,
-		"player_squad": squad,
+		"starting_player_squad": wrapped_squad,
 		"starting_location_id": starting_location_id,
 		"factions": [],
 		"events": events,

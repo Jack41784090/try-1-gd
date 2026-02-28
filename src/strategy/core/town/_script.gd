@@ -53,9 +53,11 @@ func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
 	available_activity_types.clear()
 	available_activity_types.append_array(types)
 
-func add_connection(location_id_to_connect: String, _time) -> void:
+func add_connection(location_id_to_connect: String, _time: int = 1) -> void:
+	if connections == null:
+		connections = TownConnections.new()
 	if not location_id_to_connect in connections:
-		connections.append(TownConnection.new(location_id, location_id_to_connect, _time || 1))
+		connections.tt.append(TownConnection.new(location_id, location_id_to_connect, _time))
 
 func add_clue(clue: Clue) -> void:
 	clues.append(clue)
