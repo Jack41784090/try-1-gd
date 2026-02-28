@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Squad" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://7rqf2dwc5ndy" path="res://src/squad/__init__.gd" id="1_squad"]
+[ext_resource type="Script" uid="uid://bfnvh6pblvwsa" path="res://src/squad/base.gd" id="2_base"]
+[ext_resource type="Resource" uid="uid://cefsqsj7rvmuj" path="res://resources/strategy-squads/test-player-squad.tres" id="3_strategic"]
+
+[sub_resource type="Resource" id="base_data_1"]
+script = ExtResource("2_base")
+squad_name = "Player's Squad"
+
+[resource]
+script = ExtResource("1_squad")
+base_data = SubResource("base_data_1")
+strategic_data = ExtResource("3_strategic")
+metadata/_custom_type_script = "uid://7rqf2dwc5ndy"

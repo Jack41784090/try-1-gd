@@ -1,0 +1,156 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=23 format=3 uid="uid://bm3om5nswmt1d"]
+
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/ui/vn/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "... ja, ja. Exactly. The Emperor is trying to make changes, but his advisors are--."
+on_screen_character_ids = Array[String](["goetz"])
+background_id = "goetz_study"
+behavior = "gesturing"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "... nooo, not the Mongols. They couldn't do anything, this time. Also, let's not--"
+on_screen_character_ids = Array[String](["goetz"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+line_spoken = "Two squires enter the room — Franz and Hilda. Goetz gestures for them to wait."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+behavior = "idle"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "Ja. But let's not say too much over the Skyline. All it's left for us is to assert ourselves."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_5"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "... likewise, talk to you later."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_6"]
+script = ExtResource("2_dialogue")
+speaker_name = "Franz"
+line_spoken = "My Lord, my deepest apologies for interrupting you but --"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_7"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "Yeah yeah, words from Frankfurt?"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_8"]
+script = ExtResource("2_dialogue")
+speaker_name = "Franz"
+line_spoken = "They are doubling---"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_9"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "DOUBLING DOWN???"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+expression_override = "angry"
+
+[sub_resource type="Resource" id="dialogue_10"]
+script = ExtResource("2_dialogue")
+line_spoken = "Franz stole a glance at Hilda, who gulped and glanced back at Franz."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_11"]
+script = ExtResource("2_dialogue")
+speaker_name = "Franz"
+line_spoken = "No... my Lord, they're..."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_12"]
+script = ExtResource("2_dialogue")
+speaker_name = "Hilda"
+line_spoken = "They said you are expressing contempt for the Empire, doubling... doubling the license fee."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_13"]
+script = ExtResource("2_dialogue")
+line_spoken = "Goetz fell into silence for a few seconds."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+delay_ms = 1500
+
+[sub_resource type="Resource" id="dialogue_14"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "So they *are* doubling down."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_15"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "Hilda, seal his mouth."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_16"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "What word from Nuremberg?"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_17"]
+script = ExtResource("2_dialogue")
+speaker_name = "Hilda"
+line_spoken = "They condemned your disobedience, called you an illegal Robber Knight, my good Lord."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_18"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "Good Lord...
+When bandits raid the city, they rely on my iron fist; yet profits fill their coffers, they condemn me, a robber knight."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+expression_override = "angry"
+
+[sub_resource type="Resource" id="dialogue_19"]
+script = ExtResource("2_dialogue")
+speaker_name = "Hilda"
+line_spoken = "My lord, the villagers depend on forestry. If the license fee doubles, the foresters cannot sustain their labour. Our economic independence!"
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+
+[sub_resource type="Resource" id="dialogue_20"]
+script = ExtResource("2_dialogue")
+speaker_name = "Goetz"
+line_spoken = "If they would call me a robber knight, they will get a robber knight.
+Gather the men-at-arms. We will march into Nuremberg to remind them who they are under the protection of."
+on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
+background_id = "goetz_study"
+expression_override = "determined"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "g0_intro"
+chain_name = "Goetz von Tutorial — The License"
+character_ids = Array[String](["goetz", "franz", "hilda"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5"), SubResource("dialogue_6"), SubResource("dialogue_7"), SubResource("dialogue_8"), SubResource("dialogue_9"), SubResource("dialogue_10"), SubResource("dialogue_11"), SubResource("dialogue_12"), SubResource("dialogue_13"), SubResource("dialogue_14"), SubResource("dialogue_15"), SubResource("dialogue_16"), SubResource("dialogue_17"), SubResource("dialogue_18"), SubResource("dialogue_19"), SubResource("dialogue_20")]

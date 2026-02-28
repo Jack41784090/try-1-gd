@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GameScenario" load_steps=6 format=3 uid="uid://tjywy66dwn8c"]
+
+[ext_resource type="Script" uid="uid://b1oewsug2c7mh" path="res://src/strategy/core/triggerable/ending/script.gd" id="1_ppja6"]
+[ext_resource type="Script" uid="uid://bcbf28h1wrvnl" path="res://src/strategy/core/faction.gd" id="2_64o4o"]
+[ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/scenario.gd" id="3_fant3"]
+[ext_resource type="Resource" uid="uid://c51vajq8ti4m2" path="res://resources/scenarios/goetz-official/starter.tres" id="4_64o4o"]
+[ext_resource type="Resource" uid="uid://d2nqlnrp74a5h" path="res://resources/scenarios/goetz-official/world.tres" id="5_fant3"]
+
+[resource]
+script = ExtResource("3_fant3")
+starting_player_squad = ExtResource("4_64o4o")
+starting_location_id = "hornberg_castle"
+world = ExtResource("5_fant3")
+extra_event_directories = Array[String](["res://resources/scenarios/goetz-official/events"])
+metadata/_custom_type_script = "uid://b8v78nfsqo6fm"

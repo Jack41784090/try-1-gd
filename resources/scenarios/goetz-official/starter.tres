@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Squad" load_steps=4 format=3 uid="uid://c51vajq8ti4m2"]
+
+[ext_resource type="Script" uid="uid://7rqf2dwc5ndy" path="res://src/squad/__init__.gd" id="1_squad"]
+[ext_resource type="Script" uid="uid://bfnvh6pblvwsa" path="res://src/squad/base.gd" id="2_base"]
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_social"]
+
+[sub_resource type="Resource" id="base_data_1"]
+script = ExtResource("2_base")
+squad_name = "Götz's Men-at-Arms"
+
+[sub_resource type="Resource" id="strategic_data_1"]
+script = ExtResource("3_social")
+squad_id = "goetz_men_at_arms"
+squad_name = "Götz's Men-at-Arms"
+money = 250.0
+food = 30
+travel_tools = 8
+
+[resource]
+script = ExtResource("1_squad")
+base_data = SubResource("base_data_1")
+strategic_data = SubResource("strategic_data_1")
+metadata/_custom_type_script = "uid://7rqf2dwc5ndy"

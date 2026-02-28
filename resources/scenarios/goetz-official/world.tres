@@ -1,0 +1,211 @@
+[gd_resource type="Resource" script_class="World" load_steps=36 format=3 uid="uid://d2nqlnrp74a5h"]
+
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_location"]
+[ext_resource type="PackedScene" uid="uid://dbyqyxsk02a1r" path="res://resources/scenarios/goetz-official/map.tscn" id="2_map"]
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="2_rytwl"]
+[ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="2_twtjl"]
+[ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="3_world"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="4_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="5_conns"]
+
+[sub_resource type="Resource" id="conn_hornberg_to_oehringen"]
+script = ExtResource("4_conn")
+from_location_id = "hornberg_castle"
+to_location_id = "oehringen"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_hornberg"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_hornberg_to_oehringen")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_hornberg_castle"]
+script = ExtResource("1_location")
+location_id = "hornberg_castle"
+location_name = "Hornberg Castle"
+type = 3
+development = 70
+stability = 110.0
+connections = SubResource("conns_hornberg")
+available_activity_types = Array[int]([0, 1, 3, 5, 10, 11])
+
+[sub_resource type="Resource" id="conn_oehringen_to_hornberg"]
+script = ExtResource("4_conn")
+from_location_id = "oehringen"
+to_location_id = "hornberg_castle"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_oehringen_to_heilbronn"]
+script = ExtResource("4_conn")
+from_location_id = "oehringen"
+to_location_id = "heilbronn"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_oehringen_to_schwaebisch_hall"]
+script = ExtResource("4_conn")
+from_location_id = "oehringen"
+to_location_id = "schwaebisch_hall"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_oehringen"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_oehringen_to_hornberg"), SubResource("conn_oehringen_to_heilbronn"), SubResource("conn_oehringen_to_schwaebisch_hall")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_oehringen"]
+script = ExtResource("1_location")
+location_id = "oehringen"
+location_name = "Öhringen"
+type = 1
+stability = 85.0
+connections = SubResource("conns_oehringen")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 7, 10, 11, 14])
+
+[sub_resource type="Resource" id="conn_heilbronn_to_oehringen"]
+script = ExtResource("4_conn")
+from_location_id = "heilbronn"
+to_location_id = "oehringen"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_heilbronn_to_schwaebisch_hall"]
+script = ExtResource("4_conn")
+from_location_id = "heilbronn"
+to_location_id = "schwaebisch_hall"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_heilbronn"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_heilbronn_to_oehringen"), SubResource("conn_heilbronn_to_schwaebisch_hall")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_heilbronn"]
+script = ExtResource("1_location")
+location_id = "heilbronn"
+location_name = "Heilbronn"
+type = 0
+development = 75
+stability = 60.0
+connections = SubResource("conns_heilbronn")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 6, 10, 11, 14])
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_oehringen"]
+script = ExtResource("4_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "oehringen"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_heilbronn"]
+script = ExtResource("4_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "heilbronn"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_rothenburg"]
+script = ExtResource("4_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "rothenburg"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_schwaebisch_hall"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_schwaebisch_hall_to_oehringen"), SubResource("conn_schwaebisch_hall_to_heilbronn"), SubResource("conn_schwaebisch_hall_to_rothenburg")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_schwaebisch_hall"]
+script = ExtResource("1_location")
+location_id = "schwaebisch_hall"
+location_name = "Schwäbisch Hall"
+type = 1
+development = 55
+stability = 90.0
+connections = SubResource("conns_schwaebisch_hall")
+available_activity_types = Array[int]([0, 2, 3, 4, 7, 10, 14])
+
+[sub_resource type="Resource" id="conn_rothenburg_to_schwaebisch_hall"]
+script = ExtResource("4_conn")
+from_location_id = "rothenburg"
+to_location_id = "schwaebisch_hall"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_rothenburg_to_nuremberg"]
+script = ExtResource("4_conn")
+from_location_id = "rothenburg"
+to_location_id = "nuremberg"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_rothenburg"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_rothenburg_to_schwaebisch_hall"), SubResource("conn_rothenburg_to_nuremberg")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_rothenburg"]
+script = ExtResource("1_location")
+location_id = "rothenburg"
+location_name = "Rothenburg ob der Tauber"
+type = 1
+development = 60
+stability = 85.0
+connections = SubResource("conns_rothenburg")
+available_activity_types = Array[int]([0, 2, 3, 4, 7, 10, 14])
+
+[sub_resource type="Resource" id="conn_nuremberg_to_rothenburg"]
+script = ExtResource("4_conn")
+from_location_id = "nuremberg"
+to_location_id = "rothenburg"
+travel_time = 2
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conn_nuremberg_to_bamberg"]
+script = ExtResource("4_conn")
+from_location_id = "nuremberg"
+to_location_id = "bamberg"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_nuremberg"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_nuremberg_to_rothenburg"), SubResource("conn_nuremberg_to_bamberg")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_nuremberg"]
+script = ExtResource("1_location")
+location_id = "nuremberg"
+location_name = "Nürnberg"
+type = 0
+development = 85
+stability = 75.0
+connections = SubResource("conns_nuremberg")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 6, 10, 11, 14])
+
+[sub_resource type="Resource" id="conn_bamberg_to_nuremberg"]
+script = ExtResource("4_conn")
+from_location_id = "bamberg"
+to_location_id = "nuremberg"
+metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
+
+[sub_resource type="Resource" id="conns_bamberg"]
+script = ExtResource("5_conns")
+tt = Array[ExtResource("4_conn")]([SubResource("conn_bamberg_to_nuremberg")])
+metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
+
+[sub_resource type="Resource" id="loc_bamberg"]
+script = ExtResource("1_location")
+location_id = "bamberg"
+location_name = "Bamberg"
+type = 0
+development = 70
+stability = 50.0
+connections = SubResource("conns_bamberg")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 6, 10, 11, 14])
+
+[resource]
+script = ExtResource("3_world")
+locations = Array[ExtResource("1_location")]([SubResource("loc_hornberg_castle"), SubResource("loc_oehringen"), SubResource("loc_heilbronn"), SubResource("loc_schwaebisch_hall"), SubResource("loc_rothenburg"), SubResource("loc_nuremberg"), SubResource("loc_bamberg")])
+map_scene = ExtResource("2_map")
+metadata/_custom_type_script = "uid://c7nmmrwqy6hlh"

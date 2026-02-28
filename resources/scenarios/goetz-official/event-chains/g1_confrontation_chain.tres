@@ -1,0 +1,94 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=14 format=3]
+
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_chain"]
+[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/ui/vn/dialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="dialogue_1"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "Bring your best, you cowards who hide behind your walls!"
+background_id = "nuremberg_gates"
+expression_override = "angry"
+
+[sub_resource type="Resource" id="dialogue_2"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Nuremberg Official"
+line_spoken = "The Bishop will send his army, and your charade will be put down, alongside with those foolish enough to follow you."
+background_id = "nuremberg_gates"
+
+[sub_resource type="Resource" id="dialogue_3"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "The Bishop will have to send his best against the Emperor's most loyal!"
+background_id = "nuremberg_gates"
+expression_override = "determined"
+
+[sub_resource type="Resource" id="dialogue_4"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Nuremberg Official"
+line_spoken = "The Emperor assigned our Bishop to rule over this city. If you truly consider yourself loyal to the Emperor, you will not challenge His Holiness."
+background_id = "nuremberg_gates"
+
+[sub_resource type="Resource" id="dialogue_5"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "Are you happy sitting behind the desk, signing away your life on paperwork? How many lives do you have before we head into the afterlife facing God Almighty, and we have to tell him what we have done for him on Earth? Exactly, One!"
+background_id = "nuremberg_gates"
+expression_override = "gesturing"
+
+[sub_resource type="Resource" id="dialogue_6"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Nuremberg Official"
+line_spoken = "And you have spent yours antagonizing good citizens of Nuremberg and the whole of Germany, Goetz."
+background_id = "nuremberg_gates"
+
+[sub_resource type="Resource" id="dialogue_7"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "I serve under Frederick the Emperor himself, and you under a coward hiding behind his position in a tyrannical theocracy."
+background_id = "nuremberg_gates"
+expression_override = "angry"
+
+[sub_resource type="Resource" id="dialogue_8"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "That fat lump of flesh fancies himself Lord of his own realm, claiming the hardwork of good hardworking peasants to pay for his luxury. Is this what a \"heavenly\" man is?"
+background_id = "nuremberg_gates"
+
+[sub_resource type="Resource" id="dialogue_9"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Goetz"
+line_spoken = "I do not fight the Emperor; I do not fight the Reich; I fight tyrants under the Holy Rights of Landfrieden."
+background_id = "nuremberg_gates"
+expression_override = "determined"
+
+[sub_resource type="Resource" id="dialogue_10"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Nuremberg Official"
+line_spoken = "Goetz, you are a relic of the past. We've been telling you for months that Landfrieden has been revoked from you and every knight of the Reich."
+background_id = "nuremberg_gates"
+
+[sub_resource type="Resource" id="dialogue_11"]
+script = ExtResource("2_dialogue")
+on_screen_character_ids = Array[String](["goetz", "nuremberg_official"])
+speaker_name = "Nuremberg Official"
+line_spoken = "I hope soon the Reich will do away with Reichsritter like you.\n\nPrepare yourself!"
+background_id = "nuremberg_gates"
+expression_override = "angry"
+
+[resource]
+script = ExtResource("1_chain")
+chain_id = "g1_nuremberg_confrontation"
+chain_name = "The Robber Knight Rises"
+character_ids = Array[String](["goetz", "nuremberg_official"])
+dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5"), SubResource("dialogue_6"), SubResource("dialogue_7"), SubResource("dialogue_8"), SubResource("dialogue_9"), SubResource("dialogue_10"), SubResource("dialogue_11")]

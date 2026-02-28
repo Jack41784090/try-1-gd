@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="GameEvent" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="1_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="2_result"]
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="3_condition"]
+
+[sub_resource type="Resource" id="Resource_condition"]
+script = ExtResource("3_condition")
+condition_type = 0
+parameters = {
+"location_id": "nuremberg"
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_result"]
+script = ExtResource("2_result")
+event_chain_path = "res://resources/scenarios/goetz-official/event-chains/g1_confrontation_chain.tres"
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
+
+[resource]
+script = ExtResource("1_event")
+result = SubResource("Resource_result")
+when_to_trigger = 3
+trigger_id = "g1_nuremberg_confrontation"
+trigger_name = "The Robber Knight Rises"
+description = "Goetz arrives at Nuremberg and confronts an official at the gates, challenging the Bishop's authority."
+conditions = Array[ExtResource("3_condition")]([SubResource("Resource_condition")])
+repeats = 1
+emergency_priority = 0
+chance = 1.0
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
