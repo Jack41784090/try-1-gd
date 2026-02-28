@@ -2,20 +2,20 @@ class_name ActivityRunner
 extends Node
 
 var is_executing_activity = false
-var data: ActivityExecuteManager
+var aem: ActivityExecuteManager
 var turn_count: int = 0
 
 @onready var player_squad: SquadStrategicData:
 	set(_ps):
 		player_squad = _ps
 	get:
-		if player_squad == null and data.scenario.starting_player_squad != null:
-			player_squad = data.scenario.starting_player_squad.strategic_data.duplicate(true)
+		if player_squad == null and aem.scenario.starting_player_squad != null:
+			player_squad = aem.scenario.starting_player_squad.strategic_data.duplicate(true)
 		return player_squad
 
 var locations:
 	get:
-		return data.scenario.world.travel_graph.locations
+		return aem.scenario.world.travel_graph.locations
 
 var travel_progress:
 	get:
@@ -39,7 +39,7 @@ var walking_towards: Variant:
 			return
 
 		assert(_cl is String or _cl is Location)
-		var new_loc: Location = data.scenario.world.travel_graph.get_location(_cl) if _cl is String else _cl
+		var new_loc: Location = aem.scenario.world.travel_graph.get_location(_cl) if _cl is String else _cl
 		if not walking_towards["location"]:
 			walking_towards = { "location": new_loc, "progress": 0 }
 		elif new_loc.location_id == walking_towards["location"].location_id:
@@ -50,11 +50,11 @@ var walking_towards: Variant:
 var current_location: Variant:
 	get:
 		if current_location == null:
-			current_location = data.scenario.starting_location_id
+			current_location = aem.scenario.starting_location_id
 		return current_location
 	set(_cl):
 		if _cl is String:
-			current_location = data.scenario.world.travel_graph.get_location(_cl).duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
+			current_location = aem.scenario.world.travel_graph.get_location(_cl).duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
 		elif _cl is Location:
 			current_location = _cl
 		else:
@@ -65,23 +65,23 @@ var current_location: Variant:
 func setup(_loaded_scenario, context = { }):
 	# Initializes the ActivityRunner with a loaded GameScenario
 	# Creates the underlying ActivityExecuteManager that handles triggerable execution
-	# e.g., setup(demo_scenario) → creates ActivityExecuteManager → data.setup(scenario)
-	data = ActivityExecuteManager.new()
-	data.setup(_loaded_scenario, context)
+	# e.g., setup(demo_scenario) → creates ActivityExecuteManager → aem.setup(scenario)
+	aem = ActivityExecuteManager.new()
+	aem.setup(_loaded_scenario, context)
 
 
 func embark_new_journey(towards: Location):
-	var _squad = data.player_squad
-	current_location = data.scenario.starting_location_id
+	var _squad = aem.player_squad
+	current_location = aem.scenario.starting_location_id
 	walking_towards = towards
 
 
 func get_distance(current_id, location_id):
-	return data.scenario.world.travel_graph.calculate_travel_time_between(current_id, location_id)
+	return aem.scenario.world.travel_graph.calculate_travel_time_between(current_id, location_id)
 
 
 func get_location_by_id(location_id):
-	return data.scenario.world.get_location_by_id(location_id)
+	return aem.scenario.world.get_location_by_id(location_id)
 
 
 func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[String]:
@@ -119,43 +119,20 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 	return reachable
 
 
-func exec_x_when(activity: Activity, _when: StrategyTypes.TriggerWhen):
-	# Executes all triggerables that match the given timing (BEFORE_ACTIVITY, AFTER_ACTIVITY, etc.)
-	# Delegates to ActivityExecuteManager.execute_triggerables which checks conditions against context
-	# e.g., exec_x_when(rest_activity, BEFORE_ACTIVITY) → checks all GameEvents that trigger before REST
-	#   → "camp_fire" event conditions pass → returns [EventResult(event_chain_path="camp_fire.tres")]
-	var res: Array[GenericResult] = data.execute_triggerables(
-		activity,
-		_when,
-	)
-	return res
-
-
 func exec_before(activity: Activity):
-	return exec_x_when(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+	return aem.exec_before(activity)
 
 
 func exec_activity(activity: Activity):
-	# Executes the activity itself (not before/after triggers) and applies results to game state
-	# Calls activity.execute(context) which runs the type-specific handler (REST, TRAVEL, FORAGE, etc.)
-	# Then applies each result via data._apply_result() (location changes, stat changes, recruits)
-	# e.g., exec_activity(rest_activity) → execute(context) → [ActivityResult(morale:+5, food:-2)]
-	#   → _apply_result() → squad.morale +=5, squad.food -=2
-	var activity_results = activity.execute(data._build_context(activity))
-	print("[GameScenario] Activity result: %s" % activity_results)
-	var all_activity_result: Array[GenericResult] = []
-	for result in activity_results:
-		all_activity_result.append(result)
-		data._apply_result(result)
-	return all_activity_result
+	return aem.exec_activity(activity)
 
 
 func exec_after(activity: Activity):
-	return exec_x_when(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+	return aem.exec_after(activity)
 
 
 func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
-	var res: Array[GenericResult] = data.execute_triggerables_at(when)
+	var res: Array[GenericResult] = aem.execute_triggerables_at(when)
 	return res
 
 
@@ -165,7 +142,7 @@ func advance_turn() -> void:
 
 
 func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
-	for triggerable in data.scenario.triggerable_manager.registered_triggerables:
+	for triggerable in aem.scenario.triggerable_manager.registered_triggerables:
 		if triggerable is Activity and triggerable.activity_type == _getting_type:
 			return triggerable as Activity
 	return null
@@ -206,18 +183,18 @@ func create_travel_activity(location_id: String) -> Activity:
 		walking_towards = location_id # set to { "location": confirmed_location_id, "progress": 0 } by setters
 		activity.result.location_changed = "" # no location change yet, just starting journey
 	elif location_id == walking_towards_location.location_id:
-		print("continuing down the path towards intended location")
+		Log.debug("Runner", "Continuing down the path towards intended location")
 		(current_location as Location).type = StrategyTypes.LocationType.ROAD # temporarily set current location to road to allow travel between towns
 		walking_towards = location_id # Assigning the same location will increment progres by 1, refer to setter
 		if travel_progress >= get_distance(current_location, walking_towards_location):
-			print("arrived at destination")
+			Log.debug("Runner", "Arrived at destination")
 			current_location = walking_towards_location
 			walking_towards = null
 			activity.result.location_changed = location_id # signal arrival to _execute_travel
 		else:
 			activity.result.location_changed = "" # no location change yet
 	else:
-		print("changing destination") # TODO
+		Log.debug("Runner", "Changing destination") # TODO
 
 	# activity.result = travel_result
 	return activity

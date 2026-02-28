@@ -46,32 +46,32 @@ func _apply_stats_changes_result(_scr: GenericResult):
 	# Applies numeric stat changes from a result to the player's squad
 	# e.g., _scr.squad_stat_changes = {SquadProperty.MORALE: +10.0, SquadProperty.FOOD_SUPPLIES: -2.0}
 	# 1. Iterate over each stat key/value pair in the result's squad_stat_changes dict
-	print("[GameScenario]   Applying %d squad stat change(s)..." % _scr.squad_stat_changes.size())
+	Log.debug("AEM", "Applying %d squad stat change(s)" % _scr.squad_stat_changes.size())
 	for stat_key in _scr.squad_stat_changes:
 		var value = _scr.squad_stat_changes[stat_key]
-		print("[GameScenario]     Stat key %s (enum value %d) = %+.2f" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key, value])
+		Log.trace("AEM", "Stat key %s (enum value %d) = %+.2f" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key, value])
 		match stat_key:
 			StrategyTypes.SquadProperty.MORALE:
-				print("[GameScenario]     -> Modifying morale by %+.2f" % value)
+				Log.debug("AEM", "Modifying morale by %+.2f" % value)
 				player_squad.modify_morale(value)
 			StrategyTypes.SquadProperty.FOOD_SUPPLIES:
-				print("[GameScenario]     -> Adding food: %+d" % int(value))
+				Log.debug("AEM", "Adding food: %+d" % int(value))
 				player_squad.food += int(value)
 			StrategyTypes.SquadProperty.MONEY:
-				print("[GameScenario]     -> Adding money: %+.2f" % value)
+				Log.debug("AEM", "Adding money: %+.2f" % value)
 				player_squad.money += value
 			StrategyTypes.SquadProperty.AMMO_SUPPLIES:
-				print("[GameScenario]     -> Travel Tools: %+.2f" % value)
+				Log.debug("AEM", "Travel Tools: %+.2f" % value)
 				player_squad.travel_tools += round(value)
 			_:
-				push_error("[GameScenario] Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
+				Log.error("AEM", "Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key])
 
 
 func _apply_location_change_result(_lcr: GenericResult):
 	assert(_lcr is GenericResult)
 	assert(_lcr.location_changed != null)
-	print("[GameScenario]   Location changed to: ", _lcr.location_changed)
+	Log.debug("AEM", "Location changed to: %s" % _lcr.location_changed)
 
 	var current_location = world.get_location_by_id(player_squad.current_location_id)
 	previous_location = current_location
@@ -81,10 +81,10 @@ func _apply_location_change_result(_lcr: GenericResult):
 func _apply_result(result: GenericResult) -> void:
 	# Master result applier — takes ANY GenericResult and applies all its effects to the squad/world
 	# e.g., result = ActivityResult(location_changed="vienna", squad_stat_changes={MORALE: -5.0}, new_recruits=[Warrior("Otto")])
-	print("[GameScenario] _apply_result() called")
-	print("[GameScenario]   Result type: ", result.get_class())
-	print("[GameScenario]   SquadCombatData changes: ", result.squad_stat_changes)
-	print("[GameScenario]   World changes: ", result.world_stat_changes)
+	Log.trace("AEM", "_apply_result() called")
+	Log.trace("AEM", "Result type: %s" % result.get_class())
+	Log.trace("AEM", "SquadCombatData changes: %s" % [result.squad_stat_changes])
+	Log.trace("AEM", "World changes: %s" % [result.world_stat_changes])
 
 	# 1. Apply location changes — if this is a TRAVEL/FORCE_MARCH result, move the squad
 	# e.g., result.location_changed = "vienna" → squad moves from "salzburg" to "vienna"
@@ -94,14 +94,14 @@ func _apply_result(result: GenericResult) -> void:
 	# 2. Apply squad stat changes — morale, food, money, travel tools
 	# e.g., {MORALE: -5.0} → each warrior loses 5 morale
 	if result.squad_stat_changes.is_empty():
-		print("[GameScenario]   No squad stat changes to apply")
+		Log.trace("AEM", "No squad stat changes to apply")
 	else:
 		_apply_stats_changes_result(result)
 
 	# 3. Add new recruits into player squad — from RECRUIT activity
 	# e.g., new_recruits = [CharacterSocialStats(name="Recruit_3")] → appended to squad.warriors
 	if result.new_recruits.size() > 0:
-		print("[GameScenario]   Adding %d new recruit(s) to squad" % result.new_recruits.size())
+		Log.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
 		for recruit in result.new_recruits:
 			player_squad.add_warrior(recruit)
 
@@ -139,17 +139,26 @@ func _build_context(activity: Activity = null) -> Dictionary:
 	}
 
 
+func exec_before(activity: Activity) -> Array[GenericResult]:
+	return execute_triggerables(activity, StrategyTypes.TriggerWhen.BEFORE_ACTIVITY)
+
+
+func exec_activity(activity: Activity) -> Array[GenericResult]:
+	var results = activity.execute(_build_context(activity))
+	var all_results: Array[GenericResult] = []
+	for r in results:
+		all_results.append(r)
+		_apply_result(r)
+	return all_results
+
+
+func exec_after(activity: Activity) -> Array[GenericResult]:
+	return execute_triggerables(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+
+
 func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
-	# Main entry point: runs all GameEvents that match the current context + timing
-	# Called by the UI presenter BEFORE and AFTER each activity
-	# e.g., execute_triggerables(Activity(REST), BEFORE_ACTIVITY)
-	#   → checks all registered GameEvents where when_to_trigger == BEFORE_ACTIVITY
-	#   → any that pass their conditions get triggered, results applied to squad
-	# 1. Build context dict with current squad, world, location, activity
 	var context = _build_context(activity)
-	# 2. Find and trigger matching events, collect their results
 	var results = _execute_triggerables(context, when)
-	# 3. Apply each result (stat changes, location changes, recruits)
 	for result in results:
 		_apply_result(result)
 	return results
@@ -167,7 +176,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	# Core triggerable execution engine — finds all matching GameEvents and fires them
 	# e.g., context = {squad: Wolves, world: World(turn=5), location: Salzburg, activity: REST}
 	#       when = AFTER_ACTIVITY
-	print("[GameScenario] _execute_triggerables() when=", StrategyTypes.TriggerWhen.keys()[when])
+	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[when])
 	# 1. Create a filter that only matches GameEvents scheduled for this timing
 	# e.g., GameEvent("Ambush", when=AFTER_ACTIVITY) passes, GameEvent("Dawn", when=TURN_START) is skipped
 	var when_filter = func(t: Triggerable) -> bool:
@@ -177,24 +186,24 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	# Each triggerable's conditions are evaluated (location, squad_status, time, etc.)
 	# e.g., GameEvent("Ambush") conditions: [LOCATION_TYPE=ROAD, SQUAD_STATUS(morale<30)] → if both pass, included
 	var triggerables: Array[Triggerable] = scenario.triggerable_manager.get_triggerables_triggered(context, when_filter)
-	print("[GameScenario]   Found %d triggered event(s)" % triggerables.size())
+	Log.trace("AEM", "Found %d triggered event(s)" % triggerables.size())
 
 	# 3. Sort by emergency_priority (lower = higher priority, fires first)
-	# e.g., GameEvent(priority=0, "Betrayal") fires before GameEvent(priority=10, "Market Day")
+	# e.g., GameEvent(priority=0, "Market Day") fires before GameEvent(priority=10, "Betrayal")
 	_sort_triggerables_by_priority(triggerables)
-	print("[GameScenario]   Total triggerables after sorting: %d" % triggerables.size())
+	Log.trace("AEM", "Total triggerables after sorting: %d" % triggerables.size())
 
 	# 4. Fire each triggerable and collect results
 	# e.g., GameEvent("Ambush").trigger(context) → EventResult(squad_stat_changes={MORALE: -10})
 	var all_results: Array[GenericResult] = []
 	for triggerable in triggerables:
-		print("[GameScenario]   Triggering: ", triggerable.trigger_name, " (", triggerable.get_class(), ")")
+		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
 		var triggered_results = triggerable.trigger(context)
 		for r in triggered_results:
-			print("[GameScenario]     Result: squad_changes=", r.squad_stat_changes, ", world_changes=", r.world_stat_changes)
+			Log.trace("AEM", "Result: squad_changes=%s, world_changes=%s" % [r.squad_stat_changes, r.world_stat_changes])
 			all_results.append(r)
 
-	print("[GameScenario]   Returning %d result(s)" % all_results.size())
+	Log.trace("AEM", "Returning %d result(s)" % all_results.size())
 	return all_results
 
 

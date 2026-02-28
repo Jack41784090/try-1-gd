@@ -131,7 +131,7 @@ func _on_recruit_pressed(class_enum: EntityClasses.Types, cost: float) -> void:
 	
 	var new_warrior = WarriorFactory.create_warrior(
 		class_enum,
-		"warrior_%d_%d" % [actor.data.world.turn_count, randi()],
+		"warrior_%d_%d" % [actor.aem.world.turn_count, randi()],
 		"%s Recruit" % entity_template.entity_name,
 		StrategyTypes.Religion.CATHOLIC,
 		entity_template.stats.duplicate(true) if entity_template.stats else EntityBaseStats.new()

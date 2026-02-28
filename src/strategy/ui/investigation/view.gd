@@ -40,7 +40,7 @@ func _update_clues_list() -> void:
 	
 	title_label.text = "Investigating: %s" % current_location.location_name
 	
-	var current_turn = actor.data.world.turn_count
+	var current_turn = actor.aem.world.turn_count
 	var active_clues = current_location.get_active_clues(current_turn)
 	
 	if active_clues.is_empty():
@@ -113,7 +113,7 @@ func _create_clue_item(clue: Clue, perception_roll: int, current_turn: int) -> v
 	clues_container.add_child(item_panel)
 
 func _get_squad_name(squad_id: String) -> String:
-	var world = actor.data.world
+	var world = actor.aem.world
 	for squad in world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad.squad_name

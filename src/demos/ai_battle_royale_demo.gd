@@ -62,7 +62,7 @@ func _initialize():
 
 	# Sync AEM's player_squad with runner's so _build_context() uses
 	# the same instance (both lazy-create separate duplicates otherwise)
-	actor.data.player_squad = player_squad
+	actor.aem.player_squad = player_squad
 
 	player_squad.engagement_stance = \
 	StrategyTypes.EngagementStance.ALWAYS_ENGAGE

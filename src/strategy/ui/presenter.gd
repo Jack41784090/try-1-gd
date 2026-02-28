@@ -21,7 +21,7 @@ var combat_controller: CombatController
 
 var game_scenario: GameScenario:
 	get:
-		return actor.data.scenario
+		return actor.aem.scenario
 
 var ui_mode: UIMode = UIMode.STRATEGY
 var is_executing_activity: bool = false
@@ -58,7 +58,7 @@ func bind_view(v: StrategyView) -> void:
 	_setup_components()
 	StrategyEventBus.turn_advanced.connect(_on_turn_advanced)
 	view.update_morale_bar(actor.player_squad.get_morale())
-	game_scenario.initialize(actor.data._build_context())
+	game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
@@ -77,12 +77,12 @@ func _initialize_scenario() -> void:
 	# Loads the GameScenario resource (demo or from file) and passes it to ActivityRunner.setup()
 	# e.g., is_demo_scenario=true → DemoScenarioFactory.create_demo_scenario() → actor.setup(scenario)
 	# e.g., scenario_path="res://resources/scenarios/campaign.tres" → ResourceLoader.load() → actor.setup(scenario)
-	print(" --- Initialising scenario --- ")
+	Log.info("Presenter", "Initialising scenario")
 	if is_demo_scenario:
-		print(" \\=> DEMO ")
+		Log.info("Presenter", "Loading DEMO scenario")
 		actor.setup(DemoScenarioFactory.create_demo_scenario())
 	else:
-		print(" \\=> loading ", scenario_path)
+		Log.info("Presenter", "Loading scenario: %s" % scenario_path)
 		assert(not scenario_path.is_empty(), "Scenario path is empty")
 		assert(ResourceLoader.exists(scenario_path), "Scenario resource does not exist at path: %s" % scenario_path)
 
@@ -93,7 +93,7 @@ func _initialize_scenario() -> void:
 			error_msg += "  - Missing dependencies (check ExtResource paths)\n"
 			error_msg += "  - Circular reference in resources\n"
 			error_msg += "  - Corrupted .tres file\n"
-			push_error(error_msg)
+			Log.error("Presenter", error_msg)
 			assert(false, error_msg)
 
 		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
@@ -109,8 +109,8 @@ func _setup_components() -> void:
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	vn_view.presenter.set_stage_presenter(stage_presenter)
-	print("[StrategyPresenter] CombatController initialized")
-	print("[StrategyPresenter] AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
+	Log.info("Presenter", "CombatController initialized")
+	Log.info("Presenter", "AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
 #endregion
 
@@ -199,7 +199,7 @@ func on_investigation_closed() -> void:
 
 
 func on_recruitment_completed(warrior: CharacterSocialStats) -> void:
-	print("[StrategyPresenter] Recruited warrior: %s" % warrior.name)
+	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
 	_update_ui()
 	stage_presenter.refresh_warriors(actor.player_squad)
 	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)
@@ -214,7 +214,7 @@ func on_manage_squad_closed() -> void:
 
 
 func on_purchase_completed(purchases: Dictionary) -> void:
-	print("[StrategyPresenter] Purchase completed: %s" % [purchases])
+	Log.debug("Presenter", "Purchase completed: %s" % [purchases])
 	_update_ui()
 
 
@@ -233,7 +233,7 @@ func on_scouting_closed() -> void:
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
-	print("[StrategyPresenter] Player chose: %s" % CombatController.IntermissionChoice.keys()[choice])
+	Log.debug("Presenter", "Player chose: %s" % CombatController.IntermissionChoice.keys()[choice])
 	_process_encounter_choice(choice)
 
 
@@ -257,7 +257,7 @@ func on_summary_pressed() -> void:
 
 
 func on_battle_close() -> void:
-	print("[StrategyPresenter] User closed battle manually")
+	Log.debug("Presenter", "User closed battle manually")
 	view.cleanup_battle_scene()
 
 #endregion

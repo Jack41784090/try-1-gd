@@ -39,7 +39,7 @@ func get_effective_mode() -> TravelMode:
 
 func on_show(_scenario, _locs) -> void:
 	if not _map_initialized:
-		view.setup_map(actor.data.scenario.world)
+		view.setup_map(actor.aem.scenario.world)
 		_map_initialized = true
 	view.set_current_location_on_map(current_location.location_id)
 	var mode = get_effective_mode()
@@ -73,16 +73,16 @@ func on_mode_toggle() -> void:
 
 func on_location_selected(location_id: String) -> void:
 	selected_location_id = location_id
-	var location = actor.data.world.travel_graph.get_location(location_id)
-	var distance = actor.data.world.travel_graph.get_distance(
+	var location = actor.aem.world.travel_graph.get_location(location_id)
+	var distance = actor.aem.world.travel_graph.get_distance(
 		current_location.location_id,
 		location_id
 	)
-	var travel_time = actor.data.world.travel_graph.calculate_travel_time_between(
+	var travel_time = actor.aem.world.travel_graph.calculate_travel_time_between(
 		current_location.location_id,
 		location_id
 	)
-	_selected_path = actor.data.world.travel_graph.find_path(
+	_selected_path = actor.aem.world.travel_graph.find_path(
 		current_location.location_id,
 		location_id
 	)
@@ -105,7 +105,7 @@ func on_confirm() -> void:
 		view.update_travel_progress(progress_pct)
 		view.travel_confirmed.emit(towards_location.location_id)
 	elif not selected_location_id.is_empty():
-		var path = actor.data.world.travel_graph.find_path(current_location.location_id, selected_location_id)
+		var path = actor.aem.world.travel_graph.find_path(current_location.location_id, selected_location_id)
 		view.travel_confirmed.emit(path[1])
 
 func on_cancel() -> void:
