@@ -40,7 +40,9 @@ enum ActivityType {
 
 enum TriggerWhen {
 	BEFORE_ACTIVITY,
-	AFTER_ACTIVITY
+	AFTER_ACTIVITY,
+	GAME_START,
+	TURN_START,
 }
 
 enum LogicalOperator {

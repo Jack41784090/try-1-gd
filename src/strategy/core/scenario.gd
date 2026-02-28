@@ -41,6 +41,7 @@ func _setup(config: Dictionary) -> void:
 	if starting_player_squad == null:
 		starting_player_squad = config.get("starting_player_squad")
 		assert(starting_player_squad != null, "GameScenario requires starting_player_squad to be set")
+	starting_player_squad.ensure_initialized()
 	
 	# Register factions (either from exported array or config)
 	var config_factions = config.get("factions", [])
@@ -68,6 +69,8 @@ func _setup(config: Dictionary) -> void:
 	var events: Array = config.get("events", [])
 	if events.is_empty():
 		events = _load_generic_events()
+	for extra_dir in extra_event_directories:
+		_collect_event_resources(extra_dir, events)
 	for event in events:
 		if event is GameEvent:
 			triggerable_manager.register(event)
@@ -83,8 +86,7 @@ func _setup(config: Dictionary) -> void:
 	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
-	#starting_player_squad.ensure_initialized()
-	starting_player_squad.set_location(starting_location_id)
+	starting_player_squad.strategic_data.set_location(starting_location_id)
 	
 	# triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
 

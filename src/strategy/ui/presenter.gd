@@ -55,6 +55,7 @@ func bind_view(v: StrategyView) -> void:
 	game_scenario.initialize(actor.data._build_context())
 	_update_ui()
 	stage_presenter.start_march(actor.player_squad)
+	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
 
 func _process(delta: float) -> void:
 	if is_in_combat_encounter and encounter_timeout_timer > 0:
@@ -617,6 +618,7 @@ func _get_travel_label() -> String:
 func _on_turn_advanced(turn: int) -> void:
 	print("Turn advanced to: %d" % turn)
 	view.update_turn(turn)
+	await _execute_story_triggerables(StrategyTypes.TriggerWhen.TURN_START)
 
 #endregion
 

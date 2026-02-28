@@ -119,6 +119,13 @@ func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
 		_apply_result(result)
 	return results
 
+func execute_triggerables_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
+	var context = _build_context(null)
+	var results = _execute_triggerables(context, when )
+	for result in results:
+		_apply_result(result)
+	return results
+
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	print("[GameScenario] _execute_triggerables() when=", StrategyTypes.TriggerWhen.keys()[ when ])
 	var when_filter = func(t: Triggerable) -> bool:
