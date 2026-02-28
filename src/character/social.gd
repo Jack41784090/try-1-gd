@@ -3,6 +3,7 @@ class_name CharacterSocialStats extends Resource
 @export var id: String = ""
 @export var name: String = ""
 @export var class_id: EntityClasses.Types = EntityClasses.Types.Landsknecht
+@export var social_class: StrategyTypes.SocialClass = StrategyTypes.SocialClass.SOLDIER
 @export var morale: float = 50.0
 @export var religion: StrategyTypes.Religion = StrategyTypes.Religion.CATHOLIC
 @export var attributes: Dictionary = {
@@ -41,6 +42,14 @@ func get_morale() -> float:
 
 func check_religion(religion_type: StrategyTypes.Religion) -> bool:
 	return religion == religion_type
+
+func get_demand() -> Dictionary:
+	var food = StrategyTypes.get_social_class_food_demand(
+		social_class
+	)
+	return {
+		StrategyTypes.SquadProperty.FOOD_SUPPLIES: food
+	}
 
 func get_attribute(attribute: StrategyTypes.WarriorAttribute) -> int:
 	var key = _attribute_to_key(attribute)

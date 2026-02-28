@@ -26,4 +26,7 @@ func ensure_initialized() -> void:
 	assert(strategic_data != null, "Squad must have strategic_data")
 	if base_data != null and not base_data.characters.is_empty():
 		_duplicate_characters_from_resource()
-		strategic_data.warriors = base_data.characters.map(func(c): return c.social)
+		strategic_data.warriors.clear()
+		for character in base_data.characters:
+			if character != null and character.social != null:
+				strategic_data.warriors.append(character.social)
