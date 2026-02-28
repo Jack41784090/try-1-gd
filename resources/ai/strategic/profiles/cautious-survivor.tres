@@ -1,16 +1,20 @@
-[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=12 format=3 uid="uid://p3vmi1x23lbb"]
 
-[ext_resource type="Script" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
-[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
+[ext_resource type="Script" uid="uid://7ypnpyxchsbe" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dff6hxf2m6uxd" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/forage-when-hungry.tres" id="3_forage"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/travel-to-town-low-money.tres" id="4_travel"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/mercenary-work-low-money.tres" id="5_merc"]
-[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="6_patrol"]
+[ext_resource type="Resource" uid="uid://ox0bq147kqq" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="6_patrol"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/drill-when-idle.tres" id="7_drill"]
-[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="8_fallback"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/rest-when-exhausted.tres" id="8_rest_exhausted"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/heal-at-town.tres" id="9_heal"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/buy-supplies-at-town.tres" id="10_buy"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/recruit-when-depleted.tres" id="11_recruit"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="12_fallback"]
 
 [resource]
 script = ExtResource("1_script")
 profile_name = "cautious-survivor"
-considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_patrol"), ExtResource("7_drill")])
-fallback_action = ExtResource("8_fallback")
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_patrol"), ExtResource("7_drill"), ExtResource("8_rest_exhausted"), ExtResource("9_heal"), ExtResource("10_buy"), ExtResource("11_recruit")])
+fallback_action = ExtResource("12_fallback")
