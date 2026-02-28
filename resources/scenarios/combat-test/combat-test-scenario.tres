@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/scenario.gd" id="1_scenario"]
 [ext_resource type="Script" uid="uid://bcbf28h1wrvnl" path="res://src/strategy/core/faction.gd" id="2_q25yv"]
 [ext_resource type="Resource" uid="uid://dsmbbso4d8jxx" path="res://resources/scenarios/combat-test/combat-test-world.tres" id="2_world"]
-[ext_resource type="Resource" uid="uid://cefsqsj7rvmuj" path="res://resources/strategy-squads/test-player-squad.tres" id="3_q25yv"]
+[ext_resource type="Resource" path="res://resources/strategy-squads/test-player-squad-full.tres" id="3_q25yv"]
 
 [resource]
 script = ExtResource("1_scenario")

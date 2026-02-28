@@ -14,7 +14,7 @@
 [ext_resource type="Resource" uid="uid://dq4ny0r5h1ask" path="res://resources/strategy-squads/test-squad-raiders.tres" id="7_raider"]
 [ext_resource type="Resource" uid="uid://cr5o01s6i10tl" path="res://resources/strategy-squads/test-squad-cultists.tres" id="8_cult"]
 [ext_resource type="Resource" uid="uid://cs6p02t7j21um" path="res://resources/strategy-squads/test-squad-outlaws.tres" id="9_outlaw"]
-[ext_resource type="PackedScene" path="res://scenes/ui/maps/combat_test_map.tscn" id="10_map"]
+[ext_resource type="PackedScene" uid="uid://e44icl82uqkp" path="res://scenes/ui/maps/combat_test_map.tscn" id="10_map"]
 
 [sub_resource type="Resource" id="Resource_6275e"]
 script = ExtResource("3_1wmke")
