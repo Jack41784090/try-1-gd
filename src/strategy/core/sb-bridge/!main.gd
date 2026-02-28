@@ -1,106 +1,145 @@
 extends RefCounted
+
 class_name CombatBridge
 
 # signal combat_requested(player_squad: SquadStrategicData, enemy_squad: SquadStrategicData, context: Dictionary)
 # signal combat_phase_completed(updates: Array[EntityUpdate])
 # signal combat_ended(result: Dictionary)
 
-var warrior_to_entity: Dictionary = {}
-var entity_to_warrior: Dictionary = {}
+var warrior_to_entity: Dictionary = { }
+var entity_to_warrior: Dictionary = { }
 var current_battle: SquadBattle = null
 var player_combat_squad: SquadCombatData = null
 var enemy_combat_squad: SquadCombatData = null
 var current_tactic: Tactic = null
 var _next_entity_id: int = 1
+
+
 func create_battle(
-	player_squad: SquadStrategicData,
-	enemy_squad: SquadStrategicData,
-	tactic: Tactic
+		player_squad: SquadStrategicData,
+		enemy_squad: SquadStrategicData,
+		tactic: Tactic,
 ) -> SquadBattle:
+	# Creates a tactical SquadBattle from two strategic squads, translating CharacterSocialStats → CharacterCombatStats entities
+	# e.g., player squad "Wolves" (3 warriors) vs enemy "Raiders" (4 warriors)
+	#   → builds entity configs for each warrior, assigns entity IDs, creates SquadBattle
+	#
+	# 1. Clear previous ID mappings (warrior_id ↔ entity_id)
 	clear_mappings()
 	current_tactic = tactic
-	
+
+	# 2. Convert each squad's warriors into entity configs for the tactical layer
+	# e.g., player_squad: [Warrior(id="w1", str=8, agi=6)] → [{entity_id: 1, team: "player", stats: {FOR: 8, ACR: 6, ...}}]
 	var player_squad_config = _build_squad_config(player_squad, "player", SquadBattleTypes.Side.ATTACKER)
 	var enemy_squad_config = _build_squad_config(enemy_squad, "enemy", SquadBattleTypes.Side.DEFENDER)
-	
+
 	print("[CombatBridge] Creating battle with config:")
 	print("[CombatBridge]   Player squad: %s (%d entities)" % [player_squad_config.name, player_squad_config.entities.size()])
 	print("[CombatBridge]   Enemy squad: %s (%d entities)" % [enemy_squad_config.name, enemy_squad_config.entities.size()])
-	print("[CombatBridge]   Attacker Tactic: %s (actions=%d, reactions=%d)" % [
-		tactic.tactic_name, tactic.action_count, tactic.reaction_count
-	])
-	
-	# Enemy uses balanced tactic by default
+	print(
+		"[CombatBridge]   Attacker Tactic: %s (actions=%d, reactions=%d)" % [
+			tactic.tactic_name,
+			tactic.action_count,
+			tactic.reaction_count,
+		],
+	)
+
+	# 3. Enemy uses balanced tactic by default (equal action/reaction counts)
 	var enemy_tactic = Tactic.create_balanced()
-	
-	current_battle = SquadBattle.new({
-		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [player_squad_config],
-			SquadBattleTypes.Side.DEFENDER: [enemy_squad_config]
+
+	# 4. Construct the actual SquadBattle with both teams' configs and tactics
+	# The SquadBattle._init() will create SquadCombatData + CharacterCombatStats entities from these configs
+	current_battle = SquadBattle.new(
+		{
+			"teams": {
+				SquadBattleTypes.Side.ATTACKER: [player_squad_config],
+				SquadBattleTypes.Side.DEFENDER: [enemy_squad_config],
+			},
+			"attacker_tactic": tactic,
+			"defender_tactic": enemy_tactic,
 		},
-		"attacker_tactic": tactic,
-		"defender_tactic": enemy_tactic
-	})
-	
-	# Store SquadCombatData references after battle creation
+	)
+
+	# 5. Cache references to SquadCombatData for later result retrieval
 	if current_battle.teams_and_squads.has("player") and current_battle.teams_and_squads["player"].size() > 0:
 		player_combat_squad = current_battle.teams_and_squads["player"][0]
 	if current_battle.teams_and_squads.has("enemy") and current_battle.teams_and_squads["enemy"].size() > 0:
 		enemy_combat_squad = current_battle.teams_and_squads["enemy"][0]
-	
+
 	return current_battle
 
+
 func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side: SquadBattleTypes.Side) -> Dictionary:
+	# Converts a strategic squad's warriors into tactical entity configs
+	# Maps each CharacterSocialStats warrior → entity config dict with combat stats
+	# Also builds the bi-directional ID mapping: warrior_id ↔ entity_id
+	# e.g., Warrior(id="w1", name="Hans", str=8) → {entity_id: 1, team: "player", base_stats: {FOR: 8, ...}}
 	var entity_configs: Array = []
 	var living_warriors = strategic_squad.get_living_warriors()
 	var formation = strategic_squad.formation
-	
+
 	for i in range(living_warriors.size()):
 		var warrior: CharacterSocialStats = living_warriors[i]
 		var entity_id = _next_entity_id
 		_next_entity_id += 1
-		
+
+		# Build the warrior ↔ entity ID mapping for post-combat result translation
+		# e.g., warrior_to_entity["w1"] = 1, entity_to_warrior[1] = "w1"
 		warrior_to_entity[warrior.id] = entity_id
 		entity_to_warrior[entity_id] = warrior.id
-		
+
+		# Use formation-defined position if available, otherwise use warrior's default
+		# e.g., formation=[Front, Middle, Back] → warrior[0] starts at Front
 		var starting_loc = warrior.location_prebattle
 		if i < formation.size():
 			starting_loc = formation[i] as SquadBattleTypes.SquadEntityInSquadLocation
-		
 
+		# Convert the CharacterSocialStats warrior into a tactical entity config dict
+		# This uses warrior.convert_to_entity() which maps social stats → combat stats
 		var entity_config = warrior.convert_to_entity(entity_id, team, starting_loc)
 		entity_configs.append(entity_config)
-	
+
 	var squad_config = {
 		"entities": entity_configs,
 		"name": strategic_squad.squad_name,
 		"team": team,
-		"side": side
+		"side": side,
 	}
-	
+
 	return squad_config
 
+
 func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpdate]) -> Dictionary:
+	# Translates tactical combat outcomes (EntityUpdate[]) back into strategic warrior state changes
+	# Maps entity_id back to warrior_id using the bridge's ID mapping
+	# e.g., EntityUpdate(entity=1, HP: 100→30) → warrior "w1" becomes injured, morale drops by 14.0
+	# e.g., EntityUpdate(entity=2, HP: 50→0) → warrior "w2" marked dead, added to deaths list
 	var result = {
 		"deaths": [],
 		"injuries": [],
-		"morale_changes": {}
+		"morale_changes": { },
 	}
-	
+
 	for update in updates:
+		# 1. Translate entity_id back to warrior_id
+		# e.g., entity_id=1 → warrior_id="w1" (via entity_to_warrior mapping)
 		var warrior_id = get_warrior_for_entity(update.affected)
 		if warrior_id.is_empty():
 			continue
-		
+
 		var warrior = strategic_squad.get_warrior_by_id(warrior_id)
 		if warrior == null:
 			continue
-		
+
+		# 2. Apply the change based on which stat was modified
 		match update.change.property:
 			SquadBattleTypes.EntityChangeable.HP:
+				# HP damage → check for death or injury
+				# e.g., from_hp=100, to_hp=0 → warrior dies
+				# e.g., from_hp=100, to_hp=30 → warrior injured, morale loss = (70/100) * 20 = 14.0
 				var from_hp = update.change.from
 				var to_hp = update.change.to
-				
+
 				if to_hp <= 0:
 					warrior.is_dead = true
 					warrior.morale = 0.0
@@ -111,9 +150,10 @@ func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpd
 					var morale_loss = damage_ratio * 20.0
 					warrior.modify_morale(-morale_loss)
 					result.injuries.append(warrior_id)
-					result.morale_changes[warrior_id] = - morale_loss
-			
+					result.morale_changes[warrior_id] = -morale_loss
 			SquadBattleTypes.EntityChangeable.ORG:
+				# Organization change → morale effect at 0.5x rate
+				# e.g., ORG from 50 to 30 (drop of 20) → morale change = -10
 				var org_change = update.change.to - update.change.from
 				var morale_change = org_change * 0.5
 				warrior.modify_morale(morale_change)
@@ -121,25 +161,29 @@ func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpd
 					result.morale_changes[warrior_id] += morale_change
 				else:
 					result.morale_changes[warrior_id] = morale_change
-			
 			SquadBattleTypes.EntityChangeable.DIE:
+				# Explicit death flag (from skills like Execute)
 				warrior.is_dead = true
 				warrior.morale = 0.0
 				if not result.deaths.has(warrior_id):
 					result.deaths.append(warrior_id)
-	
+
+	# 3. Clean up the strategic squad — recalculate average morale and remove corpses
 	strategic_squad.update_aggregate_morale()
 	strategic_squad.remove_dead_warriors()
-	
+
 	return result
+
 
 func get_warrior_for_entity(entity_id: int) -> String:
 	if entity_to_warrior.has(entity_id):
 		return entity_to_warrior[entity_id]
 	return ""
 
+
 func get_entity_for_warrior(warrior_id: String) -> int:
 	return warrior_to_entity.get(warrior_id, -1)
+
 
 func clear_mappings() -> void:
 	warrior_to_entity.clear()
@@ -150,13 +194,14 @@ func clear_mappings() -> void:
 	current_tactic = null
 	_next_entity_id = 1
 
+
 func get_battle_summary() -> Dictionary:
 	if not current_battle:
-		return {}
-	
+		return { }
+
 	return {
 		"player_strength": current_battle.check_team_strength("player"),
 		"enemy_strength": current_battle.check_team_strength("enemy"),
 		"round_count": current_battle.round_count,
-		"tactic": current_tactic.tactic_name if current_tactic else "None"
+		"tactic": current_tactic.tactic_name if current_tactic else "None",
 	}

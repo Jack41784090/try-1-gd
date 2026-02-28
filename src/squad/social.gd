@@ -50,6 +50,10 @@ func consume_travel_tools(amount: int) -> bool:
 
 
 func consume_supplies_by_demand(multiplier: float = 1.0) -> bool:
+	# Consumes food based on each warrior's demand attribute, scaled by multiplier
+	# Returns true if enough food was available, false if squad ran out
+	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=10 → food=3, returns true
+	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=5 → food=0, returns false
 	var total_demand := 0.0
 	for warrior in get_living_warriors():
 		var demand = warrior.get_demand()
@@ -107,6 +111,8 @@ func modify_morale(amount: float) -> void:
 
 
 func update_aggregate_morale() -> void:
+	# Recalculates the squad's average morale from all living warriors
+	# e.g., warriors: [Hans(morale=80), Fritz(morale=60, dead), Karl(morale=40)] → (80+40)/2 = 60.0
 	if warriors.size() == 0:
 		aggregate_morale = 0.0
 		print("SquadStrategicData.update_aggregate_morale no_warriors aggregate=0")
@@ -151,6 +157,9 @@ func add_warrior(warrior: CharacterSocialStats) -> void:
 
 
 func remove_dead_warriors() -> Array[CharacterSocialStats]:
+	# Removes dead warriors from the squad and their formation slots, returns the dead ones
+	# e.g., warriors=[Hans(alive), Fritz(dead), Karl(alive)], formation=[Front, Middle, Back]
+	#   → new warriors=[Hans, Karl], new formation=[Front, Back], returns [Fritz]
 	var dead_warriors: Array[CharacterSocialStats] = []
 	var new_warriors: Array[CharacterSocialStats] = []
 	var new_formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
@@ -218,6 +227,10 @@ func get_aggregate_stealth() -> float:
 
 
 func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[CharacterSocialStats]:
+	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
+	# Used when traveling to determine if enemies can track this squad's movement
+	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
+	# e.g., warrior stealth=80, roll=50 → 50 < 80 → PASSED, no clue left
 	var clues_left: Array[CharacterSocialStats] = []
 
 	for warrior in get_living_warriors():

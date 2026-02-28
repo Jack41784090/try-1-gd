@@ -1,4 +1,5 @@
-class_name Glance extends Resource
+class_name Glance
+extends Resource
 
 enum Glanceable {
 	# random
@@ -62,12 +63,14 @@ func _glanceable_translate(glanceable: Glanceable):
 		_:
 			assert(false, "Invalid glanceable: %s" % glanceable)
 
+
 func _to_string() -> String:
 	return "Glance(property=%s, normalize=%s, comparison=%s)" % [
 		Glanceable.keys()[property] if property >= 0 else "None",
 		normalize_as_percentage,
-		use_comparison
+		use_comparison,
 	]
+
 
 func _get_glanceable_value(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
@@ -86,6 +89,7 @@ func _get_glanceable_value(entity: CharacterCombatStats, glanceable: Glanceable)
 		assert(false, "Invalid glanceable: %s" % glanceable)
 	return 0.0
 
+
 func _get_glanceable_value_max(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
 		return entity.get_ceiling_changeable_stat(_glanceable_translate(glanceable))
@@ -97,11 +101,18 @@ func _get_glanceable_value_max(entity: CharacterCombatStats, glanceable: Glancea
 		assert(false, "Invalid glanceable: %s" % glanceable)
 	return 0.0
 
+
 func evaluate(entity: CharacterCombatStats) -> float:
+	# Reads a single combat stat from an entity, processes it (normalize, inverse, chain, gate)
+	# Pipeline: raw_value → normalize_as_percentage → chain additional_glance → comparison gate
+	# e.g., Glance(property=HP, normalize=true, inverse=true)
+	#   → entity HP=30, max=100 → normalize(30/100)=0.3 → inverse(1.0-0.3)=0.7
+	# e.g., Glance(property=LOC, use_comparison=true, comparison=ABOVE, threshold=2)
+	#   → entity LOC=1 → check: 1 > 2 → false → returns 0.0
 	var value = _get_glanceable_value(entity, property)
 
-	print("Evaluating glance: %s, value=%s" % [ self , value])
-	
+	print("Evaluating glance: %s, value=%s" % [self, value])
+
 	if normalize_as_percentage:
 		var max_v = _get_glanceable_value_max(entity, property)
 		value = value / max(max_v, 1.0)
@@ -126,9 +137,11 @@ func evaluate(entity: CharacterCombatStats) -> float:
 			_:
 				assert(false, "Unimplemented operation: %s" % operation_on_other_glance)
 
-	if use_comparison and not _check_condition(value): value = 0.0
-	
+	if use_comparison and not _check_condition(value):
+		value = 0.0
+
 	return value
+
 
 func _check_condition(value: float) -> bool:
 	print("Checking condition: value=%s, threshold=%s, comparison=%s" % [value, threshold, comparison])

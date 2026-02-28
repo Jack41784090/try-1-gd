@@ -1,4 +1,5 @@
-class_name Triggerable extends Resource
+class_name Triggerable
+extends Resource
 
 @export var trigger_id: String = ""
 @export var trigger_name: String = ""
@@ -14,6 +15,7 @@ signal triggered(result: Dictionary)
 signal execution_started()
 signal execution_completed(result: Dictionary)
 
+
 func _to_string() -> String:
 	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %s, Priority: %d, %s" % [
 		trigger_name,
@@ -22,15 +24,19 @@ func _to_string() -> String:
 		conditions.size(),
 		trigger_chains,
 		emergency_priority,
-		description
+		description,
 	]
+
 
 func _init() -> void:
 	pass
 
 
-func check_conditions(context: Dictionary) -> bool:
-	print("		Checking conditions for Triggerable: %s" % trigger_name)
+func check_conditions(context: Dictionary) -> bool: # Evaluates all conditions against the provided context dict
+	# ALL conditions must pass (AND logic) for the triggerable to fire
+	# e.g., conditions: [LOCATION="salzburg", ACTIVITY_TYPE=FORAGE]
+	#   → context={location: "salzburg", activity: FORAGE} → both pass → true
+	#   → context={location: "vienna", activity: FORAGE} → LOCATION fails → false	print("		Checking conditions for Triggerable: %s" % trigger_name)
 	for condition in conditions:
 		var e = condition.evaluate(context)
 		if not e:
@@ -46,15 +52,18 @@ func can_trigger(context: Dictionary) -> bool:
 
 
 func trigger(context: Dictionary) -> Array[Variant]:
+	# Fires this triggerable: signal → execute() → signal. Returns results wrapped in array.
+	# Flow: execution_started → execute(context) → triggered(result_dict) → execution_completed (if sync)
+	# e.g., GameEvent "bandit_ambush" → execute() returns {trigger_id: "bandit_ambush", morale: -10, ...}
 	execution_started.emit()
 	var result = execute(context)
-	
-	var result_dict: Dictionary = {}
+
+	var result_dict: Dictionary = { }
 	if result is Dictionary:
 		result_dict = result
 	else:
-		result_dict = {"trigger_id": trigger_id, "trigger_name": trigger_name}
-	
+		result_dict = { "trigger_id": trigger_id, "trigger_name": trigger_name }
+
 	triggered.emit(result_dict)
 
 	if not result_dict.get("requires_async", false):

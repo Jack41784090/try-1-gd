@@ -1,22 +1,30 @@
 extends RefCounted
+
 class_name TriggerableManager
 
 signal triggerable_fired(triggerable: Triggerable, result: Variant)
 
 var registered_triggerables: Array[Triggerable] = []
 
+
 func register(triggerable: Triggerable) -> void:
 	if not triggerable in registered_triggerables:
 		registered_triggerables.append(triggerable)
 		_connect_signals(triggerable)
 
+
 func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t): return true) -> Array[Triggerable]:
+	# Checks all registered triggerables against the context and returns those whose conditions pass
+	# Also processes trigger_chains: if a triggerable fires, its chained triggers may also fire (with chance rolls)
+	# e.g., context={location: "salzburg", activity: FORAGE, turn: 5}
+	#   → checks 10 registered triggerables → 2 pass conditions → 1 has a chain trigger (50% chance, passes)
+	#   → returns [event_A, event_B, chain_event_C]
 	var triggered: Array[Triggerable] = []
-	
+
 	for triggerable in registered_triggerables:
 		if not filter.call(triggerable):
 			continue
-		
+
 		if triggerable.check_conditions(context):
 			triggered.append(triggerable)
 			for chain in triggerable.trigger_chains:
@@ -28,8 +36,9 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 					triggered.append(chained_trigger)
 				else:
 					print("[TriggerableManager]     Skipped chained trigger (chance failed): ", chained_trigger.trigger_name)
-	
+
 	return triggered
+
 
 func get_by_id(trigger_id: String) -> Triggerable:
 	for triggerable in registered_triggerables:
@@ -37,13 +46,16 @@ func get_by_id(trigger_id: String) -> Triggerable:
 			return triggerable
 	return null
 
+
 func _connect_signals(triggerable: Triggerable) -> void:
 	if not triggerable.triggered.is_connected(_on_triggerable_triggered):
 		triggerable.triggered.connect(_on_triggerable_triggered.bind(triggerable))
 
+
 func _disconnect_signals(triggerable: Triggerable) -> void:
 	if triggerable.triggered.is_connected(_on_triggerable_triggered):
 		triggerable.triggered.disconnect(_on_triggerable_triggered)
+
 
 func _on_triggerable_triggered(result: Variant, triggerable: Triggerable) -> void:
 	triggerable_fired.emit(triggerable, result)

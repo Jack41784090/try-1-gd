@@ -1,4 +1,5 @@
-class_name StrategicSituation extends RefCounted
+class_name StrategicSituation
+extends RefCounted
 
 var squad: SquadStrategicData
 var location: Location
@@ -120,7 +121,11 @@ var _ambush_target_computed: bool = false
 var _weakest_tracked_enemy_warriors: int = 0
 var _weakest_tracked_enemy_warriors_computed: bool = false
 
+
 func _init(p_squad: SquadStrategicData, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
+	# Initializes a lazy-evaluated snapshot of the world from this squad's perspective
+	# All computed properties (enemies_here, nearest_town, etc.) are only calculated on first access
+	# e.g., StrategicSituation(squad="Wolves", world, faction="Bandits") → location = world.get_location_by_id("salzburg")
 	squad = p_squad
 	world = p_world
 	faction = p_faction
@@ -128,7 +133,10 @@ func _init(p_squad: SquadStrategicData, p_world: World, p_faction: Faction, p_di
 	location = world.get_location_by_id(squad.current_location_id)
 	assert(location != null, "Squad %s has invalid location: %s" % [squad.squad_name, squad.current_location_id])
 
+
 func _find_enemies_here() -> Array[SquadStrategicData]:
+	# Finds all non-self squads at the same location (lazy-computed by enemies_here getter)
+	# e.g., location="salzburg" has ["Wolves", "Raiders", "Merchants"] → returns ["Raiders", "Merchants"]
 	var result: Array[SquadStrategicData] = []
 	var squads_at_loc = world.get_squads_at_location(location.location_id)
 	for s in squads_at_loc:
@@ -136,7 +144,10 @@ func _find_enemies_here() -> Array[SquadStrategicData]:
 			result.append(s)
 	return result
 
+
 func _find_adjacent_enemies() -> Array[SquadStrategicData]:
+	# Finds all non-self squads in neighboring locations (1 hop away)
+	# e.g., "salzburg" connects to ["linz", "vienna"] → collects squads at both → returns ["Raiders" at "linz"]
 	var result: Array[SquadStrategicData] = []
 	var adjacent = world.get_adjacent_squads(location.location_id)
 	for s in adjacent:
@@ -144,11 +155,14 @@ func _find_adjacent_enemies() -> Array[SquadStrategicData]:
 			result.append(s)
 	return result
 
+
 func _find_nearest_of_type(types: Array) -> Location:
+	# BFS from current location to find the nearest location of specific types
+	# e.g., from "road_01", types=[CITY, TOWN] → BFS: road_01→linz(VILLAGE, skip)→vienna(CITY, found!)
 	if not world.travel_graph:
 		return null
 
-	var visited: Dictionary = {}
+	var visited: Dictionary = { }
 	var queue: Array = [location.location_id]
 	visited[location.location_id] = true
 
@@ -158,9 +172,11 @@ func _find_nearest_of_type(types: Array) -> Location:
 		if not current_loc:
 			continue
 
+		# Skip self-location, only match other locations of the target types
 		if current_id != location.location_id and current_loc.type in types:
 			return current_loc
 
+		# Expand BFS frontier via location connections
 		for connection in current_loc.connections.tt:
 			var neighbor_id = connection.to_location_id
 			if not visited.has(neighbor_id):
@@ -169,11 +185,14 @@ func _find_nearest_of_type(types: Array) -> Location:
 
 	return null
 
+
 func _find_nearest_enemy_location() -> Location:
+	# BFS from current location to find the nearest location with any non-self squads
+	# e.g., from "salzburg" → BFS: salzburg(self only)→linz(has "Raiders", found!) → returns linz
 	if not world.travel_graph:
 		return null
 
-	var visited: Dictionary = {}
+	var visited: Dictionary = { }
 	var queue: Array = [location.location_id]
 	visited[location.location_id] = true
 
@@ -196,7 +215,11 @@ func _find_nearest_enemy_location() -> Location:
 
 	return null
 
+
 func _find_clue_destination() -> String:
+	# Finds the destination from the freshest active clue at the current location
+	# Clues are left by events/results and point toward enemy activity
+	# e.g., location has clues: [Clue(dest="linz", turn=3), Clue(dest="vienna", turn=5)] → returns "vienna" (freshest)
 	var active_clues = location.get_active_clues(world.turn_count)
 	if active_clues.is_empty():
 		return ""
@@ -208,7 +231,11 @@ func _find_clue_destination() -> String:
 
 	return freshest.destination_id
 
+
 func _compute_highest_contact_on_us() -> float:
+	# Finds how well any enemy has tracked US — the highest contact progress any enemy has on our squad
+	# e.g., Raiders have 0.6 contact on us, Merchants have 0.2 → returns 0.6
+	# High values mean we're likely to be ambushed or attacked
 	var tracker = world.contact_tracker
 	var contacts_on = tracker.get_contacts_on(squad.squad_id)
 	var highest := 0.0
@@ -217,7 +244,11 @@ func _compute_highest_contact_on_us() -> float:
 			highest = c.progress
 	return highest
 
+
 func _compute_our_best_contact() -> float:
+	# Finds our best tracking progress on any enemy squad — how well we've scouted them
+	# e.g., we have 0.8 contact on Raiders, 0.3 on Merchants → returns 0.8
+	# High values mean we can reliably target that enemy for attack
 	var tracker = world.contact_tracker
 	var our_contacts = tracker.get_contacts_for(squad.squad_id)
 	var best := 0.0
@@ -226,7 +257,11 @@ func _compute_our_best_contact() -> float:
 			best = c.progress
 	return best
 
+
 func _compute_can_ambush() -> bool:
+	# Checks if we can ambush any enemy: we have LOCKED contact on them, but they have NONE/SUSPECTED on us
+	# e.g., we have LOCKED on "Raiders" (progress=1.0), Raiders have NONE on us → can ambush!
+	# Sets _ambush_target_id as side effect for use by ambush_target_id getter
 	_can_ambush_computed = true
 	_ambush_target_computed = true
 	var tracker = world.contact_tracker
@@ -241,7 +276,11 @@ func _compute_can_ambush() -> bool:
 	_ambush_target_id = ""
 	return false
 
+
 func _compute_weakest_tracked_enemy_warriors() -> int:
+	# Finds the warrior count of the weakest enemy we have TRACKED or better contact on
+	# Useful for deciding if we're strong enough to attack
+	# e.g., we track Raiders(3 warriors) and Bandits(5 warriors) → returns 3
 	var tracker = world.contact_tracker
 	var our_contacts = tracker.get_contacts_for(squad.squad_id)
 	var min_warriors := 999
@@ -253,6 +292,7 @@ func _compute_weakest_tracked_enemy_warriors() -> int:
 			var living = target.get_living_warriors().size()
 			min_warriors = mini(min_warriors, living)
 	return min_warriors if min_warriors < 999 else 0
+
 
 func _find_squad_by_id(target_id: String) -> SquadStrategicData:
 	for s in world.roaming_squads:

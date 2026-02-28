@@ -12,6 +12,9 @@ var squads_in_combat: Array[String] = []
 
 
 func setup(_scenario: GameScenario) -> void:
+	# Initializes the AI fleet — creates a SquadBrain + ActivityExecuteManager for each roaming squad
+	# e.g., scenario has 3 roaming squads: ["Wolves", "Hawks", "Bears"]
+	#   → creates 3 SquadBrain instances (decision makers) + 3 ActivityExecuteManagers (action executors)
 	assert(_scenario != null, "AIFleetManager requires a GameScenario")
 	scenario = _scenario
 
@@ -20,16 +23,22 @@ func setup(_scenario: GameScenario) -> void:
 	squad_brains.clear()
 	squad_executors.clear()
 
+	# 1. Load the default AI behavior profile (considerations + fallback action)
+	# e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
 	var profile = AIProfileFactory.get_default_squad_profile()
 
 	var AEM = load("res://src/strategy/ui/actor/!main.gd")
 
+	# 2. For each roaming squad, create its brain and executor
 	for squad in scenario.world.roaming_squads:
+		# 2.1 If squad has no current location, use its starting_location_id
 		if squad.current_location_id.is_empty() and not squad.starting_location_id.is_empty():
 			squad.set_location(squad.starting_location_id)
 
+		# 2.2 Duplicate warriors to prevent shared-resource mutation across squads
 		_ensure_unique_warriors(squad)
 
+		# 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
 		var brain = SquadBrain.new(squad, profile)
 		squad_brains[squad.squad_id] = brain
 
@@ -43,6 +52,9 @@ func setup(_scenario: GameScenario) -> void:
 
 
 func return_all_ai_turns() -> Dictionary:
+	# Phase 1 of AI turn: Each squad brain decides what to do, then conflicts are resolved.
+	# Returns a dictionary of {combats, movements, events} for the UI to display/process.
+	# e.g., returns {combats: [{attacker:"wolves", defender:"bears"}], movements: [{squad:"hawks", from:"linz", to:"vienna"}]}
 	if squad_brains.is_empty():
 		return { "combats": [], "movements": [], "events": [] }
 
@@ -51,9 +63,14 @@ func return_all_ai_turns() -> Dictionary:
 	decisions_this_turn.clear()
 	squads_in_combat.clear()
 
+	# 1. Get faction-level directives (high-level orders like "attack location X")
+	# e.g., directives = [FactionDirective(ATTACK_LOCATION, target="vienna")]
 	var directives = faction_brain.produce_directives(scenario.world)
 	var default_directive = directives[0] if not directives.is_empty() else FactionDirective.create_none()
 
+	# 2. Each squad brain independently decides what activity to perform
+	# e.g., SquadBrain("Wolves") evaluates considerations → decides ATTACK with target="player"
+	# e.g., SquadBrain("Hawks") evaluates considerations → decides TRAVEL to "vienna"
 	for squad_id in squad_brains:
 		var brain: SquadBrain = squad_brains[squad_id]
 		var result = brain.decide(scenario.world, null, default_directive)
@@ -62,14 +79,19 @@ func return_all_ai_turns() -> Dictionary:
 			"activity_type": result["activity_type"],
 			"context": result["context"],
 			"squad": brain.squad,
+			"location_at_decision": brain.squad.current_location_id,
 		}
 
+	# 3. Resolve attack conflicts — if two squads attack each other, pair them for combat
+	# e.g., Wolves attacks Bears AND Bears attacks Wolves → combat_pair(mutual=true)
 	var combat_pairs = _resolve_attack_conflicts()
 
+	# 4. Collect non-combat movements for display on the map
 	var movements: Array = []
 	var events: Array = []
 
 	for squad_id in decisions_this_turn:
+		# 4.1 Skip squads already engaged in combat
 		if squad_id in squads_in_combat:
 			continue
 
@@ -110,9 +132,14 @@ func return_all_ai_turns() -> Dictionary:
 
 
 func _resolve_attack_conflicts() -> Array:
+	# Pairs up squads that chose ATTACK and resolves who fights whom.
+	# Handles mutual attacks (both attack each other) and one-sided attacks.
+	# e.g., Wolves attacks Bears + Bears attacks Wolves → one combat pair (mutual=true)
+	# e.g., Hawks attacks Wolves (but Wolves already paired) → skipped (processed_squads)
 	var combat_pairs: Array = []
 	var processed_squads: Dictionary = { }
 
+	# 1. Collect all squads that chose ATTACK
 	var attack_decisions: Array = []
 	for squad_id in decisions_this_turn:
 		var decision = decisions_this_turn[squad_id]
@@ -124,15 +151,18 @@ func _resolve_attack_conflicts() -> Array:
 				},
 			)
 
+	# 2. For each attacker, find or resolve their target
 	for attack_data in attack_decisions:
 		var attacker_id: String = attack_data["squad_id"]
 		var decision: Dictionary = attack_data["decision"]
 		var squad: SquadStrategicData = decision["squad"]
 		var context: Dictionary = decision["context"]
 
+		# 2.1 Skip if already in a combat pair
 		if processed_squads.has(attacker_id):
 			continue
 
+		# 2.2 Resolve target — either from brain's context or find enemies at location
 		var target_id: String = context.get("attack_target", "")
 		var target_squad: SquadStrategicData = null
 
@@ -222,14 +252,22 @@ func get_ai_squad_ids() -> Array[String]:
 
 
 func commit_ai_decisions(ai_results: Dictionary) -> void:
+	# Phase 2 of AI turn: Actually execute the decided activities and resolve combats
+	# Called after the UI has displayed AI intentions from return_all_ai_turns()
+	# e.g., ai_results = {combats: [{attacker:"wolves", defender:"bears"}], movements: [...], events: [...]}
 	print("\n[AIFleetManager] === Committing AI Decisions ===")
 
+	# 1. First resolve all combats (headless, simplified strength-based resolution)
+	# e.g., Wolves(3 warriors, morale 80) vs Bears(2 warriors, morale 60) → strength comparison
 	var combats: Array = ai_results["combats"]
 	for combat_data in combats:
 		_execute_headless_combat(combat_data)
 
+	# 2. Remove any squads that were wiped out in combat
 	_cleanup_defeated_squads()
 
+	# 3. Execute non-combat activities for remaining squads
+	# e.g., Hawks chose TRAVEL → ActivityExecuteManager runs TRAVEL activity
 	for squad_id in decisions_this_turn:
 		if squad_id in squads_in_combat:
 			continue
@@ -240,27 +278,27 @@ func commit_ai_decisions(ai_results: Dictionary) -> void:
 
 		_execute_activity(squad_id, activity_type, context)
 
-	for squad_id in squad_brains:
-		var brain: SquadBrain = squad_brains[squad_id]
-		var squad = brain.squad
-		if squad.food > 0:
-			squad.consume_supplies_by_demand()
-
 	print("[AIFleetManager] Commit complete")
 
 
 func _execute_activity(squad_id: String, activity_type: StrategyTypes.ActivityType, context: Dictionary) -> void:
+	# Runs a specific activity for an AI squad using its ActivityExecuteManager
+	# e.g., squad_id="wolves", activity_type=TRAVEL, context={travel_destination: "vienna"}
+	#   → finds the TRAVEL Activity resource, sets destination, runs execute(), applies results
 	if not squad_executors.has(squad_id):
 		print("[AIFleetManager] No executor for squad %s" % squad_id)
 		return
 
 	var executor: ActivityExecuteManager = squad_executors[squad_id]
 
+	# 1. Find the Activity resource matching this type from the scenario's registered triggerables
 	var activity = _get_activity_from_scenario(activity_type)
 	if not activity:
 		push_error("[AIFleetManager] Could not find activity of type %s" % StrategyTypes.ActivityType.keys()[activity_type])
 		return
 
+	# 2. For TRAVEL/FORCE_MARCH, inject the destination into the activity before execution
+	# e.g., activity.destination_id = "vienna", activity.result.location_changed = "vienna"
 	match activity_type:
 		StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH:
 			var destination = context.get("travel_destination", "")
@@ -268,17 +306,16 @@ func _execute_activity(squad_id: String, activity_type: StrategyTypes.ActivityTy
 				push_error("[AIFleetManager] TRAVEL activity requires destination in context")
 				return
 			activity.destination_id = destination
+			activity.result.location_changed = destination
 			if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
 				activity.ultimate_destination_id = context.get("ultimate_destination", "")
 
+	# 3. Build context, execute the activity, and apply all results to the squad
 	var exec_context = executor._build_context(activity)
 	var results = activity.execute(exec_context)
 
-	if results.is_empty():
-		return
-
-	var result = results[0]
-	executor._apply_result(result)
+	for r in results:
+		executor._apply_result(r)
 
 
 func _get_activity_from_scenario(activity_type: StrategyTypes.ActivityType) -> Activity:
@@ -289,6 +326,11 @@ func _get_activity_from_scenario(activity_type: StrategyTypes.ActivityType) -> A
 
 
 func _execute_headless_combat(combat_data: Dictionary) -> void:
+	# Simplified AI vs AI combat — no tactical SquadBattle, just strength comparison + RNG
+	# e.g., Wolves(3 warriors, morale=80) vs Bears(2 warriors, morale=60)
+	#   → atk_strength = 3 × (80+50) = 390 × random(0.7-1.3)
+	#   → def_strength = 2 × (60+50) = 220 × random(0.7-1.3)
+	#   → Wolves win, Bears lose half their warriors
 	var attacker_id: String = combat_data["attacker_id"]
 	var defender_id: String = combat_data["defender_id"]
 	var is_mutual: bool = combat_data.get("is_mutual", false)
@@ -360,8 +402,11 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 
 
 func _cleanup_defeated_squads() -> void:
+	# After combat, remove any squads with 0 living warriors from the game
+	# Also cleans up their brain, executor, contacts, and world references
 	var to_remove: Array[String] = []
 
+	# 1. Check each squad's living warrior count
 	for squad_id in squad_brains:
 		var brain: SquadBrain = squad_brains[squad_id]
 		var squad = brain.squad
@@ -399,7 +444,6 @@ func _cleanup_defeated_squads() -> void:
 func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
 	for squad_id in decisions_this_turn:
 		var decision = decisions_this_turn[squad_id]
-		var squad: SquadStrategicData = decision["squad"]
 		var activity_type: StrategyTypes.ActivityType = decision["activity_type"]
 		var context: Dictionary = decision["context"]
 
@@ -408,7 +452,7 @@ func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
 		if activity_type in [StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH]:
 			var destination = context.get("travel_destination", "")
 			if not destination.is_empty():
-				edge_log[squad_id] = { "from": squad.current_location_id, "to": destination }
+				edge_log[squad_id] = { "from": decision["location_at_decision"], "to": destination }
 
 
 func _ensure_unique_warriors(squad: SquadStrategicData) -> void:

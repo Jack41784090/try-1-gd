@@ -1,4 +1,5 @@
-class_name StrategicGlance extends Resource
+class_name StrategicGlance
+extends Resource
 
 @export var subject: StrategicAITypes.GlanceSubject = StrategicAITypes.GlanceSubject.SQUAD
 @export var squad_property: StrategicAITypes.SquadGlanceable = StrategicAITypes.SquadGlanceable.FOOD
@@ -15,15 +16,31 @@ class_name StrategicGlance extends Resource
 @export var additional_glance: StrategicGlance = null
 @export var operation_on_other_glance: CsdrTypes.OP = CsdrTypes.OP.MUL
 
+
 func evaluate(situation: StrategicSituation) -> float:
+	# Reads a single world property from the situation, normalizes, inverts, chains, and filters it
+	# Pipeline: raw_value → normalize → inverse → chain additional_glance → comparison gate
+	# e.g., Glance(subject=SQUAD, squad_property=FOOD, normalize_max=100, inverse=true)
+	#   → raw=20 → normalize(20/100)=0.2 → inverse(1.0-0.2)=0.8
+	# e.g., Glance(subject=LOCATION, location_property=ENEMY_COUNT, use_comparison=true, comparison=ABOVE, threshold=0)
+	#   → raw=2 → no normalize → no inverse → check: 2 > 0 → passes → returns 2.0
+
+	# 1. Get the raw numeric value based on subject + property
+	# e.g., SQUAD.FOOD → squad.food = 20
 	var value := _get_raw_value(situation)
 
+	# 2. Normalize to [0,1] if normalize_max is set
+	# e.g., value=20, normalize_max=100 → 0.2
 	if normalize_max > 0.0:
 		value = clamp(value / normalize_max, 0.0, 1.0)
 
+	# 3. Invert: makes "low food" into "high urgency"
+	# e.g., 0.2 → 0.8 (squad with low food gets high forage urgency)
 	if inverse:
 		value = 1.0 - value
 
+	# 4. Chain with another glance using an operation (MUL, ADD, RDC, AVG)
+	# e.g., food_urgency(0.8) MUL has_market(1.0) = 0.8 (both must be true)
 	if additional_glance != null:
 		var other_value = additional_glance.evaluate(situation)
 		match operation_on_other_glance:
@@ -36,12 +53,18 @@ func evaluate(situation: StrategicSituation) -> float:
 			CsdrTypes.OP.AVG:
 				value = (value + other_value) / 2.0
 
+	# 5. Gate: if use_comparison is on, value must pass the threshold check or return 0
+	# e.g., comparison=ABOVE, threshold=0.5 → value=0.3 → returns 0.0 (below threshold)
 	if use_comparison and not _check_condition(value):
 		value = 0.0
 
 	return value
 
+
 func _get_raw_value(situation: StrategicSituation) -> float:
+	# Routes to the correct value getter based on the configured subject
+	# e.g., subject=SQUAD → _get_squad_value() reads squad.food, squad.morale, etc.
+	# e.g., subject=LOCATION → _get_location_value() reads location.stability, enemy_count, etc.
 	match subject:
 		StrategicAITypes.GlanceSubject.SQUAD:
 			return _get_squad_value(situation)
@@ -55,7 +78,10 @@ func _get_raw_value(situation: StrategicSituation) -> float:
 			assert(false, "Unknown GlanceSubject: %s" % subject)
 			return 0.0
 
+
 func _get_squad_value(situation: StrategicSituation) -> float:
+	# Reads a numeric property from the AI's own squad
+	# e.g., FOOD → squad.food=20, MORALE → squad.get_morale()=0.7, WARRIOR_COUNT → 5
 	match squad_property:
 		StrategicAITypes.SquadGlanceable.FOOD:
 			return float(situation.squad.food)
@@ -87,7 +113,10 @@ func _get_squad_value(situation: StrategicSituation) -> float:
 			assert(false, "Unknown SquadGlanceable: %s" % squad_property)
 			return 0.0
 
+
 func _get_location_value(situation: StrategicSituation) -> float:
+	# Reads a numeric property from the squad's current location
+	# e.g., STABILITY → location.stability=0.6, ENEMY_COUNT → 2, HAS_ACTIVITY(FORAGE) → 1.0
 	match location_property:
 		StrategicAITypes.LocationGlanceable.STABILITY:
 			return situation.location.stability
@@ -107,7 +136,10 @@ func _get_location_value(situation: StrategicSituation) -> float:
 			assert(false, "Unknown LocationGlanceable: %s" % location_property)
 			return 0.0
 
+
 func _get_world_value(situation: StrategicSituation) -> float:
+	# Reads a numeric property from the broader world state
+	# e.g., ADJACENT_ENEMY_COUNT → 3 enemies in neighboring locations, NEAREST_TOWN_DISTANCE → 2 hops
 	match world_property:
 		StrategicAITypes.WorldGlanceable.TURN_COUNT:
 			return float(situation.world.turn_count)
@@ -121,7 +153,10 @@ func _get_world_value(situation: StrategicSituation) -> float:
 			assert(false, "Unknown WorldGlanceable: %s" % world_property)
 			return 0.0
 
+
 func _get_faction_value(situation: StrategicSituation) -> float:
+	# Reads a numeric property from the squad's faction
+	# e.g., REPUTATION → faction.get_reputation()=50, ARMY_COUNT → faction.armies.size()=3
 	if situation.faction == null:
 		return 0.0
 	match faction_property:
@@ -133,7 +168,11 @@ func _get_faction_value(situation: StrategicSituation) -> float:
 			assert(false, "Unknown FactionGlanceable: %s" % faction_property)
 			return 0.0
 
+
 func _check_condition(value: float) -> bool:
+	# Gates the glance output — returns false if value doesn't meet the threshold
+	# e.g., comparison=ABOVE, threshold=0.5, value=0.3 → false (0.3 is not above 0.5)
+	# e.g., comparison=BELOW, threshold=0.2, value=0.1 → true (0.1 is below 0.2)
 	match comparison:
 		CsdrTypes.DETECTION.EQUAL:
 			return value == threshold

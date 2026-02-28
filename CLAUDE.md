@@ -80,7 +80,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
   - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
-  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat (quick strength-based resolution), turn execution, per-turn food consumption (1/turn), mercenary work combat
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat (quick strength-based resolution), turn execution via `ActivityExecuteManager` (delegates to real activity scripts), mercenary work combat. Caches `location_at_decision` per squad for correct edge_log reporting
   - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action. Location-independent activities (TRAVEL, FORCE_MARCH, ATTACK, REST, HEAL, BUY_SUPPLIES, FORAGE, PATROL, DRILL, MERCENARY_WORK) bypass location activity_type checks
   - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
@@ -110,7 +110,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Proximity levels: SAME_LOCATION (1.0), SAME_EDGE (0.7), ADJACENT (0.3), none (0.0 → decay)
   - Activity modifiers: PATROL boosts scouting (1.5x), REST boosts stealth (1.3x), ATTACK reduces stealth (0.4x)
   - Tracking capacity per squad: `1 + floor(avg_perception / 30)`, PATROL adds +1 slot
-  - ATTACK activity gated on SUSPECTED+ contact (1+ progress) for same-location enemies
+  - ATTACK activity gated on SUSPECTED+ contact (1+ progress) for same-location enemies (both AI fleet_manager and activity script.gd use SUSPECTED threshold)
   - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
   - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
   - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender

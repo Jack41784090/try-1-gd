@@ -103,6 +103,9 @@ func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[Entit
 
 
 func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _attack_modifier: float) -> Array[EntityUpdate]:
+	# Attacker phase: each entity acts up to action_count times against randomly chosen enemy squads
+	# e.g., action_count=1, 3 entities → each entity picks a skill, picks a target, commits a OneClash
+	#   → returns ~3 EntityUpdate objects (hits, misses, damage)
 	var updates: Array[EntityUpdate] = []
 
 	if action_count <= 0:
@@ -149,6 +152,9 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 
 
 func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: int, _defense_modifier: float) -> Array[EntityUpdate]:
+	# Defender phase: each entity reacts up to reaction_count times (counter-attacks)
+	# e.g., reaction_count=2, 2 entities → each entity gets 2 counter-attack opportunities
+	#   → returns ~4 EntityUpdate objects
 	var updates: Array[EntityUpdate] = []
 
 	if reaction_count <= 0:
