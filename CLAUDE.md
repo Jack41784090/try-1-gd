@@ -39,7 +39,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
    - `GameScenario` (core/scenario.gd) is the main orchestrator
    - `World` (core/world.gd) holds location graph, roaming squads, turn counter
-   - Flow: `execute_turn(Activity) → execute() → check_triggers() → advance_turn()`
+   - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
+   - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
@@ -48,6 +49,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 ### Supporting Systems
 
+- **Debug Logger** (`src/singletons/log.gd`): `Log` static utility class (via `class_name`, not autoload) with level-based filtering and per-source muting. Levels: TRACE, DEBUG, INFO, WARN, ERROR. Static methods: `Log.info("Source", "msg")`. Output format: `[LEVEL] [Source] msg`. Source convention: `"ClassName"` or `"ClassName:EntityName"`. `Log.mute("Contact")` suppresses by prefix match. `Log.set_level(Log.Level.INFO)` adjusts global verbosity. Default level: DEBUG.
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
 - **Animation Composition System** (`src/animation/`): Five-layer system for 2D skeletal warrior characters
@@ -80,7 +82,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
   - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
-  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat (quick strength-based resolution), turn execution via `ActivityExecuteManager` (delegates to real activity scripts), mercenary work combat. Caches `location_at_decision` per squad for correct edge_log reporting
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration: `prepare_ai_turns()` runs brain decisions and resolves Activity objects (duplicating for TRAVEL/FORCE_MARCH to avoid shared-state conflicts). Does NOT execute activities — execution happens in the unified karma-sorted phase loop in `StrategyPresenter`. Provides `_execute_headless_combat()` and `cleanup_defeated_squads()` for combat resolution. Caches `location_at_decision` per squad for correct edge_log reporting
   - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action. Location-independent activities (TRAVEL, FORCE_MARCH, ATTACK, REST, HEAL, BUY_SUPPLIES, FORAGE, PATROL, DRILL, MERCENARY_WORK) bypass location activity_type checks
   - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
@@ -94,7 +96,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
   - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
-  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. References `stage_view` for warrior stage delegation.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → advance turn. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
   - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
   - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
