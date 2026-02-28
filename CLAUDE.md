@@ -19,8 +19,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
   - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
   - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
-- **No linter, test runner, or build step** — all verification is manual via Godot editor console output
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
+- Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
 ## Architecture
 
@@ -153,6 +153,17 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - **Don't export RefCounted types** — only Resources, Nodes, built-ins, or enums.
 - **Don't use `class_name` for inner classes** — causes namespace pollution.
 - **Don't add comments in `.tscn` files** — Godot scene format doesn't support them.
+
+### Terminal / File Operations
+
+- **Never use `cat` with a heredoc to overwrite files** — bash heredocs strip all tab indentation, breaking GDScript (which is indentation-sensitive). Use Python instead:
+  ```
+  python3 - << 'PYEOF'
+  content = '''\t(tabs preserved as \\t escapes)'''
+  with open('path/to/file.gd', 'w') as f: f.write(content)
+  PYEOF
+  ```
+- **Prefer `replace_string_in_file`** for targeted edits to existing files — avoids full rewrites entirely.
 
 ### Typed Array Assignment (Critical Pitfall)
 
