@@ -53,6 +53,23 @@ func show_narrator_line(speaker_name: String, text: String, progress_text: Strin
 	dialogue_label.visible = true
 	advance_prompt.visible = true
 
+func setup_narrator_typewriter(speaker: String, text: String) -> void:
+	speaker_label.text = speaker if not speaker.is_empty() else "Narrator"
+	dialogue_label.text = text
+	dialogue_label.visible_characters = 0
+	advance_prompt.text = ""
+	dialogue_box.visible = true
+	speaker_label.visible = true
+	dialogue_label.visible = true
+	advance_prompt.visible = false
+
+func set_narrator_visible_characters(count: int) -> void:
+	dialogue_label.visible_characters = count
+
+func hide_narrator_box() -> void:
+	dialogue_box.visible = false
+	advance_prompt.visible = false
+
 #endregion
 
 #region Display Helpers
