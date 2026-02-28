@@ -273,55 +273,86 @@ func _execute_activity(at: StrategyTypes.ActivityType) -> void:
 
 
 func _execute_activity_obj(activity: Activity) -> void:
-	# THE MAIN TURN PIPELINE — executes an activity through the full before/during/after lifecycle
-	# Guards against double-execution, disables UI, runs all phases, then processes AI turns and contacts
-	#
-	# Pipeline per phase (before, activity, after):
-	#   1. Capture stat snapshot (money, food, karma, morale)
-	#   2. Execute phase → returns Array[GenericResult]
-	#   3. Queue any EventChains from results → play VN if any
-	#   4. Enter combat if any result has requires_combat=true
-	#   5. Otherwise animate stat changes (delta between snapshot and current)
-	#
-	# After all 3 phases:
-	#   6. AI fleet processes all AI squad turns (decisions + combats)
-	#   7. Contact tracker updates (scouting, stealth, clue discovery, engagement checks)
-	#   8. AI commits decisions (executes activities + headless combats)
-	#   9. Turn counter advances
-	#
-	# e.g., player does REST at "salzburg":
-	#   before: GameEvent "camp_fire" triggers → plays EventChain cutscene
-	#   activity: REST → morale +5, food -2
-	#   after: no triggers
-	#   AI: "Raiders" decide TRAVEL to "linz", "Bandits" decide FORAGE
-	#   contacts: player gains 0.1 contact on Raiders (adjacent), Raiders gain 0.2 on player
-	#   turn advances to 6
 	if is_executing_activity:
-		print("[StrategyPresenter] Activity already in progress, ignoring duplicate request")
 		return
-
 	is_executing_activity = true
 	view.disable_all_activity_buttons()
 
 	var player_location_before = actor.player_squad.current_location_id
 
-	for state in ['before', 'activity', 'after']:
-		await _exec_play_animchanges_loop(activity, state)
+	var ai_results = ai_fleet.prepare_ai_turns()
+	var turn_entries = _build_karma_sorted_entries(ai_results)
 
-	var ai_results = ai_fleet.return_all_ai_turns()
-	if ai_results["combats"].size() > 0:
-		print("[StrategyPresenter] AI combats occurred: %d" % ai_results["combats"].size())
-	if ai_results["movements"].size() > 0:
-		print("[StrategyPresenter] AI movements: %d" % ai_results["movements"].size())
+	for entry in turn_entries:
+		if entry["is_player"]:
+			await _execute_story_triggerables(StrategyTypes.TriggerWhen.TURN_START)
+		else:
+			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.TURN_START)
 
+	for phase in ['before', 'activity', 'after']:
+		for entry in turn_entries:
+			if entry["is_player"]:
+				await _exec_play_animchanges_loop(activity, phase)
+			else:
+				var executor: ActivityExecuteManager = entry["executor"]
+				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
+				_resolve_ai_combat_from_results(results, entry["squad_id"])
+
+	ai_fleet.cleanup_defeated_squads()
 	_update_contacts(activity, player_location_before, ai_results)
-
-	ai_fleet.commit_ai_decisions(ai_results)
 
 	actor.advance_turn()
 	is_executing_activity = false
 	_update_activity_buttons()
 
+
+func _build_karma_sorted_entries(ai_results: Dictionary) -> Array:
+	var entries: Array = []
+
+	entries.append({
+		"is_player": true,
+		"karma": actor.player_squad.karma,
+	})
+
+	var decisions = ai_results["decisions_this_turn"]
+	for squad_id in decisions:
+		var decision = decisions[squad_id]
+		entries.append({
+			"is_player": false,
+			"squad_id": squad_id,
+			"activity": decision["activity"],
+			"executor": ai_fleet.squad_executors[squad_id],
+			"karma": decision["squad"].karma,
+		})
+
+	entries.sort_custom(func(a, b): return a["karma"] > b["karma"])
+	return entries
+
+
+func _resolve_ai_combat_from_results(results: Array[GenericResult], squad_id: String) -> void:
+	for result in results:
+		if result is ActivityResult and result.requires_combat:
+			var target_id = result.combat_target_squad_id
+			if target_id.is_empty():
+				continue
+			var attacker = ai_fleet._find_squad_by_id(squad_id)
+			var defender = ai_fleet._find_squad_by_id(target_id)
+			if attacker and defender:
+				ai_fleet._execute_headless_combat({
+					"attacker_id": squad_id,
+					"defender_id": target_id,
+				})
+
+
+func _exec_play_animchanges_loop(activity, state):
+	_capture_stat_snapshot()
+
+	var all_activity_result = actor["exec_%s" % state].call(activity)
+	_queue_multiple_eventchains_from_results(all_activity_result)
+	await _vn_play_next_recurs()
+	var has_combat = await _enter_combat_if_exists(activity, all_activity_result)
+	if not has_combat:
+		await _animate_stat_changes()
 
 func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
 	# Updates the contact/detection system after a turn:
@@ -387,26 +418,22 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 	else:
 		enemy_id = engagement["attacker_id"]
 
-	var enemy_squad = actor.data._find_enemy_squad(enemy_id)
+	var enemy_squad = actor.aem._find_enemy_squad(enemy_id)
 	if not enemy_squad:
 		return
 
 	if player.engagement_stance == StrategyTypes.EngagementStance.ALWAYS_ENGAGE:
-		print(
-			"[StrategyPresenter] Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
-				enemy_squad.squad_name,
-				StrategyTypes.EngagementType.keys()[engagement_type],
-			],
-		)
+		Log.info("Presenter", "Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
+			enemy_squad.squad_name,
+			StrategyTypes.EngagementType.keys()[engagement_type],
+		])
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
 	else:
-		print(
-			"[StrategyPresenter] Contact LOCKED with %s (type: %s) — player decides" % [
-				enemy_squad.squad_name,
-				StrategyTypes.EngagementType.keys()[engagement_type],
-			],
-		)
+		Log.info("Presenter", "Contact LOCKED with %s (type: %s) — player decides" % [
+			enemy_squad.squad_name,
+			StrategyTypes.EngagementType.keys()[engagement_type],
+		])
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
 
@@ -422,29 +449,13 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 
 		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result")
 
-		var enemy_squad = actor.data._find_enemy_squad(_combat.combat_target_squad_id)
+		var enemy_squad = actor.aem._find_enemy_squad(_combat.combat_target_squad_id)
 		if enemy_squad:
-			start_encounter(enemy_squad, actor.data._build_context(activity), _combat.engagement_type)
+			start_encounter(enemy_squad, actor.aem._build_context(activity), _combat.engagement_type)
 			await encounter_resolved
 		else:
-			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
+			Log.warn("Presenter", "Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
 	return has_combat
-
-
-func _exec_play_animchanges_loop(activity, state):
-	# Single phase of the activity pipeline: snapshot → execute → play VN → combat check → animate deltas
-	# Called 3 times per turn: state='before', 'activity', 'after'
-	# e.g., state='before': captures snapshot{money:100} → exec_before(activity) → event triggers EventChain → plays VN
-	# e.g., state='activity': captures snapshot{money:100} → exec_activity(REST) → money now 100, food 8→6 → animate food delta
-	_capture_stat_snapshot()
-
-	var all_activity_result = actor["exec_%s" % state].call(activity)
-
-	_queue_multiple_eventchains_from_results(all_activity_result)
-	await _vn_play_next_recurs()
-	var has_combat = await _enter_combat_if_exists(activity, all_activity_result)
-	if not has_combat:
-		await _animate_stat_changes()
 
 
 func _vn_play_next_recurs():
@@ -490,10 +501,8 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }
 	# e.g., enemy="Bandits"(2 warriors), engagement=SET_PIECE
 	#   → returns {flee_chance: 0.45, negotiate_chance: 0.35, ...}
 	#   → UI shows all 3 buttons with percentages
-	print("\n[StrategyPresenter] ========================================")
-	print("[StrategyPresenter] COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
-	print("[StrategyPresenter] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
-	print("[StrategyPresenter] ========================================")
+	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
+	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 
 	is_in_combat_encounter = true
 	combat_options = combat_controller.inject_context(
@@ -515,9 +524,7 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }
 	view.update_combat_intermission(enemy_name, enemy_count, flee_chance, negotiate_chance, combat_options)
 	view.update_combat_timer(encounter_timeout_timer, combat_options.get("timeout_seconds", 30.0))
 
-	print("[StrategyPresenter] Combat UI updated:")
-	print("[StrategyPresenter]   Flee chance: %.1f%%" % flee_chance)
-	print("[StrategyPresenter]   Negotiate chance: %.1f%%" % negotiate_chance)
+	Log.debug("Presenter", "Combat UI updated: flee=%.1f%% negotiate=%.1f%%" % [flee_chance, negotiate_chance])
 
 
 func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
@@ -531,14 +538,14 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 	var encounter_result: CombatController.CombatResult = await combat_controller.process_intermission_choice(choice)
 	view.hide_combat_panel()
 
-	print("[StrategyPresenter] Combat result received: %s" % encounter_result.to_string() if encounter_result else "null")
+	Log.info("Presenter", "Combat result received: %s" % [encounter_result.to_string() if encounter_result else "null"])
 	await _handle_encounter_result(encounter_result)
 
 
 func _on_combat_timeout() -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
-	print("[StrategyPresenter] COMBAT TIMEOUT - Auto-fighting!")
+	Log.info("Presenter", "COMBAT TIMEOUT - Auto-fighting!")
 	view.set_combat_info_text("Time's up! Engaging in combat...")
 	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
 
@@ -551,31 +558,28 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	#   → show overlay with "VICTORY!" label and morale bar animation 60→70
 	is_in_combat_encounter = false
 
-	print("\n[StrategyPresenter] ========================================")
-	print("[StrategyPresenter] COMBAT RESOLVED")
-	print("[StrategyPresenter] %s" % result.to_string())
-	print("[StrategyPresenter] ========================================")
+	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
 
 	var morale_before = actor.player_squad.get_morale()
 
 	if result.morale_change != 0:
 		actor.player_squad.modify_aggregate_morale(result.morale_change)
-		print("[StrategyPresenter] Applied morale change: %.1f" % result.morale_change)
+		Log.debug("Presenter", "Applied morale change: %.1f" % result.morale_change)
 
 	for casualty_id in result.player_casualties:
 		var warrior = actor.player_squad.get_warrior_by_id(casualty_id)
 		if warrior:
-			print("[StrategyPresenter] Casualty: %s" % warrior.name)
+			Log.info("Presenter", "Casualty: %s" % warrior.name)
 
 	if result.loot:
-		print("[StrategyPresenter] Loot collected: %s" % [result.loot])
+		Log.debug("Presenter", "Loot collected: %s" % [result.loot])
 		_apply_combat_loot(result.loot)
 
 	if result.clues_dropped.size() > 0:
 		var loc = actor.current_location
 		for clue in result.clues_dropped:
 			loc.add_clue(clue)
-			print("[StrategyPresenter] Clue dropped: %s" % clue.clue_name)
+			Log.debug("Presenter", "Clue dropped: %s" % clue.clue_name)
 
 	var morale_after = actor.player_squad.get_morale()
 	await view.show_combat_result_overlay(result, morale_before, morale_after)
@@ -587,10 +591,10 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 	var squad = actor.player_squad
 	if loot.has("money"):
 		squad.money += loot.money
-		print("[StrategyPresenter] Gained money: %.0f" % loot.money)
+		Log.debug("Presenter", "Gained money: %.0f" % loot.money)
 	if loot.has("food"):
 		squad.food += int(loot.food)
-		print("[StrategyPresenter] Gained food: %d" % int(loot.food))
+		Log.debug("Presenter", "Gained food: %d" % int(loot.food))
 
 #endregion
 
@@ -601,7 +605,7 @@ func _capture_stat_snapshot() -> void:
 	# Used later by _calculate_stat_deltas() to determine what changed and animate it
 	# e.g., snapshot = {money: 100, food: 8, karma: 5, morale: 60}
 	if not game_scenario:
-		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
+		Log.warn("StatAnim", "Cannot capture snapshot - no game_scenario")
 		return
 
 	var squad = actor.player_squad
@@ -613,7 +617,7 @@ func _capture_stat_snapshot() -> void:
 		"karma": squad.karma,
 		"morale": squad.get_morale(),
 	}
-	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
+	Log.trace("StatAnim", "Snapshot captured: %s" % [stat_snapshot])
 
 
 func _calculate_stat_deltas() -> Dictionary:
@@ -621,10 +625,10 @@ func _calculate_stat_deltas() -> Dictionary:
 	# Returns only stats that changed by ≥0.01 (filters noise)
 	# e.g., snapshot={money:100, food:8}, current={money:100, food:6} → deltas={food: -2.0}
 	if not game_scenario:
-		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
+		Log.warn("StatAnim", "Cannot calculate deltas - no game_scenario")
 		return { }
 	if stat_snapshot.is_empty():
-		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
+		Log.warn("StatAnim", "Cannot calculate deltas - snapshot is empty")
 		return { }
 
 	var squad = actor.player_squad
@@ -635,7 +639,7 @@ func _calculate_stat_deltas() -> Dictionary:
 		"karma": squad.karma,
 		"morale": squad.get_morale(),
 	}
-	print("[StatAnimation] Current stats: ", current_stats)
+	Log.trace("StatAnim", "Current stats: %s" % [current_stats])
 
 	var deltas := { }
 	for stat_name in stat_snapshot:
@@ -644,25 +648,25 @@ func _calculate_stat_deltas() -> Dictionary:
 		var delta = new_value - old_value
 		if abs(delta) >= 0.01:
 			deltas[stat_name] = delta
-			print("[StatAnimation] Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
+			Log.trace("StatAnim", "Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
 
 	if deltas.is_empty():
-		print("[StatAnimation] No meaningful deltas detected (all changes < 0.01)")
+		Log.trace("StatAnim", "No meaningful deltas detected (all changes < 0.01)")
 	else:
-		print("[StatAnimation] Total deltas to animate: ", deltas)
+		Log.debug("StatAnim", "Total deltas to animate: %s" % [deltas])
 	return deltas
 
 
 func _animate_stat_changes() -> void:
-	print("[StatAnimation] _animate_stat_changes() called")
+	Log.trace("StatAnim", "_animate_stat_changes() called")
 	var deltas = _calculate_stat_deltas()
 	if deltas.is_empty():
-		print("[StatAnimation] No deltas to animate, returning early")
+		Log.trace("StatAnim", "No deltas to animate, returning early")
 		return
 
-	print("[StatAnimation] Starting animation with %d delta(s)" % deltas.size())
+	Log.trace("StatAnim", "Starting animation with %d delta(s)" % deltas.size())
 	await view.animate_stat_changes(deltas)
-	print("[StatAnimation] Animation completed")
+	Log.trace("StatAnim", "Animation completed")
 
 #endregion
 
@@ -803,9 +807,7 @@ func _get_travel_label() -> String:
 #region Model Signal Handlers
 
 func _on_turn_advanced(turn: int) -> void:
-	print("Turn advanced to: %d" % turn)
 	view.update_turn(turn)
-	await _execute_story_triggerables(StrategyTypes.TriggerWhen.TURN_START)
 
 #endregion
 

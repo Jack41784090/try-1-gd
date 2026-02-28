@@ -26,9 +26,7 @@ var rng := RandomNumberGenerator.new()
 
 
 func _ready():
-	print("\n" + "=".repeat(80))
-	print("AI BATTLE ROYALE — PRODUCTION PIPELINE TEST")
-	print("=".repeat(80) + "\n")
+	Log.info("BattleRoyale", "=== AI BATTLE ROYALE — PRODUCTION PIPELINE TEST ===")
 
 	rng.randomize()
 	_initialize()
@@ -76,15 +74,12 @@ func _initialize():
 
 	actor.exec_at(StrategyTypes.TriggerWhen.GAME_START)
 
-	print(
-		"[Demo] Player: %s at %s (%d warriors)" % [
-			player_squad.squad_name,
-			player_squad.current_location_id,
-			player_squad.get_living_warriors().size(),
-		],
-	)
-	print("[Demo] AI squads: %d" % ai_fleet.get_ai_squad_count())
-	print("[Demo] Locations: %d" % scenario.world.locations.size())
+	Log.info("BattleRoyale", "Player: %s at %s (%d warriors)" % [
+		player_squad.squad_name,
+		player_squad.current_location_id,
+		player_squad.get_living_warriors().size(),
+	])
+	Log.info("BattleRoyale", "AI squads: %d | Locations: %d" % [ai_fleet.get_ai_squad_count(), scenario.world.locations.size()])
 	_print_all_squads()
 
 #endregion
@@ -95,16 +90,11 @@ func _run_simulation():
 	var round_num = 0
 	while round_num < MAX_ROUNDS and _count_living_squads() > 1:
 		round_num += 1
-		print("\n" + "=".repeat(80))
-		print(
-			"ROUND %d — %d squads alive" % [
-				round_num,
-				_count_living_squads(),
-			],
-		)
-		print("=".repeat(80))
+		Log.info("BattleRoyale", "=== ROUND %d — %d squads alive ===" % [
+			round_num,
+			_count_living_squads(),
+		])
 
-		actor.exec_at(StrategyTypes.TriggerWhen.TURN_START)
 		await _execute_one_turn()
 		_print_all_squads()
 
@@ -135,46 +125,97 @@ func _execute_one_turn():
 		if not destination.is_empty():
 			activity = actor.create_travel_activity(destination)
 
-	print(
-		"[Demo] Player chose: %s" % \
-		StrategyTypes.ActivityType.keys()[activity_type],
-	)
+	Log.debug("BattleRoyale", "Player chose: %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
 	var player_loc_before = player_squad.current_location_id
 
-	# Phase 1-3: before → activity → after
-	# (mirrors _exec_play_animchanges_loop × 3)
-	var before_results = actor.exec_before(activity)
-	_resolve_combat_from_results(before_results)
+	var ai_results = ai_fleet.prepare_ai_turns()
+	var turn_entries = _build_karma_sorted_entries(
+		activity,
+		ai_results,
+	)
 
-	var activity_results = actor.exec_activity(activity)
-	_resolve_combat_from_results(activity_results)
+	for entry in turn_entries:
+		if entry["is_player"]:
+			actor.exec_at(StrategyTypes.TriggerWhen.TURN_START)
+		else:
+			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(
+				StrategyTypes.TriggerWhen.TURN_START,
+			)
 
-	var after_results = actor.exec_after(activity)
-	_resolve_combat_from_results(after_results)
+	for phase in ['before', 'activity', 'after']:
+		for entry in turn_entries:
+			if entry["is_player"]:
+				var results = actor["exec_%s" % phase].call(activity)
+				_resolve_combat_from_results(results)
+			else:
+				var executor: ActivityExecuteManager = entry["executor"]
+				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
+				_resolve_ai_combat_from_results(
+					results,
+					entry["squad_id"],
+				)
 
-	# AI fleet decisions (mirrors presenter post-phase)
-	var ai_results = ai_fleet.return_all_ai_turns()
-	if ai_results["combats"].size() > 0:
-		print(
-			"[Demo] AI-vs-AI combats: %d" % \
-			ai_results["combats"].size(),
-		)
-	if ai_results["movements"].size() > 0:
-		print(
-			"[Demo] AI movements: %d" % \
-			ai_results["movements"].size(),
-		)
-
-	# Contacts & engagements (mirrors _update_contacts)
+	ai_fleet.cleanup_defeated_squads()
 	_update_contacts(activity, player_loc_before)
-
-	ai_fleet.commit_ai_decisions(ai_results)
 
 	actor.advance_turn()
 	scenario.world.turn_count += 1
 
 	player_squad.consume_supplies_by_demand()
+
+
+func _build_karma_sorted_entries(
+		player_activity: Activity,
+		ai_results: Dictionary,
+) -> Array:
+	var entries: Array = []
+
+	entries.append({
+		"is_player": true,
+		"karma": player_squad.karma,
+	})
+
+	var decisions = ai_results["decisions_this_turn"]
+	for squad_id in decisions:
+		var dec = decisions[squad_id]
+		entries.append({
+			"is_player": false,
+			"squad_id": squad_id,
+			"activity": dec["activity"],
+			"executor": ai_fleet.squad_executors[squad_id],
+			"karma": dec["squad"].karma,
+		})
+
+	entries.sort_custom(
+		func(a, b): return a["karma"] > b["karma"],
+	)
+	return entries
+
+
+func _resolve_ai_combat_from_results(
+		results: Array[GenericResult],
+		squad_id: String,
+) -> void:
+	for result in results:
+		if not (result is ActivityResult):
+			continue
+		if not result.requires_combat:
+			continue
+		var target_id = result.combat_target_squad_id
+		if target_id.is_empty():
+			continue
+		var attacker = ai_fleet._find_squad_by_id(squad_id)
+		var defender = ai_fleet._find_squad_by_id(target_id)
+		if attacker and defender:
+			Log.info("BattleRoyale", "AI combat: %s vs %s" % [
+				attacker.squad_name,
+				defender.squad_name,
+			])
+			ai_fleet._execute_headless_combat({
+				"attacker_id": squad_id,
+				"defender_id": target_id,
+			})
 
 #endregion
 
@@ -259,13 +300,11 @@ func _handle_player_engagement(engagement: Dictionary):
 	if not enemy_squad:
 		return
 
-	print(
-		"\n[Demo] ENGAGEMENT: %s vs %s (%s)" % [
-			player_squad.squad_name,
-			enemy_squad.squad_name,
-			StrategyTypes.EngagementType.keys()[eng_type],
-		],
-	)
+	Log.info("BattleRoyale", "ENGAGEMENT: %s vs %s (%s)" % [
+		player_squad.squad_name,
+		enemy_squad.squad_name,
+		StrategyTypes.EngagementType.keys()[eng_type],
+	])
 	_resolve_headless_combat(
 		player_squad,
 		enemy_squad,
@@ -285,10 +324,7 @@ func _resolve_combat_from_results(
 			result.combat_target_squad_id,
 		)
 		if enemy_squad:
-			print(
-				"[Demo] Activity combat vs %s" % \
-				enemy_squad.squad_name,
-			)
+			Log.info("BattleRoyale", "Activity combat vs %s" % enemy_squad.squad_name)
 			_resolve_headless_combat(
 				player_squad,
 				enemy_squad,
@@ -335,14 +371,12 @@ func _resolve_headless_combat(
 	winner.modify_morale(15)
 	loser.modify_morale(-20)
 
-	print(
-		"[Demo] %s WINS (morale: %.0f), %s loses %d" % [
-			winner.squad_name,
-			winner.get_morale(),
-			loser.squad_name,
-			casualties,
-		],
-	)
+	Log.info("BattleRoyale", "%s WINS (morale: %.0f), %s loses %d" % [
+		winner.squad_name,
+		winner.get_morale(),
+		loser.squad_name,
+		casualties,
+	])
 	_cleanup_dead_squads()
 
 #endregion
@@ -383,54 +417,34 @@ func _cleanup_dead_squads():
 		if ai_fleet.squad_brains.has(squad_id):
 			ai_fleet.squad_brains.erase(squad_id)
 			ai_fleet.squad_executors.erase(squad_id)
-		print("[Demo] Eliminated: %s" % squad_id)
+		Log.info("BattleRoyale", "Eliminated: %s" % squad_id)
 
 
 func _print_all_squads():
-	print(
-		"\n  %-20s %-15s %-8s %-12s %-6s" % [
-			"SQUAD",
-			"LOCATION",
-			"MORALE",
-			"WARRIORS",
-			"FOOD",
-		],
-	)
-	print("  " + "-".repeat(65))
-
 	var p_living = player_squad.get_living_warriors().size()
-	print(
-		"  %-20s %-15s %-8.0f %d/%-9d %-6d [PLAYER]" % [
-			player_squad.squad_name,
-			player_squad.current_location_id,
-			player_squad.get_morale(),
-			p_living,
-			player_squad.warriors.size(),
-			player_squad.food,
-		],
-	)
+	Log.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d [PLAYER]" % [
+		player_squad.squad_name,
+		player_squad.current_location_id,
+		player_squad.get_morale(),
+		p_living,
+		player_squad.warriors.size(),
+		player_squad.food,
+	])
 
 	for squad in scenario.world.roaming_squads:
 		var living = squad.get_living_warriors().size()
-		print(
-			"  %-20s %-15s %-8.0f %d/%-9d %-6d" % [
-				squad.squad_name,
-				squad.current_location_id,
-				squad.get_morale(),
-				living,
-				squad.warriors.size(),
-				squad.food,
-			],
-		)
+		Log.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d" % [
+			squad.squad_name,
+			squad.current_location_id,
+			squad.get_morale(),
+			living,
+			squad.warriors.size(),
+			squad.food,
+		])
 
 
 func _print_final_results():
-	print("\n" + "=".repeat(80))
-	print(
-		"BATTLE ROYALE COMPLETE — Turn %d" % \
-		scenario.world.turn_count,
-	)
-	print("=".repeat(80))
+	Log.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Turn %d ===" % scenario.world.turn_count)
 
 	var survivors: Array[SquadStrategicData] = []
 	if player_squad.get_living_warriors().size() > 0:
@@ -441,41 +455,30 @@ func _print_final_results():
 
 	if survivors.size() == 1:
 		var winner = survivors[0]
-		var tag = " [PLAYER]" if winner == player_squad \
-		else ""
-		print("\nWINNER: %s%s" % [winner.squad_name, tag])
-		print("  Location: %s" % winner.current_location_id)
-		print("  Morale: %.0f" % winner.get_morale())
-		print(
-			"  Warriors: %d/%d" % [
-				winner.get_living_warriors().size(),
-				winner.warriors.size(),
-			],
-		)
+		var tag = " [PLAYER]" if winner == player_squad else ""
+		Log.info("BattleRoyale", "WINNER: %s%s" % [winner.squad_name, tag])
+		Log.info("BattleRoyale", "  Location: %s | Morale: %.0f | Warriors: %d/%d" % [
+			winner.current_location_id,
+			winner.get_morale(),
+			winner.get_living_warriors().size(),
+			winner.warriors.size(),
+		])
 		for w in winner.get_living_warriors():
-			print(
-				"    - %s (Injured: %s)" % [
-					w.name,
-					"Yes" if w.is_injured else "No",
-				],
-			)
+			Log.info("BattleRoyale", "  - %s (Injured: %s)" % [
+				w.name,
+				"Yes" if w.is_injured else "No",
+			])
 	elif survivors.size() > 1:
-		print(
-			"\nTIME LIMIT — %d survivors:" % \
-			survivors.size(),
-		)
+		Log.info("BattleRoyale", "TIME LIMIT — %d survivors:" % survivors.size())
 		for squad in survivors:
-			var tag = " [PLAYER]" \
-			if squad == player_squad else ""
-			print(
-				"  - %s (Morale: %.0f, Warriors: %d)%s" % [
-					squad.squad_name,
-					squad.get_morale(),
-					squad.get_living_warriors().size(),
-					tag,
-				],
-			)
+			var tag = " [PLAYER]" if squad == player_squad else ""
+			Log.info("BattleRoyale", "  - %s (Morale: %.0f, Warriors: %d)%s" % [
+				squad.squad_name,
+				squad.get_morale(),
+				squad.get_living_warriors().size(),
+				tag,
+			])
 	else:
-		print("\nALL SQUADS ELIMINATED")
+		Log.info("BattleRoyale", "ALL SQUADS ELIMINATED")
 
 #endregion
