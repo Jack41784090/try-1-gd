@@ -164,7 +164,7 @@ func apply_clue_bonus(clue: Clue, target_squad: SquadStrategicData, observer_squ
 		var bonus = remap(clue.detail_level, 0.0, 10.0, 10.0, 20.0)
 		var contact = get_or_create_contact(observer_squad.squad_id, target_squad.squad_id)
 		contact.apply_delta(bonus, 0)
-		print("[ContactTracker] Clue bonus +%.1f on %s → %s" % [bonus, observer_squad.squad_id, target_squad.squad_id])
+		Log.debug("Contact", "Clue bonus +%.1f on %s → %s" % [bonus, observer_squad.squad_id, target_squad.squad_id])
 
 func clear_contacts_for(squad_id: String) -> void:
 	var keys_to_remove: Array[String] = []
@@ -280,7 +280,7 @@ func _log_contacts(current_turn: int) -> void:
 	for key in contacts:
 		var c = contacts[key]
 		if c.progress > 0.0:
-			print("[ContactTracker] T%d %s → %s: %.1f (%s)" % [
+			Log.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
 				current_turn,
 				c.observer_id,
 				c.target_id,
