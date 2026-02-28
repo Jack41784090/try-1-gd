@@ -14,7 +14,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `combat_strategy_integration_test.tscn` — bridge between strategy and combat
   - `scenario_attack_test.tscn` — activity/combat flow
   - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
-  - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat
+  - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat (small 2-location world)
+  - `ai_stress_test_demo.tscn` — large-world AI stress test: 13 locations, 8 squads with mixed profiles, 50-turn simulation with forage/heal/buy/mercenary/patrol behaviors
   - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
   - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
   - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
@@ -79,17 +80,19 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
   - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
-  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat, turn execution
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat, turn execution, mercenary work combat
   - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action
   - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
   - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
-  - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies
-  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances
+  - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies. Uses next-hop pathfinding for travel/force-march destinations
+  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking
   - `FactionBrain` (faction_brain.gd) — stub for faction-level coordination (returns NONE directives)
   - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
   - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
+  - Key considerations: forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), attack-weak-enemy (6), heal-at-town (6), buy-supplies-at-town (6), pursue-clues (5), break-contact (5), patrol-for-info (5), recruit-when-depleted (5), hunt-enemies (4), drill-when-idle (1)
+  - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
   - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. References `stage_view` for warrior stage delegation.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
@@ -111,9 +114,12 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
   - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
   - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender
-  - AI integration: `StrategicSituation` has `highest_contact_on_us`, `our_best_contact`, `can_ambush` lazy properties
-  - AI considerations: `ambush-opportunity.tres` (weight 8), `break-contact.tres` (weight 5, travel away)
-  - New `DestinationStrategy.AWAY_FROM_ENEMY` — BFS for location maximizing distance from nearest enemy
+  - AI integration: `StrategicSituation` has `highest_contact_on_us`, `our_best_contact`, `can_ambush`, `weakest_tracked_enemy_warriors` lazy properties
+  - AI considerations: `ambush-opportunity.tres` (weight 8), `break-contact.tres` (weight 5, travel away), `finish-off-enemy.tres` (weight 8, force march when enemy weak + tracked), `rest-when-exhausted.tres` (weight 8, rest when morale low)
+  - `DestinationStrategy.AWAY_FROM_ENEMY` — BFS for location maximizing distance from nearest enemy
+  - `hunt-enemies` action uses TRAVEL (not FORCE_MARCH) — AI travels towards enemies normally, only force-marches to finish off weak tracked targets
+  - `patrol-for-info` weight increased to 5.0 — AI prioritizes patrolling over aimless movement
+  - Force march resolves destination via next-hop pathfinding (no teleportation), moves 2 hops per turn (double speed)
 - **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
   - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
   - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
@@ -123,8 +129,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 ### Key Enums and Types
 
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
-- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType, WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
-- Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable, LocationGlanceable, WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
+- Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
@@ -194,6 +200,8 @@ return updates
 - `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
 - `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
 - `resources/ai/faction/` — faction brain profiles
+- `resources/generic-activities/` — Activity .tres files: rest, drill, travelling, patrol, investigate, attack, force-march, hold-mass, recruit, forage, heal, mercenary-work, buy-supplies
+- `resources/scenarios/ai-stress-test/` — Large 13-location stress test scenario for AI behavior observation
 - `resources/animation/` — animation data files
   - `expressions/` — iExpression .tres (eye + mouth clip pairs)
   - `actions/` — AnimAction .tres (body clip + expression pairs)
