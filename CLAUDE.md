@@ -131,7 +131,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
 - Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
-- Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP, CsdrTypes.DETECTION — reused by strategic AI)
+- Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ## GDScript Conventions
