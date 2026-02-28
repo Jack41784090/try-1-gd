@@ -1,46 +1,71 @@
-[gd_resource type="Resource" script_class="EventChain" load_steps=8 format=3 uid="uid://buuwkm1cvdl0q"]
+[gd_resource type="Resource" script_class="EventChain" load_steps=17 format=3 uid="uid://buuwkm1cvdl0q"]
 
-[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_chain"]
-[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/ui/vn/dialogue.gd" id="2_dialogue"]
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_script_event_chain"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="2_script_dialogue_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="3_script_gate_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="4_script_stage_position"]
 
-[sub_resource type="Resource" id="dialogue_1"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["squad_leader"])
+[sub_resource type="Resource" id="dlg_1"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Squad Leader"
 line_spoken = "We gather now in the sight of the Divine. Bow your heads, brothers."
-background_id = "chapel"
 
-[sub_resource type="Resource" id="dialogue_2"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["squad_leader", "priest"])
+[sub_resource type="Resource" id="gate_2"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_3"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Priest"
 line_spoken = "Let us pray for guidance in these troubled times. May faith light our path."
-background_id = "chapel"
 
-[sub_resource type="Resource" id="dialogue_3"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["squad_leader", "priest"])
+[sub_resource type="Resource" id="gate_4"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_5"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Squad Leader"
 line_spoken = "In battle we are tested. In prayer we are strengthened. We fight not for glory, but for a higher purpose."
-background_id = "chapel"
 
-[sub_resource type="Resource" id="dialogue_4"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["priest"])
+[sub_resource type="Resource" id="gate_6"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_7"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Priest"
 line_spoken = "Go forth with the blessing of the righteous. May your souls remain pure even as your blades draw blood."
-background_id = "chapel"
 
-[sub_resource type="Resource" id="dialogue_5"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["squad_leader"])
+[sub_resource type="Resource" id="gate_8"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_9"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Squad Leader"
 line_spoken = "Amen. Rise, men. The world awaits our service."
-background_id = "chapel"
+
+[sub_resource type="Resource" id="gate_10"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="pos_11"]
+script = ExtResource("4_script_stage_position")
+character_id = "priest"
+position = Vector2(-75.0, 50)
+face_direction = 1
+
+[sub_resource type="Resource" id="pos_12"]
+script = ExtResource("4_script_stage_position")
+character_id = "squad_leader"
+position = Vector2(75.0, 50)
+face_direction = -1
 
 [resource]
-script = ExtResource("1_chain")
+script = ExtResource("1_script_event_chain")
 chain_id = "hold_mass_activity_chain"
 chain_name = "Holy Observance"
-character_ids = Array[String](["squad_leader", "priest"])
-dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5")]
+character_ids = Array[String](["priest", "squad_leader"])
+setting = [SubResource("pos_11"), SubResource("pos_12")]
+timeline = [SubResource("dlg_1"), SubResource("gate_2"), SubResource("dlg_3"), SubResource("gate_4"), SubResource("dlg_5"), SubResource("gate_6"), SubResource("dlg_7"), SubResource("gate_8"), SubResource("dlg_9"), SubResource("gate_10")]

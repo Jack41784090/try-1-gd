@@ -1,156 +1,219 @@
-[gd_resource type="Resource" script_class="EventChain" load_steps=23 format=3 uid="uid://bm3om5nswmt1d"]
+[gd_resource type="Resource" script_class="EventChain" load_steps=50 format=3 uid="uid://bm3om5nswmt1d"]
 
-[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_chain"]
-[ext_resource type="Script" uid="uid://ccnny7jrt4ojp" path="res://src/strategy/ui/vn/dialogue.gd" id="2_dialogue"]
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_script_event_chain"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="2_script_dialogue_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="3_script_gate_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/character_instruction.gd" id="4_script_character_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="5_script_stage_position"]
 
-[sub_resource type="Resource" id="dialogue_1"]
-script = ExtResource("2_dialogue")
-speaker_name = "Goetz"
-line_spoken = "... ja, ja. Exactly. The Emperor is trying to make changes, but his advisors are--."
-on_screen_character_ids = Array[String](["goetz"])
-background_id = "goetz_study"
+[sub_resource type="Resource" id="char_1"]
+script = ExtResource("4_script_character_instruction")
+action = 2
+character_id = "Goetz"
 behavior = "gesturing"
 
-[sub_resource type="Resource" id="dialogue_2"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="dlg_2"]
+script = ExtResource("2_script_dialogue_instruction")
+speaker_name = "Goetz"
+line_spoken = "... ja, ja. Exactly. The Emperor is trying to make changes, but his advisors are--."
+
+[sub_resource type="Resource" id="gate_3"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_4"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "... nooo, not the Mongols. They couldn't do anything, this time. Also, let's not--"
-on_screen_character_ids = Array[String](["goetz"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_3"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_5"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_6"]
+script = ExtResource("2_script_dialogue_instruction")
 line_spoken = "Two squires enter the room — Franz and Hilda. Goetz gestures for them to wait."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
-behavior = "idle"
 
-[sub_resource type="Resource" id="dialogue_4"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_7"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_8"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "Ja. But let's not say too much over the Skyline. All it's left for us is to assert ourselves."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_5"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_9"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_10"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "... likewise, talk to you later."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_6"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_11"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_12"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Franz"
 line_spoken = "My Lord, my deepest apologies for interrupting you but --"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_7"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_13"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_14"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "Yeah yeah, words from Frankfurt?"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_8"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_15"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_16"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Franz"
 line_spoken = "They are doubling---"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_9"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_17"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_18"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "DOUBLING DOWN???"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 expression_override = "angry"
 
-[sub_resource type="Resource" id="dialogue_10"]
-script = ExtResource("2_dialogue")
-line_spoken = "Franz stole a glance at Hilda, who gulped and glanced back at Franz."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
+[sub_resource type="Resource" id="gate_19"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
 
-[sub_resource type="Resource" id="dialogue_11"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="dlg_20"]
+script = ExtResource("2_script_dialogue_instruction")
+line_spoken = "Franz stole a glance at Hilda, who gulped and glanced back at Franz."
+
+[sub_resource type="Resource" id="gate_21"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_22"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Franz"
 line_spoken = "No... my Lord, they're..."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_12"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_23"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_24"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Hilda"
 line_spoken = "They said you are expressing contempt for the Empire, doubling... doubling the license fee."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_13"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_25"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_26"]
+script = ExtResource("2_script_dialogue_instruction")
 line_spoken = "Goetz fell into silence for a few seconds."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
-delay_ms = 1500
 
-[sub_resource type="Resource" id="dialogue_14"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_27"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_28"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "So they *are* doubling down."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_15"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_29"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_30"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "Hilda, seal his mouth."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_16"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_31"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_32"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
 line_spoken = "What word from Nuremberg?"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_17"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_33"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_34"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Hilda"
 line_spoken = "They condemned your disobedience, called you an illegal Robber Knight, my good Lord."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_18"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_35"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_36"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
-line_spoken = "Good Lord...
-When bandits raid the city, they rely on my iron fist; yet profits fill their coffers, they condemn me, a robber knight."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
+line_spoken = "Good Lord..."
 expression_override = "angry"
 
-[sub_resource type="Resource" id="dialogue_19"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_37"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_38"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Hilda"
 line_spoken = "My lord, the villagers depend on forestry. If the license fee doubles, the foresters cannot sustain their labour. Our economic independence!"
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
 
-[sub_resource type="Resource" id="dialogue_20"]
-script = ExtResource("2_dialogue")
+[sub_resource type="Resource" id="gate_39"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_40"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Goetz"
-line_spoken = "If they would call me a robber knight, they will get a robber knight.
-Gather the men-at-arms. We will march into Nuremberg to remind them who they are under the protection of."
-on_screen_character_ids = Array[String](["goetz", "franz", "hilda"])
-background_id = "goetz_study"
+line_spoken = "If they would call me a robber knight, they will get a robber knight."
 expression_override = "determined"
 
+[sub_resource type="Resource" id="gate_41"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="pos_42"]
+script = ExtResource("5_script_stage_position")
+character_id = "franz"
+position = Vector2(-150.0, 50)
+face_direction = 1
+
+[sub_resource type="Resource" id="pos_43"]
+script = ExtResource("5_script_stage_position")
+character_id = "goetz"
+position = Vector2(0.0, 50)
+face_direction = 1
+
+[sub_resource type="Resource" id="pos_44"]
+script = ExtResource("5_script_stage_position")
+character_id = "hilda"
+position = Vector2(150.0, 50)
+face_direction = -1
+
 [resource]
-script = ExtResource("1_chain")
+script = ExtResource("1_script_event_chain")
 chain_id = "g0_intro"
 chain_name = "Goetz von Tutorial — The License"
-character_ids = Array[String](["goetz", "franz", "hilda"])
-dialogues = [SubResource("dialogue_1"), SubResource("dialogue_2"), SubResource("dialogue_3"), SubResource("dialogue_4"), SubResource("dialogue_5"), SubResource("dialogue_6"), SubResource("dialogue_7"), SubResource("dialogue_8"), SubResource("dialogue_9"), SubResource("dialogue_10"), SubResource("dialogue_11"), SubResource("dialogue_12"), SubResource("dialogue_13"), SubResource("dialogue_14"), SubResource("dialogue_15"), SubResource("dialogue_16"), SubResource("dialogue_17"), SubResource("dialogue_18"), SubResource("dialogue_19"), SubResource("dialogue_20")]
+character_ids = Array[String](["franz", "goetz", "hilda"])
+setting = [SubResource("pos_42"), SubResource("pos_43"), SubResource("pos_44")]
+timeline = [SubResource("char_1"), SubResource("dlg_2"), SubResource("gate_3"), SubResource("dlg_4"), SubResource("gate_5"), SubResource("dlg_6"), SubResource("gate_7"), SubResource("dlg_8"), SubResource("gate_9"), SubResource("dlg_10"), SubResource("gate_11"), SubResource("dlg_12"), SubResource("gate_13"), SubResource("dlg_14"), SubResource("gate_15"), SubResource("dlg_16"), SubResource("gate_17"), SubResource("dlg_18"), SubResource("gate_19"), SubResource("dlg_20"), SubResource("gate_21"), SubResource("dlg_22"), SubResource("gate_23"), SubResource("dlg_24"), SubResource("gate_25"), SubResource("dlg_26"), SubResource("gate_27"), SubResource("dlg_28"), SubResource("gate_29"), SubResource("dlg_30"), SubResource("gate_31"), SubResource("dlg_32"), SubResource("gate_33"), SubResource("dlg_34"), SubResource("gate_35"), SubResource("dlg_36"), SubResource("gate_37"), SubResource("dlg_38"), SubResource("gate_39"), SubResource("dlg_40"), SubResource("gate_41")]
