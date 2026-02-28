@@ -1,7 +1,8 @@
 # activity.gd
-class_name Activity extends Triggerable
+class_name Activity
+extends Triggerable
 
-@export var result: ActivityResult;
+@export var result: ActivityResult
 @export var activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.CUSTOM
 @export var time_cost: int = 1
 @export var destination_id: String = ""
@@ -12,6 +13,7 @@ class_name Activity extends Triggerable
 # Optional custom logic override
 @export var custom_script: Script = null
 var ultimate_destination_id: String = ""
+
 
 func _to_string() -> String:
 	return "Activity(Name: %s, Type: %s, Time Cost: %d, Destination: %s, Min Stability to Block Attack: %.1f, Force March Supply Multiplier: %.1f, Force March Clue Multiplier: %d, Custom Script: %s, Result: %s, %s)" % [
@@ -24,8 +26,9 @@ func _to_string() -> String:
 		force_march_clue_multiplier,
 		"custom_script" if custom_script else "None",
 		result,
-		super ()
+		super(),
 	]
+
 
 func can_execute(squad: SquadStrategicData, location: Location) -> bool:
 	match activity_type:
@@ -36,10 +39,15 @@ func can_execute(squad: SquadStrategicData, location: Location) -> bool:
 				return false
 			if not location.is_connected_to(destination_id):
 				return false
-			var food_cost = int(1 * force_march_supply_multiplier)
+			var total_demand := 0.0
+			for w in squad.get_living_warriors():
+				var demand = w.get_demand()
+				total_demand += demand.get(StrategyTypes.SquadProperty.FOOD_SUPPLIES, 0.0)
+			var food_cost = int(ceil(total_demand * force_march_supply_multiplier))
 			return squad.food >= food_cost
 		_:
 			return true
+
 
 func trigger(context: Dictionary) -> Array[ActivityResult]:
 	# execution_started.emit()
@@ -48,12 +56,14 @@ func trigger(context: Dictionary) -> Array[ActivityResult]:
 	# 	execution_completed.emit(result)
 	return execute(context)
 
+
 func execute(context: Dictionary) -> Array[ActivityResult]:
 	# if custom_script:
 	# 	# Call custom script if provided
 	# 	if custom_script.has_method("execute_custom"):
 	# 		return custom_script.execute_custom(squad, world, result)
 	return _execute_generic(context)
+
 
 func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 	assert(result)
@@ -122,10 +132,12 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 	var contact = tracker.get_contact(squad.squad_id, target_enemy.squad_id)
 	if not contact or contact.get_state() < StrategyTypes.ContactState.TRACKED:
 		var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
-		print("[Activity] ATTACK blocked — contact on %s is only %s (need TRACKED+)" % [
-			target_enemy.squad_name,
-			state_name
-		])
+		print(
+			"[Activity] ATTACK blocked — contact on %s is only %s (need TRACKED+)" % [
+				target_enemy.squad_name,
+				state_name,
+			],
+		)
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -3.0)
 		return result
 
@@ -137,41 +149,46 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 	print("[Activity] ATTACK engagement classified as %s" % StrategyTypes.EngagementType.keys()[result.engagement_type])
 	return result
 
+
 func _execute_travel(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
 
-	# Simple travel logic: move the squad to a new location
-	var consumed = squad.consume_food(1)
+	var consumed = squad.consume_supplies_by_demand()
 	if not consumed:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
-	squad.set_location(destination_id)
-	result.location_changed = destination_id
-	
+	squad.apply_travel_morale_penalty(-2.0)
+	if not result.location_changed.is_empty():
+		squad.set_location(result.location_changed)
+
 	return result
+
 
 func _execute_force_march(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
 	var squad = context.get("squad") as SquadStrategicData
 
-	var food_cost = int(1 * force_march_supply_multiplier)
-	squad.consume_food(food_cost)
+	squad.consume_supplies_by_demand(force_march_supply_multiplier)
+	squad.apply_travel_morale_penalty(-4.0)
 
 	squad.set_location(destination_id)
 	var final_location = destination_id
 
 	if not ultimate_destination_id.is_empty() and ultimate_destination_id != destination_id:
 		var current_loc = world.get_location_by_id(destination_id)
-		if current_loc and squad.food >= food_cost:
+		if current_loc and squad.food > 0:
 			var path = world.travel_graph.find_path(destination_id, ultimate_destination_id)
 			if path.size() > 1:
 				var second_hop = path[1]
-				squad.consume_food(food_cost)
+				squad.consume_supplies_by_demand(force_march_supply_multiplier)
 				squad.set_location(second_hop)
 				final_location = second_hop
-				print("[Activity] FORCE_MARCH double-hop: %s → %s → %s" % [
-					context.get("squad").squad_name if context.has("squad") else "?",
-					destination_id, second_hop
-				])
+				print(
+					"[Activity] FORCE_MARCH double-hop: %s → %s → %s" % [
+						context.get("squad").squad_name if context.has("squad") else "?",
+						destination_id,
+						second_hop,
+					],
+				)
 
 	result.location_changed = final_location
 	result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -10.0)
@@ -185,6 +202,7 @@ func _execute_force_march(context: Dictionary) -> ActivityResult:
 
 	return result
 
+
 func _execute_recruit(context: Dictionary) -> ActivityResult:
 	var world = context.get("world") as World
 
@@ -194,13 +212,14 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 
 	var new_warrior = WarriorFactory.create_warrior(class_id, EntityClasses.Types.keys()[class_id], recruited_entity.entity_name, StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
 	new_warrior.name = "Recruit_%d" % world.turn_count
-	
+
 	print("[RecruitActivity] Recruited new warrior: %s" % new_warrior.name)
-	
+
 	# Append the new recruit to the result
 	result.append_new_recruits([new_warrior])
-	
+
 	return result
+
 
 func _execute_investigate(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
@@ -214,6 +233,7 @@ func _execute_investigate(context: Dictionary) -> ActivityResult:
 	result.clues_left += clues_found
 
 	return result
+
 
 func _execute_forage(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
@@ -237,14 +257,17 @@ func _execute_forage(context: Dictionary) -> ActivityResult:
 			food_gained = 0
 
 	squad.food += food_gained
-	print("[Activity] FORAGE at %s (%s): gained %d food (now %d)" % [
-		location.location_name,
-		StrategyTypes.LocationType.keys()[location.type],
-		food_gained,
-		squad.food
-	])
+	print(
+		"[Activity] FORAGE at %s (%s): gained %d food (now %d)" % [
+			location.location_name,
+			StrategyTypes.LocationType.keys()[location.type],
+			food_gained,
+			squad.food,
+		],
+	)
 
 	return result
+
 
 func _execute_heal(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
@@ -266,13 +289,18 @@ func _execute_heal(context: Dictionary) -> ActivityResult:
 
 	if healed_count > 0:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, 10.0)
-		print("[Activity] HEAL at %s: healed %d warriors for %.0f gold (morale +10)" % [
-			location.location_name, healed_count, healed_count * cost_per_warrior
-		])
+		print(
+			"[Activity] HEAL at %s: healed %d warriors for %.0f gold (morale +10)" % [
+				location.location_name,
+				healed_count,
+				healed_count * cost_per_warrior,
+			],
+		)
 	else:
 		print("[Activity] HEAL at %s: no warriors to heal or not enough money" % location.location_name)
 
 	return result
+
 
 func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
@@ -294,11 +322,17 @@ func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
 	if buy_amount > 0:
 		squad.spend_money(buy_amount * supply_item.price)
 		squad.food += buy_amount
-		print("[Activity] BUY_SUPPLIES at %s: bought %d supplies for %.0f gold (food now %d)" % [
-			location.location_name, buy_amount, buy_amount * supply_item.price, squad.food
-		])
+		print(
+			"[Activity] BUY_SUPPLIES at %s: bought %d supplies for %.0f gold (food now %d)" % [
+				location.location_name,
+				buy_amount,
+				buy_amount * supply_item.price,
+				squad.food,
+			],
+		)
 
 	return result
+
 
 func _execute_mercenary_work(context: Dictionary) -> ActivityResult:
 	var squad = context.get("squad") as SquadStrategicData
@@ -338,8 +372,13 @@ func _execute_mercenary_work(context: Dictionary) -> ActivityResult:
 	if casualties > 0:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
 
-	print("[Activity] MERCENARY_WORK: fought %d monsters — %d kills, %d injuries, earned %.0f gold" % [
-		monster_count, kills, casualties, money_earned
-	])
+	print(
+		"[Activity] MERCENARY_WORK: fought %d monsters — %d kills, %d injuries, earned %.0f gold" % [
+			monster_count,
+			kills,
+			casualties,
+			money_earned,
+		],
+	)
 
 	return result
