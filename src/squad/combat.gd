@@ -4,7 +4,7 @@ var entities: Array[CharacterCombatStats] = []
 var squad_name: String = ""
 var last_round_received_attack: int = -1
 
-func _init(config: Dictionary):
+func _init(config: Dictionary = {}):
 	squad_name = config.get("name", "")
 	var entity_configs = config.get("entities", [])
 	var next_player_id = randi() % 1000 + 1

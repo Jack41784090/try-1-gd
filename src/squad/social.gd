@@ -7,7 +7,7 @@ var warriors: Array[CharacterSocialStats] = []
 @export var karma: float = 0.0
 @export var food: int = 0
 @export var travel_tools: int = 5
-@export var formation: Array[int] = []
+@export var formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
 @export var starting_location_id: String = ""
 
 var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
@@ -105,7 +105,7 @@ func add_warrior(warrior: CharacterSocialStats) -> void:
 func remove_dead_warriors() -> Array[CharacterSocialStats]:
 	var dead_warriors: Array[CharacterSocialStats] = []
 	var new_warriors: Array[CharacterSocialStats] = []
-	var new_formation: Array[int] = []
+	var new_formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
 	
 	for i in range(warriors.size()):
 		if warriors[i].is_dead:
