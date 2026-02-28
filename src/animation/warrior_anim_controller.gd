@@ -1,4 +1,5 @@
-class_name WarriorAnimController extends Node
+class_name WarriorAnimController
+extends Node
 
 signal action_completed
 signal behavior_changed(new_behavior: AnimTypes.Behavior)
@@ -10,20 +11,28 @@ var _anim_tree: AnimationTree
 var _anim_player: AnimationPlayer
 var _state_machine: AnimationNodeStateMachinePlayback
 
+
 func setup(anim_tree: AnimationTree, anim_player: AnimationPlayer) -> void:
 	_anim_tree = anim_tree
 	_anim_player = anim_player
 	_anim_tree.active = true
 	_state_machine = _anim_tree.get("parameters/BodyStateMachine/playback") as AnimationNodeStateMachinePlayback
 
+
 func play_behavior(behavior: AnimTypes.Behavior) -> void:
 	if current_behavior == behavior:
+		if _state_machine:
+			var current_node = _state_machine.get_current_node()
+			var target_state = _behavior_to_state(behavior)
+			if current_node != target_state and current_node != &"Start":
+				_state_machine.travel(target_state)
 		return
 	current_behavior = behavior
 	var state_name = _behavior_to_state(behavior)
 	if _state_machine:
 		_state_machine.travel(state_name)
 	behavior_changed.emit(behavior)
+
 
 func set_expression(expr: iExpression) -> void:
 	if not expr:
@@ -33,6 +42,7 @@ func set_expression(expr: iExpression) -> void:
 		_anim_tree.set("parameters/FaceBlend/EyeAnim/animation", expr.eye_clip)
 		_anim_tree.set("parameters/FaceBlend/MouthAnim/animation", expr.mouth_clip)
 
+
 func play_action(action: AnimAction) -> void:
 	if not action:
 		return
@@ -41,6 +51,7 @@ func play_action(action: AnimAction) -> void:
 	var state_name = _body_clip_to_state(action.body_clip)
 	if _state_machine:
 		_state_machine.travel(state_name)
+
 
 func _behavior_to_state(behavior: AnimTypes.Behavior) -> StringName:
 	match behavior:
@@ -62,6 +73,7 @@ func _behavior_to_state(behavior: AnimTypes.Behavior) -> StringName:
 			return &"gesturing"
 		_:
 			return &"idle"
+
 
 func _body_clip_to_state(clip: StringName) -> StringName:
 	match clip:

@@ -337,45 +337,48 @@ animation = &"talk_body"
 animation = &"gesture_wave_body"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_walking"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_walking_to_idle"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_attacking"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_attacking_to_idle"]
 advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_defending"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_defending_to_idle"]
 advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_hurt"]
-advance_mode = 2
+advance_mode = 1
 priority = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_hurt_to_idle"]
 advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_dying"]
-advance_mode = 2
+advance_mode = 1
 priority = 3
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_talking"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_talking_to_idle"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_idle_to_gesturing"]
-advance_mode = 2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="Transition_gesturing_to_idle"]
 advance_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_Start_to_idle"]
+advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachine" id="BodyStateMachine"]
 states/idle/node = SubResource("AnimNode_idle")
@@ -394,7 +397,7 @@ states/talking/node = SubResource("AnimNode_talking")
 states/talking/position = Vector2(100, 100)
 states/gesturing/node = SubResource("AnimNode_gesturing")
 states/gesturing/position = Vector2(100, 0)
-transitions = ["idle", "walking", SubResource("Transition_idle_to_walking"), "walking", "idle", SubResource("Transition_walking_to_idle"), "idle", "attacking", SubResource("Transition_idle_to_attacking"), "attacking", "idle", SubResource("Transition_attacking_to_idle"), "idle", "defending", SubResource("Transition_idle_to_defending"), "defending", "idle", SubResource("Transition_defending_to_idle"), "idle", "hurt", SubResource("Transition_idle_to_hurt"), "hurt", "idle", SubResource("Transition_hurt_to_idle"), "idle", "dying", SubResource("Transition_idle_to_dying"), "idle", "talking", SubResource("Transition_idle_to_talking"), "talking", "idle", SubResource("Transition_talking_to_idle"), "idle", "gesturing", SubResource("Transition_idle_to_gesturing"), "gesturing", "idle", SubResource("Transition_gesturing_to_idle")]
+transitions = ["Start", "idle", SubResource("Transition_Start_to_idle"), "idle", "walking", SubResource("Transition_idle_to_walking"), "walking", "idle", SubResource("Transition_walking_to_idle"), "idle", "attacking", SubResource("Transition_idle_to_attacking"), "attacking", "idle", SubResource("Transition_attacking_to_idle"), "idle", "defending", SubResource("Transition_idle_to_defending"), "defending", "idle", SubResource("Transition_defending_to_idle"), "idle", "hurt", SubResource("Transition_idle_to_hurt"), "hurt", "idle", SubResource("Transition_hurt_to_idle"), "idle", "dying", SubResource("Transition_idle_to_dying"), "idle", "talking", SubResource("Transition_idle_to_talking"), "talking", "idle", SubResource("Transition_talking_to_idle"), "idle", "gesturing", SubResource("Transition_idle_to_gesturing"), "gesturing", "idle", SubResource("Transition_gesturing_to_idle")]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimNode_eye_anim"]
 animation = &"eyes_neutral"
