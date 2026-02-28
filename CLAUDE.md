@@ -80,8 +80,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
   - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
-  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat, turn execution, mercenary work combat
-  - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration, headless combat (quick strength-based resolution), turn execution, per-turn food consumption (1/turn), mercenary work combat
+  - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action. Location-independent activities (TRAVEL, FORCE_MARCH, ATTACK, REST, HEAL, BUY_SUPPLIES, FORAGE, PATROL, DRILL, MERCENARY_WORK) bypass location activity_type checks
   - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
   - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
@@ -91,7 +91,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
   - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
-  - Key considerations: forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), attack-weak-enemy (6), heal-at-town (6), buy-supplies-at-town (6), pursue-clues (5), break-contact (5), patrol-for-info (5), recruit-when-depleted (5), hunt-enemies (4), drill-when-idle (1)
+  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
   - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
   - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. References `stage_view` for warrior stage delegation.
@@ -110,7 +110,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Proximity levels: SAME_LOCATION (1.0), SAME_EDGE (0.7), ADJACENT (0.3), none (0.0 → decay)
   - Activity modifiers: PATROL boosts scouting (1.5x), REST boosts stealth (1.3x), ATTACK reduces stealth (0.4x)
   - Tracking capacity per squad: `1 + floor(avg_perception / 30)`, PATROL adds +1 slot
-  - ATTACK activity gated on TRACKED+ contact (30+ progress)
+  - ATTACK activity gated on SUSPECTED+ contact (1+ progress) for same-location enemies
   - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
   - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
   - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender
@@ -118,7 +118,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - AI considerations: `ambush-opportunity.tres` (weight 8), `break-contact.tres` (weight 5, travel away), `finish-off-enemy.tres` (weight 8, force march when enemy weak + tracked), `rest-when-exhausted.tres` (weight 8, rest when morale low)
   - `DestinationStrategy.AWAY_FROM_ENEMY` — BFS for location maximizing distance from nearest enemy
   - `hunt-enemies` action uses TRAVEL (not FORCE_MARCH) — AI travels towards enemies normally, only force-marches to finish off weak tracked targets
-  - `patrol-for-info` weight increased to 5.0 — AI prioritizes patrolling over aimless movement
+  - `patrol-for-info` weight reduced to 3.0 — prevents patrol from dominating other decisions
   - Force march resolves destination via next-hop pathfinding (no teleportation), moves 2 hops per turn (double speed)
 - **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
   - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
