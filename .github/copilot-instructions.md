@@ -97,30 +97,48 @@ Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
 - `UIMode.STRATEGY`: Returns after combat resolution
 - 3D battle overlay via `SubViewport` in `CombatOverlay` CanvasLayer (planned)
 
-#### VN System
-**EventChain** (Resource): Contains `chain_id`, `character_ids`, `dialogues[]`
+#### VN / Cinematic System
+**Architecture** — Clear role separation:
+- **Stage** (`StagePresenter` + `StageView` + `StageCamera`): The visual theater. Executes commands (place character, move camera, show bubble). Knows nothing about EventChains or timelines.
+- **VN** (`VnPresenter` + `TimelinePlayback`): The director. Reads EventChain timelines, issues commands to the Stage, manages player interaction gates and speed control.
+
+**EventChain** (Resource): Contains `chain_id`, `character_ids`, `setting: Array[StagePosition]`, `timeline: Array[CinematicInstruction]`
+- `setting`: Initial character positions, read by presenter before timeline starts
+- `timeline`: Flat time-sorted array of `CinematicInstruction` subclasses, all fired at absolute timestamps
 - `load_from_json_file(path)` / `load_from_json_string(json)`
 
-**Dialogue** (Resource): `speaker_name`, `line_spoken`, `on_screen_character_ids`, `background_id`, `triggers`
+**CinematicInstruction** (Resource, base class): `time: float`, `duration: float`
+- **DialogueInstruction**: `speaker_name`, `line_spoken`, `keep_previous_bubbles`, `expression_override`
+- **CameraInstruction**: `action` enum (`FOCUS_CHARACTER`, `INCLUDE_CHARACTERS`, `MOVE`, `ZOOM`, `RESET`), `target_character_id`, `include_character_ids`, `move_offset`, `zoom_level`
+- **CharacterInstruction**: `action` enum (`MOVE`, `FACE`, `BEHAVIOR`, `SPAWN`), `character_id`, `target_position`, `face_direction`, `behavior`
+- **GateInstruction**: `wait_for_typewriter` — pauses timeline for player input (SPACE/click)
+
+**StagePosition** (Resource): `character_id`, `position: Vector2`, `face_direction: int`
+
+**TimelinePlayback** (RefCounted): Time-cursor-driven engine, states: `IDLE → PLAYING → WAITING_FOR_GATE → FAST_FORWARDING → COMPLETE`
+- When player clicks during `PLAYING`: speed multiplier → 5x until next gate
+- When player clicks at `WAITING_FOR_GATE`: resumes timeline
+- Multiple instructions at the same timestamp compose naturally (e.g., camera move + dialogue simultaneously)
 
 **Integration**: Results set `event_chain_path` + `requires_async = true` → UI loads and plays chain
 
 ## Project-Specific Conventions
 
-### Integrated Visual Novel System
-Activities, Events, Missions, and Endings can trigger EventChains for narrative presentation:
-- **VisualNovelComponent** (RefCounted): Logic class managing EventChain state and progression
-- **TrainingScreen UI Modes**: 
+### Integrated Cinematic VN System
+Activities, Events, Missions, and Endings can trigger EventChains for narrative and cinematic presentation:
+- **VnPresenter** (Node): Timeline director — dispatches CinematicInstructions to StagePresenter
+- **TimelinePlayback** (RefCounted): Time-cursor engine with gate-based player interaction
+- **StagePresenter** (Node): Visual theater — character placement, camera control, speech bubbles
+- **UI Modes**: 
   - `STRATEGY`: Normal activity selection and stats display
-  - `VISUAL_NOVEL`: EventChain playback with character portraits and dialogue
+  - `VISUAL_NOVEL`: Timeline-driven cinematic playback with stage, camera, and dialogue
   - `COMBAT_INTERMISSION`: Combat choice screen (flee/negotiate/fight)
 - **Result Extensions**: All Result types (`ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`) have:
   - `event_chain_path: String` - Path to EventChain resource
   - `has_event_chain() -> bool` - Check if EventChain should be played
 - **UI Integration**: VN elements embedded in main screen, no scene switching required
-- **Flow**: Activity executes → Result with event_chain_path → UI switches to VN mode → Play chain → Return to strategy mode
-
-See `_obsidian/AI-Notes/INTEGRATED_VN_SYSTEM.md` for complete documentation.
+- **Flow**: Activity executes → Result with event_chain_path → UI switches to VN mode → Load EventChain → Apply setting → Play timeline → Gates pause for input → Return to strategy mode
+- **Speed Control**: Player can press SPACE during auto-play sections to speed up (5x) to next gate. At gates, SPACE advances to next section.
 
 ### Comments
 Avoid comments unless Godot documentation (`## Doc comments`)
@@ -171,7 +189,9 @@ See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detai
 - `src/strategy/triggerable/game-event/`: GameEvent implementation and result
 - `src/strategy/triggerable/mission/`: Mission implementation and result
 - `src/strategy/triggerable/ending/`: Ending implementation and result
-- `src/strategy/vn/`: Visual novel system (EventChain, Dialogue, VisualNovelComponent)
+- `src/strategy/ui/vn/`: VN system (EventChain, VnPresenter, TimelinePlayback, VnView)
+- `src/strategy/ui/vn/instructions/`: CinematicInstruction hierarchy (dialogue, camera, character, gate, stage_position)
+- `src/strategy/ui/stage/`: Stage system (StagePresenter, StageView, StageCamera, SpeechBubble)
 - `src/strategy/sb-bridge/`: Combat integration bridge (!main.gd = CombatBridge, control.gd = CombatController)
 - `src/strategy/ui/`: UI components (view.gd = StrategyView, presenter.gd = StrategyPresenter; child dirs: travel/, vn/, investigation/, recruitment/, manage_squad/)
 - `src/demos/`: Demo implementations

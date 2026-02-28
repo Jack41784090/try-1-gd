@@ -1,31 +1,52 @@
-[gd_resource type="Resource" script_class="EventChain" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="EventChain" load_steps=13 format=3]
 
-[ext_resource type="Script" path="res://src/strategy/events/event_chain.gd" id="1_chain"]
-[ext_resource type="Script" path="res://src/strategy/events/dialogue.gd" id="2_dialogue"]
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_script_event_chain"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="2_script_dialogue_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="3_script_gate_instruction"]
+[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="4_script_stage_position"]
 
-[sub_resource type="Resource" id="Dialogue_1"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["faust"])
+[sub_resource type="Resource" id="dlg_1"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Faust"
 line_spoken = "Ah, Wagner! I have been contemplating the nature of knowledge and power."
-background_id = "library"
 
-[sub_resource type="Resource" id="Dialogue_2"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["faust", "wagner"])
+[sub_resource type="Resource" id="gate_2"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_3"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Wagner"
 line_spoken = "Master, your dedication to learning is truly inspiring. What have you discovered?"
-background_id = "library"
 
-[sub_resource type="Resource" id="Dialogue_3"]
-script = ExtResource("2_dialogue")
-on_screen_character_ids = Array[String](["faust"])
+[sub_resource type="Resource" id="gate_4"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="dlg_5"]
+script = ExtResource("2_script_dialogue_instruction")
 speaker_name = "Faust"
 line_spoken = "I have learned much, yet I feel I know nothing. The pursuit of truth is endless..."
-background_id = "library"
+
+[sub_resource type="Resource" id="gate_6"]
+script = ExtResource("3_script_gate_instruction")
+wait_for_typewriter = true
+
+[sub_resource type="Resource" id="pos_7"]
+script = ExtResource("4_script_stage_position")
+character_id = "faust"
+position = Vector2(-75.0, 50)
+face_direction = 1
+
+[sub_resource type="Resource" id="pos_8"]
+script = ExtResource("4_script_stage_position")
+character_id = "wagner"
+position = Vector2(75.0, 50)
+face_direction = -1
 
 [resource]
-script = ExtResource("1_chain")
+script = ExtResource("1_script_event_chain")
 chain_id = "test_dialogue_chain"
 character_ids = Array[String](["faust", "wagner"])
-dialogues = Array[Resource]([SubResource("Dialogue_1"), SubResource("Dialogue_2"), SubResource("Dialogue_3")])
+setting = [SubResource("pos_7"), SubResource("pos_8")]
+timeline = [SubResource("dlg_1"), SubResource("gate_2"), SubResource("dlg_3"), SubResource("gate_4"), SubResource("dlg_5"), SubResource("gate_6")]
