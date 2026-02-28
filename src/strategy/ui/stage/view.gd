@@ -18,7 +18,6 @@ var _is_marching: bool = false
 
 func _ready() -> void:
 	presenter.bind_view(self )
-	var r = ColorRect.new(); r.size = Vector2(200, 200); r.color = Color.RED; r.position = Vector2(-100, -100); warrior_container.add_child(r)
 
 func _process(delta: float) -> void:
 	if _is_marching:

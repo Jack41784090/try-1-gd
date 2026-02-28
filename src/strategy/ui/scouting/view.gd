@@ -80,6 +80,21 @@ func _create_contact_card(data: Dictionary) -> void:
 	title_label.add_theme_color_override("font_color", state_color)
 	vbox.add_child(title_label)
 
+	if data.get("being_tracked", false):
+		var tracked_banner = HBoxContainer.new()
+		tracked_banner.add_theme_constant_override("separation", 6)
+		var tracked_icon = TextureRect.new()
+		tracked_icon.texture = load("res://assets/hoi4_icons/spotting.png")
+		tracked_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tracked_icon.custom_minimum_size = Vector2(20, 20)
+		tracked_banner.add_child(tracked_icon)
+		var tracked_label = Label.new()
+		tracked_label.text = "Tracked"
+		tracked_label.add_theme_font_size_override("font_size", 15)
+		tracked_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+		tracked_banner.add_child(tracked_label)
+		vbox.add_child(tracked_banner)
+
 	match state:
 		StrategyTypes.ContactState.SUSPECTED:
 			_add_detail(vbox, "Size: %s" % data.get("size_hint", "Unknown"))

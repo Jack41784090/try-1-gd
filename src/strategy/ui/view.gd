@@ -50,7 +50,7 @@ class_name StrategyView extends Control
 #region Components
 @onready var presenter: StrategyPresenter = $StrategyPresenter
 @onready var vn_view: VnView = $PanelContainer/MainVBox/MainScreenArea
-@onready var stage_view: StageView = $PanelContainer/MainVBox/MainScreenArea/StageView
+@onready var stage_view: StageView = $PanelContainer/Foreground/StageView
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
