@@ -14,12 +14,15 @@ const BEHAVIOR_MAP: Dictionary = {
 var view: VnView
 var stage_presenter: StagePresenter
 
+const FAST_FORWARD_SPEED: float = 5.0
+
 var event_chain_queue = []
 var is_playing_chain = false
 var current_chain: EventChain
 var current_index: int = 0
 var character_ids_in_chain: Array[String] = []
 var _displayed_ids: Array[String] = []
+var _active_bubble: SpeechBubble
 
 func bind_view(v: VnView) -> void:
 	view = v
@@ -44,6 +47,9 @@ func play_next_queued_chain() -> bool:
 func on_advance() -> void:
 	if not current_chain:
 		push_warning("No chain loaded, cannot advance")
+		return
+	if _active_bubble and is_instance_valid(_active_bubble) and _active_bubble.is_typewriting():
+		_active_bubble.set_speed(FAST_FORWARD_SPEED)
 		return
 	current_index += 1
 	if _is_complete():
@@ -111,10 +117,11 @@ func _display_via_stage(dialogue: Dialogue) -> void:
 			if anim != null:
 				stage_presenter.set_character_behavior(speaker_id, anim)
 
-		stage_presenter.show_speech(speaker_id, dialogue.speaker_name, dialogue.line_spoken)
+		_active_bubble = stage_presenter.show_speech(speaker_id, dialogue.speaker_name, dialogue.line_spoken)
 		var focus_target = dialogue.camera_target if not dialogue.camera_target.is_empty() else speaker_id
 		stage_presenter.focus_speaker(focus_target)
 	else:
+		_active_bubble = null
 		view.show_narrator_line(dialogue.speaker_name, dialogue.line_spoken, _get_progress_text())
 
 func _on_chain_complete() -> void:
@@ -148,6 +155,7 @@ func _reset() -> void:
 	current_index = 0
 	character_ids_in_chain.clear()
 	_displayed_ids.clear()
+	_active_bubble = null
 
 func _get_progress_text() -> String:
 	if not current_chain:
@@ -170,3 +178,11 @@ func _ensure_npc_rigs() -> void:
 			continue
 		if not stage_presenter.view.rigs.has(char_id):
 			stage_presenter.spawn_npc_rig(char_id)
+	if current_chain:
+		for dialogue in current_chain.dialogues:
+			if dialogue is Dialogue:
+				for char_id in dialogue.on_screen_character_ids:
+					if char_id.is_empty() or char_id == "narrator":
+						continue
+					if not stage_presenter.view.rigs.has(char_id):
+						stage_presenter.spawn_npc_rig(char_id)
