@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
-action_name = "hunt-enemies"
-activity_type = 2
-requires_destination = true
-destination_strategy = 1
+action_name = "buy-supplies"
+activity_type = 14
+requires_destination = false
 requires_target = false
