@@ -75,6 +75,14 @@ func _get_squad_value(situation: StrategicSituation) -> float:
 			return situation.our_best_contact
 		StrategicAITypes.SquadGlanceable.CAN_AMBUSH:
 			return 1.0 if situation.can_ambush else 0.0
+		StrategicAITypes.SquadGlanceable.WEAKEST_TRACKED_ENEMY_WARRIORS:
+			return float(situation.weakest_tracked_enemy_warriors)
+		StrategicAITypes.SquadGlanceable.INJURED_WARRIOR_COUNT:
+			var count := 0
+			for w in situation.squad.warriors:
+				if w.is_injured and not w.is_dead:
+					count += 1
+			return float(count)
 		_:
 			assert(false, "Unknown SquadGlanceable: %s" % squad_property)
 			return 0.0
@@ -93,6 +101,8 @@ func _get_location_value(situation: StrategicSituation) -> float:
 			return 1.0 if situation.location.has_activity_type(activity_type_filter) else 0.0
 		StrategicAITypes.LocationGlanceable.TYPE:
 			return 1.0 if situation.location.type == location_type_filter else 0.0
+		StrategicAITypes.LocationGlanceable.HAS_SHOP:
+			return 1.0 if situation.location.has_shop() else 0.0
 		_:
 			assert(false, "Unknown LocationGlanceable: %s" % location_property)
 			return 0.0

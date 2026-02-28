@@ -17,6 +17,8 @@ enum SquadGlanceable {
 	HIGHEST_ENEMY_CONTACT,
 	OUR_BEST_CONTACT,
 	CAN_AMBUSH,
+	WEAKEST_TRACKED_ENEMY_WARRIORS,
+	INJURED_WARRIOR_COUNT,
 }
 
 enum LocationGlanceable {
@@ -26,6 +28,7 @@ enum LocationGlanceable {
 	ACTIVE_CLUE_COUNT,
 	HAS_ACTIVITY,
 	TYPE,
+	HAS_SHOP,
 }
 
 enum WorldGlanceable {

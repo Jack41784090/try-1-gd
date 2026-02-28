@@ -12,12 +12,28 @@ func _init(p_squad: SquadStrategicData, p_config: SquadBrainConfig) -> void:
 func decide(world: World, faction: Faction, directive: FactionDirective) -> Dictionary:
 	var situation = StrategicSituation.new(squad, world, faction, directive)
 
+	if situation.enemies_here.size() > 0:
+		print("[SquadBrain:%s] DEBUG: %d enemies at %s, best_contact=%.1f" % [
+			squad.squad_name, situation.enemies_here.size(),
+			squad.current_location_id, situation.our_best_contact
+		])
+
 	var best_score := -INF
 	var best_action: StrategicAction = null
 
 	for consideration in config.considerations:
 		var score = consideration.score(situation)
 		var action = consideration.returning
+
+		if situation.enemies_here.size() > 0 and consideration.name == "attack-weak-enemy":
+			var glance_vals: Array[float] = []
+			for glance in consideration.glances:
+				glance_vals.append(glance.evaluate(situation))
+			print("[SquadBrain:%s] TRACE attack-weak-enemy: glances=%s op=%d weight=%.1f score=%.4f action=%s" % [
+				squad.squad_name, str(glance_vals), consideration.op, consideration.weight, score,
+				action.action_name if action else "null"
+			])
+
 		if action == null:
 			continue
 
@@ -25,6 +41,12 @@ func decide(world: World, faction: Faction, directive: FactionDirective) -> Dict
 			continue
 
 		if not _can_execute_action(action, situation):
+			if action.activity_type == StrategyTypes.ActivityType.ATTACK:
+				print("[SquadBrain:%s] BLOCKED %s (score=%.2f, enemies_here=%d, can_resolve=%s)" % [
+					squad.squad_name, consideration.name, score,
+					situation.enemies_here.size(),
+					str(action.can_resolve(situation))
+				])
 			continue
 
 		print("[SquadBrain:%s] %s → %.2f" % [squad.squad_name, consideration.name, score])
@@ -51,6 +73,12 @@ func _can_execute_action(action: StrategicAction, situation: StrategicSituation)
 		StrategyTypes.ActivityType.FORCE_MARCH,
 		StrategyTypes.ActivityType.ATTACK,
 		StrategyTypes.ActivityType.REST,
+		StrategyTypes.ActivityType.HEAL,
+		StrategyTypes.ActivityType.BUY_SUPPLIES,
+		StrategyTypes.ActivityType.FORAGE,
+		StrategyTypes.ActivityType.PATROL,
+		StrategyTypes.ActivityType.DRILL,
+		StrategyTypes.ActivityType.MERCENARY_WORK,
 	]
 
 	if at in location_independent:
