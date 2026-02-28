@@ -9,4 +9,4 @@ squad_property = 7
 normalize_max = 100.0
 use_comparison = true
 comparison = 1
-threshold = 0.05
+threshold = 0.29

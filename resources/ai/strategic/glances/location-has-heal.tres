@@ -4,9 +4,6 @@
 
 [resource]
 script = ExtResource("1_script")
-subject = 0
-squad_property = 7
-normalize_max = 100.0
-use_comparison = true
-comparison = 1
-threshold = 0.05
+subject = 1
+location_property = 4
+activity_type_filter = 13

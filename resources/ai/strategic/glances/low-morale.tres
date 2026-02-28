@@ -5,8 +5,6 @@
 [resource]
 script = ExtResource("1_script")
 subject = 0
-squad_property = 7
+squad_property = 2
 normalize_max = 100.0
-use_comparison = true
-comparison = 1
-threshold = 0.05
+inverse = true
