@@ -35,8 +35,6 @@ func _to_string() -> String:
 
 func modify_morale(amount: float) -> void:
 	morale = clamp(morale + amount, 0.0, 200.0)
-	if morale <= 0.0:
-		is_dead = true
 
 func get_morale() -> float:
 	return morale

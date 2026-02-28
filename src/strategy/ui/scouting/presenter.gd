@@ -38,7 +38,7 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 			continue
 		active.append(_build_card_data(contact, target_squad))
 
-	active.sort_custom(func(a, b): return a["progress"] > b["progress"])
+	active.sort_custom(func(a, b): return float(a["being_tracked"]) * a["progress"] > float(b["being_tracked"]) * b["progress"])
 
 	if active.is_empty():
 		view.show_no_contacts()
@@ -53,6 +53,7 @@ func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
 		"state": state,
 		"progress": contact.progress,
 		"target_id": contact.target_id,
+		"being_tracked": contact.being_tracked
 	}
 	match state:
 		StrategyTypes.ContactState.SUSPECTED:

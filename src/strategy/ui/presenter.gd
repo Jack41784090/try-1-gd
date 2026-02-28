@@ -248,6 +248,8 @@ func _execute_activity_obj(activity: Activity) -> void:
 
 	_update_contacts(activity, player_location_before, ai_results)
 
+	ai_fleet.commit_ai_decisions(ai_results)
+
 	actor.advance_turn()
 	is_executing_activity = false
 	_update_activity_buttons()
@@ -330,7 +332,7 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 		
 		var enemy_squad = actor.data._find_enemy_squad(_combat.combat_target_squad_id)
 		if enemy_squad:
-			start_encounter(enemy_squad.strategic_data, actor.data._build_context(activity), _combat.engagement_type)
+			start_encounter(enemy_squad, actor.data._build_context(activity), _combat.engagement_type)
 			await encounter_resolved
 		else:
 			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)

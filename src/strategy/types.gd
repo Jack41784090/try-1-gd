@@ -33,7 +33,9 @@ enum ActivityType {
 	FORCE_MARCH,
 	MANAGE_SQUAD,
 	RECRUIT,
-	CUSTOM
+	CUSTOM,
+	HEAL,
+	BUY_SUPPLIES,
 }
 
 enum TriggerWhen {
