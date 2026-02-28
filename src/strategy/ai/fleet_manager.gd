@@ -142,7 +142,7 @@ func _resolve_attack_conflicts() -> Array:
 			continue
 
 		var contact = scenario.world.contact_tracker.get_contact(attacker_id, target_id)
-		if not contact or contact.get_state() < StrategyTypes.ContactState.TRACKED:
+		if not contact or contact.get_state() < StrategyTypes.ContactState.SUSPECTED:
 			var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
 			print("[AIFleetManager] Squad %s attack blocked — contact on %s only %s" % [
 				attacker_id, target_id, state_name
@@ -185,8 +185,8 @@ func _find_squad_by_id(squad_id: String) -> SquadStrategicData:
 		if squad.squad_id == squad_id:
 			return squad
 
-	if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:
-		return scenario.starting_player_squad
+	if scenario.starting_player_squad and scenario.starting_player_squad.strategic_data.squad_id == squad_id:
+		return scenario.starting_player_squad.strategic_data
 
 	return null
 

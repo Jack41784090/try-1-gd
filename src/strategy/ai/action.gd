@@ -100,7 +100,7 @@ func _resolve_target(situation: StrategicSituation) -> SquadStrategicData:
 		var tracked: Array[SquadStrategicData] = []
 		for enemy in enemies:
 			var contact = tracker.get_contact(situation.squad.squad_id, enemy.squad_id)
-			if contact and contact.get_state() >= StrategyTypes.ContactState.TRACKED:
+			if contact and contact.get_state() >= StrategyTypes.ContactState.SUSPECTED:
 				tracked.append(enemy)
 		if tracked.is_empty():
 			return null
