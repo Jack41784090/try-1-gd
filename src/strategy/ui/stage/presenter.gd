@@ -1,6 +1,6 @@
 class_name StagePresenter extends Node
 
-enum StageMode { MARCH, VN, HIDDEN }
+enum StageMode {MARCH, VN, HIDDEN}
 
 var view: StageView
 var current_mode: StageMode = StageMode.HIDDEN
@@ -47,6 +47,7 @@ func prepare_for_dialogue(character_ids: Array[String]) -> void:
 
 func show_speech(character_id: String, speaker_name: String, text: String) -> SpeechBubble:
 	var bubble = view.show_bubble(character_id, speaker_name, text)
+	bubble.start_typewriter()
 	var rig = view.get_rig(character_id)
 	if rig:
 		rig.play_behavior(AnimTypes.Behavior.TALKING)

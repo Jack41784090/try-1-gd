@@ -115,6 +115,7 @@ func set_ui_mode(mode: UIMode) -> void:
 		UIMode.VISUAL_NOVEL:
 			view.hide_combat_panel()
 			view.disable_all_activity_buttons()
+			view.action_buttons.visible = false
 			stage_presenter.set_mode(StagePresenter.StageMode.VN)
 			await view.transition_to_vn()
 		UIMode.COMBAT_INTERMISSION:
@@ -365,6 +366,13 @@ func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]
 				view.queue_vn_chain(result.event_chain_path)
 		else:
 			assert(false, "%s" % result)
+
+func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
+	var results = actor.exec_at(when )
+	if results.is_empty():
+		return
+	_queue_multiple_eventchains_from_results(results)
+	await _vn_play_next_recurs()
 
 #endregion
 

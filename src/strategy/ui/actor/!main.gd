@@ -12,7 +12,7 @@ var player_squad: SquadStrategicData:
 	get:
 		if player_squad == null and \
 			(not _IS_AI and scenario.starting_player_squad != null):
-			player_squad = scenario.starting_player_squad.duplicate(true)
+			player_squad = scenario.starting_player_squad.strategic_data.duplicate(true)
 		return player_squad
 #endregion
 

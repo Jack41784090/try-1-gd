@@ -10,7 +10,7 @@ var turn_count: int = 0
 		player_squad = _ps
 	get:
 		if player_squad == null and data.scenario.starting_player_squad != null:
-			player_squad = data.scenario.starting_player_squad.duplicate(true)
+			player_squad = data.scenario.starting_player_squad.strategic_data.duplicate(true)
 		return player_squad
 
 var locations:
@@ -128,6 +128,10 @@ func exec_activity(activity: Activity):
 
 func exec_after(activity: Activity):
 	return exec_x_when(activity, StrategyTypes.TriggerWhen.AFTER_ACTIVITY)
+
+func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
+	var res: Array[GenericResult] = data.execute_triggerables_at(when )
+	return res
 
 func advance_turn() -> void:
 	turn_count += 1

@@ -13,7 +13,7 @@ var portrait_cache: Dictionary = {}
 
 func _ready() -> void:
 	dialogue_box.gui_input.connect(_on_dialogue_box_clicked)
-	presenter.bind_view(self)
+	presenter.bind_view(self )
 
 func exit() -> void:
 	character_container.visible = false
@@ -67,6 +67,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			presenter.on_advance()
+			get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed:
+		if event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
 			presenter.on_advance()
 			get_viewport().set_input_as_handled()
 

@@ -34,11 +34,11 @@ func _extract_character_ids() -> void:
 	for dialogue in dialogues:
 		if dialogue is Dialogue:
 			for char_id in dialogue.on_screen_character_ids:
-				char_set[char_id] = true
-	# character_ids = char_set.keys() as Array[String]
-	var keys = char_set.keys()
-	if keys is Array[String]:
-		character_ids = keys
+				if not char_id.is_empty():
+					char_set[char_id] = true
+	for key in char_set.keys():
+		if key is String:
+			character_ids.append(key)
 
 func set_character_ids(ids: Array[String]) -> void:
 	character_ids.clear()
