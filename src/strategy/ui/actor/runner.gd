@@ -63,6 +63,9 @@ var current_location: Variant:
 
 
 func setup(_loaded_scenario, context = { }):
+	# Initializes the ActivityRunner with a loaded GameScenario
+	# Creates the underlying ActivityExecuteManager that handles triggerable execution
+	# e.g., setup(demo_scenario) → creates ActivityExecuteManager → data.setup(scenario)
 	data = ActivityExecuteManager.new()
 	data.setup(_loaded_scenario, context)
 
@@ -117,6 +120,10 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 
 
 func exec_x_when(activity: Activity, _when: StrategyTypes.TriggerWhen):
+	# Executes all triggerables that match the given timing (BEFORE_ACTIVITY, AFTER_ACTIVITY, etc.)
+	# Delegates to ActivityExecuteManager.execute_triggerables which checks conditions against context
+	# e.g., exec_x_when(rest_activity, BEFORE_ACTIVITY) → checks all GameEvents that trigger before REST
+	#   → "camp_fire" event conditions pass → returns [EventResult(event_chain_path="camp_fire.tres")]
 	var res: Array[GenericResult] = data.execute_triggerables(
 		activity,
 		_when,
@@ -129,6 +136,11 @@ func exec_before(activity: Activity):
 
 
 func exec_activity(activity: Activity):
+	# Executes the activity itself (not before/after triggers) and applies results to game state
+	# Calls activity.execute(context) which runs the type-specific handler (REST, TRAVEL, FORAGE, etc.)
+	# Then applies each result via data._apply_result() (location changes, stat changes, recruits)
+	# e.g., exec_activity(rest_activity) → execute(context) → [ActivityResult(morale:+5, food:-2)]
+	#   → _apply_result() → squad.morale +=5, squad.food -=2
 	var activity_results = activity.execute(data._build_context(activity))
 	print("[GameScenario] Activity result: %s" % activity_results)
 	var all_activity_result: Array[GenericResult] = []
@@ -160,6 +172,17 @@ func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
 
 
 func create_travel_activity(location_id: String) -> Activity:
+	# Creates/configures a TRAVEL activity for a specific destination
+	# Manages multi-turn travel: tracks walking_towards destination and progress
+	# Three cases:
+	#   1. New journey: sets walking_towards, no location change yet (progress=0)
+	#   2. Continue: increments progress, checks if arrived (progress >= distance)
+	#   3. Destination change: resets progress (TODO: not fully implemented)
+	# e.g., travel to "vienna" from "salzburg" (distance=3):
+	#   Turn 1: walking_towards={vienna, progress=0}, location_changed="" (still at salzburg)
+	#   Turn 2: continue, progress=1, location_changed="" (still en route)
+	#   Turn 3: continue, progress=2, progress >= 3? no. progress=2
+	#   Turn 4: continue, progress=3, progress >= 3? yes! location_changed="vienna", walking_towards=null
 	var activity = get_activity(StrategyTypes.ActivityType.TRAVEL)
 	activity.destination_id = location_id
 

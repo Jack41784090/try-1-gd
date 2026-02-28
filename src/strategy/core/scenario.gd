@@ -31,8 +31,13 @@ func initialize(_config = {}) -> void:
 	_initialized = true
 
 func _setup(config: Dictionary) -> void:
+	# Core setup that loads all game data: world, squads, factions, triggerables (events, activities, missions, endings)
+	# Uses exported @export properties if already set (from .tres resource files), falls back to config dict
+	# Registration order: factions→missions → endings → events → activities → set location
+	# e.g., world has 5 locations, 2 factions with 3 missions each, 10 generic events, 8 activities
+	#   → triggerable_manager gets 6 missions + 2 endings + 10 events + 8 activities = 26 triggerables
 	print("Scenario setup: ", config);
-	# Initialize triggerable_manager first
+	# 1. Initialize triggerable_manager — central registry for all game triggerables
 	triggerable_manager = TriggerableManager.new()
 	
 	# Use exported properties if already set (from .tres), otherwise use config

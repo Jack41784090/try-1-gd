@@ -16,6 +16,16 @@ class_name EventChain
 
 
 func _init(config: Dictionary = { }) -> void:
+	# Constructs an EventChain from a config dict (from .tres @export or JSON parse)
+	# Steps:
+	#   1. Extract chain_id and chain_name from config (supports both "chain_id" and "id" keys)
+	#   2. Build character_ids typed array from raw list (iterative append for type safety)
+	#   3. Build setting array: accepts StagePosition resources or raw dicts → StagePosition.new()
+	#   4. Build timeline array: accepts CinematicInstruction resources or raw dicts → _parse_instruction()
+	#   5. If no character_ids provided, auto-extract from setting + timeline instructions
+	# e.g., config={chain_id:"camp", setting:[{character_id:"Hans", x:100, y:50, face_direction:1}],
+	#                timeline:[{type:"dialogue", speaker_name:"Hans", line:"Hi", time:0}]}
+	#   → EventChain(chain_id="camp", character_ids=["Hans"], setting=[StagePos], timeline=[DialogueInst])
 	if config.is_empty():
 		return
 
@@ -57,6 +67,12 @@ func _init(config: Dictionary = { }) -> void:
 
 
 func _extract_character_ids() -> void:
+	# Auto-discovers all character IDs referenced anywhere in the chain (setting + timeline)
+	# Uses a Dictionary as a set for deduplication, then appends unique IDs to character_ids
+	# Scans: setting positions, DialogueInstruction speakers, CharacterInstruction targets,
+	#        CameraInstruction targets and include lists
+	# e.g., setting=[Hans], timeline=[Dialogue(Fritz), Camera(include=[Hans,Fritz])]
+	#   → char_set={Hans:true, Fritz:true} → character_ids=["Hans", "Fritz"]
 	var char_set: Dictionary = { }
 	for pos in setting:
 		if not pos.character_id.is_empty():
@@ -112,6 +128,10 @@ func get_dialogue_count() -> int:
 
 
 static func _parse_instruction(data: Dictionary) -> CinematicInstruction:
+	# Factory method: creates the correct CinematicInstruction subclass from a raw dict
+	# Dispatches on "type" key: "dialogue" → DialogueInstruction, "camera" → CameraInstruction,
+	# "character" → CharacterInstruction, "gate" → GateInstruction
+	# e.g., {type:"dialogue", speaker_name:"Hans", line:"Hi", time:0} → DialogueInstruction.new({...})
 	var type_str: String = data.get("type", "dialogue")
 	match type_str:
 		"dialogue":
@@ -128,6 +148,8 @@ static func _parse_instruction(data: Dictionary) -> CinematicInstruction:
 
 
 static func load_from_json_file(file_path: String) -> EventChain:
+	# Loads an EventChain from a JSON file: open → parse JSON → construct EventChain from dict
+	# e.g., load_from_json_file("res://resources/jsons/camp_fire.json") → EventChain with timeline of instructions
 	if not FileAccess.file_exists(file_path):
 		push_error("EventChain JSON file not found: " + file_path)
 		return null

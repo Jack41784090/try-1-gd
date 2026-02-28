@@ -51,6 +51,10 @@ var _narrator_update_callback: Callable
 
 
 func load_timeline(instructions: Array[CinematicInstruction]) -> void:
+	# Initializes playback with a sorted array of instructions and starts advancing
+	# Sorts by time to ensure correct firing order, resets all state
+	# e.g., load_timeline([Dialogue(t=0), Camera(t=0), Gate(t=2), Dialogue(t=2.1)])
+	#   → sorted by time → state=PLAYING, cursor starts at 0.0
 	_timeline = instructions
 	_timeline.sort_custom(
 		func(a: CinematicInstruction, b: CinematicInstruction) -> bool:
@@ -78,6 +82,11 @@ func process(delta: float) -> void:
 
 
 func _advance_cursor(delta: float) -> void:
+	# Core loop: advances the time cursor and fires all instructions whose time has been reached
+	# Runs in PLAYING or FAST_FORWARDING state. Speed multiplier is 1x normally, 5x when fast-forwarding.
+	# When a GateInstruction is reached, pauses for player input (SPACE/click).
+	# When all instructions fired and no typewriters pending, completes the timeline.
+	# e.g., cursor=1.5, delta=0.016 → cursor=1.516 → Dialogue(t=1.0) already fired → Camera(t=1.5) fires now
 	time_cursor += delta * speed_multiplier
 
 	while _next_index < _timeline.size():
@@ -98,6 +107,9 @@ func _advance_cursor(delta: float) -> void:
 
 
 func _hit_gate(gate: GateInstruction) -> void:
+	# Pauses the timeline at a gate: resets speed to 1x, waits for player input
+	# If gate.wait_for_typewriter=true, also waits for all speech bubbles to finish typing
+	# e.g., Gate(t=2.0, wait_for_typewriter=true), 1 bubble still typing → WAITING_FOR_GATE until bubble done + input
 	_current_gate = gate
 	_next_index += 1
 	time_cursor = gate.time
@@ -119,6 +131,11 @@ func _check_gate_release() -> void:
 ## Handle user input (SPACE/click).
 ## Returns true if the caller should do nothing (timeline handles advancement).
 ## The instruction_fired signal drives all actions — caller just needs to dispatch.
+##
+## State machine:
+##   PLAYING → click → speed up to 5x (FAST_FORWARDING), skip typewriters
+##   FAST_FORWARDING → click → ignored (already fast)
+##   WAITING_FOR_GATE → click → if typewriters pending, fast-forward them; else resume PLAYING
 func on_input() -> bool:
 	match state:
 		State.PLAYING:

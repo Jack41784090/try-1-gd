@@ -27,8 +27,6 @@ func setup(_scenario: GameScenario) -> void:
 	# e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
 	var profile = AIProfileFactory.get_default_squad_profile()
 
-	var AEM = load("res://src/strategy/ui/actor/!main.gd")
-
 	# 2. For each roaming squad, create its brain and executor
 	for squad in scenario.world.roaming_squads:
 		# 2.1 If squad has no current location, use its starting_location_id
@@ -41,8 +39,7 @@ func setup(_scenario: GameScenario) -> void:
 		# 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
 		var brain = SquadBrain.new(squad, profile)
 		squad_brains[squad.squad_id] = brain
-
-		var executor = AEM.new(true)
+		var executor = ActivityExecuteManager.new(true)
 		executor.setup(scenario, { "squad": squad })
 		squad_executors[squad.squad_id] = executor
 

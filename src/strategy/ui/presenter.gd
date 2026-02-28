@@ -45,6 +45,10 @@ var walking_towards: Variant:
 
 
 func bind_view(v: StrategyView) -> void:
+	# Master setup: wires the presenter to its view and all child components, initializes the scenario
+	# Called once by StrategyView._ready(). This is the game's boot sequence.
+	# Flow: bind refs → load scenario → setup components → connect signals → initialize world → start march → run GAME_START events
+	# e.g., binds view → loads "demo_scenario" → creates CombatController + AIFleetManager → plays opening EventChain
 	view = v
 	actor = view.actor
 	ai_fleet = view.ai_fleet
@@ -70,6 +74,9 @@ func _process(delta: float) -> void:
 #region Initialization
 
 func _initialize_scenario() -> void:
+	# Loads the GameScenario resource (demo or from file) and passes it to ActivityRunner.setup()
+	# e.g., is_demo_scenario=true → DemoScenarioFactory.create_demo_scenario() → actor.setup(scenario)
+	# e.g., scenario_path="res://resources/scenarios/campaign.tres" → ResourceLoader.load() → actor.setup(scenario)
 	print(" --- Initialising scenario --- ")
 	if is_demo_scenario:
 		print(" \\=> DEMO ")
@@ -94,6 +101,9 @@ func _initialize_scenario() -> void:
 
 
 func _setup_components() -> void:
+	# Initializes combat controller, child GUIs (travel/investigation/recruitment menus), and AI fleet
+	# Also links VnPresenter to StagePresenter so VN timelines can control the 2D stage characters
+	# e.g., CombatController gets contact_tracker so it can determine engagement types (AMBUSH vs SET_PIECE)
 	combat_controller = CombatController.new()
 	combat_controller.set_contact_tracker(game_scenario.world.contact_tracker)
 	view.setup_child_guis(actor)
@@ -107,6 +117,11 @@ func _setup_components() -> void:
 #region UI Mode State Machine
 
 func set_ui_mode(mode: UIMode) -> void:
+	# State machine that transitions between STRATEGY (activity buttons), VISUAL_NOVEL (timeline playback), and COMBAT_INTERMISSION (fight/flee/negotiate)
+	# Each mode shows/hides relevant UI panels and sets the stage to the appropriate visual mode
+	# e.g., STRATEGY → shows action buttons, stage in MARCH mode (warriors walk)
+	# e.g., VISUAL_NOVEL → hides buttons, stage in VN mode (dialogue scene), transitions via SceneManager
+	# e.g., COMBAT_INTERMISSION → hides stage, shows combat choice panel with flee/negotiate percentages
 	if ui_mode == mode:
 		return
 	ui_mode = mode
@@ -250,12 +265,37 @@ func on_battle_close() -> void:
 #region Activity Pipeline
 
 func _execute_activity(at: StrategyTypes.ActivityType) -> void:
+	# Shortcut: looks up the Activity resource by type and delegates to _execute_activity_obj
+	# e.g., _execute_activity(REST) → finds "rest" Activity from triggerable_manager → _execute_activity_obj(rest_activity)
 	var activity = actor.get_activity(at)
 	assert(activity is Activity)
 	await _execute_activity_obj(activity)
 
 
 func _execute_activity_obj(activity: Activity) -> void:
+	# THE MAIN TURN PIPELINE — executes an activity through the full before/during/after lifecycle
+	# Guards against double-execution, disables UI, runs all phases, then processes AI turns and contacts
+	#
+	# Pipeline per phase (before, activity, after):
+	#   1. Capture stat snapshot (money, food, karma, morale)
+	#   2. Execute phase → returns Array[GenericResult]
+	#   3. Queue any EventChains from results → play VN if any
+	#   4. Enter combat if any result has requires_combat=true
+	#   5. Otherwise animate stat changes (delta between snapshot and current)
+	#
+	# After all 3 phases:
+	#   6. AI fleet processes all AI squad turns (decisions + combats)
+	#   7. Contact tracker updates (scouting, stealth, clue discovery, engagement checks)
+	#   8. AI commits decisions (executes activities + headless combats)
+	#   9. Turn counter advances
+	#
+	# e.g., player does REST at "salzburg":
+	#   before: GameEvent "camp_fire" triggers → plays EventChain cutscene
+	#   activity: REST → morale +5, food -2
+	#   after: no triggers
+	#   AI: "Raiders" decide TRAVEL to "linz", "Bandits" decide FORAGE
+	#   contacts: player gains 0.1 contact on Raiders (adjacent), Raiders gain 0.2 on player
+	#   turn advances to 6
 	if is_executing_activity:
 		print("[StrategyPresenter] Activity already in progress, ignoring duplicate request")
 		return
@@ -284,6 +324,18 @@ func _execute_activity_obj(activity: Activity) -> void:
 
 
 func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
+	# Updates the contact/detection system after a turn:
+	# 1. Builds activity logs (who did what) and edge logs (who moved where)
+	# 2. Runs contact_tracker.update_all_contacts() to advance detection progress for all squads
+	# 3. Checks location clues for bonus contact on enemies
+	# 4. Checks for engagement triggers (contact LOCKED → combat)
+	#
+	# e.g., player did TRAVEL from "salzburg" to "linz", AI squad "Raiders" did PATROL at "linz"
+	#   → activity_log = {player: TRAVEL, raiders: PATROL}
+	#   → edge_log = {player: {from: salzburg, to: linz}}
+	#   → contacts updated: player↔Raiders both gain detection progress (same location now)
+	#   → clue at linz from Raiders → bonus contact
+	#   → engagement check: player has LOCKED on Raiders → _handle_player_engagement()
 	var world = game_scenario.world
 	var tracker = world.contact_tracker
 	var player = actor.player_squad
@@ -321,6 +373,11 @@ func _update_contacts(activity: Activity, player_location_before: String, ai_res
 
 
 func _handle_player_engagement(engagement: Dictionary) -> void:
+	# Handles a detected engagement where the player is involved
+	# Determines which squad is the enemy, then starts the combat encounter
+	# Currently auto-engages regardless of stance (both ALWAYS_ENGAGE and player-decides call start_encounter)
+	# e.g., engagement={attacker_id: "player", defender_id: "raiders", type: AMBUSH}
+	#   → enemy = "raiders" → start_encounter(raiders, {}, AMBUSH) → awaits combat resolution
 	var engagement_type: StrategyTypes.EngagementType = engagement["type"]
 	var player = actor.player_squad
 
@@ -375,6 +432,10 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 
 
 func _exec_play_animchanges_loop(activity, state):
+	# Single phase of the activity pipeline: snapshot → execute → play VN → combat check → animate deltas
+	# Called 3 times per turn: state='before', 'activity', 'after'
+	# e.g., state='before': captures snapshot{money:100} → exec_before(activity) → event triggers EventChain → plays VN
+	# e.g., state='activity': captures snapshot{money:100} → exec_activity(REST) → money now 100, food 8→6 → animate food delta
 	_capture_stat_snapshot()
 
 	var all_activity_result = actor["exec_%s" % state].call(activity)
@@ -387,6 +448,9 @@ func _exec_play_animchanges_loop(activity, state):
 
 
 func _vn_play_next_recurs():
+	# Recursively plays all queued EventChains: dequeue → play → wait for completion → repeat
+	# When queue is empty, transitions back to STRATEGY mode
+	# e.g., queue=["opening_cutscene", "camp_fire"] → play "opening_cutscene" → await done → play "camp_fire" → await done → STRATEGY
 	var play_empty = view.play_next_queued_chain()
 	if play_empty:
 		await set_ui_mode(UIMode.STRATEGY)
@@ -417,6 +481,15 @@ func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
 #region Combat System
 
 func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
+	# Initiates a combat encounter: injects context into CombatController, switches UI to intermission mode
+	# The controller calculates flee/negotiate chances based on squad stats and engagement type
+	# UI shows the intermission panel with buttons and a countdown timer (30s default)
+	# e.g., enemy="Raiders"(4 warriors), engagement=AMBUSH (player ambushed)
+	#   → inject_context() returns {can_flee: false, can_negotiate: false, ...}
+	#   → UI shows only FIGHT button, timer starts at 30s
+	# e.g., enemy="Bandits"(2 warriors), engagement=SET_PIECE
+	#   → returns {flee_chance: 0.45, negotiate_chance: 0.35, ...}
+	#   → UI shows all 3 buttons with percentages
 	print("\n[StrategyPresenter] ========================================")
 	print("[StrategyPresenter] COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	print("[StrategyPresenter] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
@@ -448,6 +521,10 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }
 
 
 func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
+	# Processes the player's combat intermission choice (FIGHT/FLEE/NEGOTIATE)
+	# Disables buttons to prevent double-input, delegates to CombatController, then handles result
+	# e.g., FIGHT → _execute_combat() → CombatResult{victory, casualties=[w2]} → _handle_encounter_result()
+	# e.g., FLEE(roll fails) → forced combat → CombatResult{victory=false} → _handle_encounter_result()
 	view.disable_combat_buttons()
 	encounter_timeout_timer = 0
 
@@ -467,6 +544,11 @@ func _on_combat_timeout() -> void:
 
 
 func _handle_encounter_result(result: CombatController.CombatResult) -> void:
+	# Applies combat outcome to the game state: morale changes, casualty tracking, loot, clues
+	# Then shows the combat result overlay (VICTORY/DEFEAT/FLED/NEGOTIATED with morale animation)
+	# e.g., result={victory:true, morale_change:+10, loot:{money:50, food:3}, clues:[Clue("linz")]}
+	#   → apply morale +10, add 50 money, add 3 food, add clue to current location
+	#   → show overlay with "VICTORY!" label and morale bar animation 60→70
 	is_in_combat_encounter = false
 
 	print("\n[StrategyPresenter] ========================================")
@@ -515,6 +597,9 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 #region Stat Tracking
 
 func _capture_stat_snapshot() -> void:
+	# Saves current squad stats before an activity phase executes
+	# Used later by _calculate_stat_deltas() to determine what changed and animate it
+	# e.g., snapshot = {money: 100, food: 8, karma: 5, morale: 60}
 	if not game_scenario:
 		print("[StatAnimation] Cannot capture snapshot - no game_scenario")
 		return
@@ -532,6 +617,9 @@ func _capture_stat_snapshot() -> void:
 
 
 func _calculate_stat_deltas() -> Dictionary:
+	# Compares current stats against the snapshot to find what changed
+	# Returns only stats that changed by ≥0.01 (filters noise)
+	# e.g., snapshot={money:100, food:8}, current={money:100, food:6} → deltas={food: -2.0}
 	if not game_scenario:
 		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
 		return { }
@@ -581,6 +669,9 @@ func _animate_stat_changes() -> void:
 #region UI Updates
 
 func _update_ui() -> void:
+	# Refreshes all UI elements to reflect current game state: turn counter, location, stats, morale, buttons
+	# Called after scenario init and after each activity completes
+	# e.g., turn=5, location="Vienna (City)", morale=72 "Good", money=150, food=6, karma=10
 	var squad = actor.player_squad
 	var world = game_scenario.world
 	var location = actor.current_location
@@ -614,6 +705,10 @@ func _update_ui() -> void:
 
 
 func _update_activity_buttons() -> void:
+	# Enables/disables each activity button based on whether the current location supports that activity
+	# Also handles special cases: attack requires enemies at location, shop requires location.has_shop()
+	# e.g., location="salzburg" (Village) with activities=[REST, FORAGE, TRAVEL]
+	#   → rest=enabled, drill=disabled, forage=enabled, travel=enabled, attack=disabled (no enemies)
 	if not game_scenario or not actor.current_location:
 		return
 

@@ -62,6 +62,8 @@ func _init() -> void:
 	print(" --- main gui init --- ")
 
 func _ready() -> void:
+	# Wires all UI button signals to the presenter, then triggers the full game boot via bind_view
+	# This is the entry point: view._ready() → _connect_signals() → presenter.bind_view(self) → game starts
 	print(" --- Main gui is ready --- ")
 	_connect_signals()
 	presenter.bind_view(self )
@@ -71,6 +73,11 @@ func _ready() -> void:
 #region Signal Wiring
 
 func _connect_signals() -> void:
+	# Wires ALL UI button.pressed signals to their corresponding StrategyPresenter handlers
+	# Pattern: button.pressed → presenter.on_*() method
+	# e.g., rest_button.pressed → presenter.on_activity_requested(REST)
+	# e.g., encounter_flee_button.pressed → presenter.on_combat_choice(FLEE)
+	# Also connects child view signals: travel_confirmed, recruitment_completed, purchase_completed, etc.
 	rest_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.REST))
 	drill_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.DRILL))
 	patrol_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.PATROL))
@@ -223,6 +230,12 @@ func set_combat_info_text(text: String) -> void:
 	combat_info_label.text = text
 
 func show_combat_result_overlay(result: CombatController.CombatResult, morale_before: float, morale_after: float) -> void:
+	# Displays the post-combat result overlay on top of the 3D battle scene:
+	# 1. Creates overlay with result label (VICTORY/DEFEAT/FLED/NEGOTIATED)
+	# 2. Moves morale bar into overlay and animates it from before to after value
+	# 3. Spawns floating morale delta label (+15 or -20) that fades out
+	# 4. After delay, restores morale bar to original parent and cleans up battle scene
+	# e.g., result=VICTORY, morale 60→75 → shows green "VICTORY!" + morale bar tween + "+15.0 Morale" float
 	combat_panel.visible = false
 	combat_overlay.visible = true
 
@@ -307,6 +320,9 @@ func get_chain_completed_signal() -> Signal:
 #region Child GUI Delegation
 
 func setup_child_guis(a: ActivityRunner) -> void:
+	# Passes the ActivityRunner reference to child menu views that need game state access
+	# Called once during _setup_components by the presenter
+	# e.g., travel_view needs actor to get reachable locations, investigation_view needs clues, etc.
 	travel_view.setup(a)
 	investigation_view.setup(a)
 	recruitment_view.setup(a)

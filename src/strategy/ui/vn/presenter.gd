@@ -38,11 +38,17 @@ func set_stage_presenter(sp: StagePresenter) -> void:
 #region Queue Management
 
 func queue_event_chain(chain_path: String) -> void:
+	# Adds an EventChain resource path to the play queue (played FIFO by play_next_queued_chain)
+	# e.g., queue_event_chain("res://resources/event_chains/camp_fire.tres") → queue=["camp_fire.tres"]
 	event_chain_queue.append(chain_path)
 	print("[VnPresenter] Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
 
 
 func play_next_queued_chain() -> bool:
+	# Dequeues and starts playing the next EventChain. Returns true if queue was EMPTY (nothing to play).
+	# Loads the .tres resource, prints instruction count, and calls _load_chain() to begin timeline playback
+	# e.g., queue=["camp_fire.tres"] → load chain (5 instructions, 3 dialogues) → _load_chain() → returns false
+	# e.g., queue=[] → returns true (caller knows to switch back to STRATEGY mode)
 	var empty = event_chain_queue.is_empty()
 	if not empty:
 		is_playing_chain = true
@@ -75,6 +81,13 @@ func on_advance() -> void:
 #region Chain Loading
 
 func _load_chain(chain: EventChain) -> bool:
+	# Prepares an EventChain for playback:
+	# 1. Stores chain reference and extracts character IDs
+	# 2. Ensures NPC rigs exist in the stage for all characters
+	# 3. Applies initial setting (character positions/facing)
+	# 4. Loads the timeline into TimelinePlayback which starts advancing the time cursor
+	# e.g., chain "camp_fire" with setting=[{Hans, pos(100,50), face_right}, {Fritz, pos(300,50), face_left}]
+	#   → spawns rigs → places characters → loads 5 instructions into playback → state=PLAYING
 	if not chain:
 		push_error("Cannot load null EventChain")
 		return false
@@ -106,6 +119,12 @@ func _load_chain(chain: EventChain) -> bool:
 #region Instruction Dispatch
 
 func _on_instruction_fired(instruction: CinematicInstruction) -> void:
+	# Dispatches a single CinematicInstruction to the appropriate handler
+	# Called by TimelinePlayback when the time cursor reaches an instruction's timestamp
+	# e.g., DialogueInstruction(time=2.0, speaker="Hans", line="Let's camp here")
+	#   → _execute_dialogue() → shows speech bubble + typewriter on Hans's rig
+	# e.g., CameraInstruction(time=2.0, action=FOCUS_CHARACTER, target="Hans", zoom=1.8)
+	#   → _execute_camera() → stage_presenter.focus_speaker("Hans", 1.8)
 	if instruction is DialogueInstruction:
 		_execute_dialogue(instruction)
 	elif instruction is CameraInstruction:
@@ -115,6 +134,16 @@ func _on_instruction_fired(instruction: CinematicInstruction) -> void:
 
 
 func _execute_dialogue(inst: DialogueInstruction) -> void:
+	# Displays a dialogue line: either as a speech bubble on a character rig or as narrator text
+	# Steps:
+	#   1. If keep_previous_bubbles=false, dismiss existing bubbles and narrator box
+	#   2. Resolve speaker_id from speaker_name (match against character_ids_in_chain)
+	#   3. If speaker has a stage rig: show speech bubble with typewriter, set TALKING animation
+	#   4. If narrator or no rig: show narrator box with typewriter text
+	# e.g., DialogueInstruction(speaker="Hans", line="Let's camp here", keep_previous=false)
+	#   → dismiss all → find Hans rig → show_speech("Hans", "Let's camp here") → Hans plays TALKING
+	# e.g., DialogueInstruction(speaker="narrator", line="The sun was setting...")
+	#   → no rig → show narrator box with typewriter
 	print(
 		"[VnPresenter] Dialogue — %s: \"%s\"" % [
 			inst.speaker_name if not inst.speaker_name.is_empty() else "(narrator)",
@@ -146,6 +175,11 @@ func _execute_dialogue(inst: DialogueInstruction) -> void:
 
 
 func _execute_camera(inst: CameraInstruction) -> void:
+	# Dispatches camera commands to the stage presenter based on the instruction's action enum
+	# e.g., FOCUS_CHARACTER("Hans", zoom=1.8) → stage zooms to Hans over 0.4s
+	# e.g., INCLUDE_CHARACTERS(["Hans", "Fritz"]) → stage frames both characters
+	# e.g., MOVE(offset=Vector2(50,0)) → stage pans right by 50px
+	# e.g., RESET → stage returns to wide full-scene view
 	if not stage_presenter:
 		return
 	match inst.action:
@@ -167,6 +201,11 @@ func _execute_camera(inst: CameraInstruction) -> void:
 
 
 func _execute_character(inst: CharacterInstruction) -> void:
+	# Dispatches character movement/behavior commands to the stage presenter
+	# e.g., MOVE("Hans", target=Vector2(400,50), duration=0.8) → Hans walks to new position over 0.8s
+	# e.g., FACE("Fritz", direction=-1) → Fritz faces left
+	# e.g., BEHAVIOR("Hans", "attacking") → Hans plays attack animation
+	# e.g., SPAWN("NewChar", pos=Vector2(300,50)) → creates new NPC rig and places it
 	if not stage_presenter:
 		return
 	match inst.action:

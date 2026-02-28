@@ -14,6 +14,11 @@ func bind_view(v: StageView) -> void:
 
 
 func set_mode(mode: StageMode) -> void:
+	# Transitions the stage between visual modes:
+	# MARCH: warriors visible, walking animation loop running (strategy overworld)
+	# VN: warriors visible, walking stopped (dialogue/cutscene scene)
+	# HIDDEN: stage invisible (combat intermission or menu)
+	# e.g., set_mode(VN) → stop march walk loop, keep warriors visible for dialogue
 	if current_mode == mode:
 		return
 	current_mode = mode
@@ -31,6 +36,9 @@ func set_mode(mode: StageMode) -> void:
 #region March API
 
 func start_march(squad: SquadStrategicData) -> void:
+	# Spawns 2D warrior rigs for each living warrior and starts the march walking animation
+	# Called on game start and when warriors change (recruitment, casualties)
+	# e.g., squad has 3 living warriors → spawns 3 WarriorRig nodes → sets mode MARCH → rigs walk right
 	view.spawn_warriors(squad.get_living_warriors())
 	set_mode(StageMode.MARCH)
 
@@ -49,10 +57,17 @@ func refresh_warriors(squad: SquadStrategicData) -> void:
 #region VN API
 
 func prepare_for_dialogue(character_ids: Array[String]) -> void:
+	# Switches stage to VN mode for dialogue playback (stops march, keeps warriors visible)
+	# Called by VnPresenter before loading a timeline
+	# e.g., character_ids=["Hans", "Fritz"] → stage mode → VN (march stops)
 	set_mode(StageMode.VN)
 
 
 func apply_setting(positions: Array[StagePosition]) -> void:
+	# Places characters at their initial positions from an EventChain's setting array
+	# Called before timeline starts to establish the scene layout
+	# e.g., positions=[StagePosition("Hans", Vector2(100,50), face=1), StagePosition("Fritz", Vector2(300,50), face=-1)]
+	#   → Hans placed at (100,50) facing right, Fritz at (300,50) facing left
 	for pos in positions:
 		place_character(pos.character_id, pos.position, pos.face_direction)
 
@@ -66,6 +81,9 @@ func place_character(character_id: String, target_position: Vector2, face_dir: i
 
 
 func show_speech(character_id: String, speaker_name: String, text: String) -> SpeechBubble:
+	# Creates a speech bubble above a character rig and starts the typewriter animation
+	# Also sets the character's rig to TALKING behavior
+	# e.g., show_speech("Hans", "Hans", "Let's camp here") → bubble appears above Hans, text types out letter by letter
 	var bubble = view.show_bubble(character_id, speaker_name, text)
 	bubble.start_typewriter()
 	var rig = view.get_rig(character_id)
@@ -113,6 +131,8 @@ func zoom_camera(zoom_level: float, duration: float) -> void:
 
 
 func walk_character(character_id: String, target: Vector2, duration: float = 0.8) -> void:
+	# Tweens a character rig to a target position with WALKING animation, then returns to IDLE
+	# e.g., walk_character("Hans", Vector2(400, 50), 1.0) → Hans plays WALKING, tweens over 1s, then IDLE
 	var rig = view.get_rig(character_id)
 	if not rig:
 		return
