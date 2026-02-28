@@ -1348,5 +1348,5 @@ script = ExtResource("18_fleet")
 
 [node name="StrategyPresenter" type="Node" parent="."]
 script = ExtResource("19_presenter")
-scenario_path = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
+scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
 is_demo_scenario = false

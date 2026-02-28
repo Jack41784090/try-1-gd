@@ -2,11 +2,12 @@ class_name GameScenario extends Resource
 
 var triggerable_manager: TriggerableManager
 
-@export var starting_player_squad: SquadStrategicData
+@export var starting_player_squad: Squad
 @export var starting_location_id: String
 @export var world: World
 @export var factions: Array[Faction] = []
 @export var endings: Array[Ending] = []
+@export var extra_event_directories: Array[String] = []
 
 var rng = RandomNumberGenerator.new()
 var game_ended: bool = false
