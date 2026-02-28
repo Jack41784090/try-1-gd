@@ -5,27 +5,27 @@ const ContactClass = preload("res://src/strategy/core/contact/contact.gd")
 var contacts: Dictionary = {}
 
 const ACTIVITY_MODIFIERS: Dictionary = {
-	StrategyTypes.ActivityType.REST:           [0.5, 1.3],
-	StrategyTypes.ActivityType.DRILL:          [0.6, 0.5],
-	StrategyTypes.ActivityType.TRAVEL:         [0.7, 0.6],
-	StrategyTypes.ActivityType.PATROL:         [1.5, 0.8],
-	StrategyTypes.ActivityType.INVESTIGATE:    [1.3, 0.9],
-	StrategyTypes.ActivityType.HOLD_MASS:      [0.4, 1.0],
+	StrategyTypes.ActivityType.REST: [0.5, 1.3],
+	StrategyTypes.ActivityType.DRILL: [0.6, 0.5],
+	StrategyTypes.ActivityType.TRAVEL: [0.7, 0.6],
+	StrategyTypes.ActivityType.PATROL: [1.5, 0.8],
+	StrategyTypes.ActivityType.INVESTIGATE: [1.3, 0.9],
+	StrategyTypes.ActivityType.HOLD_MASS: [0.4, 1.0],
 	StrategyTypes.ActivityType.MERCENARY_WORK: [0.6, 0.8],
-	StrategyTypes.ActivityType.FORAGE:         [0.8, 0.7],
-	StrategyTypes.ActivityType.ATTACK:         [1.0, 0.4],
-	StrategyTypes.ActivityType.FORCE_MARCH:    [0.3, 0.3],
-	StrategyTypes.ActivityType.MANAGE_SQUAD:   [0.4, 1.0],
-	StrategyTypes.ActivityType.RECRUIT:        [0.5, 0.7],
-	StrategyTypes.ActivityType.CUSTOM:         [0.5, 0.5],
+	StrategyTypes.ActivityType.FORAGE: [0.8, 0.7],
+	StrategyTypes.ActivityType.ATTACK: [1.0, 0.4],
+	StrategyTypes.ActivityType.FORCE_MARCH: [0.3, 0.3],
+	StrategyTypes.ActivityType.MANAGE_SQUAD: [0.4, 1.0],
+	StrategyTypes.ActivityType.RECRUIT: [0.5, 0.7],
+	StrategyTypes.ActivityType.CUSTOM: [0.5, 0.5],
 }
 
 const LOCATION_VISIBILITY: Dictionary = {
-	StrategyTypes.LocationType.ROAD:    1.0,
+	StrategyTypes.LocationType.ROAD: 1.0,
 	StrategyTypes.LocationType.VILLAGE: 0.8,
-	StrategyTypes.LocationType.TOWN:    0.7,
-	StrategyTypes.LocationType.CITY:    0.5,
-	StrategyTypes.LocationType.FORT:    0.4,
+	StrategyTypes.LocationType.TOWN: 0.7,
+	StrategyTypes.LocationType.CITY: 0.5,
+	StrategyTypes.LocationType.FORT: 0.4,
 }
 
 const BASE_SPOTTING_RATE: float = 15.0
@@ -79,14 +79,12 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 		for enemy in enemies:
 			var contact = get_or_create_contact(observer.squad_id, enemy.squad_id)
 			var is_tracked = tracked_targets.has(enemy.squad_id)
-
 			if not is_tracked:
 				contact.apply_delta(-DECAY_RATE, current_turn)
 				continue
 
 			var enemy_activity: StrategyTypes.ActivityType = activity_log.get(enemy.squad_id, StrategyTypes.ActivityType.REST)
 			var proximity = _determine_proximity(observer, enemy, world, edge_log)
-
 			if proximity <= 0.0:
 				contact.apply_delta(-DECAY_RATE, current_turn)
 				continue

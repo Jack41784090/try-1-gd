@@ -1,5 +1,6 @@
 class_name Contact extends RefCounted
 
+var being_tracked: bool = false
 var observer_id: String
 var target_id: String
 var progress: float = 0.0
@@ -22,5 +23,8 @@ func get_state() -> StrategyTypes.ContactState:
 	return StrategyTypes.ContactState.NONE
 
 func apply_delta(delta: float, current_turn: int) -> void:
+	if delta <= 0.0: being_tracked = false
+	else: being_tracked = true
+
 	progress = clampf(progress + delta, 0.0, 100.0)
 	last_updated_turn = current_turn
