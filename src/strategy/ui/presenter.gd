@@ -1,9 +1,10 @@
-class_name StrategyPresenter extends Node
+class_name StrategyPresenter
+extends Node
 
 enum UIMode {
 	STRATEGY,
 	VISUAL_NOVEL,
-	COMBAT_INTERMISSION
+	COMBAT_INTERMISSION,
 }
 
 signal encounter_resolved()
@@ -24,10 +25,10 @@ var game_scenario: GameScenario:
 
 var ui_mode: UIMode = UIMode.STRATEGY
 var is_executing_activity: bool = false
-var stat_snapshot: Dictionary = {}
+var stat_snapshot: Dictionary = { }
 var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
-var combat_options: Dictionary = {}
+var combat_options: Dictionary = { }
 
 var current_location:
 	get:
@@ -41,6 +42,7 @@ var walking_towards: Variant:
 		actor.walking_towards = _loc
 	get:
 		return actor.walking_towards["location"]
+
 
 func bind_view(v: StrategyView) -> void:
 	view = v
@@ -56,6 +58,7 @@ func bind_view(v: StrategyView) -> void:
 	_update_ui()
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
+
 
 func _process(delta: float) -> void:
 	if is_in_combat_encounter and encounter_timeout_timer > 0:
@@ -88,6 +91,7 @@ func _initialize_scenario() -> void:
 
 		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
 		actor.setup(loaded)
+
 
 func _setup_components() -> void:
 	combat_controller = CombatController.new()
@@ -129,22 +133,28 @@ func set_ui_mode(mode: UIMode) -> void:
 func on_activity_requested(type: StrategyTypes.ActivityType) -> void:
 	_execute_activity(type)
 
+
 func on_travel_requested() -> void:
 	view.show_travel_menu(game_scenario, actor.locations)
+
 
 func on_investigate_requested() -> void:
 	view.show_investigation_menu()
 
+
 func on_recruit_requested() -> void:
 	view.show_recruitment_menu()
 
+
 func on_manage_squad_requested() -> void:
 	view.show_manage_squad(actor.player_squad)
+
 
 func on_shop_requested() -> void:
 	var location = actor.current_location
 	assert(location.has_shop(), "Shop requested but location has no shop")
 	view.show_shop(location.shop, actor.player_squad)
+
 
 func on_travel_confirmed(location_id: String) -> void:
 	var travel_activity = actor.create_travel_activity(location_id)
@@ -154,8 +164,10 @@ func on_travel_confirmed(location_id: String) -> void:
 	if travel_activity.result.location_changed == location_id:
 		view.set_travel_mode_autopilot()
 
+
 func on_travel_cancelled() -> void:
 	view.hide_travel_menu()
+
 
 func on_continue_travel() -> void:
 	var dest_location = actor.walking_towards["location"]
@@ -166,8 +178,10 @@ func on_continue_travel() -> void:
 	if travel_activity.result.location_changed == dest_location.location_id:
 		view.set_travel_mode_autopilot()
 
+
 func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
+
 
 func on_recruitment_completed(warrior: CharacterSocialStats) -> void:
 	print("[StrategyPresenter] Recruited warrior: %s" % warrior.name)
@@ -175,24 +189,31 @@ func on_recruitment_completed(warrior: CharacterSocialStats) -> void:
 	stage_presenter.refresh_warriors(actor.player_squad)
 	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)
 
+
 func on_recruitment_closed() -> void:
 	view.hide_recruitment_menu()
 
+
 func on_manage_squad_closed() -> void:
 	pass
+
 
 func on_purchase_completed(purchases: Dictionary) -> void:
 	print("[StrategyPresenter] Purchase completed: %s" % [purchases])
 	_update_ui()
 
+
 func on_shop_closed() -> void:
 	pass
+
 
 func on_scouting_requested() -> void:
 	view.show_scouting(game_scenario.world, actor.player_squad)
 
+
 func on_scouting_closed() -> void:
 	pass
+
 
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
@@ -200,8 +221,10 @@ func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	print("[StrategyPresenter] Player chose: %s" % CombatController.IntermissionChoice.keys()[choice])
 	_process_encounter_choice(choice)
 
+
 func on_skip_pressed() -> void:
 	pass
+
 
 func on_summary_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
@@ -210,12 +233,13 @@ func on_summary_pressed() -> void:
 	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
 		actor.current_location.location_name,
 		actor.current_location.development,
-		actor.current_location.stability
+		actor.current_location.stability,
 	]
 	_summary_text += "Morale: %.1f\n" % actor.player_squad.get_morale()
 	_summary_text += "Money: %.0f\n" % actor.player_squad.money
 	_summary_text += "Food: %d\n" % actor.player_squad.food
 	_summary_text += "Karma: %.0f\n" % actor.player_squad.karma
+
 
 func on_battle_close() -> void:
 	print("[StrategyPresenter] User closed battle manually")
@@ -226,8 +250,10 @@ func on_battle_close() -> void:
 #region Activity Pipeline
 
 func _execute_activity(at: StrategyTypes.ActivityType) -> void:
-	var activity = actor.get_activity(at); assert(activity is Activity)
+	var activity = actor.get_activity(at)
+	assert(activity is Activity)
 	await _execute_activity_obj(activity)
+
 
 func _execute_activity_obj(activity: Activity) -> void:
 	if is_executing_activity:
@@ -256,19 +282,20 @@ func _execute_activity_obj(activity: Activity) -> void:
 	is_executing_activity = false
 	_update_activity_buttons()
 
+
 func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
 	var world = game_scenario.world
 	var tracker = world.contact_tracker
 	var player = actor.player_squad
 
-	var activity_log: Dictionary = {}
-	var edge_log: Dictionary = {}
+	var activity_log: Dictionary = { }
+	var edge_log: Dictionary = { }
 
 	activity_log[player.squad_id] = activity.activity_type
 
 	var player_location_after = player.current_location_id
 	if player_location_before != player_location_after:
-		edge_log[player.squad_id] = {"from": player_location_before, "to": player_location_after}
+		edge_log[player.squad_id] = { "from": player_location_before, "to": player_location_after }
 
 	ai_fleet.fill_activity_log(activity_log, edge_log)
 
@@ -292,6 +319,7 @@ func _update_contacts(activity: Activity, player_location_before: String, ai_res
 		if involves_player:
 			await _handle_player_engagement(engagement)
 
+
 func _handle_player_engagement(engagement: Dictionary) -> void:
 	var engagement_type: StrategyTypes.EngagementType = engagement["type"]
 	var player = actor.player_squad
@@ -307,31 +335,36 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 		return
 
 	if player.engagement_stance == StrategyTypes.EngagementStance.ALWAYS_ENGAGE:
-		print("[StrategyPresenter] Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
-			enemy_squad.squad_name,
-			StrategyTypes.EngagementType.keys()[engagement_type]
-		])
-		start_encounter(enemy_squad, {}, engagement_type)
+		print(
+			"[StrategyPresenter] Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
+				enemy_squad.squad_name,
+				StrategyTypes.EngagementType.keys()[engagement_type],
+			],
+		)
+		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
 	else:
-		print("[StrategyPresenter] Contact LOCKED with %s (type: %s) — player decides" % [
-			enemy_squad.squad_name,
-			StrategyTypes.EngagementType.keys()[engagement_type]
-		])
-		start_encounter(enemy_squad, {}, engagement_type)
+		print(
+			"[StrategyPresenter] Contact LOCKED with %s (type: %s) — player decides" % [
+				enemy_squad.squad_name,
+				StrategyTypes.EngagementType.keys()[engagement_type],
+			],
+		)
+		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
+
 
 func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[GenericResult]) -> bool:
 	var has_combat = all_activity_result.any(func(r): return r is ActivityResult and r.requires_combat)
 	if has_combat:
-		var _combat: ActivityResult;
+		var _combat: ActivityResult
 		for a in all_activity_result:
 			if a is ActivityResult and a.requires_combat:
 				_combat = a
 				break
-		
-		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result");
-		
+
+		assert(_combat.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result")
+
 		var enemy_squad = actor.data._find_enemy_squad(_combat.combat_target_squad_id)
 		if enemy_squad:
 			start_encounter(enemy_squad, actor.data._build_context(activity), _combat.engagement_type)
@@ -339,6 +372,7 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 		else:
 			push_warning("[GameScenario] Combat required but enemy squad with ID '%s' not found" % _combat.combat_target_squad_id)
 	return has_combat
+
 
 func _exec_play_animchanges_loop(activity, state):
 	_capture_stat_snapshot()
@@ -348,7 +382,9 @@ func _exec_play_animchanges_loop(activity, state):
 	_queue_multiple_eventchains_from_results(all_activity_result)
 	await _vn_play_next_recurs()
 	var has_combat = await _enter_combat_if_exists(activity, all_activity_result)
-	if not has_combat: await _animate_stat_changes()
+	if not has_combat:
+		await _animate_stat_changes()
+
 
 func _vn_play_next_recurs():
 	var play_empty = view.play_next_queued_chain()
@@ -359,6 +395,7 @@ func _vn_play_next_recurs():
 		await view.get_chain_completed_signal()
 		await _vn_play_next_recurs()
 
+
 func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
 	for result in results_list:
 		if result is GenericResult:
@@ -367,8 +404,9 @@ func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]
 		else:
 			assert(false, "%s" % result)
 
+
 func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
-	var results = actor.exec_at(when )
+	var results = actor.exec_at(when)
 	if results.is_empty():
 		return
 	_queue_multiple_eventchains_from_results(results)
@@ -378,7 +416,7 @@ func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
 
 #region Combat System
 
-func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {}, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
+func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	print("\n[StrategyPresenter] ========================================")
 	print("[StrategyPresenter] COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	print("[StrategyPresenter] Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
@@ -390,7 +428,7 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {},
 		enemy_squad,
 		view.battle_viewport,
 		view.combat_overlay,
-		engagement_type
+		engagement_type,
 	)
 	encounter_timeout_timer = combat_options.get("timeout_seconds", 30.0)
 
@@ -408,6 +446,7 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = {},
 	print("[StrategyPresenter]   Flee chance: %.1f%%" % flee_chance)
 	print("[StrategyPresenter]   Negotiate chance: %.1f%%" % negotiate_chance)
 
+
 func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
 	view.disable_combat_buttons()
 	encounter_timeout_timer = 0
@@ -418,12 +457,14 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 	print("[StrategyPresenter] Combat result received: %s" % encounter_result.to_string() if encounter_result else "null")
 	await _handle_encounter_result(encounter_result)
 
+
 func _on_combat_timeout() -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
 	print("[StrategyPresenter] COMBAT TIMEOUT - Auto-fighting!")
 	view.set_combat_info_text("Time's up! Engaging in combat...")
 	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
+
 
 func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	is_in_combat_encounter = false
@@ -459,6 +500,7 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 
 	encounter_resolved.emit(result)
 
+
 func _apply_combat_loot(loot: Dictionary) -> void:
 	var squad = actor.player_squad
 	if loot.has("money"):
@@ -488,13 +530,14 @@ func _capture_stat_snapshot() -> void:
 	}
 	print("[StatAnimation] Snapshot captured: ", stat_snapshot)
 
+
 func _calculate_stat_deltas() -> Dictionary:
 	if not game_scenario:
 		print("[StatAnimation] Cannot calculate deltas - no game_scenario")
-		return {}
+		return { }
 	if stat_snapshot.is_empty():
 		print("[StatAnimation] Cannot calculate deltas - snapshot is empty")
-		return {}
+		return { }
 
 	var squad = actor.player_squad
 
@@ -506,7 +549,7 @@ func _calculate_stat_deltas() -> Dictionary:
 	}
 	print("[StatAnimation] Current stats: ", current_stats)
 
-	var deltas := {}
+	var deltas := { }
 	for stat_name in stat_snapshot:
 		var old_value = stat_snapshot[stat_name]
 		var new_value = current_stats[stat_name]
@@ -520,6 +563,7 @@ func _calculate_stat_deltas() -> Dictionary:
 	else:
 		print("[StatAnimation] Total deltas to animate: ", deltas)
 	return deltas
+
 
 func _animate_stat_changes() -> void:
 	print("[StatAnimation] _animate_stat_changes() called")
@@ -542,16 +586,23 @@ func _update_ui() -> void:
 	var location = actor.current_location
 
 	view.update_turn(world.turn_count)
-	view.update_location("%s (%s)" % [
-		location.location_name if location else "Unknown",
-		_location_type_to_string(location.type) if location else "",
-	])
+	view.update_location(
+		"%s (%s)" % [
+			location.location_name if location else "Unknown",
+			_location_type_to_string(location.type) if location else "",
+		],
+	)
 
 	view.update_condition(_get_morale_condition(squad.get_morale()))
+	view.update_morale_bar(squad.get_morale())
 
-	view.update_stats(squad.money, squad.food, squad.karma,
+	view.update_stats(
+		squad.money,
+		squad.food,
+		squad.karma,
 		location.stability if location else 0.0,
-		location.development if location else 0)
+		location.development if location else 0,
+	)
 
 	var walking = actor.walking_towards
 	if walking != null and walking["location"] != null:
@@ -561,34 +612,54 @@ func _update_ui() -> void:
 
 	_update_activity_buttons()
 
+
 func _update_activity_buttons() -> void:
 	if not game_scenario or not actor.current_location:
 		return
 
 	var location = actor.current_location
 
-	view.update_activity_button(view.rest_button, "Rest",
+	view.update_activity_button(
+		view.rest_button,
+		"Rest",
 		not location.has_activity_type(StrategyTypes.ActivityType.REST),
-		_get_activity_tooltip(StrategyTypes.ActivityType.REST))
+		_get_activity_tooltip(StrategyTypes.ActivityType.REST),
+	)
 
-	view.update_activity_button(view.drill_button, "Drill",
+	view.update_activity_button(
+		view.drill_button,
+		"Drill",
 		not location.has_activity_type(StrategyTypes.ActivityType.DRILL),
-		_get_activity_tooltip(StrategyTypes.ActivityType.DRILL))
+		_get_activity_tooltip(StrategyTypes.ActivityType.DRILL),
+	)
 
-	view.update_activity_button(view.patrol_button, "Patrol",
+	view.update_activity_button(
+		view.patrol_button,
+		"Patrol",
 		not location.has_activity_type(StrategyTypes.ActivityType.PATROL),
-		_get_activity_tooltip(StrategyTypes.ActivityType.PATROL))
+		_get_activity_tooltip(StrategyTypes.ActivityType.PATROL),
+	)
 
-	view.update_activity_button(view.investigate_button, "Investigate",
+	view.update_activity_button(
+		view.investigate_button,
+		"Investigate",
 		not location.has_activity_type(StrategyTypes.ActivityType.INVESTIGATE),
-		_get_activity_tooltip(StrategyTypes.ActivityType.INVESTIGATE))
+		_get_activity_tooltip(StrategyTypes.ActivityType.INVESTIGATE),
+	)
 
-	view.update_activity_button(view.hold_mass_button, "Hold Mass",
+	view.update_activity_button(
+		view.hold_mass_button,
+		"Hold Mass",
 		not location.has_activity_type(StrategyTypes.ActivityType.HOLD_MASS),
-		_get_activity_tooltip(StrategyTypes.ActivityType.HOLD_MASS))
+		_get_activity_tooltip(StrategyTypes.ActivityType.HOLD_MASS),
+	)
 
-	view.update_activity_button(view.travel_button, "Travel",
-		false, "Travel to another location")
+	view.update_activity_button(
+		view.travel_button,
+		"Travel",
+		false,
+		"Travel to another location",
+	)
 
 	var enemies_here = game_scenario.world.get_squads_at_location(location.location_id)
 	var attack_tooltip: String
@@ -596,22 +667,35 @@ func _update_activity_buttons() -> void:
 		attack_tooltip = "Attack %s" % [enemies_here]
 	else:
 		attack_tooltip = "No enemies at this location"
-	view.update_activity_button(view.attack_button, "Attack",
-		enemies_here.is_empty(), attack_tooltip)
+	view.update_activity_button(
+		view.attack_button,
+		"Attack",
+		enemies_here.is_empty(),
+		attack_tooltip,
+	)
 
-	view.update_activity_button(view.manage_squad_button, "Manage SquadCombatData",
-		false, "View and manage your warriors")
+	view.update_activity_button(
+		view.manage_squad_button,
+		"Manage SquadCombatData",
+		false,
+		"View and manage your warriors",
+	)
 
 	var has_shop = location.has_shop()
-	view.update_activity_button(view.shop_button, "Shop",
+	view.update_activity_button(
+		view.shop_button,
+		"Shop",
 		not has_shop,
-		"Browse the local shop" if has_shop else "No shop at this location")
+		"Browse the local shop" if has_shop else "No shop at this location",
+	)
+
 
 func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	var activity = actor.get_activity(activity_type)
 	if not activity:
 		return "Unknown activity"
 	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
+
 
 func _get_travel_label() -> String:
 	if walking_towards:
@@ -646,6 +730,7 @@ func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 			return "Road"
 		_:
 			return "Unknown"
+
 
 func _get_morale_condition(morale: float) -> String:
 	if morale >= 90.0:
