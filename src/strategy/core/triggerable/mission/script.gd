@@ -1,5 +1,4 @@
-extends Triggerable
-class_name Mission
+class_name Mission extends Triggerable
 
 @export var mission_id: String = ""
 @export var mission_name: String = ""
@@ -52,8 +51,7 @@ func trigger(context: Dictionary) -> Array[MissionResult]:
 		"reputation_changes": result.reputation_changes,
 		"squad_stat_changes": result.squad_stat_changes,
 		"world_stat_changes": result.world_stat_changes,
-		# "-": result.-,
-		"dialogue_scene_path": result.dialogue_scene_path
+		"event_chain_path": result.event_chain_path
 	}
 	
 	triggered.emit(result_dict)
@@ -75,7 +73,7 @@ func complete() -> MissionResult:
 	result.narrative_text = "Mission '%s' completed!" % mission_name
 	
 	if not dialogue_scene_path.is_empty():
-		result.dialogue_scene_path = dialogue_scene_path
+		result.event_chain_path = dialogue_scene_path
 		result.requires_async = true
 	
 	for stat_name in completion_effects.get("squad_stats", {}):

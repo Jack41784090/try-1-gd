@@ -16,8 +16,6 @@ class_name SkillEffectFlat extends SkillEffect
 # 	_debug_id = "[%s-%s]" % [self.get_class(), name]
 
 func commit(_data = null) -> Array[EntityUpdate]:
-	print("%s Committing" % _debug_id)
-	
 	if stacks == 0:
 		for t in triggers:
 			StatusEffectEventBus.Disconnect(t, commit)
@@ -40,6 +38,5 @@ func commit(_data = null) -> Array[EntityUpdate]:
 				updates_collector.append(
 					EntityUpdate.new(source.player_id, affected.player_id, change))
 	
-	print("%s Commit complete" % _debug_id)
-	
+	print("  [effect] %s ✓" % _debug_id)
 	return updates_collector

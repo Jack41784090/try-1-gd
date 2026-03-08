@@ -8,6 +8,8 @@ extends Node
 ##   VnPresenter = the director (reads timelines, issues commands)
 ##   StagePresenter = the theater (executes visual commands, knows nothing about timelines)
 
+var _DEBUG: bool = true  # If true, skips timeline playback for easier debugging of timelines and stage presentation
+
 var view: VnView
 var stage_presenter: StagePresenter
 
@@ -45,9 +47,13 @@ func queue_event_chain(chain_path: String) -> void:
 
 
 func play_next_queued_chain() -> bool:
+	if _DEBUG:
+		print("[VnPresenter] play_next_queued_chain called (queue size: %d)" % event_chain_queue.size())
+		return true  # In debug mode, skip playback to allow timeline inspection
+
 	# Dequeues and starts playing the next EventChain. Returns true if queue was EMPTY (nothing to play).
-	# Loads the .tres resource, prints instruction count, and calls _load_chain() to begin timeline playback
-	# e.g., queue=["camp_fire.tres"] → load chain (5 instructions, 3 dialogues) → _load_chain() → returns false
+	# Loads the .tres resource, prints instruction count, and calls load_chain() to begin timeline playback
+	# e.g., queue=["camp_fire.tres"] → load chain (5 instructions, 3 dialogues) → load_chain() → returns false
 	# e.g., queue=[] → returns true (caller knows to switch back to STRATEGY mode)
 	var empty = event_chain_queue.is_empty()
 	if not empty:
@@ -62,7 +68,7 @@ func play_next_queued_chain() -> bool:
 				chain.get_dialogue_count(),
 			],
 		)
-		_load_chain(chain)
+		load_chain(chain)
 	return empty
 
 
@@ -80,7 +86,7 @@ func on_advance() -> void:
 
 #region Chain Loading
 
-func _load_chain(chain: EventChain) -> bool:
+func load_chain(chain: EventChain) -> bool:
 	# Prepares an EventChain for playback:
 	# 1. Stores chain reference and extracts character IDs
 	# 2. Ensures NPC rigs exist in the stage for all characters
@@ -175,30 +181,30 @@ func _execute_dialogue(inst: DialogueInstruction) -> void:
 
 
 func _execute_camera(inst: CameraInstruction) -> void:
-	# Dispatches camera commands to the stage presenter based on the instruction's action enum
-	# e.g., FOCUS_CHARACTER("Hans", zoom=1.8) → stage zooms to Hans over 0.4s
-	# e.g., INCLUDE_CHARACTERS(["Hans", "Fritz"]) → stage frames both characters
-	# e.g., MOVE(offset=Vector2(50,0)) → stage pans right by 50px
-	# e.g., RESET → stage returns to wide full-scene view
 	if not stage_presenter:
 		return
-	match inst.action:
-		CameraInstruction.Action.FOCUS_CHARACTER:
-			print("[VnPresenter] Camera → focus %s (zoom %.1f)" % [inst.target_character_id, inst.zoom_level])
-			stage_presenter.focus_speaker(inst.target_character_id, inst.zoom_level, inst.duration)
-		CameraInstruction.Action.INCLUDE_CHARACTERS:
-			print("[VnPresenter] Camera → include %s" % [str(inst.include_character_ids)])
-			stage_presenter.set_camera_include(inst.include_character_ids, inst.duration)
-		CameraInstruction.Action.MOVE:
-			print("[VnPresenter] Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
-			stage_presenter.move_camera(inst.move_offset, maxf(inst.duration, 0.01))
-		CameraInstruction.Action.ZOOM:
-			print("[VnPresenter] Camera → zoom %.1f over %.1fs" % [inst.zoom_level, inst.duration])
-			stage_presenter.zoom_camera(inst.zoom_level, maxf(inst.duration, 0.01))
-		CameraInstruction.Action.RESET:
-			print("[VnPresenter] Camera → reset")
-			stage_presenter.return_to_wide()
 
+
+	if not inst.include_character_ids.is_empty():
+		print("[VnPresenter] Camera → include %s" % [str(inst.include_character_ids)])
+		stage_presenter.set_camera_include(inst.include_character_ids, maxf(inst.duration, 0.4))
+
+	if inst.zoom_level != 1.0:
+		print("[VnPresenter] Camera → zoom %.1f over %.1fs" % [inst.zoom_level, inst.duration])
+		stage_presenter.zoom_camera(inst.zoom_level, maxf(inst.duration, 0.01))
+
+	if inst.action == CameraInstruction.Action.RESET:
+		print("[VnPresenter] Camera → reset")
+		stage_presenter.return_to_wide()
+
+
+	if inst.move_offset != stage_presenter.view.stage_camera.global_position:
+		print("[VnPresenter] Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
+		stage_presenter.move_camera(inst.move_offset, maxf(inst.duration, 0.01))
+
+	# CameraInstruction.Action.FOCUS_CHARACTER:
+	# 	print("[VnPresenter] Camera → focus %s (zoom %.1f)" % [inst.target_character_id, inst.zoom_level])
+	# 	stage_presenter.focus_speaker(inst.target_character_id, inst.zoom_level, maxf(inst.duration, 0.4))
 
 func _execute_character(inst: CharacterInstruction) -> void:
 	# Dispatches character movement/behavior commands to the stage presenter
@@ -233,9 +239,13 @@ func _on_timeline_complete() -> void:
 	print("[VnPresenter] Chain '%s' complete" % current_chain.chain_id)
 	if stage_presenter:
 		stage_presenter.dismiss_all_speech()
-		stage_presenter.return_to_wide()
 	view.hide_narrator_box()
-	view.chain_completed.emit()
+	
+	if stage_presenter.view.stage_camera.tweening():
+		# If camera is still tweening, delay completion signal until done to avoid jarring cuts
+		var tween = stage_presenter.view.stage_camera._active_tween
+		tween.tween_callback(func() -> void: view.chain_completed.emit())
+	else: view.chain_completed.emit()
 	_reset()
 
 #endregion
@@ -258,12 +268,23 @@ func _reset() -> void:
 
 
 func _ensure_npc_rigs() -> void:
-	if not stage_presenter:
-		return
-	for char_id in character_ids_in_chain:
-		if char_id.is_empty() or char_id == "narrator":
-			continue
-		if not stage_presenter.view.rigs.has(char_id):
-			stage_presenter.spawn_npc_rig(char_id)
+	var chain = current_chain
+	var stage_view = stage_presenter.view
+	if chain.setting:
+		for pos in chain.setting:
+			if not stage_view.rigs.has(pos.character_id):
+				stage_view.presenter.spawn_npc_rig(pos.character_id)
+				print("[Demo] Spawned NPC rig for: %s" % pos.character_id)
+
+	for inst in chain.timeline:
+		if inst is DialogueInstruction:
+			var id = _resolve_speaker_id(inst.speaker_name)
+			if not id.is_empty() and not stage_view.rigs.has(id):
+				stage_view.presenter.spawn_npc_rig(id)
+				print("[Demo] Spawned NPC rig for: %s" % id)
+		elif inst is CharacterInstruction:
+			if not inst.character_id.is_empty() and not stage_view.rigs.has(inst.character_id):
+				stage_view.presenter.spawn_npc_rig(inst.character_id)
+				print("[Demo] Spawned NPC rig for: %s" % inst.character_id)
 
 #endregion

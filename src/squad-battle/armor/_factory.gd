@@ -3,11 +3,15 @@ class_name ArmorFactory
 enum ArmorClasses {
 	Unarmored,
 	LeatherArmor,
+	PaddedArmor,
+	HalfPlate,
 }
 
 static var pathlib = {
 	"Unarmored": "res://resources/combat/armor/unarmored.tres",
 	"LeatherArmor": "res://resources/combat/armor/leather-armor.tres",
+	"PaddedArmor": "res://resources/combat/armor/padded-armor.tres",
+	"HalfPlate": "res://resources/combat/armor/half-plate.tres",
 }
 
 static var _cached_key = ArmorClasses.keys()

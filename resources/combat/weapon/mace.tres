@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/weapon/damage-tsl.gd" id="1_dtsl"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/weapon/_config-resource.gd" id="2_wcfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/weapon/potency-obj.gd" id="3_pot"]
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/weapon/weapon-location.gd" id="4_wloc"]
+[ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/front-to-front.tres" id="5_f2f"]
+
+[sub_resource type="Resource" id="Resource_pot_strike"]
+script = ExtResource("3_pot")
+value = 0.8
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_dtsl"]
+script = ExtResource("1_dtsl")
+reality = 1
+potency_list = Array[ExtResource("3_pot")]([SubResource("Resource_pot_strike")])
+metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
+
+[resource]
+script = ExtResource("2_wcfg")
+weapon_name = "Mace"
+hit_bonus = 2.0
+penetration_bonus = 1.0
+damage_translation = Array[ExtResource("1_dtsl")]([SubResource("Resource_dtsl")])
+weapon_location_map = Array[ExtResource("4_wloc")]([ExtResource("5_f2f")])
+metadata/_custom_type_script = "uid://bbuqprgu6l833"

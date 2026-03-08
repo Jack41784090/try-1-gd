@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CameraInstruction" load_steps=2 format=3 uid="uid://ydq5brnddb1m"]
+
+[ext_resource type="Script" uid="uid://balbj1g85dkh8" path="res://src/strategy/ui/vn/instructions/camera_instruction.gd" id="1_pckvy"]
+
+[resource]
+script = ExtResource("1_pckvy")
+action = 3
+move_offset = Vector2(-500, 0)
+zoom_level = 3.5
+metadata/_custom_type_script = "uid://balbj1g85dkh8"

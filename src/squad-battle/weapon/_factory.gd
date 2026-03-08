@@ -3,11 +3,21 @@ class_name WeaponFactory
 enum WeaponClasses {
 	Unarmed,
 	Flammenschwert,
+	Crossbow,
+	Arquebus,
+	Pike,
+	Mace,
+	AlchemicalFire,
 }
 
 static var pathlib = {
 	"Unarmed": "res://resources/combat/weapon/unarmed.tres",
 	"Flammenschwert": "res://resources/combat/weapon/flammenschwert.tres",
+	"Crossbow": "res://resources/combat/weapon/crossbow.tres",
+	"Arquebus": "res://resources/combat/weapon/arquebus.tres",
+	"Pike": "res://resources/combat/weapon/pike.tres",
+	"Mace": "res://resources/combat/weapon/mace.tres",
+	"AlchemicalFire": "res://resources/combat/weapon/alchemical-fire.tres",
 }
 
 static var _cached_key = WeaponClasses.keys()

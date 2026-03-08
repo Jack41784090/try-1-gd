@@ -6,6 +6,7 @@ const MARCH_Y_BASE: float = 50.0
 const MARCH_SPACING_X: float = 80.0
 const MARCH_SPEED: float = 60.0
 
+@onready var background_image: TextureRect = $BackgroundImage
 @onready var stage_viewport: SubViewport = $StageContainer/StageViewport
 @onready var stage_camera: StageCamera = $StageContainer/StageViewport/StageCamera
 @onready var warrior_container: Node2D = $StageContainer/StageViewport/WarriorContainer
@@ -54,6 +55,17 @@ func set_all_behavior(behavior: AnimTypes.Behavior) -> void:
 	for rig in rigs.values():
 		if is_instance_valid(rig):
 			rig.play_behavior(behavior)
+
+
+func reset_talking_to_idle() -> void:
+	for rig in rigs.values():
+		if is_instance_valid(rig) and rig.anim_controller.current_behavior == AnimTypes.Behavior.TALKING:
+			rig.play_behavior(AnimTypes.Behavior.IDLE)
+
+
+func set_background(texture: Texture2D) -> void:
+	background_image.texture = texture
+	background_image.visible = texture != null
 
 
 func start_march() -> void:

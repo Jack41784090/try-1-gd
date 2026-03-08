@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=4 format=3 uid="uid://bejeg2gc42pf"]
+
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_x70y1"]
+[ext_resource type="Script" uid="uid://bpk7smfuihqx4" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="2_hxofo"]
+[ext_resource type="Script" uid="uid://4lpu074be3h6" path="res://src/strategy/ui/vn/instructions/cinematic_instruction.gd" id="3_d6mf0"]
+
+[resource]
+script = ExtResource("1_x70y1")
+metadata/_custom_type_script = "uid://dui3bco6g4nk4"

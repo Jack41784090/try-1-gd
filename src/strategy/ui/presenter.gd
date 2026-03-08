@@ -62,6 +62,7 @@ func bind_view(v: StrategyView) -> void:
 	_update_ui()
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
+	await _check_missions()
 
 
 func _process(delta: float) -> void:
@@ -230,6 +231,16 @@ func on_scouting_closed() -> void:
 	pass
 
 
+func on_missions_requested() -> void:
+	if game_scenario.factions.is_empty():
+		return
+	view.show_missions(game_scenario.factions)
+
+
+func on_missions_closed() -> void:
+	pass
+
+
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
@@ -301,29 +312,34 @@ func _execute_activity_obj(activity: Activity) -> void:
 	ai_fleet.cleanup_defeated_squads()
 	_update_contacts(activity, player_location_before, ai_results)
 
+	await _check_missions()
 	actor.advance_turn()
 	is_executing_activity = false
-	_update_activity_buttons()
+	_update_ui()
 
 
 func _build_karma_sorted_entries(ai_results: Dictionary) -> Array:
 	var entries: Array = []
 
-	entries.append({
-		"is_player": true,
-		"karma": actor.player_squad.karma,
-	})
+	entries.append(
+		{
+			"is_player": true,
+			"karma": actor.player_squad.karma,
+		},
+	)
 
 	var decisions = ai_results["decisions_this_turn"]
 	for squad_id in decisions:
 		var decision = decisions[squad_id]
-		entries.append({
-			"is_player": false,
-			"squad_id": squad_id,
-			"activity": decision["activity"],
-			"executor": ai_fleet.squad_executors[squad_id],
-			"karma": decision["squad"].karma,
-		})
+		entries.append(
+			{
+				"is_player": false,
+				"squad_id": squad_id,
+				"activity": decision["activity"],
+				"executor": ai_fleet.squad_executors[squad_id],
+				"karma": decision["squad"].karma,
+			},
+		)
 
 	entries.sort_custom(func(a, b): return a["karma"] > b["karma"])
 	return entries
@@ -338,10 +354,12 @@ func _resolve_ai_combat_from_results(results: Array[GenericResult], squad_id: St
 			var attacker = ai_fleet._find_squad_by_id(squad_id)
 			var defender = ai_fleet._find_squad_by_id(target_id)
 			if attacker and defender:
-				ai_fleet._execute_headless_combat({
-					"attacker_id": squad_id,
-					"defender_id": target_id,
-				})
+				ai_fleet._execute_headless_combat(
+					{
+						"attacker_id": squad_id,
+						"defender_id": target_id,
+					},
+				)
 
 
 func _exec_play_animchanges_loop(activity, state):
@@ -353,6 +371,7 @@ func _exec_play_animchanges_loop(activity, state):
 	var has_combat = await _enter_combat_if_exists(activity, all_activity_result)
 	if not has_combat:
 		await _animate_stat_changes()
+
 
 func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
 	# Updates the contact/detection system after a turn:
@@ -423,17 +442,23 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 		return
 
 	if player.engagement_stance == StrategyTypes.EngagementStance.ALWAYS_ENGAGE:
-		Log.info("Presenter", "Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
-			enemy_squad.squad_name,
-			StrategyTypes.EngagementType.keys()[engagement_type],
-		])
+		Log.info(
+			"Presenter",
+			"Auto-engaging %s (stance: ALWAYS_ENGAGE, type: %s)" % [
+				enemy_squad.squad_name,
+				StrategyTypes.EngagementType.keys()[engagement_type],
+			],
+		)
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
 	else:
-		Log.info("Presenter", "Contact LOCKED with %s (type: %s) — player decides" % [
-			enemy_squad.squad_name,
-			StrategyTypes.EngagementType.keys()[engagement_type],
-		])
+		Log.info(
+			"Presenter",
+			"Contact LOCKED with %s (type: %s) — player decides" % [
+				enemy_squad.squad_name,
+				StrategyTypes.EngagementType.keys()[engagement_type],
+			],
+		)
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
 
@@ -485,6 +510,22 @@ func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
 	if results.is_empty():
 		return
 	_queue_multiple_eventchains_from_results(results)
+	await _vn_play_next_recurs()
+
+
+func _check_missions() -> void:
+	var context = actor.aem._build_context()
+	var all_results: Array[MissionResult] = []
+	for faction in game_scenario.factions:
+		var results = faction.check_mission_completions(context)
+		for r in results:
+			all_results.append(r)
+	if all_results.is_empty():
+		return
+	var generic_results: Array[GenericResult] = []
+	for r in all_results:
+		generic_results.append(r)
+	_queue_multiple_eventchains_from_results(generic_results)
 	await _vn_play_next_recurs()
 
 #endregion
@@ -681,12 +722,20 @@ func _update_ui() -> void:
 	var location = actor.current_location
 
 	view.update_turn(world.turn_count)
-	view.update_location(
-		"%s (%s)" % [
-			location.location_name if location else "Unknown",
-			_location_type_to_string(location.type) if location else "",
-		],
-	)
+
+	var walking = actor.walking_towards
+	if walking != null and walking["location"] != null:
+		var dest: Location = walking["location"]
+		var progress: int = walking["progress"]
+		var distance: int = actor.get_distance(actor.current_location, dest)
+		view.update_location("Travelling to %s (%d/%d)" % [dest.location_name, progress, distance])
+	else:
+		view.update_location(
+			"%s (%s)" % [
+				location.location_name if location else "Unknown",
+				_location_type_to_string(location.type) if location else "",
+			],
+		)
 
 	view.update_condition(_get_morale_condition(squad.get_morale()))
 	view.update_morale_bar(squad.get_morale())
@@ -699,7 +748,7 @@ func _update_ui() -> void:
 		location.development if location else 0,
 	)
 
-	var walking = actor.walking_towards
+	walking = actor.walking_towards
 	if walking != null and walking["location"] != null:
 		view.show_continue_travel_button(walking["location"].location_name)
 	else:

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CameraInstruction" load_steps=2 format=3 uid="uid://b8ka34i0rphnc"]
+
+[ext_resource type="Script" uid="uid://balbj1g85dkh8" path="res://src/strategy/ui/vn/instructions/camera_instruction.gd" id="1_8825b"]
+
+[resource]
+script = ExtResource("1_8825b")
+include_character_ids = Array[String](["Goetz", "Franz", "Hilda"])
+time = 3.5
+metadata/_custom_type_script = "uid://balbj1g85dkh8"

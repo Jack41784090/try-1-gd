@@ -107,7 +107,6 @@ func set_team(_team):
 
 func init_after():
 	_debug_id = "[%d]" % [player_id]
-	print(" --- %s initialized after --- " % _debug_id)
 	
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
@@ -117,20 +116,14 @@ func init_after():
 
 
 func _validate_existence():
-	print(self )
+	pass
 	# assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
 	# assert(class_id != null, "Class ID must not be null")
 
 
 func _init(config: EntityConfig = null):
-	print(" --- %s initialization --- " % _debug_id)
-
 	if config == null:
-		print(" --- %s initialized with empty config --- " % _debug_id)
-		# _validate_existence()
 		return
-	else:
-		print(" --- %s initialized with config, should expect init_after() call afterwards --- " % _debug_id)
 	
 	player_id = config.player_id
 	class_id = config.entity_type_id
@@ -324,8 +317,6 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	if is_dead():
 		return []
 	
-	# 1. Logic updates the situation
-	print("[%s] Deciding action..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
 		"entity": self ,
@@ -335,7 +326,6 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	
 	# 2. Logic determines the best Consideration and its associated Skill
 	var chosen_skill = updated_logic.choose_skill()
-	print("[%s] || Chose skill: %s" % [_debug_id, chosen_skill.name if chosen_skill else "None"])
 	
 	# 3. Entity executes such skill based on Logic
 	if chosen_skill:
@@ -343,7 +333,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		for eu in skill_result:
 			updates.append(eu)
 	else:
-		print("[%s] || No skill selected, performing idle action" % [_debug_id])
+		print("%s/%s: no skill, idling" % [_debug_id, entity_name])
 		for c in recover():
 			updates.append(EntityUpdate.new(player_id, player_id, c))
 	
@@ -353,7 +343,6 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	if is_dead():
 		return []
 	
-	print("[%s] Deciding reaction..." % [_debug_id])
 	var updates: Array = []
 	var updated_logic = logic.update_situation({
 		"entity": self ,
@@ -362,7 +351,6 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	})
 	
 	var chosen_skill = updated_logic.choose_skill()
-	print("[%s] || Chose skill for reaction: %s" % [_debug_id, chosen_skill.name if chosen_skill else "None"])
 	
 	if chosen_skill:
 		var skill_result = execute_skill(chosen_skill, updated_logic)
@@ -370,7 +358,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 			for eu in skill_result:
 				updates.append(eu)
 	else:
-		print("[%s] || No skill selected for reaction, doing nothing" % [_debug_id])
+		print("%s/%s: no skill, skipping reaction" % [_debug_id, entity_name])
 	
 	return updates
 
@@ -378,7 +366,6 @@ func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
 	if not skill:
 		return []
 	
-	print("[%s] Executing skill: %s" % [_debug_id, skill.name])
 	var updates: Array = []
 	
 	# var needs_target = _skill_needs_target(skill)
@@ -396,7 +383,7 @@ func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
 
 	var clash = logic_obj.choose_clash_with_skill(skill)
 	if clash == null:
-		print("[%s] Cannot find target for skill: %s" % [_debug_id, skill.name])
+		print("%s/%s no valid target for '%s'" % [_debug_id, entity_name, skill.name])
 		return []
 	
 	for u in clash.commit():

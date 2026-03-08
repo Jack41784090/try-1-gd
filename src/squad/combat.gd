@@ -54,7 +54,7 @@ func get_all_entities() -> Dictionary:
 
 
 func recovery():
-	SBLog.line(3, "offered a recovery", SBLog.prefix(self))
+	SBLog.line(3, "offered a recovery", "[%s]" % squad_name)
 	for entity in entities:
 		entity.recover()
 
@@ -75,7 +75,7 @@ func _format_enemy_positions(metadata: Dictionary) -> String:
 
 
 func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[EntityUpdate]:
-	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, SBLog.prefix(self))
+	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, "[%s]" % squad_name)
 	var updates_after_attack: Array[EntityUpdate] = []
 
 	last_round_received_attack = round_count
@@ -84,13 +84,9 @@ func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[Entit
 		var our_squad_metadata = get_all_entities()
 		var enemy_squad_metadata = enemy_squad.get_all_entities()
 
-		SBLog.line(5, "Entity [%s] acting. Enemy positions: %s" % [our_entity.entity_name, _format_enemy_positions(enemy_squad_metadata)])
-
 		var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
 		for result in action_results:
 			updates_after_attack.append(result)
-
-	SBLog.line(4, "↻ Refreshing positions after actions, before reactions", SBLog.prefix(self))
 
 	for enemy_entity in enemy_squad.entities:
 		var our_squad_metadata = get_all_entities()
@@ -109,21 +105,21 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 	var updates: Array[EntityUpdate] = []
 
 	if action_count <= 0:
-		SBLog.line(3, "No actions available this round (tactic: 0 actions)", SBLog.prefix(self))
+		SBLog.line(3, "No actions available this round (tactic: 0 actions)", "[%s]" % squad_name)
 		return updates
 
-	SBLog.line(3, "Performing %d action(s)" % action_count, SBLog.prefix(self))
+	SBLog.line(3, "Performing %d action(s)" % action_count, "[%s]" % squad_name)
 
 	for entity in entities:
 		entity.new_round_reset()
 
 	# Each entity gets to act up to action_count times
 	for action_num in range(action_count):
-		SBLog.line(4, "Action %d/%d" % [action_num + 1, action_count], SBLog.prefix(self))
+		SBLog.line(4, "Action %d/%d" % [action_num + 1, action_count], "[%s]" % squad_name)
 
 		var enemy_squad = choose_enemy_squad(enemy_squads)
 		if not enemy_squad:
-			SBLog.line(4, "No enemy squad available to attack", SBLog.prefix(self))
+			SBLog.line(4, "No enemy squad available to attack", "[%s]" % squad_name)
 			break
 
 		last_round_received_attack = round_count
@@ -134,15 +130,6 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 
 			var our_squad_metadata = get_all_entities()
 			var enemy_squad_metadata = enemy_squad.get_all_entities()
-
-			SBLog.line(
-				5,
-				"Entity [%s] action %d. Enemy positions: %s" % [
-					our_entity.entity_name,
-					action_num + 1,
-					_format_enemy_positions(enemy_squad_metadata),
-				],
-			)
 
 			var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
 			for result in action_results:
@@ -158,18 +145,18 @@ func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: i
 	var updates: Array[EntityUpdate] = []
 
 	if reaction_count <= 0:
-		SBLog.line(3, "No reactions available this round (tactic: 0 reactions)", SBLog.prefix(self))
+		SBLog.line(3, "No reactions available this round (tactic: 0 reactions)", "[%s]" % squad_name)
 		return updates
 
-	SBLog.line(3, "Performing %d reaction(s)" % reaction_count, SBLog.prefix(self))
+	SBLog.line(3, "Performing %d reaction(s)" % reaction_count, "[%s]" % squad_name)
 
 	# Each entity gets to react up to reaction_count times
 	for reaction_num in range(reaction_count):
-		SBLog.line(4, "Reaction %d/%d" % [reaction_num + 1, reaction_count], SBLog.prefix(self))
+		SBLog.line(4, "Reaction %d/%d" % [reaction_num + 1, reaction_count], "[%s]" % squad_name)
 
 		var enemy_squad = choose_enemy_squad(enemy_squads)
 		if not enemy_squad:
-			SBLog.line(4, "No enemy squad to react against", SBLog.prefix(self))
+			SBLog.line(4, "No enemy squad to react against", "[%s]" % squad_name)
 			break
 
 		for our_entity in entities:
@@ -178,15 +165,6 @@ func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: i
 
 			var our_squad_metadata = get_all_entities()
 			var enemy_squad_metadata = enemy_squad.get_all_entities()
-
-			SBLog.line(
-				5,
-				"Entity [%s] reaction %d. Enemy positions: %s" % [
-					our_entity.entity_name,
-					reaction_num + 1,
-					_format_enemy_positions(enemy_squad_metadata),
-				],
-			)
 
 			var reaction_results = our_entity.reaction(our_squad_metadata, enemy_squad_metadata)
 			for result in reaction_results:
@@ -202,7 +180,7 @@ func choose_enemy_squad(enemy_squads: Array):
 
 
 func act_attack_random(targetable_squads: Array, round_count: int):
-	SBLog.line(3, "attacking random enemy", SBLog.prefix(self))
+	SBLog.line(3, "attacking random enemy", "[%s]" % squad_name)
 	var enemy_squad = choose_enemy_squad(targetable_squads)
 
 	if enemy_squad:
@@ -211,7 +189,7 @@ func act_attack_random(targetable_squads: Array, round_count: int):
 
 
 func act_idle():
-	SBLog.line(3, "idling", SBLog.prefix(self))
+	SBLog.line(3, "idling", "[%s]" % squad_name)
 	return null
 
 

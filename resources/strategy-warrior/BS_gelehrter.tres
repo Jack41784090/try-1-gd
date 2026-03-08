@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EntityBaseStats" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cd8rsiutj3bsj" path="res://src/squad-battle/entity/bstats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+strength = 0.7
+dex = 0.7
+acr = 0.8
+spd = 0.9
+siz = 1.0
+int_stat = 2.0
+spr = 1.5
+fai = 1.0
+cha = 1.2
+beu = 1.0
+wil = 1.5
+endurance = 0.8
+metadata/_custom_type_script = "uid://cd8rsiutj3bsj"

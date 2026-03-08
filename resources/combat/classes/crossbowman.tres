@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SquadEntity" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat.gd" id="1_combat"]
+[ext_resource type="Resource" path="res://resources/combat/logic/logic/backline-shooter.tres" id="2_logic"]
+[ext_resource type="Resource" path="res://resources/strategy-warrior/BS_crossbowman.tres" id="3_stats"]
+
+[resource]
+script = ExtResource("1_combat")
+class_id = 2
+entity_name = "Crossbowman"
+stats = ExtResource("3_stats")
+weapon_class = 2
+armor_class = 2
+logic_config = ExtResource("2_logic")
+metadata/_custom_type_script = "uid://r0wxsq4exvco"

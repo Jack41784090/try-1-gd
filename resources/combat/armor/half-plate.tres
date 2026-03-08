@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="ArmorConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad-battle/armor/protection-tsl.gd" id="1_prot"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad-battle/armor/_config-resource.gd" id="2_acfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/weapon/potency-obj.gd" id="3_pot"]
+
+[sub_resource type="Resource" id="Resource_pot_strike"]
+script = ExtResource("3_pot")
+value = 0.4
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_pot_stab"]
+script = ExtResource("3_pot")
+potency = 2
+value = 0.35
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_pot_slash"]
+script = ExtResource("3_pot")
+potency = 1
+value = 0.3
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_prot_tsl"]
+script = ExtResource("1_prot")
+Reality = 8
+PotencyList = Array[ExtResource("3_pot")]([SubResource("Resource_pot_strike"), SubResource("Resource_pot_stab"), SubResource("Resource_pot_slash")])
+metadata/_custom_type_script = "uid://cya1ph2rx5aff"
+
+[resource]
+script = ExtResource("2_acfg")
+armor_name = "Half Plate"
+armor_bonus = 12.0
+protection_translation = Array[ExtResource("1_prot")]([SubResource("Resource_prot_tsl")])
+metadata/_custom_type_script = "uid://cmp8q7xe0kf7r"

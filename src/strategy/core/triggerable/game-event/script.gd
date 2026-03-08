@@ -1,4 +1,5 @@
-class_name GameEvent extends Triggerable
+class_name GameEvent
+extends Triggerable
 
 @export var result: EventResult
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
@@ -6,32 +7,33 @@ class_name GameEvent extends Triggerable
 var times_triggered: int = 0
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+
 func _init() -> void:
 	super._init()
 
-func can_trigger(context: Dictionary = {}) -> bool:
+
+func can_trigger(context: Dictionary = { }) -> bool:
 	if repeats >= 0 and times_triggered >= repeats:
 		return false
-	
+
 	# Check chance roll (only roll if chance < 1.0 to avoid unnecessary RNG calls)
 	if chance < 1.0 and _rng.randf() > chance:
 		return false
-	
+
 	return super.can_trigger(context)
+
 
 func trigger(context: Dictionary) -> Array[EventResult]:
 	times_triggered += 1
-	
-	execution_started.emit()
-	
 	var _result = execute(context)
-	
+
 	triggered.emit(_result)
-	
-	if _result.auto_resolved and _result.event_chain_path.is_empty():
-		execution_completed.emit(_result)
-	
+
+	#if _result.auto_resolved and _result.event_chain_path.is_empty():
+	#execution_completed.emit(_result)
+
 	return [_result]
+
 
 func execute(context: Dictionary) -> EventResult:
 	# Override this in subclasses to implement event logic
@@ -42,8 +44,10 @@ func execute(context: Dictionary) -> EventResult:
 	# })
 	return result
 
+
 func increment_trigger_count() -> void:
 	times_triggered += 1
+
 
 func reset_trigger_count() -> void:
 	times_triggered = 0

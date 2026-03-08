@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CharacterInstruction" load_steps=2 format=3 uid="uid://cc1vvl1yo1l7f"]
+
+[ext_resource type="Script" uid="uid://dv3iev4uomqcy" path="res://src/strategy/ui/vn/instructions/character_instruction.gd" id="1_6lyu6"]
+
+[resource]
+script = ExtResource("1_6lyu6")
+character_id = "Franz"
+target_position = Vector2(-330, 0)
+time = 2.6
+metadata/_custom_type_script = "uid://dv3iev4uomqcy"

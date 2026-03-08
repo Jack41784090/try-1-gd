@@ -36,7 +36,7 @@ func choose_skill() -> Skill:
 	if config.considerations.size() == 0:
 		return get_default_attack()
 
-	print("\n=== EVALUATING BEST SKILL ===")
+
 	var best_skill: Skill = null
 	var best_score := -INF
 
@@ -53,11 +53,10 @@ func choose_skill() -> Skill:
 
 	if best_skill:
 		best_skill = best_skill.duplicate()
-		print("\n[RESULT] Best Skill: %s (score=%.2f)" % [best_skill.name, best_score])
+		print("  [%d] %s → '%s' (score %.2f)" % [entity.player_id, entity.entity_name, best_skill.name, best_score])
 	else:
-		print("\n[RESULT] No valid skill found, using default")
+		print("  [%d] %s → default attack (no considerations scored)" % [entity.player_id, entity.entity_name])
 		best_skill = get_default_attack()
-	print("==============================\n")
 
 	return best_skill
 

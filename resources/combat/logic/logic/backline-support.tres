@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=11 format=3]
+
+[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad-battle/entity/logic/config.gd" id="1_config"]
+[ext_resource type="Resource" uid="uid://cds4shncbtjre" path="res://resources/combat/considerations/consider_moving_to_backline_if_not.tres" id="2_moveback"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="3_csdr"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="4_glance"]
+[ext_resource type="Resource" uid="uid://c3y4n5o6p7q8r" path="res://resources/combat/logic/skills/example-heal-skill.tres" id="5_heal"]
+[ext_resource type="Resource" path="res://resources/combat/logic/skills/inspire-skill.tres" id="6_inspire"]
+
+[sub_resource type="Resource" id="Resource_at_back_glance"]
+script = ExtResource("4_glance")
+property = 6
+use_comparison = true
+comparison = 2
+threshold = 3.0
+
+[sub_resource type="Resource" id="Resource_heal_csdr"]
+script = ExtResource("3_csdr")
+name = "Heal at Backline"
+weight = 1.1
+glances = Array[ExtResource("4_glance")]([SubResource("Resource_at_back_glance")])
+entity_limiter = "self"
+returning = ExtResource("5_heal")
+
+[sub_resource type="Resource" id="Resource_at_back_glance2"]
+script = ExtResource("4_glance")
+property = 6
+use_comparison = true
+comparison = 2
+threshold = 3.0
+
+[sub_resource type="Resource" id="Resource_inspire_csdr"]
+script = ExtResource("3_csdr")
+name = "Inspire at Backline"
+weight = 0.9
+glances = Array[ExtResource("4_glance")]([SubResource("Resource_at_back_glance2")])
+entity_limiter = "self"
+returning = ExtResource("6_inspire")
+
+[resource]
+script = ExtResource("1_config")
+considerations = Array[ExtResource("3_csdr")]([ExtResource("2_moveback"), SubResource("Resource_heal_csdr"), SubResource("Resource_inspire_csdr")])
+metadata/_custom_type_script = "uid://bbbgoilqfygt0"

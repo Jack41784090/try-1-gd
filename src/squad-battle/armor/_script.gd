@@ -3,6 +3,7 @@ class_name SquadArmor extends RefCounted
 var armor_name: String = "Unarmored"
 var defense_bonus: float
 var armor_bonus: float
+var magical_armor_bonus: float = 0.0
 var protection_translation: Array[ProtectionTranslation] = []
 var defender_ref = null
 
@@ -11,6 +12,7 @@ func _init(config: ArmorConfig):
 	armor_name = config.armor_name
 	defense_bonus = config.defense_bonus
 	armor_bonus = config.armor_bonus
+	magical_armor_bonus = config.magical_armor_bonus
 	protection_translation = config.protection_translation
 
 func set_defender(defender):
@@ -78,6 +80,12 @@ func get_raw_armor_protection(defender) -> float:
 func get_PV() -> float:
 	assert(defender_ref != null, "Armor defender_ref not set. Call set_defender() first.")
 	return get_total_armor_value(defender_ref)
+
+func get_magical_PV() -> float:
+	assert(defender_ref != null, "Armor defender_ref not set. Call set_defender() first.")
+	var spirituality = defender_ref.calculate_reality_value(SquadBattleTypes.Reality.Spirituality)
+	var willpower = defender_ref.calculate_reality_value(SquadBattleTypes.Reality.Bravery)
+	return magical_armor_bonus + spirituality * 0.5 + willpower * 0.5
 
 func get_raw_damage_taken(raw_damage: Dictionary) -> float:
 	assert(defender_ref != null, "Armor defender_ref not set. Call set_defender() first.")

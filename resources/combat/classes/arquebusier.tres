@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SquadEntity" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat.gd" id="1_combat"]
+[ext_resource type="Resource" path="res://resources/combat/logic/logic/backline-gunner.tres" id="2_logic"]
+[ext_resource type="Resource" path="res://resources/strategy-warrior/BS_arquebusier.tres" id="3_stats"]
+
+[resource]
+script = ExtResource("1_combat")
+class_id = 3
+entity_name = "Arquebusier"
+stats = ExtResource("3_stats")
+weapon_class = 3
+armor_class = 0
+logic_config = ExtResource("2_logic")
+metadata/_custom_type_script = "uid://r0wxsq4exvco"

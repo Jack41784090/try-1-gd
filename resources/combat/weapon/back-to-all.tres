@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WeaponLocation" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/weapon/weapon-location.gd" id="1_wloc"]
+
+[resource]
+script = ExtResource("1_wloc")
+from = 3
+can_hit = Array[int]([1, 2, 3])
+metadata/_custom_type_script = "uid://bwfjvewjqtd"

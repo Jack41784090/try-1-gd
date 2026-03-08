@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DialogueInstruction" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://deeibdh2glf6b" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="1_dlg"]
+
+[resource]
+script = ExtResource("1_dlg")
+speaker_name = "Franz"
+line_spoken = "My Lord, my deepest apologies for interrupting you but --"

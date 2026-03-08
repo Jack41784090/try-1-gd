@@ -13,12 +13,9 @@
 [ext_resource type="Texture2D" uid="uid://dqkm7scsi7hkj" path="res://assets/hoi4_icons/civ_factory.png" id="7_ewb5q"]
 [ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_vmu77"]
 [ext_resource type="Texture2D" uid="uid://by5hoqack8b3u" path="res://assets/hoi4_icons/supply_texticon.png" id="9_jx64g"]
-[ext_resource type="Texture2D" uid="uid://cbid5ofg327yi" path="res://assets/faust.jpg" id="10_4fho2"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
-[ext_resource type="Texture2D" uid="uid://vbc03113rr6r" path="res://assets/hi.png" id="11_jnf8s"]
-[ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/view.gd" id="12_jx64g"]
 [ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/view.gd" id="12_manage_squad"]
-[ext_resource type="Script" uid="uid://dhgjoxu2jsets" path="res://src/strategy/ui/vn/presenter.gd" id="12_vn_presenter"]
+[ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="13_vn_view"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
@@ -29,6 +26,9 @@
 [ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
 [ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="25_stage_presenter"]
 [ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="26_stage_camera"]
+[ext_resource type="StyleBox" uid="uid://dbylsrhw4yggk" path="res://assets/box_styles/simple_black.tres" id="26_x4082"]
+[ext_resource type="Script" uid="uid://cv2mrqw3dow5w" path="res://src/strategy/ui/missions/view.gd" id="28_tnmqu"]
+[ext_resource type="Script" uid="uid://df5h6gkt4bgwn" path="res://src/strategy/ui/missions/presenter.gd" id="29_ayhb7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -416,96 +416,9 @@ text = "End Game"
 layout_mode = 2
 size_flags_vertical = 3
 expand_mode = 1
-script = ExtResource("12_jx64g")
 
-[node name="CharacterContainer" type="HBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
-visible = false
+[node name="VnView" parent="PanelContainer/MainVBox/MainScreenArea" instance=ExtResource("13_vn_view")]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -250.0
-offset_right = 400.0
-offset_bottom = 250.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="TextureRect" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea/CharacterContainer"]
-layout_mode = 2
-texture = ExtResource("10_4fho2")
-expand_mode = 3
-stretch_mode = 4
-
-[node name="TextureRect2" type="TextureRect" parent="PanelContainer/MainVBox/MainScreenArea/CharacterContainer"]
-layout_mode = 2
-texture = ExtResource("11_jnf8s")
-expand_mode = 3
-stretch_mode = 4
-
-[node name="DialogueBox" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
-visible = false
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -500.0
-offset_top = -180.0
-offset_right = 500.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_header")
-
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
-layout_mode = 2
-theme_override_constants/margin_left = 25
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 25
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="SpeakerLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 22
-text = "Speaker"
-
-[node name="DialogueLabel" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/line_spacing = 3
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
-text = "Dialogue goes here"
-autowrap_mode = 2
-
-[node name="AdvancePrompt" type="Label" parent="PanelContainer/MainVBox/MainScreenArea/DialogueBox"]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.75, 0.6, 0.8)
-theme_override_font_sizes/font_size = 14
-text = "Click to continue"
-horizontal_alignment = 2
-vertical_alignment = 2
-
-[node name="VnPresenter" type="Node" parent="PanelContainer/MainVBox/MainScreenArea"]
-script = ExtResource("12_vn_presenter")
 
 [node name="ActionButtons" type="PanelContainer" parent="PanelContainer/MainVBox"]
 layout_mode = 2
@@ -676,6 +589,15 @@ theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
 text = "Scout Report"
+
+[node name="MissionsButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+tooltip_text = "View active and completed missions"
+theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+text = "Missions"
 
 [node name="Spacer" type="Control" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
 layout_mode = 2
@@ -1159,7 +1081,7 @@ offset_right = 400.0
 offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+theme_override_styles/panel = ExtResource("26_x4082")
 
 [node name="MarginContainer" type="MarginContainer" parent="ScoutingView/OverlayPanel"]
 layout_mode = 2
@@ -1211,6 +1133,60 @@ text = "Close"
 
 [node name="ScoutingPresenter" type="Node" parent="ScoutingView"]
 script = ExtResource("23_scouting_presenter")
+
+[node name="MissionsView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("28_tnmqu")
+
+[node name="OverlayPanel" type="PanelContainer" parent="MissionsView"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = -280.0
+offset_right = 450.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="MarginContainer" type="MarginContainer" parent="MissionsView/OverlayPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MissionsView/OverlayPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 22
+text = "Missions"
+horizontal_alignment = 1
+
+[node name="ContactsScroll" type="ScrollContainer" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContactsContainer" type="VBoxContainer" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="MissionsPresenter" type="Node" parent="MissionsView"]
+script = ExtResource("29_ayhb7")
 
 [node name="CombatIntermission" type="PanelContainer" parent="."]
 visible = false

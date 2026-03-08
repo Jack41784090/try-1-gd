@@ -19,6 +19,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
   - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
   - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
+  - `ranged_combat_demo.tscn` — ranged combat: mixed squads with Crossbowman, Arquebusier, Pikeman, Feldprediger. Headless battle testing ranged targeting, suppression ORG damage, reach weapons, and support skills
+  - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
@@ -42,6 +44,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry
+   - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
    - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers
@@ -79,7 +82,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
     - Stage direction: `walk_to` (Vector2 stage coords), `behavior` (animation override), `face_direction` (-1/0/1)
     - Helpers: `has_walk_to()`, `has_interrupt()`, `has_after_dependency()`, `is_auto_advance()`
   - `EventChain` (event_chain.gd) — `get_dialogue_by_id()` for ID-based lookup
-  - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`
+  - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`. `dismiss_all_speech()` only resets TALKING rigs to IDLE (preserves WALKING/GESTURING behaviors)
   - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
   - `AIFleetManager` (fleet_manager.gd) — fleet orchestration: `prepare_ai_turns()` runs brain decisions and resolves Activity objects (duplicating for TRAVEL/FORCE_MARCH to avoid shared-state conflicts). Does NOT execute activities — execution happens in the unified karma-sorted phase loop in `StrategyPresenter`. Provides `_execute_headless_combat()` and `cleanup_defeated_squads()` for combat resolution. Caches `location_at_decision` per squad for correct edge_log reporting
@@ -96,7 +99,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
   - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
-  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → advance turn. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
   - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
   - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
@@ -105,6 +108,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
   - `ShopView` (shop/view.gd) + `ShopPresenter` (shop/presenter.gd) — shop with cart system, quantity controls, confirmation flow
   - `ScoutingView` (scouting/view.gd) + `ScoutingPresenter` (scouting/presenter.gd) — scouting intelligence overlay with progressive contact revelation
+  - `MissionsView` (missions/view.gd) + `MissionsPresenter` (missions/presenter.gd) — two-column missions overlay: left column lists active/completed missions, right column shows selected mission details (description, conditions, rewards). UI built programmatically. Opened via "Missions" button in bottom nav bar. `MissionsPresenter.open()` accepts `Array[Mission]` (caller collects from factions). Guarded against empty factions in presenter
 - **Contact & Spotting System** (`src/strategy/core/contact/`): HOI4-inspired gradual awareness between squads
   - `Contact` (contact.gd) — RefCounted, tracks one squad's awareness of another (0-100 progress → NONE/SUSPECTED/TRACKED/LOCKED)
   - `ContactTracker` (tracker.gd) — RefCounted, central manager on `World.contact_tracker`. Update loop, proximity detection, engagement checks, tracking capacity
@@ -130,11 +134,35 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 ### Key Enums and Types
 
+- Entity Classes: `src/character/classes-enum.gd` (EntityClasses.Types: Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter)
+- Weapons: `src/squad-battle/weapon/_factory.gd` (WeaponClasses: Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire)
+- Armor: `src/squad-battle/armor/_factory.gd` (ArmorClasses: Unarmored, LeatherArmor, PaddedArmor, HalfPlate)
+- Logic: `src/squad-battle/entity/logic/_factory.gd` (LogicAvailable: Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster)
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
 - Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
+
+### Unit Classes & Combat Configuration
+
+7 unit classes with distinct combat roles:
+- **Landsknecht** — melee frontline DPS. Flammenschwert (Force→Slash+Strike), Leather Armor, Frontline logic. Front position. Cost: 100
+- **Healer** — backline support. Unarmed, Unarmored, BacklineHeal logic (move-to-back + heal). Back position. Cost: 150
+- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -8 ORG suppression on hit. Back position. Cost: 120
+- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -12 ORG suppression on hit. Back position. Cost: 200
+- **Pikeman** — defensive frontline with reach. Pike (Force→Stab+Strike, range: Front→Front+Mid, Mid→Front), Half Plate, DefensiveFrontline logic. Front position. Cost: 130
+- **Feldprediger** — enhanced support. Mace (Force→Strike, Front→Front only), Padded Armor, BacklineSupport logic (move-to-back + heal + inspire ORG boost). Back position. Cost: 180
+- **Gelehrter** — AoE backline mage. Alchemical Fire (Mana→Arcane, `is_magical=true`, range: Back→Front+Mid, Mid→Front, Front→Front), Unarmored, BacklineCaster logic (move-to-back + fireball). Fireball splash deals 50% damage to all enemies at target's position via `SkillEffectSplash`. Back position. Cost: 250
+
+Ranged targeting works via WeaponLocation.can_hit arrays — each weapon defines which positions it can reach from each position. Suppression is a SkillEffectFlat with property_direct=ORG triggered on TargetTookDamage. Splash is a `SkillEffectSplash` triggered on TargetTookDamage — iterates enemies at target's position, rolls magical pierce per target, deals ratio-reduced damage.
+
+### Magical vs Physical Combat
+- `WeaponConfig.is_magical` / `SquadWeapon.is_magical` — flags weapon as magical
+- **Physical pierce**: `weapon.get_total_penetration_value()` (Force+Precision) vs `armor.get_PV()` (armor_bonus+Endurance+Bravery)
+- **Magical pierce**: `weapon.get_magical_penetration_value()` (Mana+Spirituality) vs `armor.get_magical_PV()` (magical_armor_bonus+Spirituality+Willpower)
+- `OneClash.roll_for_pierce()` branches on `is_magical` automatically
+- `BattleContext` (battle_context.gd) — typed wrapper around context dict, provides `get_enemies_at(loc)` and `get_allies_at(loc)` for AoE targeting. Constructed in `OneClash.commit()` and passed to skill effects via `set_attacker_and_target()`
 
 ## GDScript Conventions
 
@@ -210,10 +238,12 @@ return updates
 - `src/strategy/ui/manage_squad/` — squad roster
 - `src/strategy/ui/shop/` — shop with cart UI
 - `src/strategy/ui/scouting/` — scouting report overlay (progressive contact intel)
+- `src/strategy/ui/missions/` — missions overlay (two-column: active/completed list + details/conditions/rewards)
 - `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
 - `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
 - `resources/ai/faction/` — faction brain profiles
 - `resources/generic-activities/` — Activity .tres files: rest, drill, travelling, patrol, investigate, attack, force-march, hold-mass, recruit, forage, heal, mercenary-work, buy-supplies
+- `resources/scenarios/goetz-official/` — Main Goetz von Berlichingen campaign scenario. Missions in `missions/`, faction in `factions/`, event chains in `event-chains/`
 - `resources/scenarios/ai-stress-test/` — Large 13-location stress test scenario for AI behavior observation
 - `resources/animation/` — animation data files
   - `expressions/` — iExpression .tres (eye + mouth clip pairs)

@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=10 format=3]
+
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_ske"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="3_glance"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="4_csdr"]
+[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad-battle/clash/skill/ske-flat.gd" id="5_flat"]
+
+[sub_resource type="Resource" id="Resource_damage"]
+script = ExtResource("1_ske")
+name = "Damage"
+metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
+
+[sub_resource type="Resource" id="Resource_suppress"]
+script = ExtResource("5_flat")
+value = -12.0
+property_direct = 2
+name = "Arquebus Suppression"
+triggers = Array[int]([1])
+metadata/_custom_type_script = "uid://dsat7plvbc7li"
+
+[sub_resource type="Resource" id="Resource_target_glance"]
+script = ExtResource("3_glance")
+threshold = 1.0
+metadata/_custom_type_script = "uid://b006sp1fbp8ro"
+
+[sub_resource type="Resource" id="Resource_targeting"]
+script = ExtResource("4_csdr")
+should_return = 1
+glances = Array[ExtResource("3_glance")]([SubResource("Resource_target_glance")])
+entity_limiter = "enemies"
+metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+
+[resource]
+script = ExtResource("2_skill")
+name = "Arquebus Attack"
+effects = Array[ExtResource("1_ske")]([SubResource("Resource_damage"), SubResource("Resource_suppress")])
+targeting_consideration = SubResource("Resource_targeting")

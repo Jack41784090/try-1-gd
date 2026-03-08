@@ -1,165 +1,61 @@
 extends Control
-## Timeline VN System Demo — showcases the new cinematic timeline playback system.
+## Timeline VN System Demo — showcases the cinematic timeline playback system.
 ## Demonstrates: gated dialogues, timed camera moves, character movement,
 ## speed-up on SPACE, and narrator fallback.
+## Uses the shared VnView scene (which contains its own VnPresenter).
 
+@export var given_event_chain: EventChain
+
+@onready var vn_view: VnView = $VnView
 @onready var stage_view: StageView = $StageView
-@onready var narrator_box: PanelContainer = $NarratorBox
-@onready var narrator_speaker: Label = $NarratorBox/MarginContainer/VBoxContainer/SpeakerLabel
-@onready var narrator_text: Label = $NarratorBox/MarginContainer/VBoxContainer/TextLabel
 @onready var status_label: Label = $StatusLabel
 
+var _presenter: VnPresenter
+var _playback: TimelinePlayback
 var _demo_warriors: Array[CharacterSocialStats] = []
-var _playback: TimelinePlayback = TimelinePlayback.new()
 var _is_headless: bool = false
 
 
 func _ready() -> void:
+	_presenter = vn_view.presenter
+	_playback = _presenter._playback
+	_presenter.stage_presenter = stage_view.presenter
+
+	_playback.gate_reached.connect(_on_gate_reached)
+	vn_view.chain_completed.connect(_on_chain_completed)
+
 	_is_headless = OS.has_feature("headless") or "--headless" in OS.get_cmdline_args()
 	print("=== Timeline VN System Demo ===")
 	print("SPACE: speed-up / advance gate | R: restart")
 	print("")
 
-	_playback.instruction_fired.connect(_on_instruction_fired)
-	_playback.gate_reached.connect(_on_gate_reached)
-	_playback.timeline_complete.connect(_on_timeline_complete)
-
-	_create_demo_warriors()
+	# _create_demo_warriors()
 	await stage_view.spawn_warriors(_demo_warriors)
 
-	var chain = _build_demo_chain()
-
-	var squad_ids: Array[String] = []
-	for w in _demo_warriors:
-		squad_ids.append(w.id)
-	stage_view.presenter.prepare_for_dialogue(squad_ids)
-	_ensure_npc_rigs(chain)
-
-	if not chain.setting.is_empty():
-		stage_view.presenter.apply_setting(chain.setting)
-
-	var typed_timeline: Array[CinematicInstruction] = []
-	for inst in chain.timeline:
-		if inst is CinematicInstruction:
-			typed_timeline.append(inst)
-	_playback.load_timeline(typed_timeline)
+	var chain = given_event_chain if given_event_chain else _build_demo_chain()
+	_presenter.load_chain(chain)
 	_update_status("Playing timeline...")
 
 	if _is_headless:
 		_run_headless_test()
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
-		match event.keycode:
-			KEY_SPACE:
-				_playback.on_input()
-			KEY_R:
-				_restart()
-
-
-func _process(delta: float) -> void:
-	_playback.process(delta)
+		if event.keycode == KEY_R:
+			_restart()
+			get_viewport().set_input_as_handled()
 
 
 func _restart() -> void:
-	_playback.reset()
-	stage_view.presenter.dismiss_all_speech()
-	narrator_box.visible = false
-	stage_view.presenter.return_to_wide()
+	if _presenter.stage_presenter:
+		_presenter.stage_presenter.dismiss_all_speech()
+		_presenter.stage_presenter.return_to_wide()
+	vn_view.hide_narrator_box()
 
-	var chain = _build_demo_chain()
-	var squad_ids: Array[String] = []
-	for w in _demo_warriors:
-		squad_ids.append(w.id)
-	stage_view.presenter.prepare_for_dialogue(squad_ids)
-
-	if not chain.setting.is_empty():
-		stage_view.presenter.apply_setting(chain.setting)
-
-	var typed_timeline: Array[CinematicInstruction] = []
-	for inst in chain.timeline:
-		if inst is CinematicInstruction:
-			typed_timeline.append(inst)
-	_playback.load_timeline(typed_timeline)
+	var chain = given_event_chain if given_event_chain else _build_demo_chain()
+	_presenter.load_chain(chain)
 	_update_status("Playing timeline... (restarted)")
-
-#region Instruction Dispatch
-
-func _on_instruction_fired(instruction: CinematicInstruction) -> void:
-	if instruction is DialogueInstruction:
-		_execute_dialogue(instruction)
-	elif instruction is CameraInstruction:
-		_execute_camera(instruction)
-	elif instruction is CharacterInstruction:
-		_execute_character(instruction)
-
-
-func _execute_dialogue(inst: DialogueInstruction) -> void:
-	print(
-		"[Demo] Dialogue — %s: \"%s\"" % [
-			inst.speaker_name if not inst.speaker_name.is_empty() else "(narrator)",
-			inst.line_spoken.left(50),
-		],
-	)
-
-	if not inst.keep_previous_bubbles:
-		stage_view.presenter.dismiss_all_speech()
-		narrator_box.visible = false
-
-	var speaker_id = _resolve_speaker_id(inst.speaker_name)
-	var is_narrator = speaker_id.is_empty() or inst.speaker_name.is_empty() or inst.speaker_name == "narrator"
-	var has_stage_rig = not is_narrator and stage_view.get_rig(speaker_id) != null
-
-	if has_stage_rig:
-		var bubble = stage_view.presenter.show_speech(speaker_id, inst.speaker_name, inst.line_spoken)
-		if bubble:
-			_playback.register_bubble(bubble)
-	else:
-		narrator_speaker.text = inst.speaker_name if not inst.speaker_name.is_empty() else "Narrator"
-		narrator_text.text = inst.line_spoken
-		narrator_text.visible_characters = 0
-		narrator_box.visible = true
-		_playback.start_narrator(inst.line_spoken, func(count: int) -> void: narrator_text.visible_characters = count)
-
-
-func _execute_camera(inst: CameraInstruction) -> void:
-	match inst.action:
-		CameraInstruction.Action.FOCUS_CHARACTER:
-			print("[Demo] Camera → focus %s" % inst.target_character_id)
-			stage_view.presenter.focus_speaker(inst.target_character_id, inst.zoom_level, maxf(inst.duration, 0.4))
-		CameraInstruction.Action.INCLUDE_CHARACTERS:
-			print("[Demo] Camera → include %s" % str(inst.include_character_ids))
-			stage_view.set_camera_include(inst.include_character_ids, maxf(inst.duration, 0.4))
-		CameraInstruction.Action.MOVE:
-			print("[Demo] Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
-			stage_view.move_camera(inst.move_offset, maxf(inst.duration, 0.01))
-		CameraInstruction.Action.ZOOM:
-			print("[Demo] Camera → zoom %.1f" % inst.zoom_level)
-			stage_view.zoom_camera(inst.zoom_level, maxf(inst.duration, 0.01))
-		CameraInstruction.Action.RESET:
-			print("[Demo] Camera → reset")
-			stage_view.reset_camera(0.4)
-
-
-func _execute_character(inst: CharacterInstruction) -> void:
-	match inst.action:
-		CharacterInstruction.Action.MOVE:
-			print("[Demo] Character %s → move to %s" % [inst.character_id, str(inst.target_position)])
-			stage_view.presenter.walk_character(inst.character_id, inst.target_position, maxf(inst.duration, 0.8))
-		CharacterInstruction.Action.FACE:
-			print("[Demo] Character %s → face %d" % [inst.character_id, inst.face_direction])
-			stage_view.presenter.set_character_facing(inst.character_id, inst.face_direction)
-		CharacterInstruction.Action.BEHAVIOR:
-			print("[Demo] Character %s → behavior '%s'" % [inst.character_id, inst.behavior])
-			var anim = TimelinePlayback.BEHAVIOR_MAP.get(inst.behavior.to_lower())
-			if anim != null:
-				stage_view.presenter.set_character_behavior(inst.character_id, anim)
-		CharacterInstruction.Action.SPAWN:
-			stage_view.presenter.spawn_npc_rig(inst.character_id)
-			stage_view.presenter.place_character(inst.character_id, inst.target_position, inst.face_direction)
-
-#endregion
 
 #region Playback Callbacks
 
@@ -168,43 +64,13 @@ func _on_gate_reached() -> void:
 	print("[Demo] Gate reached at t=%.2f" % _playback.time_cursor)
 
 
-func _on_timeline_complete() -> void:
+func _on_chain_completed() -> void:
 	_update_status("Timeline complete! Press R to restart")
 	print("\n=== Timeline complete! ===")
-	stage_view.presenter.dismiss_all_speech()
-	stage_view.presenter.return_to_wide()
-	narrator_box.visible = false
 
 #endregion
 
 #region Helpers
-
-func _resolve_speaker_id(speaker_name: String) -> String:
-	if speaker_name.is_empty() or speaker_name.to_lower() == "narrator":
-		return ""
-	for w in _demo_warriors:
-		if w.id == speaker_name.to_lower():
-			return w.id
-		if w.name.to_lower() == speaker_name.to_lower():
-			return w.id
-	if stage_view.rigs.has(speaker_name.to_lower()):
-		return speaker_name.to_lower()
-	return speaker_name
-
-
-func _ensure_npc_rigs(chain: EventChain) -> void:
-	for inst in chain.timeline:
-		if inst is DialogueInstruction:
-			var id = _resolve_speaker_id(inst.speaker_name)
-			if not id.is_empty() and not stage_view.rigs.has(id):
-				stage_view.presenter.spawn_npc_rig(id)
-				print("[Demo] Spawned NPC rig for: %s" % id)
-		elif inst is CharacterInstruction:
-			if not inst.character_id.is_empty() and not stage_view.rigs.has(inst.character_id):
-				stage_view.presenter.spawn_npc_rig(inst.character_id)
-				print("[Demo] Spawned NPC rig for: %s" % inst.character_id)
-
-
 func _update_status(text: String) -> void:
 	status_label.text = text
 

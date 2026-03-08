@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Consideration" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="1_glance"]
+[ext_resource type="Resource" path="res://resources/combat/logic/glances/org_proportional.tres" id="2_orggl"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="3_csdr"]
+
+[resource]
+script = ExtResource("3_csdr")
+should_return = 1
+glances = Array[ExtResource("1_glance")]([ExtResource("2_orggl")])
+entity_limiter = "allies"
+limited_by_weapon_loc = false
+metadata/_custom_type_script = "uid://dsjjbtklokbwv"

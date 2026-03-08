@@ -1,4 +1,5 @@
-class_name StrategyView extends Control
+class_name StrategyView
+extends Control
 
 #region UI Elements
 @onready var turn_label: Label = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/TurnLabel
@@ -29,10 +30,12 @@ class_name StrategyView extends Control
 @onready var manage_squad_view: ManageSquadView = $ManageSquadView
 @onready var shop_view: ShopView = $ShopView
 @onready var scouting_view: ScoutingView = $ScoutingView
+@onready var missions_view: MissionsView = $MissionsView
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
 @onready var scout_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ScoutButton
+@onready var missions_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/MissionsButton
 
 @onready var combat_panel: PanelContainer = $CombatIntermission
 @onready var combat_enemy_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/EnemyInfoLabel
@@ -49,7 +52,7 @@ class_name StrategyView extends Control
 
 #region Components
 @onready var presenter: StrategyPresenter = $StrategyPresenter
-@onready var vn_view: VnView = $PanelContainer/MainVBox/MainScreenArea
+@onready var vn_view: VnView = $PanelContainer/MainVBox/MainScreenArea/VnView
 @onready var stage_view: StageView = $PanelContainer/Foreground/StageView
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
@@ -61,12 +64,13 @@ class_name StrategyView extends Control
 func _init() -> void:
 	print(" --- main gui init --- ")
 
+
 func _ready() -> void:
 	# Wires all UI button signals to the presenter, then triggers the full game boot via bind_view
 	# This is the entry point: view._ready() → _connect_signals() → presenter.bind_view(self) → game starts
 	print(" --- Main gui is ready --- ")
 	_connect_signals()
-	presenter.bind_view(self )
+	presenter.bind_view(self)
 
 #endregion
 
@@ -96,6 +100,7 @@ func _connect_signals() -> void:
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
 	scout_button.pressed.connect(func(): presenter.on_scouting_requested())
+	missions_button.pressed.connect(func(): presenter.on_missions_requested())
 
 	if scouting_view:
 		scouting_view.closed.connect(func(): presenter.on_scouting_closed())
@@ -121,6 +126,9 @@ func _connect_signals() -> void:
 	if manage_squad_view:
 		manage_squad_view.closed.connect(func(): presenter.on_manage_squad_closed())
 
+	if missions_view:
+		missions_view.presenter.missions_closed.connect(func(): presenter.on_missions_closed())
+
 	if shop_view:
 		shop_view.presenter.purchase_completed.connect(func(purchases): presenter.on_purchase_completed(purchases))
 		shop_view.presenter.shop_closed.connect(func(): presenter.on_shop_closed())
@@ -135,14 +143,18 @@ func _connect_signals() -> void:
 func update_turn(turn: int) -> void:
 	turn_label.text = "Turn %d" % turn
 
+
 func update_location(text: String) -> void:
 	location_label.text = text
+
 
 func update_morale_bar(value: float) -> void:
 	morale_label.value = value
 
+
 func update_condition(text: String) -> void:
 	condition_label.text = text
+
 
 func update_stats(money: float, food: int, karma: float, stability: float, development: int) -> void:
 	stat_animator.stability_label.text = "%.0f" % stability
@@ -151,10 +163,12 @@ func update_stats(money: float, food: int, karma: float, stability: float, devel
 	stat_animator.food_label.text = "%d" % food
 	stat_animator.karma_label.text = "%.0f" % karma
 
+
 func update_activity_button(button: Button, text: String, disabled: bool, tooltip: String) -> void:
-	button.text = text
+	# button.text = text
 	button.disabled = disabled
 	button.tooltip_text = tooltip
+
 
 func disable_all_activity_buttons() -> void:
 	rest_button.disabled = true
@@ -176,21 +190,29 @@ func disable_all_activity_buttons() -> void:
 func show_strategy_ui() -> void:
 	action_buttons.visible = true
 
+
 func show_combat_ui() -> void:
 	action_buttons.visible = false
 	combat_panel.visible = true
 
+
 func hide_combat_panel() -> void:
 	combat_panel.visible = false
 
+
 func transition_to_strategy() -> void:
-	await SceneManager.transition_quick(func():
-		vn_view.exit()
-		show_strategy_ui())
+	await SceneManager.transition_quick(
+		func():
+			vn_view.exit()
+			show_strategy_ui()
+	)
+
 
 func transition_to_vn() -> void:
-	await SceneManager.transition_quick(func():
-		vn_view.enter())
+	await SceneManager.transition_quick(
+		func():
+			vn_view.enter()
+	)
 
 #endregion
 
@@ -211,6 +233,7 @@ func update_combat_intermission(enemy_name: String, enemy_count: int, flee_chanc
 	encounter_fight_button.disabled = not options.get("can_fight", true)
 	encounter_fight_button.tooltip_text = "Engage in tactical combat.\nVictory brings loot and clues.\nDefeat brings casualties."
 
+
 func update_combat_timer(value: float, max_value: float) -> void:
 	combat_timer_bar.max_value = max_value
 	combat_timer_bar.value = value
@@ -221,13 +244,19 @@ func update_combat_timer(value: float, max_value: float) -> void:
 	else:
 		combat_timer_bar.modulate = Color.WHITE
 
+
 func disable_combat_buttons() -> void:
-	if encounter_flee_button: encounter_flee_button.disabled = true
-	if encounter_negotiate_button: encounter_negotiate_button.disabled = true
-	if encounter_fight_button: encounter_fight_button.disabled = true
+	if encounter_flee_button:
+		encounter_flee_button.disabled = true
+	if encounter_negotiate_button:
+		encounter_negotiate_button.disabled = true
+	if encounter_fight_button:
+		encounter_fight_button.disabled = true
+
 
 func set_combat_info_text(text: String) -> void:
 	combat_info_label.text = text
+
 
 func show_combat_result_overlay(result: CombatController.CombatResult, morale_before: float, morale_after: float) -> void:
 	# Displays the post-combat result overlay on top of the 3D battle scene:
@@ -297,6 +326,7 @@ func show_combat_result_overlay(result: CombatController.CombatResult, morale_be
 		child.queue_free()
 	combat_overlay.visible = false
 
+
 func cleanup_battle_scene() -> void:
 	for child in battle_viewport.get_children():
 		child.queue_free()
@@ -309,8 +339,10 @@ func cleanup_battle_scene() -> void:
 func queue_vn_chain(path: String) -> void:
 	vn_view.queue_event_chain(path)
 
+
 func play_next_queued_chain() -> bool:
 	return vn_view.play_next_queued_chain()
+
 
 func get_chain_completed_signal() -> Signal:
 	return vn_view.chain_completed
@@ -327,50 +359,76 @@ func setup_child_guis(a: ActivityRunner) -> void:
 	investigation_view.setup(a)
 	recruitment_view.setup(a)
 
+
 func show_travel_menu(scenario: GameScenario, locations) -> void:
 	travel_view.show_travel_menu(scenario, locations)
+
 
 func hide_travel_menu() -> void:
 	travel_view.hide_travel_menu()
 
+
 func set_travel_mode_autopilot() -> void:
 	travel_view.set_mode_autopilot()
+
 
 func show_continue_travel_button(dest_name: String) -> void:
 	if continue_travel_button:
 		continue_travel_button.text = "▶ Continue to %s" % dest_name
 		continue_travel_button.visible = true
 
+
 func hide_continue_travel_button() -> void:
 	if continue_travel_button:
 		continue_travel_button.visible = false
 
+
 func show_investigation_menu() -> void:
 	investigation_view.show_investigation_menu()
+
 
 func hide_investigation_menu() -> void:
 	investigation_view.hide_investigation_menu()
 
+
 func show_recruitment_menu() -> void:
 	recruitment_view.show_recruitment_menu()
+
 
 func hide_recruitment_menu() -> void:
 	recruitment_view.hide_recruitment_menu()
 
+
 func show_manage_squad(squad) -> void:
 	manage_squad_view.call("show_squad", squad)
+
 
 func show_shop(shop: Shop, squad: SquadStrategicData) -> void:
 	shop_view.presenter.open(shop, squad)
 
+
 func hide_shop() -> void:
 	shop_view.presenter._on_closed()
+
 
 func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
 	scouting_view.show_scouting(world, player_squad)
 
+
 func hide_scouting() -> void:
 	scouting_view.hide_scouting()
+
+
+func show_missions(factions: Array[Faction]) -> void:
+	var all_missions: Array[Mission] = []
+	for faction in factions:
+		for mission in faction.missions:
+			all_missions.append(mission)
+	missions_view.presenter.open(all_missions)
+
+
+func hide_missions() -> void:
+	missions_view.hide_missions()
 
 #endregion
 
@@ -386,8 +444,10 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 func get_stage_presenter() -> StagePresenter:
 	return stage_view.presenter
 
+
 func show_stage() -> void:
 	stage_view.visible = true
+
 
 func hide_stage() -> void:
 	stage_view.visible = false
@@ -423,6 +483,7 @@ func _create_result_label(result: CombatController.CombatResult) -> Label:
 		result_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 	return result_label
+
 
 func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -> void:
 	var delta_label = Label.new()

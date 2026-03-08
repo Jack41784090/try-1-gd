@@ -49,20 +49,20 @@ func get_mission_by_id(mission_id: String) -> Mission:
 func add_mission(mission: Mission) -> void:
 	missions.append(mission)
 
-func check_mission_completions(context: Dictionary) -> Array[Mission]:
-	var completed: Array[Mission] = []
-	
+func check_mission_completions(context: Dictionary) -> Array[MissionResult]:
+	var results: Array[MissionResult] = []
+
 	for mission in missions:
 		if mission.check_completion(context):
 			var result = mission.complete()
-			completed.append(mission)
-			
+			results.append(result)
+
 			for unlocked_id in result.unlocked_missions:
 				var unlocked_mission = get_mission_by_id(unlocked_id)
 				if unlocked_mission:
 					unlocked_mission.unlock()
-	
-	return completed
+
+	return results
 
 func get_armies_at_location(location_id: String) -> Array[SquadStrategicData]:
 	var armies_at_loc: Array[SquadStrategicData] = []

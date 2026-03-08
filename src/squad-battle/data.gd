@@ -199,10 +199,6 @@ func squad_actions() -> Array[EntityUpdate]:
 		for update in squad_updates:
 			updates.append(update)
 
-	SBLog.section("Round %d Updates" % round_count, 2, 1, 0)
-	for update in updates:
-		SBLog.line(3, str(update))
-	SBLog.line(2, "End of updates")
 	return updates
 
 
@@ -229,35 +225,21 @@ func run_headless() -> Array[EntityUpdate]:
 	#   → returns all ~8 EntityUpdate objects collected across all rounds
 	var all_updates: Array[EntityUpdate] = []
 
-	print("[SquadBattle.run_headless] Starting headless combat simulation")
-	print("  Attacker tactic: %s (max_rounds=%d)" % [attacker_tactic, max_rounds])
-	print("  Defender tactic: %s" % defender_tactic)
+	print("[SquadBattle] Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
 
 	round_count = 0
 
 	while not check_victory() and round_count < max_rounds:
 		round_count += 1
-		print("[SquadBattle.run_headless] === Round %d/%d ===" % [round_count, max_rounds])
+		print("[SquadBattle] === Round %d/%d ===" % [round_count, max_rounds])
 		squad_recoveries()
 		for update in squad_actions():
 			all_updates.append(update)
 		remove_dead_entities()
 		var outcome = get_battle_outcome()
-		print("[SquadBattle.run_headless] Round %d outcome: %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome]])
-		print(
-			"  Attacker strength: %d, Defender strength: %d" % [
-				check_team_strength(SquadBattleTypes.Side.ATTACKER),
-				check_team_strength(SquadBattleTypes.Side.DEFENDER),
-			],
-		)
+		print("[SquadBattle] Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
 
 	var final_outcome = get_battle_outcome()
-	print(
-		"[SquadBattle.run_headless] Battle complete after %d rounds: %s" % [
-			round_count,
-			SquadBattleTypes.BattleOutcome.keys()[final_outcome],
-		],
-	)
-	print("  Total updates: %d" % all_updates.size())
+	print("[SquadBattle] Battle complete after %d round(s): %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[final_outcome]])
 
 	return all_updates

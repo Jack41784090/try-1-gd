@@ -3,7 +3,12 @@ class_name EntityFactory
 
 static var pathlib = {
 	"Landsknecht": "res://resources/combat/classes/landsknecht.tres",
-	"Healer": "res://resources/combat/classes/healer.tres"
+	"Healer": "res://resources/combat/classes/healer.tres",
+	"Crossbowman": "res://resources/combat/classes/crossbowman.tres",
+	"Arquebusier": "res://resources/combat/classes/arquebusier.tres",
+	"Pikeman": "res://resources/combat/classes/pikeman.tres",
+	"Feldprediger": "res://resources/combat/classes/feldprediger.tres",
+	"Gelehrter": "res://resources/combat/classes/gelehrter.tres",
 }
 
 static var _cached_key = EntityClasses.Types.keys()

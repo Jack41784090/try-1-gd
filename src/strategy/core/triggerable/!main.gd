@@ -1,5 +1,4 @@
-class_name Triggerable
-extends Resource
+class_name Triggerable extends Resource
 
 @export var trigger_id: String = ""
 @export var trigger_name: String = ""
@@ -15,7 +14,6 @@ signal triggered(result: Dictionary)
 signal execution_started()
 signal execution_completed(result: Dictionary)
 
-
 func _to_string() -> String:
 	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %s, Priority: %d, %s" % [
 		trigger_name,
@@ -27,10 +25,8 @@ func _to_string() -> String:
 		description,
 	]
 
-
 func _init() -> void:
 	pass
-
 
 func check_conditions(context: Dictionary) -> bool: # Evaluates all conditions against the provided context dict
 	# ALL conditions must pass (AND logic) for the triggerable to fire
@@ -46,10 +42,8 @@ func check_conditions(context: Dictionary) -> bool: # Evaluates all conditions a
 			print("		✅: %s" % condition._to_string())
 	return true
 
-
 func can_trigger(context: Dictionary) -> bool:
 	return check_conditions(context)
-
 
 func trigger(context: Dictionary) -> Array[Variant]:
 	# Fires this triggerable: signal → execute() → signal. Returns results wrapped in array.
@@ -71,7 +65,6 @@ func trigger(context: Dictionary) -> Array[Variant]:
 
 	return [result]
 
-
 func execute(context: Dictionary) -> Variant:
 	push_error("Triggerable.execute() must be overridden in subclass")
 	return {
@@ -79,7 +72,6 @@ func execute(context: Dictionary) -> Variant:
 		"trigger_name": trigger_name,
 		"requires_async": false,
 	}
-
 
 func add_condition(condition: TriggerCondition) -> void:
 	conditions.append(condition)

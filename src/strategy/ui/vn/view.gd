@@ -77,10 +77,11 @@ func hide_narrator_box() -> void:
 func _on_dialogue_box_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			presenter.on_advance()
+			if presenter:
+				presenter.on_advance()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not presenter.has_chain():
+	if not presenter or not presenter.has_chain():
 		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

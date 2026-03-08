@@ -113,6 +113,9 @@ func _build_context(activity: Activity = null) -> Dictionary:
 	#
 	# 1. Gather completed missions for condition checks (e.g., "requires mission_01 completed")
 	var completed_mission_ids: Array[String] = []
+	for faction in scenario.factions:
+		for id in faction.get_completed_mission_ids():
+			completed_mission_ids.append(id)
 	# 2. Check if this is a TRAVEL activity that will change location (for LOCATION_TRANSITION conditions)
 	# e.g., if activity = Activity(TRAVEL, destination="vienna") → is_location_changing = true
 	var is_location_changing: bool = false
@@ -205,28 +208,6 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 
 	Log.trace("AEM", "Returning %d result(s)" % all_results.size())
 	return all_results
-
-
-func _check_mission_completion() -> Array[Mission]:
-	var context = _build_context()
-	var all_completed: Array[Mission] = []
-
-	# for faction in factions:
-	# 	var completed = faction.check_mission_completions(context)
-	# 	all_completed.append_array(completed)
-	# 	faction.update_mission_graph()
-
-	return all_completed
-
-
-func _check_ending_conditions() -> Ending:
-	var context = _build_context()
-
-	# for ending in endings:
-	# 	if ending.check_conditions(context):
-	# 		return ending
-
-	return null
 
 
 func _sort_triggerables_by_priority(triggerables: Array[Triggerable]) -> void:

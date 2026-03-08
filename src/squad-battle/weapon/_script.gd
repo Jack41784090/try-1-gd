@@ -3,6 +3,7 @@ class_name SquadWeapon extends RefCounted
 var weapon_name: String = "Unarmed"
 var hit_bonus: float
 var penetration_bonus: float
+var is_magical: bool = false
 var damage_translation: Array[DamageTranslation] = []
 var weapon_location_map: Array[WeaponLocation] = []
 
@@ -24,6 +25,7 @@ func _init(config: WeaponConfig):
 	weapon_name = config.weapon_name
 	hit_bonus = config.hit_bonus
 	penetration_bonus = config.penetration_bonus
+	is_magical = config.is_magical
 	damage_translation = config.damage_translation
 	weapon_location_map = config.weapon_location_map
 
@@ -38,6 +40,11 @@ func get_total_penetration_value(attacker) -> float:
 	var precision = attacker.calculate_reality_value(SquadBattleTypes.Reality.Precision)
 	var result = penetration_bonus + force * 0.67 + precision * 0.33
 	return result
+
+func get_magical_penetration_value(attacker) -> float:
+	var mana = attacker.calculate_reality_value(SquadBattleTypes.Reality.Mana)
+	var spirituality = attacker.calculate_reality_value(SquadBattleTypes.Reality.Spirituality)
+	return penetration_bonus + mana * 0.67 + spirituality * 0.33
 
 func get_total_hit_value(attacker) -> float:
 	var maneuver = attacker.calculate_reality_value(SquadBattleTypes.Reality.Maneuver)

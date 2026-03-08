@@ -15,11 +15,13 @@ var source: CharacterCombatStats
 var affected: CharacterCombatStats;
 @export var triggers: Array[StatusEffectEventBus.Signals]
 
+var battle_context: BattleContext = null
 var updates_collector = null
 
-func set_attacker_and_target(attacker: CharacterCombatStats, target: CharacterCombatStats) -> void:
+func set_attacker_and_target(attacker: CharacterCombatStats, target: CharacterCombatStats, _context: BattleContext = null) -> void:
 	source = attacker
 	affected = target
+	battle_context = _context
 	if source and affected:
 		_debug_id = "[%s→%s:%s]" % [source.entity_name, affected.entity_name, name]
 
@@ -27,9 +29,8 @@ func setup_connections(collector = null) -> void:
 	"""Call this after the resource is loaded to connect triggers to the event bus.
 	If collector is provided, updates from signal-triggered commits will be appended to it."""
 	updates_collector = collector
-	print("%s Setting up connections" % _debug_id)
-	print("    → Triggers to connect: %d" % triggers.size())
-	print("    → Triggers: %s" % _format_triggers(triggers))
+	if triggers.size() != 0:
+		print("  [effect] %s — on: %s" % [_debug_id, _format_triggers(triggers)])
 	for trigger in triggers:
 		StatusEffectEventBus.Connect(trigger, commit)
 

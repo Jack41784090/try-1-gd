@@ -56,6 +56,10 @@ func refresh_warriors(squad: SquadStrategicData) -> void:
 
 #region VN API
 
+func set_background(texture: Texture2D) -> void:
+	view.set_background(texture)
+
+
 func prepare_for_dialogue(character_ids: Array[String]) -> void:
 	# Switches stage to VN mode for dialogue playback (stops march, keeps warriors visible)
 	# Called by VnPresenter before loading a timeline
@@ -103,7 +107,7 @@ func dismiss_speech(character_id: String) -> void:
 
 func dismiss_all_speech() -> void:
 	view.dismiss_all_bubbles()
-	view.set_all_behavior(AnimTypes.Behavior.IDLE)
+	view.reset_talking_to_idle()
 
 
 func focus_speaker(character_id: String, zoom_val: float = 1.8, duration: float = 0.4) -> void:
@@ -136,9 +140,14 @@ func walk_character(character_id: String, target: Vector2, duration: float = 0.8
 	var rig = view.get_rig(character_id)
 	if not rig:
 		return
+
+	if duration <= 0.0:
+		rig.position = target
+		return
+
 	rig.play_behavior(AnimTypes.Behavior.WALKING)
 	var tween = create_tween()
-	tween.tween_property(rig, "position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(rig, "position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 	tween.tween_callback(func() -> void: rig.play_behavior(AnimTypes.Behavior.IDLE))
 
 

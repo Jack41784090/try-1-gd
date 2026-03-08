@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad-battle/entity/logic/config.gd" id="1_config"]
+[ext_resource type="Resource" uid="uid://cds4shncbtjre" path="res://resources/combat/considerations/consider_moving_to_backline_if_not.tres" id="2_moveback"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="3_csdr"]
+[ext_resource type="Resource" path="res://resources/combat/logic/skills/fireball-attack-skill.tres" id="4_fireball"]
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("3_csdr")
+returning = ExtResource("4_fireball")
+metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+
+[resource]
+script = ExtResource("1_config")
+considerations = Array[ExtResource("3_csdr")]([ExtResource("2_moveback"), SubResource("Resource_attack")])
+metadata/_custom_type_script = "uid://bbbgoilqfygt0"

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ArmorConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad-battle/armor/protection-tsl.gd" id="1_prot"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad-battle/armor/_config-resource.gd" id="2_acfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/weapon/potency-obj.gd" id="3_pot"]
+
+[sub_resource type="Resource" id="Resource_pot_strike"]
+script = ExtResource("3_pot")
+value = 0.15
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_pot_stab"]
+script = ExtResource("3_pot")
+potency = 2
+value = 0.1
+metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Resource" id="Resource_prot_tsl"]
+script = ExtResource("1_prot")
+Reality = 3
+PotencyList = Array[ExtResource("3_pot")]([SubResource("Resource_pot_strike"), SubResource("Resource_pot_stab")])
+metadata/_custom_type_script = "uid://cya1ph2rx5aff"
+
+[resource]
+script = ExtResource("2_acfg")
+armor_name = "Padded Armor"
+defense_bonus = 1.0
+armor_bonus = 3.0
+protection_translation = Array[ExtResource("1_prot")]([SubResource("Resource_prot_tsl")])
+metadata/_custom_type_script = "uid://cmp8q7xe0kf7r"

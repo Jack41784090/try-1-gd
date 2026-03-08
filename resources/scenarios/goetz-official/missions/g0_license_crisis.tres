@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Mission" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://3686v40s4jn5" path="res://src/strategy/core/triggerable/mission/script.gd" id="1_mission"]
+
+[resource]
+script = ExtResource("1_mission")
+mission_id = "g0_license_crisis"
+mission_name = "The License Crisis"
+description = "Frankfurt has doubled the license fee on forestry, threatening the livelihoods of your peasants. Decide what to do."
+postrequisite_mission_ids = Array[String](["g1_march_to_nuremberg"])
+dialogue_scene_path = "res://resources/scenarios/goetz-official/event-chains/g0_intro_chain.tres"
+is_completed = false
+is_unlocked = true
+is_failed = false
+trigger_id = "g0_license_crisis"
+trigger_name = "The License Crisis"
+repeats = 1
+emergency_priority = 0
+chance = 1.0
+metadata/_custom_type_script = "uid://3686v40s4jn5"

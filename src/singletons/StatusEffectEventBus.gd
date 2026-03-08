@@ -24,7 +24,6 @@ func _get_signal(signal_enum: Signals) -> Signal:
 
 func EmitSignal(nameOfSignal: Signals, ...args: Array):
 	var _signal = _get_signal(nameOfSignal)
-	print("  [EventBus] Emitting signal: %s with %d args" % [_signal, args.size()])
 	if args.size() == 0:
 		_signal.emit()
 	elif args.size() == 1:
@@ -34,12 +33,10 @@ func EmitSignal(nameOfSignal: Signals, ...args: Array):
 
 func Connect(nameOfSignal: Signals, function):
 	var _signal = _get_signal(nameOfSignal)
-	print("  [EventBus] Connected: %s" % _signal)
 	return _signal.connect(function)
 
 func Disconnect(nameOfSignal: Signals, function):
 	var _signal = _get_signal(nameOfSignal)
-	print("  [EventBus] Disconnected: %s" % _signal)
 	_signal.disconnect(function)
 
 # #button.gd

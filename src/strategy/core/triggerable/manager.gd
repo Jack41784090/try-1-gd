@@ -6,11 +6,9 @@ signal triggerable_fired(triggerable: Triggerable, result: Variant)
 
 var registered_triggerables: Array[Triggerable] = []
 
-
 func register(triggerable: Triggerable) -> void:
 	if not triggerable in registered_triggerables:
 		registered_triggerables.append(triggerable)
-		_connect_signals(triggerable)
 
 
 func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t): return true) -> Array[Triggerable]:
@@ -22,11 +20,16 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 	var triggered: Array[Triggerable] = []
 
 	for triggerable in registered_triggerables:
+		# 1. Filter out triggerables that don't match the timing or other broad criteria (e.g., only check GameEvents, skip Missions)
 		if not filter.call(triggerable):
 			continue
 
+		# 2. Check conditions for the remaining triggerables against the context (location, squad status, world state, etc.)
 		if triggerable.check_conditions(context):
+			# 2.1 If conditions pass, add to triggered list
 			triggered.append(triggerable)
+
+			# 2.2 Sometimes triggerables have chain triggers, add them to the list if chained_trigger can also be triggered (with chance rolls)
 			for chain in triggerable.trigger_chains:
 				print("[TriggerableManager] Processing chain for trigger: ", triggerable.trigger_name)
 				var chained_trigger = chain.another_trigger
@@ -38,24 +41,3 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 					print("[TriggerableManager]     Skipped chained trigger (chance failed): ", chained_trigger.trigger_name)
 
 	return triggered
-
-
-func get_by_id(trigger_id: String) -> Triggerable:
-	for triggerable in registered_triggerables:
-		if triggerable.trigger_id == trigger_id:
-			return triggerable
-	return null
-
-
-func _connect_signals(triggerable: Triggerable) -> void:
-	if not triggerable.triggered.is_connected(_on_triggerable_triggered):
-		triggerable.triggered.connect(_on_triggerable_triggered.bind(triggerable))
-
-
-func _disconnect_signals(triggerable: Triggerable) -> void:
-	if triggerable.triggered.is_connected(_on_triggerable_triggered):
-		triggerable.triggered.disconnect(_on_triggerable_triggered)
-
-
-func _on_triggerable_triggered(result: Variant, triggerable: Triggerable) -> void:
-	triggerable_fired.emit(triggerable, result)

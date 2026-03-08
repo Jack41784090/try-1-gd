@@ -1,5 +1,10 @@
 class_name EntityClasses
 enum Types {
 	Landsknecht,
-	Healer
+	Healer,
+	Crossbowman,
+	Arquebusier,
+	Pikeman,
+	Feldprediger,
+	Gelehrter
 }

@@ -48,12 +48,10 @@ func roll_for_hit() -> bool:
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
 
-	print("[OneClash] Rolling for Hit: %s attacks %s" % [attacker.entity_name, target.entity_name])
-	print("  → Attacker Hit: %.2f (%.2f roll × %.2f base)" % [roll_offence_hit, randf(), try_hit])
-	print("  → Defender Evasion: %.2f" % roll_defence_hit)
+	print("[OneClash] Hit roll: %s vs %s — attacker %.2f / weapon base %.2f, defender evasion %.2f" % [attacker.entity_name, target.entity_name, roll_offence_hit, try_hit, roll_defence_hit])
 
 	if roll_defence_hit >= roll_offence_hit:
-		print("  ✗ DODGED!")
+		print("  ✗ DODGED")
 		updates.append(
 			EntityUpdate.new(
 				attacker.player_id,
@@ -63,7 +61,6 @@ func roll_for_hit() -> bool:
 		)
 		return false
 
-	print("  ✓ HIT SUCCESS!")
 	return true
 
 
@@ -76,17 +73,21 @@ func roll_for_pierce() -> bool:
 	var target = target_manifestation()
 	var armour = target.get_armour()
 
-	var try_hit = chosen_weapon.get_total_penetration_value(attacker)
-	var hit_def = armour.get_PV()
+	var try_hit: float
+	var hit_def: float
+	if chosen_weapon.is_magical:
+		try_hit = chosen_weapon.get_magical_penetration_value(attacker)
+		hit_def = armour.get_magical_PV()
+	else:
+		try_hit = chosen_weapon.get_total_penetration_value(attacker)
+		hit_def = armour.get_PV()
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
 
-	print("[OneClash] Rolling for Pierce:")
-	print("  → Weapon Penetration: %.2f (%.2f roll × %.2f base)" % [roll_offence_hit, randf(), try_hit])
-	print("  → Armour Defense: %.2f (%.2f roll × %.2f PV)" % [roll_defence_hit, randf(), hit_def])
+	print("[OneClash] Pierce roll: pen %.2f/%.2f vs arm %.2f/%.2f%s" % [roll_offence_hit, try_hit, roll_defence_hit, hit_def, " [magical]" if chosen_weapon.is_magical else ""])
 
 	if roll_defence_hit >= roll_offence_hit:
-		print("  ✗ BLOCKED! (Clink)")
+		print("  ✗ BLOCKED")
 		updates.append(
 			EntityUpdate.new(
 				attacker.player_id,
@@ -96,7 +97,7 @@ func roll_for_pierce() -> bool:
 		)
 		return false
 
-	print("  ✓ PIERCE SUCCESS!")
+	print("  ✓ PIERCE")
 	return true
 
 
@@ -110,26 +111,23 @@ func damage_calculation():
 	var raw_damage = chosen_weapon.get_potency_array_damage(attacker)
 	var dm = armour.get_raw_damage_taken(raw_damage)
 
-	print("[OneClash] Calculating Damage:")
-	#print("  → Raw Weapon Damage: %.2f" % raw_damage)
-	print("  → After Armour Reduction: %.2f" % dm)
-	print("  → Target HP Before: %.2f" % target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP))
-
+	var hp_before = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 	var damage_updates = target.damage(dm, attacker.player_id)
 	for update in damage_updates:
-		print("  → Update: %s" % [update])
 		updates.append(update)
 
-	print("  → Target HP After: %.2f" % target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP))
-	print("[OneClash] Emitting TargetTookDamage signal")
+	var hp_after = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	print("  → Dealt %.2f to %s — HP %.1f→%.1f" % [dm, target.entity_name, hp_before, hp_after])
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.TargetTookDamage, dm)
-	# assert(emit_result == OK, "Failed to emit TargetTookDamage signal, error code: %d" % emit_result)
 
 
 func cleanup() -> Array[EntityUpdate]:
-	print("[OneClash] Cleanup - Total updates: %d" % updates.size())
-	for update in updates:
-		print("  → Update: %s" % [update])
+	var parts: Array[String] = []
+	for u in updates:
+		if u.change != null:
+			parts.append(str(u))
+	if parts.size() > 0:
+		print("  ↳ %s" % "  ".join(parts))
 	return updates
 
 
@@ -142,28 +140,25 @@ func commit() -> Array[EntityUpdate]:
 	# e.g., Hans attacks Fritz with "Heal" (roll_for_damage=false):
 	#   → skill effects fire immediately → no hit/pierce rolls → returns [EntityUpdate(Hans→Fritz, HP: 40→60)]
 	#region debugprints
-	print("\n═══════════════════════════════════════════════════")
-	print("[OneClash] CLASH START")
-	print("  Attacker: %s (ID: %d)" % [attacker.entity_name, attacker.player_id])
-	print("  Target: %s (ID: %d)" % [targeted.entity_name, targeted.player_id])
-	if skill:
-		skill.inject_context_for_clash(attacker, situation, context)
-		print("  Skill: %s" % skill.name)
-		print("  → Skill has %d effect(s)" % skill.effects.size())
-		for i in range(skill.effects.size()):
-			var effect = skill.effects[i]
-			print("    %d. %s " % [i + 1, effect.name])
-			if effect.triggers.size() > 0:
-				print("       Triggers on: %s" % _format_triggers(effect.triggers))
+	# Set up skill context directly — avoids re-running targeting consideration a second time
+	skill.caster = attacker
+	skill.situation = situation
+	skill.context = context
+	skill.target = targeted
+	var bc = BattleContext.from_dict(context) if context.size() > 0 else null
+	for e in skill.effects:
+		e.set_attacker_and_target(attacker, targeted, bc)
+
+	var is_self_cast = attacker.player_id == targeted.player_id
+	if is_self_cast:
+		print("\n[OneClash] [%d]%s ‹%s› on self" % [attacker.player_id, attacker.entity_name, skill.name if skill else "?"])
 	else:
-		print("  Skill: None")
-	print("═══════════════════════════════════════════════════")
+		print("\n[OneClash] [%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.entity_name, targeted.player_id, targeted.entity_name, skill.name if skill else "?"])
 	#endregion
 
 	# 1. Setup skill effect connections (must be done after resource loading completes)
 	var real_effects = skill.return_appropriate_skill_effects()
 	if skill and real_effects.size() > 0:
-		print("[OneClash] Setting up skill effect connections...")
 		for effect in real_effects:
 			var effect_instance = effect
 
@@ -179,8 +174,7 @@ func commit() -> Array[EntityUpdate]:
 	if skill.roll_for_damage:
 		var hit = roll_for_hit()
 		if not hit:
-			print("[OneClash] ✗ Clash ended: MISS")
-			print("═══════════════════════════════════════════════════\n")
+
 			return cleanup()
 
 		StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
@@ -188,16 +182,12 @@ func commit() -> Array[EntityUpdate]:
 	# 3. Roll for pierce
 	var pierce = roll_for_pierce()
 	if not pierce:
-		print("[OneClash] ✗ Clash ended: BLOCKED")
-		print("═══════════════════════════════════════════════════\n")
 		return cleanup()
 
 	# 4. Calculate damage
 	damage_calculation()
 
 	# 5. Done
-	print("[OneClash] ✓ Clash completed successfully")
-	print("═══════════════════════════════════════════════════\n")
 	return cleanup()
 
 # func _get_effect_type_name(effect: SkillEffect) -> String:
@@ -213,15 +203,10 @@ func commit() -> Array[EntityUpdate]:
 func _format_triggers(trigger_array: Array) -> String:
 	if trigger_array.is_empty():
 		return "None"
+	var keys = StatusEffectEventBus.Signals.keys()
 	var names = []
 	for t in trigger_array:
-		match t:
-			StatusEffectEventBus.Signals.HelloWorld:
-				names.append("HelloWorld")
-			StatusEffectEventBus.Signals.TargetTookDamage:
-				names.append("TargetTookDamage")
-			_:
-				names.append("Signal_%d" % t)
+		names.append(keys[t] if t >= 0 and t < keys.size() else "Signal_%d" % t)
 	return ", ".join(names)
 
 

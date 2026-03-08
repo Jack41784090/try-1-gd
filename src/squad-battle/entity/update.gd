@@ -10,8 +10,13 @@ var done: bool = false
 
 
 func _to_string() -> String:
-	return "EntityUpdate(source=%d%s)" % [source,
-	(", affected=%d, change=%s, done=%s" % [affected, change.to_string(), done] if affected != -1 else "") if change.from != -1 and change.to != -1 else ""]
+	if change == null or (change.from == -1 and change.to == -1):
+		if change != null:
+			return "[%d→%d] %s" % [source, affected, str(change)]
+		return "no-op"
+	if source == affected:
+		return "[%d] %s" % [source, str(change)]
+	return "[%d→%d] %s" % [source, affected, str(change)]
 
 
 func _init(p_source: int, p_affected: int, p_change: EntityChange):

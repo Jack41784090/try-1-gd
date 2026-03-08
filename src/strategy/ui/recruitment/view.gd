@@ -17,8 +17,33 @@ var current_squad: SquadStrategicData:
 		return actor.player_squad
 
 var recruitment_costs: Dictionary = {
-	"landsknecht": 100.0,
-	"healer": 150.0
+	EntityClasses.Types.Landsknecht: 100.0,
+	EntityClasses.Types.Healer: 150.0,
+	EntityClasses.Types.Crossbowman: 120.0,
+	EntityClasses.Types.Arquebusier: 200.0,
+	EntityClasses.Types.Pikeman: 130.0,
+	EntityClasses.Types.Feldprediger: 180.0,
+	EntityClasses.Types.Gelehrter: 250.0,
+}
+
+var class_logic_map: Dictionary = {
+	EntityClasses.Types.Landsknecht: LogicFactory.LogicAvailable.Frontline,
+	EntityClasses.Types.Healer: LogicFactory.LogicAvailable.BacklineHeal,
+	EntityClasses.Types.Crossbowman: LogicFactory.LogicAvailable.BacklineShooter,
+	EntityClasses.Types.Arquebusier: LogicFactory.LogicAvailable.BacklineGunner,
+	EntityClasses.Types.Pikeman: LogicFactory.LogicAvailable.DefensiveFrontline,
+	EntityClasses.Types.Feldprediger: LogicFactory.LogicAvailable.BacklineSupport,
+	EntityClasses.Types.Gelehrter: LogicFactory.LogicAvailable.BacklineCaster,
+}
+
+var class_location_map: Dictionary = {
+	EntityClasses.Types.Landsknecht: SquadBattleTypes.SquadEntityInSquadLocation.Front,
+	EntityClasses.Types.Healer: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Crossbowman: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Arquebusier: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Pikeman: SquadBattleTypes.SquadEntityInSquadLocation.Front,
+	EntityClasses.Types.Feldprediger: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
 }
 
 func setup(_actor) -> void:
@@ -48,8 +73,7 @@ func _update_display() -> void:
 
 func _create_class_item(class_enum: EntityClasses.Types) -> void:
 	var entity_template = EntityFactory.get_entity(class_enum)
-	var class_id = entity_template.class_id
-	var cost = recruitment_costs.get(class_id, 100.0)
+	var cost = recruitment_costs.get(class_enum, 100.0)
 	
 	var item_panel = PanelContainer.new()
 	item_panel.custom_minimum_size = Vector2(0, 100)
@@ -137,10 +161,8 @@ func _on_recruit_pressed(class_enum: EntityClasses.Types, cost: float) -> void:
 		entity_template.stats.duplicate(true) if entity_template.stats else EntityBaseStats.new()
 	)
 	
-	#new_warrior.equipment_weapon = WeaponFactory.get_weapon(entity_template.weapon_class).config
-	#new_warrior.equipment_armor = ArmorFactory.get_armor(entity_template.armor_class).config
-	new_warrior.logic_type = LogicFactory.LogicAvailable.Frontline
-	new_warrior.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Front
+	new_warrior.logic_type = class_logic_map.get(class_enum, LogicFactory.LogicAvailable.Frontline)
+	new_warrior.location_prebattle = class_location_map.get(class_enum, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	
 	current_squad.add_warrior(new_warrior)
 	current_squad.money -= cost
