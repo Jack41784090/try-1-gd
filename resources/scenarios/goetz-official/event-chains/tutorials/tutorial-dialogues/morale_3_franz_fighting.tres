@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DialogueInstruction" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://deeibdh2glf6b" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="1_scr"]
+
+[resource]
+script = ExtResource("1_scr")
+id = "morale_q2"
+speaker_name = "Franz"
+line_spoken = "Should we avoid combat right now?"
+after_id = "morale_a1"
+after_offset = 0.3
+metadata/_custom_type_script = "uid://deeibdh2glf6b"

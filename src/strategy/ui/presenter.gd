@@ -12,11 +12,11 @@ signal encounter_resolved()
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
 
-var view: StrategyView
+var view
 var actor: ActivityRunner
 var ai_fleet: AIFleetManager
-var vn_view: VnView
-var stage_presenter: StagePresenter
+var vn_view
+var stage_presenter
 var combat_controller: CombatController
 
 var game_scenario: GameScenario:
@@ -44,7 +44,7 @@ var walking_towards: Variant:
 		return actor.walking_towards["location"]
 
 
-func bind_view(v: StrategyView) -> void:
+func bind_view(v) -> void:
 	# Master setup: wires the presenter to its view and all child components, initializes the scenario
 	# Called once by StrategyView._ready(). This is the game's boot sequence.
 	# Flow: bind refs → load scenario → setup components → connect signals → initialize world → start march → run GAME_START events
@@ -522,11 +522,23 @@ func _check_missions() -> void:
 			all_results.append(r)
 	if all_results.is_empty():
 		return
+	for r in all_results:
+		var mission = _find_mission_by_id(r.mission_id)
+		if mission:
+			game_scenario.triggerable_manager.triggerable_fired.emit(mission, [r])
 	var generic_results: Array[GenericResult] = []
 	for r in all_results:
 		generic_results.append(r)
 	_queue_multiple_eventchains_from_results(generic_results)
 	await _vn_play_next_recurs()
+
+
+func _find_mission_by_id(mission_id: String) -> Mission:
+	for faction in game_scenario.factions:
+		var m = faction.get_mission_by_id(mission_id)
+		if m:
+			return m
+	return null
 
 #endregion
 

@@ -24,8 +24,8 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 		if not filter.call(triggerable):
 			continue
 
-		# 2. Check conditions for the remaining triggerables against the context (location, squad status, world state, etc.)
-		if triggerable.check_conditions(context):
+		# 2. Check conditions + repeat/chance gates via can_trigger (location, squad status, world state, etc.)
+		if triggerable.can_trigger(context):
 			# 2.1 If conditions pass, add to triggered list
 			triggered.append(triggerable)
 

@@ -1,0 +1,101 @@
+[gd_resource type="Resource" script_class="EventChain" load_steps=24 format=3]
+
+[ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="s1"]
+[ext_resource type="Script" uid="uid://c7lc3q8y50u0i" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="s3"]
+[ext_resource type="Script" uid="uid://4lpu074be3h6" path="res://src/strategy/ui/vn/instructions/cinematic_instruction.gd" id="s4"]
+[ext_resource type="Script" uid="uid://dv3iev4uomqcy" path="res://src/strategy/ui/vn/instructions/character_instruction.gd" id="s5"]
+[ext_resource type="Script" uid="uid://bpk7smfuihqx4" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="s6"]
+[ext_resource type="Script" uid="uid://balbj1g85dkh8" path="res://src/strategy/ui/vn/instructions/camera_instruction.gd" id="s7"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial-dialogues/travel_1_franz_how_far.tres" id="d01"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial-dialogues/travel_2_goetz_supplies.tres" id="d02"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial-dialogues/travel_3_franz_food.tres" id="d03"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial-dialogues/travel_4_goetz_desertion.tres" id="d04"]
+
+[sub_resource type="Resource" id="p1"]
+script = ExtResource("s6")
+character_id = "franz"
+position = Vector2(-120, 50)
+
+[sub_resource type="Resource" id="p2"]
+script = ExtResource("s6")
+character_id = "goetz"
+position = Vector2(0, 50)
+
+[sub_resource type="Resource" id="k_reset"]
+script = ExtResource("s7")
+action = 4
+time = 0.0
+duration = 0.3
+
+[sub_resource type="Resource" id="k1"]
+script = ExtResource("s7")
+action = 1
+include_character_ids = Array[String](["Goetz", "Franz"])
+zoom_level = 1.5
+after_id = "travel_q1"
+after_offset = 0.0
+duration = 0.4
+
+[sub_resource type="Resource" id="c1"]
+script = ExtResource("s5")
+action = 2
+character_id = "Goetz"
+behavior = "gesturing"
+after_id = "travel_q1"
+after_offset = 0.1
+
+[sub_resource type="Resource" id="g1"]
+script = ExtResource("s3")
+after_id = "travel_q1"
+
+[sub_resource type="Resource" id="k2"]
+script = ExtResource("s7")
+target_character_id = "Goetz"
+zoom_level = 2.0
+after_id = "travel_a1"
+after_offset = 0.0
+duration = 0.4
+
+[sub_resource type="Resource" id="g2"]
+script = ExtResource("s3")
+after_id = "travel_a1"
+
+[sub_resource type="Resource" id="k3"]
+script = ExtResource("s7")
+action = 1
+include_character_ids = Array[String](["Goetz", "Franz"])
+zoom_level = 1.5
+after_id = "travel_q2"
+after_offset = 0.0
+duration = 0.4
+
+[sub_resource type="Resource" id="g3"]
+script = ExtResource("s3")
+after_id = "travel_q2"
+
+[sub_resource type="Resource" id="c2"]
+script = ExtResource("s5")
+action = 2
+character_id = "Goetz"
+behavior = "gesturing"
+after_id = "travel_q2"
+after_offset = 0.1
+
+[sub_resource type="Resource" id="k4"]
+script = ExtResource("s7")
+action = 4
+after_id = "travel_a2"
+after_offset = 0.0
+duration = 0.5
+
+[sub_resource type="Resource" id="g4"]
+script = ExtResource("s3")
+after_id = "travel_a2"
+
+[resource]
+script = ExtResource("s1")
+chain_id = "tutorial_first_travel"
+chain_name = "First Travel Tutorial"
+character_ids = Array[String](["franz", "goetz"])
+setting = Array[ExtResource("s6")]([SubResource("p1"), SubResource("p2")])
+timeline = Array[ExtResource("s4")]([SubResource("k_reset"), ExtResource("d01"), SubResource("g1"), SubResource("k1"), SubResource("c1"), ExtResource("d02"), SubResource("g2"), SubResource("k2"), ExtResource("d03"), SubResource("g3"), SubResource("k3"), SubResource("c2"), ExtResource("d04"), SubResource("g4"), SubResource("k4")])

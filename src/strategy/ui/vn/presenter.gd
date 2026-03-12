@@ -102,6 +102,7 @@ func load_chain(chain: EventChain) -> bool:
 		current_chain = null
 		view.chain_completed.emit()
 		return false
+	chain.resolve_after_ids()
 	current_chain = chain
 	character_ids_in_chain = chain.get_all_character_ids()
 	_playback.reset()

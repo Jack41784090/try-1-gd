@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="GameEvent" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_cond"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="3_result"]
+
+[sub_resource type="Resource" id="cond_morale"]
+script = ExtResource("1_cond")
+condition_type = 3
+parameters = {
+"squad_morale_max": 35.0
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="result"]
+script = ExtResource("3_result")
+event_chain_path = "res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial_low_morale_chain.tres"
+requires_async = true
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
+
+[resource]
+script = ExtResource("2_event")
+trigger_id = "tutorial_low_morale"
+trigger_name = "Low Morale Warning"
+conditions = Array[ExtResource("1_cond")]([SubResource("cond_morale")])
+result = SubResource("result")
+when_to_trigger = 3
+repeats = 1
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"

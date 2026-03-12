@@ -12,7 +12,10 @@ class_name EventChain
 @export var chain_name: String = ""
 @export var character_ids: Array[String] = []
 @export var setting: Array[StagePosition] = []
-@export var timeline: Array[CinematicInstruction] = []
+@export var timeline: Array[CinematicInstruction] = []:
+	set(value):
+		timeline = value
+		resolve_after_ids()
 
 
 func _init(config: Dictionary = { }) -> void:
@@ -64,6 +67,36 @@ func _init(config: Dictionary = { }) -> void:
 
 	if character_ids.is_empty():
 		_extract_character_ids()
+
+	resolve_after_ids()
+
+
+func resolve_after_ids() -> void:
+	if timeline.is_empty():
+		return
+
+	var id_map: Dictionary = {}
+	for inst in timeline:
+		if inst is CinematicInstruction and not inst.id.is_empty():
+			assert(not id_map.has(inst.id), "Duplicate instruction id: %s" % inst.id)
+			id_map[inst.id] = inst
+
+	if id_map.is_empty():
+		return
+
+	var max_passes = timeline.size()
+	for pass_num in max_passes:
+		var changed = false
+		for inst in timeline:
+			if inst is CinematicInstruction and inst.has_after_dependency():
+				assert(id_map.has(inst.after_id), "after_id '%s' not found in timeline" % inst.after_id)
+				var ref = id_map[inst.after_id]
+				var resolved_time = ref.time + ref.duration + inst.after_offset
+				if absf(inst.time - resolved_time) > 0.001:
+					inst.time = resolved_time
+					changed = true
+		if not changed:
+			break
 
 
 func _extract_character_ids() -> void:

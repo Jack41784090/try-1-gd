@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DialogueInstruction" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://deeibdh2glf6b" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="1_scr"]
+
+[resource]
+script = ExtResource("1_scr")
+id = "travel_q1"
+speaker_name = "Franz"
+line_spoken = "How much further can we go?"
+time = 0.2
+metadata/_custom_type_script = "uid://deeibdh2glf6b"

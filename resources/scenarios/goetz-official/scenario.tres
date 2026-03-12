@@ -13,4 +13,5 @@ starting_player_squad = ExtResource("4_64o4o")
 starting_location_id = "hornberg_castle"
 world = ExtResource("5_fant3")
 factions = Array[ExtResource("2_64o4o")]([ExtResource("6_faction")])
+extra_event_directories = Array[String](["res://resources/scenarios/goetz-official/events"])
 metadata/_custom_type_script = "uid://b8v78nfsqo6fm"

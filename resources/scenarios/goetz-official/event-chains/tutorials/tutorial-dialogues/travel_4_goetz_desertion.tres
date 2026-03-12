@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DialogueInstruction" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://deeibdh2glf6b" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="1_scr"]
+
+[resource]
+script = ExtResource("1_scr")
+id = "travel_a2"
+speaker_name = "Goetz"
+line_spoken = "Morale drops fast, and men desert. Keep an eye on the supply counter at all times."
+after_id = "travel_q2"
+after_offset = 0.3
+metadata/_custom_type_script = "uid://deeibdh2glf6b"

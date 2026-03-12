@@ -21,6 +21,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
   - `ranged_combat_demo.tscn` — ranged combat: mixed squads with Crossbowman, Arquebusier, Pikeman, Feldprediger. Headless battle testing ranged targeting, suppression ORG damage, reach weapons, and support skills
   - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
+  - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
+  - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
@@ -43,7 +45,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
    - `World` (core/world.gd) holds location graph, roaming squads, turn counter
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
-   - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry
+   - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override)
    - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
@@ -98,6 +100,15 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
   - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
   - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
+- **AIAct Scripted Testing** (`src/strategy/ai/ai_act.gd`): Resource for deterministic headless game testing
+  - `AIAct` — Resource with `activity_type`, `destination_id`, `target_squad_id`, `description` + assertion fields (`expect_location`, `expect_min_food`, `expect_max_food`, `expect_min_morale`, `expect_event_fired`, `expect_events_fired: Array[String]`, `expect_min_warriors`)
+  - `AIAct.create(type, desc, dest, target)` — static factory for programmatic test sequences
+  - `HeadlessStrategyView` (`src/demos/headless_strategy_view.gd`) — mock view with no-op UI methods, real ActivityRunner/AIFleetManager, mock VN/Stage. Allows StrategyPresenter to run the full production pipeline headlessly
+  - Demo (`ai_act_demo.gd`) uses the **real StrategyPresenter** with HeadlessStrategyView: `presenter.bind_view(mock_view)` boots the game, then `presenter.on_travel_confirmed()` / `presenter.on_activity_requested()` drive turns through the actual production turn pipeline
+  - Travel uses the real multi-turn progress system — TRAVEL acts auto-continue until arrival (`on_travel_confirmed` + `on_continue_travel` loop)
+  - StrategyPresenter `bind_view(v)` accepts untyped view (duck-typed) to support both StrategyView and HeadlessStrategyView
+  - Assertions checked after each turn with PASS/FAIL logging; summary at end
+  - AI squads (if present in scenario) still use normal SquadBrain via AIFleetManager
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
   - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)

@@ -202,6 +202,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	for triggerable in triggerables:
 		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
 		var triggered_results = triggerable.trigger(context)
+		scenario.triggerable_manager.triggerable_fired.emit(triggerable, triggered_results)
 		for r in triggered_results:
 			Log.trace("AEM", "Result: squad_changes=%s, world_changes=%s" % [r.squad_stat_changes, r.world_stat_changes])
 			all_results.append(r)

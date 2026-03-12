@@ -1,292 +1,268 @@
-# CONDOR - Godot/GDScript Project
+# CLAUDE.md
 
-## Project Overview
-**CONDOR** is a squad-based narrative strategy game with:
-1. **Tactical Combat**: Turn-based battles with entity stats, AI logic, weapons/armor, skills
-2. **Strategic Campaign**: Activities, events, missions, factions
-3. See `.obsidian/AI-Notes` for additional details
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. Every time when you make changes to the project, modify this file to reflect the changes made.
 
-Migrated from TypeScript/Roblox to Godot 4.x/GDScript.
+## Project
 
-## Architecture
-
-### Tactical: `SquadBattle → Squad → SquadEntity → SquadLogic/Weapon/Armour → OneClash`
-**Flow**: `squad_actions() → squad_attack() → action() → choose_action() → commit()` → `Array[EntityUpdate]`
-
-### Strategic: `GameScenario → World/EventManager/Factions/StrategicSquad`
-**Flow**: `execute_turn(Activity) → execute() → check_triggers() → advance_turn()`
-
-### Combat Integration: `CombatController → CombatBridge → SquadBattle`
-**Architecture**: 
-- **CombatBridge** (`src/strategy/sb-bridge/!main.gd`): Data translation layer - converts `StrategicSquad` ↔ tactical `Squad` configs, manages Warrior↔Entity ID mapping
-- **CombatController** (`src/strategy/sb-bridge/control.gd`): Orchestration layer - manages combat flow (intermission → combat → resolution), flee/negotiate mechanics, loot/clues generation
-- **Separation Rationale**: Bridge handles pure data conversion (stateless), Controller handles game logic and combat flow (stateful)
-
-**Flow**: `start_combat() → _build_intermission_options() → process_intermission_choice() → _execute_combat() → apply_results()`
-
-## Godot Patterns
-
-### Classes
-- **RefCounted**: Logic classes (`SquadBattle`, `Squad`, `TriggerableManager`, `TravelGraph`)
-- **Resource**: Serializable data (`SquadEntity`, `Skill`, `World`, `Mission`, `GameScenario`, `Triggerable`)
-- **Consideration-based AI**: Current system uses `SimplifiedSquadLogic` with `Consideration` pattern (no nested logic subclasses)
-
-### Types
-- **Enums**: `SquadBattleTypes.Reality.HP`, `StrategyTypes.LocationType.CITY`
-- **Typed arrays**: `Array[EntityUpdate]`, `Array[Warrior]`
-- **Prefer enums over String**, typed classes over Dictionary
-
-## Core Systems
-
-### Combat
-- **Stats**: Reality values (HP, Force, etc.) calculated from base stats via `calculate_reality_value()`
-- **Changeable**: HP, STA, ORG, LOC modified via `mod_changeable_stat()` → `EntityChange`
-- **Resolution**: Hit roll → Pierce roll → Damage → Skill effects → `Array[EntityUpdate]`
-- **AI Logic**: Uses `SimplifiedSquadLogic` with `Consideration` pattern (scores actions/targets)
-- **Skills/Status**: One-time vs persistent effects via `StatusEffectEventBus` autoload singleton
-
-### Strategy
-- **Activities**: `REST`, `DRILL`, `TRAVEL`, `PATROL`, `INVESTIGATE`, `HOLD_MASS`, `ATTACK`, `FORCE_MARCH`
-- **Results**: `ActivityResult` extends `GenericResult` with `squad_stat_changes`, `event_chain_path`, `requires_async`, `requires_combat`, `combat_target_squad_id`
-- **Combat Triggering**: Activities like `ATTACK` and `FORCE_MARCH` set `requires_combat = true` when enemies present at location
-
-- **TriggerCondition**: `LOCATION`, `LOCATION_TYPE`, `WARRIOR_STATUS`, `SQUAD_STATUS`, `ACTIVITY_TYPE`, `TIME`, `MISSION_STATUS`, `COMPOUND` (nested AND/OR)
-- **EventManager**: Checks events each turn by priority
-- **Results**: `GenericResult` (base) → `ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`
-
-- **Triggerable** (base class): `check_conditions() → can_trigger() → trigger() → execute()`
-  - **GameEvent**: `chance`, `repeats`, `times_triggered`, `emergency_priority`
-  - **Mission**: `prerequisite_mission_ids`, `postrequisite_mission_ids`, `check_completion()`, `complete()`
-  - **Ending**: `narrative_text`, `epilogue_scene_paths`
-- **Async Pattern**: Set `requires_async = true`, `event_chain_path` in result, emit signals for scene manager
-- **TriggerableManager**: Central registry with `register()`, `check_triggers()`, `get_by_id()`
-
-- **Missions**: Locked → Unlocked → Completed/Failed
-- **Dependency**: `prerequisites → mission → postrequisites`
-- **Completion Effects**: `squad_stats`, `world_stats`, `reputation`, `trigger_events`
-- **Faction Reputation**: Modified by activities/events
-
-- **Travel**: Adjacency graph with `TravelGraph.find_path()` BFS pathfinding
-- **Travel Time**: Base 1 turn, modified by location type and stability
-- **World State**: Turn counter, location graph, global modifiers (五行), end progression
-- **Roaming Squads**: Enemy squads tracked in `World.roaming_squads`, detected via `get_squads_at_location()`
-
-#### Combat System
-**CombatController** manages three-phase combat flow:
-
-1. **Intermission Phase**:
-   - Flee chance: `FLEE_BASE_CHANCE + (SURVIVAL_stat * modifier)`
-   - Negotiate chance: `NEGOTIATE_BASE_CHANCE + (DIPLOMACY_stat * modifier)`
-   - Fight option always available
-   - Timeout: 30 seconds (auto-fight)
-
-2. **Tactical Phase** (if FIGHT chosen):
-   - `CombatBridge.create_battle()` converts strategic squads to tactical entities
-   - Runs `SquadBattle.squad_actions()` rounds until victory/defeat
-   - Collects all `EntityUpdate[]` for post-combat processing
-
-3. **Resolution Phase**:
-   - `CombatBridge.apply_results()` converts tactical outcomes back to strategic layer
-   - Morale changes based on outcome (victory: +15, defeat: -20, flee: -10)
-   - Loot generation (money, food) from defeated enemies
-   - Clue drops (30% chance) revealing enemy movements
-   - Casualty tracking via `Warrior.is_dead`, `is_injured` flags
-
-**UI Integration**:
-- `UIMode.COMBAT_INTERMISSION`: Shows flee/negotiate/fight buttons with calculated chances
-- `UIMode.STRATEGY`: Returns after combat resolution
-- 3D battle overlay via `SubViewport` in `CombatOverlay` CanvasLayer (planned)
-
-#### VN / Cinematic System
-**Architecture** — Clear role separation:
-- **Stage** (`StagePresenter` + `StageView` + `StageCamera`): The visual theater. Executes commands (place character, move camera, show bubble). Knows nothing about EventChains or timelines.
-- **VN** (`VnPresenter` + `TimelinePlayback`): The director. Reads EventChain timelines, issues commands to the Stage, manages player interaction gates and speed control.
-
-**EventChain** (Resource): Contains `chain_id`, `character_ids`, `setting: Array[StagePosition]`, `timeline: Array[CinematicInstruction]`
-- `setting`: Initial character positions, read by presenter before timeline starts
-- `timeline`: Flat time-sorted array of `CinematicInstruction` subclasses, all fired at absolute timestamps
-- `load_from_json_file(path)` / `load_from_json_string(json)`
-
-**CinematicInstruction** (Resource, base class): `time: float`, `duration: float`
-- **DialogueInstruction**: `speaker_name`, `line_spoken`, `keep_previous_bubbles`, `expression_override`
-- **CameraInstruction**: `action` enum (`FOCUS_CHARACTER`, `INCLUDE_CHARACTERS`, `MOVE`, `ZOOM`, `RESET`), `target_character_id`, `include_character_ids`, `move_offset`, `zoom_level`
-- **CharacterInstruction**: `action` enum (`MOVE`, `FACE`, `BEHAVIOR`, `SPAWN`), `character_id`, `target_position`, `face_direction`, `behavior`
-- **GateInstruction**: `wait_for_typewriter` — pauses timeline for player input (SPACE/click)
-
-**StagePosition** (Resource): `character_id`, `position: Vector2`, `face_direction: int`
-
-**TimelinePlayback** (RefCounted): Time-cursor-driven engine, states: `IDLE → PLAYING → WAITING_FOR_GATE → FAST_FORWARDING → COMPLETE`
-- When player clicks during `PLAYING`: speed multiplier → 5x until next gate
-- When player clicks at `WAITING_FOR_GATE`: resumes timeline
-- Multiple instructions at the same timestamp compose naturally (e.g., camera move + dialogue simultaneously)
-
-**Integration**: Results set `event_chain_path` + `requires_async = true` → UI loads and plays chain
-
-## Project-Specific Conventions
-
-### Integrated Cinematic VN System
-Activities, Events, Missions, and Endings can trigger EventChains for narrative and cinematic presentation:
-- **VnPresenter** (Node): Timeline director — dispatches CinematicInstructions to StagePresenter
-- **TimelinePlayback** (RefCounted): Time-cursor engine with gate-based player interaction
-- **StagePresenter** (Node): Visual theater — character placement, camera control, speech bubbles
-- **UI Modes**: 
-  - `STRATEGY`: Normal activity selection and stats display
-  - `VISUAL_NOVEL`: Timeline-driven cinematic playback with stage, camera, and dialogue
-  - `COMBAT_INTERMISSION`: Combat choice screen (flee/negotiate/fight)
-- **Result Extensions**: All Result types (`ActivityResult`, `EventResult`, `MissionResult`, `EndingResult`) have:
-  - `event_chain_path: String` - Path to EventChain resource
-  - `has_event_chain() -> bool` - Check if EventChain should be played
-- **UI Integration**: VN elements embedded in main screen, no scene switching required
-- **Flow**: Activity executes → Result with event_chain_path → UI switches to VN mode → Load EventChain → Apply setting → Play timeline → Gates pause for input → Return to strategy mode
-- **Speed Control**: Player can press SPACE during auto-play sections to speed up (5x) to next gate. At gates, SPACE advances to next section.
-
-### Comments
-Avoid comments unless Godot documentation (`## Doc comments`)
-
-### Naming
-- Classes: PascalCase with prefixes (`SquadEntity`, `SquadBattleTypes`)
-- Files: snake_case or kebab-case matching class name (`squad_entity.gd`, `types.gd`, `_script.gd`)
-- Nested classes: Defined inline (e.g., `SimplifiedSquadLogic` contains logic for considerations)
-
-### Entity Update Pattern
-All state changes return `EntityUpdate` objects containing `EntityChange`:
-```gdscript
-var updates: Array[EntityUpdate] = []
-updates.append(EntityUpdate.new(source_id, target_id, 
-    entity.mod_changeable_stat(Types.EntityChangeable.HP, -damage)))
-return updates
-```
-
-### Location System
-Squad positions use enum: `Front = 1`, `Middle = 2`, `Back = 3` (NOT zero-indexed)
-- Moving forward: `mod_changeable_stat(LOC, -1)`
-- Retreating: `mod_changeable_stat(LOC, +1)`
+CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **GDScript**. Migrated from TypeScript/Roblox. No external dependencies or build system; everything runs directly in the Godot editor.
 
 ## Running & Testing
 
-**Tactical Demo**: `scenes/demos/squad_battle_demo.tscn` (F5 to run)
-**Strategic Demo**: `src/demos/strategy_demo.gd` (attach to Node scene and run)
-**Console Logging**: Extensive debug output shows combat/strategy resolution step-by-step
-**Configuration**: Edit entity/activity configs in demo files
+- **Main scene**: Open in Godot 4.5+, press F5 (runs `scenario.tscn`)
+- **Demo scenes**: In `scenes/demos/` — open any `.tscn` and run with F6
+  - `combat_controller_test.tscn` — combat system
+  - `combat_strategy_integration_test.tscn` — bridge between strategy and combat
+  - `scenario_attack_test.tscn` — activity/combat flow
+  - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
+  - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat (small 2-location world)
+  - `ai_stress_test_demo.tscn` — large-world AI stress test: 13 locations, 8 squads with mixed profiles, 50-turn simulation with forage/heal/buy/mercenary/patrol behaviors
+  - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
+  - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
+  - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
+  - `ranged_combat_demo.tscn` — ranged combat: mixed squads with Crossbowman, Arquebusier, Pikeman, Feldprediger. Headless battle testing ranged targeting, suppression ORG damage, reach weapons, and support skills
+  - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
+  - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
+  - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
+- **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
+- Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
-No build system needed - direct Godot editor execution. No external dependencies.
+## Architecture
 
-## Migration Context
-Originally TypeScript/Roblox project with reactive state (`@rbxts/charm` atoms). Migration removed:
-- Reactive atoms → direct value management
-- Complex event bus → simplified/stubbed (foundation exists for expansion)
-- Roblox-specific APIs
+### Three-Layer System
 
-See `notes/MIGRATION_SUMMARY.md` and `notes/FRONTLINE_LOGIC_UPDATE.md` for detailed migration history.
+1. **Tactical Combat** (`src/squad-battle/`) — Turn-based battle engine, View/Presenter/Model split
+   - `SquadBattle` (data.gd) — Model: battle state, round logic, headless execution
+   - `SquadBattleView` (view.gd) — View: entity spawning, animations, visual rendering (Node3D)
+   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View)
+   - `SBGraphics` (graphics.gd) — 3D battlefield rendering, row management, attack/movement animations
+   - `SquadBattleMasterFactory` (_factory.gd) — creates configured battle scene instances
+   - Flow: `squad_actions() → choose_action() → action() → OneClash.execute() → Array[EntityUpdate]`
+   - All state changes produce immutable `EntityUpdate`/`EntityChange` objects
+   - External consumers access `battle_scene.presenter.battle_completed` signal
 
-## File Organization
-- `src/squad_battle/`: Core combat system
-- `src/squad_battle/clash/`: Skill/status effect subsystem  
-- `src/strategy/`: Strategic campaign layer
-- `src/strategy/core/`: Core strategic classes (World, Squad, Warrior, GameScenario)
-- `src/strategy/activities/`: Activity implementations
-- `src/strategy/triggerable/`: Unified triggerable system (base class, manager, condition)
-- `src/strategy/triggerable/game-event/`: GameEvent implementation and result
-- `src/strategy/triggerable/mission/`: Mission implementation and result
-- `src/strategy/triggerable/ending/`: Ending implementation and result
-- `src/strategy/ui/vn/`: VN system (EventChain, VnPresenter, TimelinePlayback, VnView)
-- `src/strategy/ui/vn/instructions/`: CinematicInstruction hierarchy (dialogue, camera, character, gate, stage_position)
-- `src/strategy/ui/stage/`: Stage system (StagePresenter, StageView, StageCamera, SpeechBubble)
-- `src/strategy/sb-bridge/`: Combat integration bridge (!main.gd = CombatBridge, control.gd = CombatController)
-- `src/strategy/ui/`: UI components (view.gd = StrategyView, presenter.gd = StrategyPresenter; child dirs: travel/, vn/, investigation/, recruitment/, manage_squad/)
-- `src/demos/`: Demo implementations
-- `src/singletons/`: Autoloaded event buses
-- `scenes/`: Godot scene files (.tscn)
-- `scenes/demos/`: Test and demo scenes
-- `resources/`: Serialized resource files (.tres)
-- `resources/scenarios/`: GameScenario resources with World, squads, events
-- `notes/`: Documentation and migration notes
+2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
+   - `GameScenario` (core/scenario.gd) is the main orchestrator
+   - `World` (core/world.gd) holds location graph, roaming squads, turn counter
+   - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
+   - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
+   - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override)
+   - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
 
-## Best Practices Learned
+3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
+   - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers
+   - `CombatController` (control.gd) — stateful orchestration: intermission → combat → resolution
 
-### Fail-Fast Philosophy (CRITICAL)
-1. **No fallback values unless explicitly requested** - If data is missing, fail with error/assert
-2. **No stub/placeholder implementations** - Only implement functions when they have real logic
-3. **No unused signals** - Only declare signals when they will be emitted and connected
-4. **No unused parameters** - Don't add parameters "just in case" - only add them when actually used in function body
-5. **No speculative code** - Don't add variables, properties, or logic for "future use" - implement only what's needed now
-6. **Explicit null checks** - Use `assert(obj != null)` or early returns, don't silently continue with bad data
-7. **Example**: 
-   ```gdscript
-   # ❌ BAD: Silent fallback
-   var weapon = warrior.equipment_weapon if warrior.equipment_weapon else WeaponFactory.create_default()
-   
-   # ✅ GOOD: Explicit requirement
-   assert(warrior.equipment_weapon != null, "Warrior must have weapon equipped")
-   var weapon = warrior.equipment_weapon
-   
-   # ❌ BAD: Unused parameter
-   func process_turn(squad: Squad, context: Dictionary = {}) -> void:
-       print("Processing turn for %s" % squad.name)  # context never used
-   
-   # ✅ GOOD: Only required parameters
-   func process_turn(squad: Squad) -> void:
-       print("Processing turn for %s" % squad.name)
-   ```
+### Supporting Systems
 
-### Type Safety
-1. **Always use enums over strings** for categorical data (Religion, LocationType, ActivityType)
-2. **Always use typed arrays** when element type is known: `Array[Warrior]` not `Array`
-3. **Use Resource subclasses** for data that needs serialization (World, Warrior, Mission)
-4. **Use RefCounted subclasses** for logic classes (GameScenario, EventManager, Activity)
-5. **Avoid exporting RefCounted types** - only Resources, built-ins, Nodes, or enums can be @export
+- **Debug Logger** (`src/singletons/log.gd`): `Log` static utility class (via `class_name`, not autoload) with level-based filtering and per-source muting. Levels: TRACE, DEBUG, INFO, WARN, ERROR. Static methods: `Log.info("Source", "msg")`. Output format: `[LEVEL] [Source] msg`. Source convention: `"ClassName"` or `"ClassName:EntityName"`. `Log.mute("Contact")` suppresses by prefix match. `Log.set_level(Log.Level.INFO)` adjusts global verbosity. Default level: DEBUG.
+- **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
+- **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
+- **Animation Composition System** (`src/animation/`): Five-layer system for 2D skeletal warrior characters
+  - Layer 1 — **Clips**: Raw `AnimationPlayer` tracks in two domains: Body (Skeleton2D bone transforms) and Face (sprite frame indices)
+  - Layer 2 — **iExpression** (expression.gd): Resource combining an eye clip + mouth clip. Predefined `.tres` in `resources/animation/expressions/`
+  - Layer 3 — **AnimAction** (action.gd): Resource pairing a body clip + iExpression. Predefined `.tres` in `resources/animation/actions/`
+  - Layer 4 — **Behavior**: Named states in an `AnimationNodeStateMachine` on the `AnimationTree` (idle, walking, attacking, defending, hurt, dying, talking, gesturing)
+  - Layer 5 — **WarriorAnimController** (warrior_anim_controller.gd): Node that translates high-level `play_behavior()`/`set_expression()`/`play_action()` into AnimationTree parameter changes
+  - `WarriorRig` (warrior_rig.gd) — Node2D scene with Skeleton2D, Face (Eyes+Mouth sprites), AnimPlayer, AnimTree, controller. Generates **placeholder Polygon2D body parts** at runtime via `_build_placeholder_body()`: top-level Polygon2D children synced to bone transforms each frame in `_process()`. Class-based palettes (Landsknecht=red, Healer=blue). Visuals tracked per bone name in `_limb_nodes` — `_replace_limb(bone_name, texture)` swaps placeholder polygons for a Sprite2D on a single bone. `apply_config()` does per-bone replacement (only bones with textures are replaced; others keep placeholders)
+  - `WarriorRigConfig` (rig_config.gd) — Resource with per-bone-segment textures (Head, Torso, Hips, LeftArm/Forearm/Hand, RightArm/Forearm/Hand, LeftLeg/Shin/Foot, RightLeg/Shin/Foot) + face spritesheets. `get_bone_textures()` returns bone_name→Texture2D dictionary for only the populated fields
+  - `WarriorRigConfigFactory` (rig_config_factory.gd) — Static loader + cache (same pattern as `AIProfileFactory`)
+  - `WarriorRigFactory` (rig_factory.gd) — Creates rigs from warriors or NPC character IDs (NPC appearance seeded from ID hash)
+  - `AnimTypes` (types.gd) — `Behavior` enum
+  - Adding expressions/actions = create `.tres` files, no code changes
+- **Warrior Stage** (`src/strategy/ui/stage/`): Shared 2D viewport for animated warriors, used by both march and VN
+  - `StageView` (view.gd) — Control with SubViewportContainer (renders 2D WarriorRigs) + BubbleLayer (UI speech bubbles). Manages rig spawning, march movement, bubble positioning
+  - `StagePresenter` (presenter.gd) — Mode switching (MARCH/VN/HIDDEN), march API, VN API (dialogue positioning, camera focus, NPC rig spawning)
+  - `StageCamera` (stage_camera.gd) — Camera2D with tween-based `focus_on()`, `focus_between()`, `reset_to_wide()`, `get_screen_position()` for world→viewport projection
+  - `SpeechBubble` (speech_bubble.gd) — PanelContainer rendered in BubbleLayer, positioned above WarriorRig heads via camera projection. Scale-up appear, fade-out dismiss. **Typewriter effect**: `start_typewriter()` reveals text character-by-character via `visible_characters`. Punctuation pauses (`.!?` = 0.22s, `,:;` = 0.12s, other = 0.03s). `set_speed(multiplier)` for fast-forward (5x). `word_revealed` signal emits each word for interrupt detection. `stop_typewriter()` freezes mid-word, `complete_immediately()` reveals all. `typewriter_finished` signal on completion
+  - Mode transitions: MARCH (warriors walk, wide camera) ↔ VN (warriors rearrange, camera zooms, speech bubbles) ↔ HIDDEN (combat)
+- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines).
+  - `Dialogue` (dialogue.gd) — Stage-aware Resource with cutscene properties:
+    - Core: `id` (unique within chain for referencing), `speaker_name`, `line_spoken`
+    - Stage display: `keep_previous_bubbles` (overlay mode), `camera_target` (focus override), `expression_override`
+    - Sequencing: `delay_ms` (pause before showing), `after_id` (dependency on another dialogue), `duration_ms` (auto-advance timer, 0 = manual)
+    - Interruption: `interrupt_by_id` + `interrupt_on_word` (cut short when referenced dialogue says keyword)
+    - Stage direction: `walk_to` (Vector2 stage coords), `behavior` (animation override), `face_direction` (-1/0/1)
+    - Helpers: `has_walk_to()`, `has_interrupt()`, `has_after_dependency()`, `is_auto_advance()`
+  - `EventChain` (event_chain.gd) — `get_dialogue_by_id()` for ID-based lookup
+  - `StagePresenter.show_speech()` returns `SpeechBubble` for typewriter tracking. `walk_character()`, `set_character_facing()`, `set_character_behavior()`. `dismiss_all_speech()` only resets TALKING rigs to IDLE (preserves WALKING/GESTURING behaviors)
+  - **Dialogue demo state machine** (`dialogue_demo.gd`): IDLE→TYPEWRITING→WAITING→COMPLETE. `after_id` batch grouping (dialogues sharing same `after_id` fire simultaneously). Interrupt detection via `word_revealed` signal (auto-fires interrupter dialogue). SPACE fast-forwards all active typewriters to 5x. Narrator typewriter uses `visible_characters` in `_process()`. Headless test mode via `--headless` flag
+- **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring pattern for squad decision-making
+  - `AIFleetManager` (fleet_manager.gd) — fleet orchestration: `prepare_ai_turns()` runs brain decisions and resolves Activity objects (duplicating for TRAVEL/FORCE_MARCH to avoid shared-state conflicts). Does NOT execute activities — execution happens in the unified karma-sorted phase loop in `StrategyPresenter`. Provides `_execute_headless_combat()` and `cleanup_defeated_squads()` for combat resolution. Caches `location_at_decision` per squad for correct edge_log reporting
+  - `SquadBrain` (squad_brain.gd) — runtime evaluator, iterates considerations, picks highest-scoring action. Location-independent activities (TRAVEL, FORCE_MARCH, ATTACK, REST, HEAL, BUY_SUPPLIES, FORAGE, PATROL, DRILL, MERCENARY_WORK) bypass location activity_type checks
+  - `SquadBrainConfig` (squad_brain_config.gd) — Resource container for considerations + fallback action
+  - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
+  - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
+  - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies. Uses next-hop pathfinding for travel/force-march destinations
+  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking
+  - `FactionBrain` (faction_brain.gd) — stub for faction-level coordination (returns NONE directives)
+  - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
+  - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
+  - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
+  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
+  - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
+- **AIAct Scripted Testing** (`src/strategy/ai/ai_act.gd`): Resource for deterministic headless game testing
+  - `AIAct` — Resource with `activity_type`, `destination_id`, `target_squad_id`, `description` + assertion fields (`expect_location`, `expect_min_food`, `expect_max_food`, `expect_min_morale`, `expect_event_fired`, `expect_events_fired: Array[String]`, `expect_min_warriors`)
+  - `AIAct.create(type, desc, dest, target)` — static factory for programmatic test sequences
+  - `HeadlessStrategyView` (`src/demos/headless_strategy_view.gd`) — mock view with no-op UI methods, real ActivityRunner/AIFleetManager, mock VN/Stage. Allows StrategyPresenter to run the full production pipeline headlessly
+  - Demo (`ai_act_demo.gd`) uses the **real StrategyPresenter** with HeadlessStrategyView: `presenter.bind_view(mock_view)` boots the game, then `presenter.on_travel_confirmed()` / `presenter.on_activity_requested()` drive turns through the actual production turn pipeline
+  - Travel uses the real multi-turn progress system — TRAVEL acts auto-continue until arrival (`on_travel_confirmed` + `on_continue_travel` loop)
+  - StrategyPresenter `bind_view(v)` accepts untyped view (duck-typed) to support both StrategyView and HeadlessStrategyView
+  - Assertions checked after each turn with PASS/FAIL logging; summary at end
+  - AI squads (if present in scenario) still use normal SquadBrain via AIFleetManager
+- **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
+  - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
+  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
+  - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
+  - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
+  - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
+  - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
+  - `ShopView` (shop/view.gd) + `ShopPresenter` (shop/presenter.gd) — shop with cart system, quantity controls, confirmation flow
+  - `ScoutingView` (scouting/view.gd) + `ScoutingPresenter` (scouting/presenter.gd) — scouting intelligence overlay with progressive contact revelation
+  - `MissionsView` (missions/view.gd) + `MissionsPresenter` (missions/presenter.gd) — two-column missions overlay: left column lists active/completed missions, right column shows selected mission details (description, conditions, rewards). UI built programmatically. Opened via "Missions" button in bottom nav bar. `MissionsPresenter.open()` accepts `Array[Mission]` (caller collects from factions). Guarded against empty factions in presenter
+- **Contact & Spotting System** (`src/strategy/core/contact/`): HOI4-inspired gradual awareness between squads
+  - `Contact` (contact.gd) — RefCounted, tracks one squad's awareness of another (0-100 progress → NONE/SUSPECTED/TRACKED/LOCKED)
+  - `ContactTracker` (tracker.gd) — RefCounted, central manager on `World.contact_tracker`. Update loop, proximity detection, engagement checks, tracking capacity
+  - Spotting formula: `BASE_SPOTTING_RATE * proximity * (eff_scouting / (eff_scouting + eff_stealth)) * size_factor`
+  - Proximity levels: SAME_LOCATION (1.0), SAME_EDGE (0.7), ADJACENT (0.3), none (0.0 → decay)
+  - Activity modifiers: PATROL boosts scouting (1.5x), REST boosts stealth (1.3x), ATTACK reduces stealth (0.4x)
+  - Tracking capacity per squad: `1 + floor(avg_perception / 30)`, PATROL adds +1 slot
+  - ATTACK activity gated on SUSPECTED+ contact (1+ progress) for same-location enemies (both AI fleet_manager and activity script.gd use SUSPECTED threshold)
+  - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
+  - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
+  - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender
+  - AI integration: `StrategicSituation` has `highest_contact_on_us`, `our_best_contact`, `can_ambush`, `weakest_tracked_enemy_warriors` lazy properties
+  - AI considerations: `ambush-opportunity.tres` (weight 8), `break-contact.tres` (weight 5, travel away), `finish-off-enemy.tres` (weight 8, force march when enemy weak + tracked), `rest-when-exhausted.tres` (weight 8, rest when morale low)
+  - `DestinationStrategy.AWAY_FROM_ENEMY` — BFS for location maximizing distance from nearest enemy
+  - `hunt-enemies` action uses TRAVEL (not FORCE_MARCH) — AI travels towards enemies normally, only force-marches to finish off weak tracked targets
+  - `patrol-for-info` weight reduced to 3.0 — prevents patrol from dominating other decisions
+  - Force march resolves destination via next-hop pathfinding (no teleportation), moves 2 hops per turn (double speed)
+- **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
+  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
+  - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
+  - `Location.shop: Shop` — optional exported property; `has_shop()` helper
+  - Purchase effects mapped in `ShopPresenter._apply_item_effect()`: SUPPLY → food
 
-### Architecture Patterns
-1. **Factory Pattern**: Use static `create_*()` methods for polymorphic instantiation (Activity.create_activity())
-2. **Composite Pattern**: For recursive structures like TriggerCondition with AND/OR nesting
-3. **Bridge Pattern**: Separate strategic and tactical representations with conversion methods
-   - **Data Layer** (CombatBridge): Pure data translation, stateless, no game logic
-   - **Logic Layer** (CombatController): Game rules, state management, orchestration
-4. **Result Pattern**: Return strongly-typed result objects (ActivityResult, EventResult) instead of raw dictionaries
-5. **Event Bus Pattern**: Use autoloaded singletons for cross-system communication without tight coupling
+### Key Enums and Types
 
-### Data Flow
-1. **Context Dictionaries**: Build context once, pass to all evaluators (avoid repeated data gathering)
-2. **Immutable Results**: Return new result objects, don't modify passed parameters
-3. **Signal Orchestration**: Emit signals from orchestrator (GameScenario, CombatController) not from low-level classes
-4. **ID Mapping**: Use explicit dictionaries for cross-layer ID translation (warrior_to_entity, entity_to_warrior)
+- Entity Classes: `src/character/classes-enum.gd` (EntityClasses.Types: Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter)
+- Weapons: `src/squad-battle/weapon/_factory.gd` (WeaponClasses: Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire)
+- Armor: `src/squad-battle/armor/_factory.gd` (ArmorClasses: Unarmored, LeatherArmor, PaddedArmor, HalfPlate)
+- Logic: `src/squad-battle/entity/logic/_factory.gd` (LogicAvailable: Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster)
+- Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
+- Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
+- Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
+- Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
-### Code Organization
-1. **One class per file** except nested utility classes (EventChoice inside StrategyTypes is fine)
-2. **Match file name to class name**: `strategic_squad.gd` for `StrategicSquad`
-3. **Group related enums**: StrategyTypes contains all strategic enums, SquadBattleTypes contains all combat enums
-4. **Prefix unused parameters**: Use `_squad` instead of `squad` to avoid warnings in virtual methods
+### Unit Classes & Combat Configuration
 
-### Common Pitfalls to Avoid
-1. ❌ Don't use `class_name` for inner classes - it causes global namespace pollution
-2. ❌ Don't export RefCounted types - Godot can only export Resources, Nodes, built-ins, or enums
-3. ❌ Don't use `Array[CustomClass]` before CustomClass is defined - will cause compile errors until Godot parses all files
-4. ❌ Don't mix strategic and tactical concerns in same class - keep layers separate
-5. ❌ Don't hardcode magic numbers - use named constants or configuration dictionaries
-6. ❌ **Don't directly assign untyped arrays to typed array properties** - Always use iterative assignment or helper methods (see below)
-7. ❌ **Don't use `.get()` with default array values for typed arrays** - Returns untyped Array, causing type errors
-8. ❌ **Don't cast Dictionary.get() results to typed arrays** - The cast happens after .get() returns untyped Array
-9. ❌ **Don't add comments (`#`) in .tscn scene files** - Godot scene format doesn't support inline comments
+7 unit classes with distinct combat roles:
+- **Landsknecht** — melee frontline DPS. Flammenschwert (Force→Slash+Strike), Leather Armor, Frontline logic. Front position. Cost: 100
+- **Healer** — backline support. Unarmed, Unarmored, BacklineHeal logic (move-to-back + heal). Back position. Cost: 150
+- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -8 ORG suppression on hit. Back position. Cost: 120
+- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -12 ORG suppression on hit. Back position. Cost: 200
+- **Pikeman** — defensive frontline with reach. Pike (Force→Stab+Strike, range: Front→Front+Mid, Mid→Front), Half Plate, DefensiveFrontline logic. Front position. Cost: 130
+- **Feldprediger** — enhanced support. Mace (Force→Strike, Front→Front only), Padded Armor, BacklineSupport logic (move-to-back + heal + inspire ORG boost). Back position. Cost: 180
+- **Gelehrter** — AoE backline mage. Alchemical Fire (Mana→Arcane, `is_magical=true`, range: Back→Front+Mid, Mid→Front, Front→Front), Unarmored, BacklineCaster logic (move-to-back + fireball). Fireball splash deals 50% damage to all enemies at target's position via `SkillEffectSplash`. Back position. Cost: 250
 
-### Typed Array Assignment Pattern (CRITICAL)
-GDScript has strict typed array requirements. **ANY assignment to a typed array variable MUST come from a compatible typed source.**
+Ranged targeting works via WeaponLocation.can_hit arrays — each weapon defines which positions it can reach from each position. Suppression is a SkillEffectFlat with property_direct=ORG triggered on TargetTookDamage. Splash is a `SkillEffectSplash` triggered on TargetTookDamage — iterates enemies at target's position, rolls magical pierce per target, deals ratio-reduced damage.
 
-**The Problem:**
+### Magical vs Physical Combat
+- `WeaponConfig.is_magical` / `SquadWeapon.is_magical` — flags weapon as magical
+- **Physical pierce**: `weapon.get_total_penetration_value()` (Force+Precision) vs `armor.get_PV()` (armor_bonus+Endurance+Bravery)
+- **Magical pierce**: `weapon.get_magical_penetration_value()` (Mana+Spirituality) vs `armor.get_magical_PV()` (magical_armor_bonus+Spirituality+Willpower)
+- `OneClash.roll_for_pierce()` branches on `is_magical` automatically
+- `BattleContext` (battle_context.gd) — typed wrapper around context dict, provides `get_enemies_at(loc)` and `get_allies_at(loc)` for AoE targeting. Constructed in `OneClash.commit()` and passed to skill effects via `set_attacker_and_target()`
+
+## GDScript Conventions
+
+### Class Hierarchy
+
+- **RefCounted** for logic classes (SquadBattle, GameScenario, TriggerableManager, TravelGraph)
+- **Resource** for serializable data (World, Faction, Mission, Squad, Character data, iExpression, AnimAction, WarriorRigConfig)
+- **Node** for scene-attached UI
+
+### Coding Rules
+
+- **Fail-fast**: No fallback values, no stubs, no unused signals/parameters/speculative code. Use `assert()` for requirements.
+- **Enums over strings** for all categorical data. **Typed arrays** always: `Array[EntityUpdate]` not `Array`.
+- **No comments** unless Godot doc comments (`##`) or genuinely complex algorithms.
+- **One class per file** except small nested utility classes.
+- **Factory pattern** with static `create_*()` methods for polymorphic instantiation.
+- **Don't use `preload`** when you see "class not found" errors — Godot needs time to parse classes.
+- **Don't export RefCounted types** — only Resources, Nodes, built-ins, or enums.
+- **Don't use `class_name` for inner classes** — causes namespace pollution.
+- **Don't add comments in `.tscn` files** — Godot scene format doesn't support them.
+
+### Terminal / File Operations
+
+- **Never use `cat` with a heredoc to overwrite files** — bash heredocs strip all tab indentation, breaking GDScript (which is indentation-sensitive). Use Python instead:
+  ```
+  python3 - << 'PYEOF'
+  content = '''\t(tabs preserved as \\t escapes)'''
+  with open('path/to/file.gd', 'w') as f: f.write(content)
+  PYEOF
+  ```
+- **Prefer `replace_string_in_file`** for targeted edits to existing files — avoids full rewrites entirely.
+
+### Typed Array Assignment (Critical Pitfall)
+
+Never assign from `Dictionary.get()` or untyped sources to typed arrays. Always iterate and append:
+
 ```gdscript
+# WRONG: my_array = config.get("items", [])
 var my_array: Array[String] = []
-my_array = config.get("items", [])  # ❌ WRONG: .get() returns untyped Array
-my_array = config.get("items", [] as Array[String])  # ❌ STILL WRONG: Cast happens before .get()
-my_array = config.get("items", []) as Array[String]  # ❌ STILL WRONG: .get() already returned untyped Array
-```
-
-**✅ CORRECT Solution (Iterative Assignment):**
-```gdscript
-var my_array: Array[String] = []
-var raw_data = config.get("items", [])
-if raw_data is Array:
-    for item in raw_data:
+var raw = config.get("items", [])
+if raw is Array:
+    for item in raw:
         if item is String:
             my_array.append(item)
 ```
 
-**Golden Rule:** Never directly assign from Dictionary.get(), JSON parsing, or any untyped source to a typed array variable. Always iterate and append with type checking.
+### Location System
+
+Squad positions: `Front = 1`, `Middle = 2`, `Back = 3` (NOT zero-indexed). Forward = `-1`, retreat = `+1`.
+
+### Entity Update Pattern
+
+All combat state changes return `EntityUpdate` containing `EntityChange`:
+```gdscript
+var updates: Array[EntityUpdate] = []
+updates.append(EntityUpdate.new(source_id, target_id,
+    entity.mod_changeable_stat(Types.EntityChangeable.HP, -damage)))
+return updates
+```
+
+## File Organization
+
+- `src/animation/` — animation composition system: types, expression, action, rig config/factory, warrior rig, anim controller
+- `src/squad-battle/` — combat engine: View/Presenter/Model (view.gd, presenter.gd, data.gd), entity, weapon, armor, clash, AI logic
+- `src/strategy/core/` — world, scenario, faction, travel, triggerable system, shop, contact
+- `src/strategy/core/sb-bridge/` — combat bridge and controller
+- `src/strategy/ui/` — UI View/Presenter components (view.gd + presenter.gd per feature directory)
+- `src/strategy/ui/stage/` — warrior stage: 2D viewport, camera, speech bubbles, march/VN mode switching
+- `src/strategy/ui/vn/` — visual novel system (delegates display to stage)
+- `src/strategy/ui/travel/` — travel menu
+- `src/strategy/ui/investigation/` — investigation overlay
+- `src/strategy/ui/recruitment/` — warrior recruitment
+- `src/strategy/ui/manage_squad/` — squad roster
+- `src/strategy/ui/shop/` — shop with cart UI
+- `src/strategy/ui/scouting/` — scouting report overlay (progressive contact intel)
+- `src/strategy/ui/missions/` — missions overlay (two-column: active/completed list + details/conditions/rewards)
+- `src/strategy/ai/` — strategic AI (fleet manager, squad brain, considerations, glances, actions)
+- `resources/ai/strategic/` — AI behavior .tres files (glances, considerations, actions, profiles)
+- `resources/ai/faction/` — faction brain profiles
+- `resources/generic-activities/` — Activity .tres files: rest, drill, travelling, patrol, investigate, attack, force-march, hold-mass, recruit, forage, heal, mercenary-work, buy-supplies
+- `resources/scenarios/goetz-official/` — Main Goetz von Berlichingen campaign scenario. Missions in `missions/`, faction in `factions/`, event chains in `event-chains/`
+- `resources/scenarios/ai-stress-test/` — Large 13-location stress test scenario for AI behavior observation
+- `resources/animation/` — animation data files
+  - `expressions/` — iExpression .tres (eye + mouth clip pairs)
+  - `actions/` — AnimAction .tres (body clip + expression pairs)
+  - `configs/` — WarriorRigConfig .tres (per-class textures)
+- `src/character/` — character data classes
+- `src/singletons/` — autoloaded event buses
+- `resources/` — `.tres` files: scenarios, squads, warriors, events, activities, event chains
+- `scenes/` — `.tscn` scene files; `scenes/demos/` for test scenes
+  - `warrior_rig.tscn` — WarriorRig scene (Skeleton2D + Face + AnimPlayer + AnimTree + controller)
+  - `speech_bubble.tscn` — SpeechBubble scene (PanelContainer with speaker name + text + tail)
