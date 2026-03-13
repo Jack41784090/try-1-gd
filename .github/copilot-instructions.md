@@ -23,7 +23,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
   - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
   - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
-- **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
+- **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
+- **Sound generation**: `python3 tools/sound_designer.py` writes synthesized SFX to `assets/sfx/` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
 ## Architecture
@@ -54,6 +55,20 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 ### Supporting Systems
 
+- **SFX System** (`src/singletons/sfx.gd`): Autoload singleton `SFX` caches and plays one-shot UI/combat sounds from `assets/sfx/*.wav` with semantic methods (`play_ui_hover`, `play_ui_click`, `play_ui_confirm`, `play_ui_cancel`, `play_attack_for_weapon`, `play_combat_clink`, `play_death`, `play_player_victory`, `play_player_defeat`). Disabled automatically in headless mode.
+- **UI Animations** (`src/utils/ui_animations.gd`): `UIAnimations` static utility class (via `class_name`) for modern UI polish. Provides:
+  - `register_button(button)` — attaches hover scale-up (1.05x, TRANS_BACK), press scale-down (0.95x), release bounce-back via mouse_entered/exited/button_down/button_up signals. Skips animation on disabled buttons
+  - `register_button(button)` also triggers SFX hooks (`ui_hover` on hover enter, `ui_click` on release) via `SFX` autoload lookup
+  - `register_all_buttons(root)` — recursively registers all Button children
+  - `show_overlay(overlay, panel)` / `hide_overlay(overlay, panel)` — fade + slide-from-below overlay transitions (0.25s fade, 0.3s slide with TRANS_BACK easing)
+  - `stagger_buttons(buttons, delay)` — cascade reveal animation for button grids (scale 0.8→1.0 + fade in, 0.04s between each)
+  - `slide_in_panel(panel)` / `slide_out_panel(panel)` — standalone panel slide animations
+  - `pulse(control)` — attention-drawing scale bounce
+  - `animate_label_number(label, from, to)` — smooth number counter animation
+  - All overlay views (Travel, Shop, Scouting, Missions, Investigation, Recruitment, ManageSquad) use `show_overlay`/`hide_overlay` for animated open/close
+  - Action buttons and nav buttons in StrategyView are registered with `register_button` for hover/press animations
+  - Strategy UI `show_strategy_ui()` uses `stagger_buttons()` for cascading button reveal
+  - Combat panel uses `slide_in_panel`/`slide_out_panel` for animated show/hide
 - **Debug Logger** (`src/singletons/log.gd`): `Log` static utility class (via `class_name`, not autoload) with level-based filtering and per-source muting. Levels: TRACE, DEBUG, INFO, WARN, ERROR. Static methods: `Log.info("Source", "msg")`. Output format: `[LEVEL] [Source] msg`. Source convention: `"ClassName"` or `"ClassName:EntityName"`. `Log.mute("Contact")` suppresses by prefix match. `Log.set_level(Log.Level.INFO)` adjusts global verbosity. Default level: DEBUG.
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
@@ -75,7 +90,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StageCamera` (stage_camera.gd) — Camera2D with tween-based `focus_on()`, `focus_between()`, `reset_to_wide()`, `get_screen_position()` for world→viewport projection
   - `SpeechBubble` (speech_bubble.gd) — PanelContainer rendered in BubbleLayer, positioned above WarriorRig heads via camera projection. Scale-up appear, fade-out dismiss. **Typewriter effect**: `start_typewriter()` reveals text character-by-character via `visible_characters`. Punctuation pauses (`.!?` = 0.22s, `,:;` = 0.12s, other = 0.03s). `set_speed(multiplier)` for fast-forward (5x). `word_revealed` signal emits each word for interrupt detection. `stop_typewriter()` freezes mid-word, `complete_immediately()` reveals all. `typewriter_finished` signal on completion
   - Mode transitions: MARCH (warriors walk, wide camera) ↔ VN (warriors rearrange, camera zooms, speech bubbles) ↔ HIDDEN (combat)
-- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines).
+- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines). `_DEBUG` mode shows a narrator message identifying the skipped chain (click to dismiss) instead of silently skipping.
   - `Dialogue` (dialogue.gd) — Stage-aware Resource with cutscene properties:
     - Core: `id` (unique within chain for referencing), `speaker_name`, `line_spoken`
     - Stage display: `keep_previous_bubbles` (overlay mode), `camera_target` (focus override), `expression_override`
@@ -112,7 +127,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
   - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
-  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
+  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine. Path selection cached across menu open/close (cleared only on explicit cancel). GOING mode shows location list for mid-travel destination changes
   - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
   - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)

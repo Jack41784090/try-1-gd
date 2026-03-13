@@ -1,7 +1,7 @@
 class_name GameEvent
 extends Triggerable
 
-@export var result: EventResult
+@export var result: GenericResult
 @export var when_to_trigger: StrategyTypes.TriggerWhen = StrategyTypes.TriggerWhen.AFTER_ACTIVITY
 
 var times_triggered: int = 0
@@ -23,7 +23,7 @@ func can_trigger(context: Dictionary = { }) -> bool:
 	return super.can_trigger(context)
 
 
-func trigger(context: Dictionary) -> Array[EventResult]:
+func trigger(context: Dictionary) -> Array[GenericResult]:
 	times_triggered += 1
 	var _result = execute(context)
 
@@ -35,7 +35,7 @@ func trigger(context: Dictionary) -> Array[EventResult]:
 	return [_result]
 
 
-func execute(context: Dictionary) -> EventResult:
+func execute(context: Dictionary) -> GenericResult:
 	# Override this in subclasses to implement event logic
 	# var result = EventResult.new({
 	# 	"event_chain_path": event_chain_path,

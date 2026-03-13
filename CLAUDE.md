@@ -23,7 +23,9 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
   - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
   - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
-- **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`
+  - `economy_demo.tscn` — economy simulation: 3-location supply chain (Farmstead→Market Town→Castle), 130 people across 3 social classes, 20-turn headless simulation with disruption at turn 10. Tests food production, trade dispatch with in-transit tracking, price dynamics, class-based purchasing, satisfaction. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
+- **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
+- **Sound generation**: `python3 tools/sound_designer.py` writes synthesized SFX to `assets/sfx/` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
 
 ## Architecture
@@ -45,7 +47,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
    - `World` (core/world.gd) holds location graph, roaming squads, turn counter
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
-   - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override)
+   - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override). `GameEvent.result` typed as `GenericResult` (widened from deprecated `EventResult`). `EventResult` kept only for .tres backward compatibility
    - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
@@ -54,6 +56,20 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 ### Supporting Systems
 
+- **SFX System** (`src/singletons/sfx.gd`): Autoload singleton `SFX` caches and plays one-shot UI/combat sounds from `assets/sfx/*.wav` with semantic methods (`play_ui_hover`, `play_ui_click`, `play_ui_confirm`, `play_ui_cancel`, `play_attack_for_weapon`, `play_combat_clink`, `play_death`, `play_player_victory`, `play_player_defeat`). Disabled automatically in headless mode.
+- **UI Animations** (`src/utils/ui_animations.gd`): `UIAnimations` static utility class (via `class_name`) for modern UI polish. Provides:
+  - `register_button(button)` — attaches hover scale-up (1.05x, TRANS_BACK), press scale-down (0.95x), release bounce-back via mouse_entered/exited/button_down/button_up signals. Skips animation on disabled buttons
+  - `register_button(button)` also triggers SFX hooks (`ui_hover` on hover enter, `ui_click` on release) via `SFX` autoload lookup
+  - `register_all_buttons(root)` — recursively registers all Button children
+  - `show_overlay(overlay, panel)` / `hide_overlay(overlay, panel)` — fade + slide-from-below overlay transitions (0.25s fade, 0.3s slide with TRANS_BACK easing)
+  - `stagger_buttons(buttons, delay)` — cascade reveal animation for button grids (scale 0.8→1.0 + fade in, 0.04s between each)
+  - `slide_in_panel(panel)` / `slide_out_panel(panel)` — standalone panel slide animations
+  - `pulse(control)` — attention-drawing scale bounce
+  - `animate_label_number(label, from, to)` — smooth number counter animation
+  - All overlay views (Travel, Shop, Scouting, Missions, Investigation, Recruitment, ManageSquad) use `show_overlay`/`hide_overlay` for animated open/close
+  - Action buttons and nav buttons in StrategyView are registered with `register_button` for hover/press animations
+  - Strategy UI `show_strategy_ui()` uses `stagger_buttons()` for cascading button reveal
+  - Combat panel uses `slide_in_panel`/`slide_out_panel` for animated show/hide
 - **Debug Logger** (`src/singletons/log.gd`): `Log` static utility class (via `class_name`, not autoload) with level-based filtering and per-source muting. Levels: TRACE, DEBUG, INFO, WARN, ERROR. Static methods: `Log.info("Source", "msg")`. Output format: `[LEVEL] [Source] msg`. Source convention: `"ClassName"` or `"ClassName:EntityName"`. `Log.mute("Contact")` suppresses by prefix match. `Log.set_level(Log.Level.INFO)` adjusts global verbosity. Default level: DEBUG.
 - **Squad data model** (`src/squad.gd`, `src/squad-base-data.gd`, `src/squad-strat.gd`, `src/squad-combat.gd`): Squad wraps base roster + strategic state + combat state
 - **Character model** (`src/character/`): Three layers — `CharacterBaseData`, `CharacterCombatStats`, `CharacterSocialStats`
@@ -75,7 +91,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StageCamera` (stage_camera.gd) — Camera2D with tween-based `focus_on()`, `focus_between()`, `reset_to_wide()`, `get_screen_position()` for world→viewport projection
   - `SpeechBubble` (speech_bubble.gd) — PanelContainer rendered in BubbleLayer, positioned above WarriorRig heads via camera projection. Scale-up appear, fade-out dismiss. **Typewriter effect**: `start_typewriter()` reveals text character-by-character via `visible_characters`. Punctuation pauses (`.!?` = 0.22s, `,:;` = 0.12s, other = 0.03s). `set_speed(multiplier)` for fast-forward (5x). `word_revealed` signal emits each word for interrupt detection. `stop_typewriter()` freezes mid-word, `complete_immediately()` reveals all. `typewriter_finished` signal on completion
   - Mode transitions: MARCH (warriors walk, wide camera) ↔ VN (warriors rearrange, camera zooms, speech bubbles) ↔ HIDDEN (combat)
-- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines).
+- **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` resources trigger via `requires_async = true` + `event_chain_path` in any result. Split into `VnView` (view.gd) for fallback/narrator display and `VnPresenter` (presenter.gd) for chain queue/progression state machine. VnPresenter is **stage-aware**: checks if speaker has a rig on the warrior stage — if yes, displays speech bubble on the rig; if no, falls back to the textbox (also used for narrator lines). `_DEBUG` mode shows a narrator message identifying the skipped chain (click to dismiss) instead of silently skipping.
   - `Dialogue` (dialogue.gd) — Stage-aware Resource with cutscene properties:
     - Core: `id` (unique within chain for referencing), `speaker_name`, `line_spoken`
     - Stage display: `keep_previous_bubbles` (overlay mode), `camera_target` (focus override), `expression_override`
@@ -110,9 +126,11 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Assertions checked after each turn with PASS/FAIL logging; summary at end
   - AI squads (if present in scenario) still use normal SquadBrain via AIFleetManager
 - **UI** (`src/strategy/ui/`): View/Presenter MVP architecture throughout. Each feature directory contains `view.gd` (passive display) and `presenter.gd` (orchestration logic). Presenter is a `Node` child of its View in the scene tree. View calls `presenter.on_X()`, Presenter calls `view.update_X()`.
-  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
+  - `StrategyView` (view.gd) + `StrategyPresenter` (presenter.gd) — top-level strategy screen. Exports (`scenario_path`, `is_demo_scenario`) live on the Presenter. Owns the unified turn pipeline: `_execute_activity_obj()` calls `prepare_ai_turns()` → `_build_karma_sorted_entries()` → karma-sorted phase loop → `cleanup_defeated_squads()` → `_check_game_over()` → contacts → `_check_missions()` → advance turn. `_check_missions()` also runs after `GAME_START` triggerables in `bind_view()`. `_resolve_ai_combat_from_results()` handles inline headless combat for AI squads.
+  - **Game Over**: `_check_game_over()` detects when player squad has no living warriors (after combat or activity phases). Emits `StrategyEventBus.game_ended`, calls `view.show_game_over()` which creates a full-screen dark overlay with "DEFEAT" title, description, and "Restart Campaign" button (`get_tree().reload_current_scene()`). Also checked after `_handle_encounter_result()`.
+  - **VN Result Summary**: `_pending_results` accumulates `GenericResult` objects during `_exec_play_animchanges_loop()`. After VN chains complete in `_vn_play_next_recurs()`, `_show_pending_results()` aggregates `squad_stat_changes` and `new_recruits`, then calls `view.show_result_summary()` — a centered overlay panel showing colored stat deltas (+green/-red) and recruit names, dismissed via "Continue" button.
   - `StageView` (stage/view.gd) + `StagePresenter` (stage/presenter.gd) — warrior stage (see above)
-  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine
+  - `TravelView` (travel/view.gd) + `TravelPresenter` (travel/presenter.gd) — travel menu with AUTOPILOT/MANUAL/GOING state machine. Path selection cached across menu open/close (cleared only on explicit cancel). GOING mode shows location list for mid-travel destination changes
   - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
   - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
@@ -142,6 +160,18 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
   - `Location.shop: Shop` — optional exported property; `has_shop()` helper
   - Purchase effects mapped in `ShopPresenter._apply_item_effect()`: SUPPLY → food
+- **Economy System** (`src/economy/`): Odoo-inspired supply chain simulation with per-location populations, production, and trade
+  - `EconomyTypes` (types.gd) — All enums: SocialClass (PEASANT, BOURGEOIS, NOBLE), JobType (FARMER, MERCHANT, LANDLORD, CRAFTSMAN, LABORER, SERVANT, TAX_COLLECTOR, UNEMPLOYED), MoveState (PENDING, IN_TRANSIT, COMPLETED, CANCELLED), RuleAction (EXTRACT, PRODUCE, IMPORT), ThingType (FOOD, MONEY)
+  - `Thing` (thing.gd) — Resource: goods definition with `thing_id`, `thing_name`, `thing_type`, `base_price`. Static `create()` factory
+  - `EconPerson` (person.gd) — RefCounted: individual economic actor with `social_class`, `job`, `money`, `inventory` (Dict[Thing,float]), `wants`, `satisfaction` (0-100). `compute_wants()` assigns universal 1.0 FOOD need. `consume()`, `can_afford()`, `buy()`. Static factories: `create_peasant()`, `create_bourgeois()`, `create_noble()`
+  - `Population` (population.gd) — RefCounted: `Array[EconPerson]` wrapper with `get_by_class()`, `get_by_job()`, `get_total_demand()`, `sorted_by_wealth_desc()`, `create_batch()` static factory
+  - `LocationInventory` (location_inventory.gd) — RefCounted: per-location warehouse. `stocks`/`prices` dicts. `update_prices(demand_totals)` uses `base_price * clamp(demand/supply, 0.5, 3.0)`. Price update runs BEFORE market phase to reflect actual supply
+  - `EconomyMove` (economy_move.gd) — RefCounted: goods in transit (like Odoo stock.move). `advance()` decrements `turns_remaining`, marks COMPLETED on arrival
+  - `SupplyRule` (supply_rule.gd) — RefCounted: procurement rule (like Odoo stock.rule). Actions: EXTRACT (worker-ratio capped at workers/50), PRODUCE, IMPORT. `create_extract()`, `create_import()` static factories
+  - `EconomyTickResult` (economy_tick_result.gd) — Turn log collector with `LocationSnapshot` inner class
+  - `EconomyEngine` (economy_engine.gd) — Core 9-phase turn scheduler: Demand → Production → TradeAdvance → PriceUpdate → Market → Consumption → Income → TradeDispatch → Satisfaction. Trade dispatch uses `pop.size() * 1.3` buffer with in-transit awareness (`_get_in_transit_to()`) to prevent oscillation. Market phase sorts buyers by wealth descending (class dynamics). Satisfaction: +5 if fed, -15 if not
+  - Key price dynamics: production locations have low prices (0.50), importing locations adjust based on supply/demand ratio (0.77-1.25), end-of-chain locations (castles) have higher prices
+  - Supply chain patterns: direct routes (1 hop), hub-and-spoke (via market towns), dual sourcing (multiple import rules per location)
 
 ### Key Enums and Types
 
@@ -153,6 +183,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
+- Economy: `src/economy/types.gd` (EconomyTypes — SocialClass, JobType, MoveState, RuleAction [EXTRACT, PRODUCE, IMPORT], ThingType [FOOD, MONEY])
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ### Unit Classes & Combat Configuration
@@ -261,6 +292,7 @@ return updates
   - `actions/` — AnimAction .tres (body clip + expression pairs)
   - `configs/` — WarriorRigConfig .tres (per-class textures)
 - `src/character/` — character data classes
+- `src/economy/` — Odoo-inspired economy engine: types, thing, person, population, location inventory, economy move, supply rule, tick result, engine
 - `src/singletons/` — autoloaded event buses
 - `resources/` — `.tres` files: scenarios, squads, warriors, events, activities, event chains
 - `scenes/` — `.tscn` scene files; `scenes/demos/` for test scenes

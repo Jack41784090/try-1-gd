@@ -197,7 +197,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	Log.trace("AEM", "Total triggerables after sorting: %d" % triggerables.size())
 
 	# 4. Fire each triggerable and collect results
-	# e.g., GameEvent("Ambush").trigger(context) → EventResult(squad_stat_changes={MORALE: -10})
+	# e.g., GameEvent("Ambush").trigger(context) → GenericResult(squad_stat_changes={MORALE: -10})
 	var all_results: Array[GenericResult] = []
 	for triggerable in triggerables:
 		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])

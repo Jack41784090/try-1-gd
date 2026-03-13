@@ -18,7 +18,12 @@ func modify_development(amount: int) -> void:
 	development = clamp(development + amount, 0, 200)
 
 func is_connected_to(location_id_check: String) -> bool:
-	return location_id_check in connections
+	if connections == null:
+		return false
+	for conn in connections.tt:
+		if conn.to_location_id == location_id_check:
+			return true
+	return false
 
 func calculate_base_travel_time(to_location: Location) -> int:
 	if not is_connected_to(to_location.location_id):
@@ -56,7 +61,7 @@ func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
 func add_connection(location_id_to_connect: String, _time: int = 1) -> void:
 	if connections == null:
 		connections = TownConnections.new()
-	if not location_id_to_connect in connections:
+	if not is_connected_to(location_id_to_connect):
 		connections.tt.append(TownConnection.new(location_id, location_id_to_connect, _time))
 
 func add_clue(clue: Clue) -> void:
