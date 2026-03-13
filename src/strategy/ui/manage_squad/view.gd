@@ -20,9 +20,11 @@ func show_squad(squad: SquadStrategicData) -> void:
 	current_squad = squad
 	visible = true
 	_populate_warrior_list()
+	await UIAnimations.show_overlay(self)
 
 
 func hide_screen() -> void:
+	await UIAnimations.hide_overlay(self)
 	visible = false
 	current_squad = null
 

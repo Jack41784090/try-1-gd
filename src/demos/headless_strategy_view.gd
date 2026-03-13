@@ -165,6 +165,17 @@ func get_chain_completed_signal() -> Signal:
 #region Animation (no-op)
 
 func animate_stat_changes(_deltas: Dictionary): pass
+func show_result_summary(_stat_changes, _recruits): pass
+
+#endregion
+
+var game_over: bool = false
+
+#region Game Over
+
+func show_game_over(_title: String, _description: String):
+	game_over = true
+	Log.info("HeadlessView", "GAME OVER: %s — %s" % [_title, _description])
 
 #endregion
 

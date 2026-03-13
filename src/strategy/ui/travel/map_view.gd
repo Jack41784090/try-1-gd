@@ -68,6 +68,11 @@ func setup(world: World) -> void:
 	_extract_markers(map_instance)
 
 	var bg = map_instance.get_node_or_null("Background")
+	if not bg:
+		for child in map_instance.get_children():
+			if child is TextureRect or child is Sprite2D:
+				bg = child
+				break
 	if bg:
 		bg.reparent(_map_content)
 		_map_content.move_child(bg, 0)

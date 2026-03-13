@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene load_steps=42 format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/view.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
@@ -71,6 +71,74 @@ modulate_color = Color(0.7, 0.85, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_transparent"]
 bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_action_btn_normal"]
+bg_color = Color(0.12, 0.12, 0.18, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.42, 0.25, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_action_btn_hover"]
+bg_color = Color(0.18, 0.17, 0.25, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.65, 0.35, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.75, 0.65, 0.35, 0.15)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_action_btn_pressed"]
+bg_color = Color(0.08, 0.08, 0.12, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.5, 0.3, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_action_btn_disabled"]
+bg_color = Color(0.08, 0.08, 0.1, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.28, 0.2, 0.3)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_btn_normal"]
+bg_color = Color(0.1, 0.1, 0.14, 0.7)
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_btn_hover"]
+bg_color = Color(0.15, 0.14, 0.2, 0.85)
+border_width_bottom = 2
+border_color = Color(0.75, 0.65, 0.35, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="TrainingScreen" type="Control"]
 layout_mode = 3
@@ -445,7 +513,12 @@ tooltip_text = "Make camp and recover morale"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "🏕️ Rest"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -455,7 +528,12 @@ tooltip_text = "Train to improve combat skills"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "⚔️ Drill"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -465,7 +543,12 @@ tooltip_text = "Patrol the area and maintain order"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "🛡️ Patrol"
 
 [node name="NurseButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -475,7 +558,12 @@ tooltip_text = "Gather information and seek opportunities"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "🔍 Investigate"
 
 [node name="OutingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -485,7 +573,12 @@ tooltip_text = "Lead religious observance"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "✝️ Hold Mass"
 
 [node name="RaceButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -495,7 +588,12 @@ tooltip_text = "Move to another location"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "🗺️ Travel"
 
 [node name="AttackButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -505,7 +603,12 @@ tooltip_text = "Attack enemies at this location"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "⚔️ Attack"
 
 [node name="ManageSquadButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -515,7 +618,12 @@ tooltip_text = "View and manage your warriors"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "👥 Manage Squad"
 
 [node name="RecruitButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -525,7 +633,12 @@ tooltip_text = "View and manage your warriors"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "👥 Recruit"
 
 [node name="ShopButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -535,7 +648,12 @@ tooltip_text = "Browse the local shop"
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.65, 0.5, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.42, 0.35, 0.6)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "Shop"
 
 [node name="ContinueTravelButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid"]
@@ -546,7 +664,12 @@ tooltip_text = "Continue travelling towards your destination"
 theme_override_colors/font_color = Color(0.3, 0.85, 0.5, 1)
 theme_override_colors/font_pressed_color = Color(0.2, 0.65, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0.4, 1, 0.6, 1)
+theme_override_colors/font_disabled_color = Color(0.2, 0.45, 0.3, 0.6)
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "▶ Continue Travel"
 
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox"]
@@ -571,6 +694,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "⏭️ Skip 5 Turns"
 
 [node name="ShortButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
@@ -579,6 +704,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "📋 Summary"
 
 [node name="ScoutButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
@@ -588,6 +715,8 @@ tooltip_text = "View scouting intelligence on enemy squads"
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "Scout Report"
 
 [node name="MissionsButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
@@ -597,6 +726,8 @@ tooltip_text = "View active and completed missions"
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "Missions"
 
 [node name="Spacer" type="Control" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
@@ -609,6 +740,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "☰ Menu"
 
 [node name="TravelView" type="Control" parent="."]

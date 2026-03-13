@@ -37,6 +37,7 @@ func show_shop(shop_name: String, money: float) -> void:
 	title_label.text = shop_name
 	money_label.text = "Available: %.0f gold" % money
 	show_browsing()
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 func display_items(items: Array[ShopItem], cart: Dictionary, money: float) -> void:
 	_clear_items()
@@ -82,6 +83,7 @@ func show_browsing() -> void:
 	confirmation_panel.visible = false
 
 func hide_shop() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 
 func _create_item_row(item: ShopItem, quantity: int, can_afford_more: bool) -> void:

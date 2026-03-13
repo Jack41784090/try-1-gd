@@ -29,6 +29,7 @@ var stat_snapshot: Dictionary = { }
 var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = { }
+var _pending_results: Array[GenericResult] = []
 
 var current_location:
 	get:
@@ -310,6 +311,11 @@ func _execute_activity_obj(activity: Activity) -> void:
 				_resolve_ai_combat_from_results(results, entry["squad_id"])
 
 	ai_fleet.cleanup_defeated_squads()
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
+
 	_update_contacts(activity, player_location_before, ai_results)
 
 	await _check_missions()
@@ -366,6 +372,7 @@ func _exec_play_animchanges_loop(activity, state):
 	_capture_stat_snapshot()
 
 	var all_activity_result = actor["exec_%s" % state].call(activity)
+	_pending_results.append_array(all_activity_result)
 	_queue_multiple_eventchains_from_results(all_activity_result)
 	await _vn_play_next_recurs()
 	var has_combat = await _enter_combat_if_exists(activity, all_activity_result)
@@ -489,11 +496,36 @@ func _vn_play_next_recurs():
 	# e.g., queue=["opening_cutscene", "camp_fire"] → play "opening_cutscene" → await done → play "camp_fire" → await done → STRATEGY
 	var play_empty = view.play_next_queued_chain()
 	if play_empty:
+		await _show_pending_results()
 		await set_ui_mode(UIMode.STRATEGY)
 	else:
 		await set_ui_mode(UIMode.VISUAL_NOVEL)
 		await view.get_chain_completed_signal()
 		await _vn_play_next_recurs()
+
+
+func _show_pending_results() -> void:
+	if _pending_results.is_empty():
+		return
+
+	var aggregated_stats: Dictionary = {}
+	var recruits: Array[CharacterSocialStats] = []
+
+	for result in _pending_results:
+		for stat_key in result.squad_stat_changes:
+			var label = StrategyTypes.SquadProperty.keys()[stat_key]
+			if not aggregated_stats.has(label):
+				aggregated_stats[label] = 0.0
+			aggregated_stats[label] += result.squad_stat_changes[stat_key]
+		for recruit in result.new_recruits:
+			recruits.append(recruit)
+
+	_pending_results.clear()
+
+	if aggregated_stats.is_empty() and recruits.is_empty():
+		return
+
+	await view.show_result_summary(aggregated_stats, recruits)
 
 
 func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
@@ -637,7 +669,18 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	var morale_after = actor.player_squad.get_morale()
 	await view.show_combat_result_overlay(result, morale_before, morale_after)
 
+	if _check_game_over():
+		return
+
 	encounter_resolved.emit(result)
+
+
+func _check_game_over() -> bool:
+	if actor.player_squad.get_living_warriors().is_empty():
+		StrategyEventBus.game_ended.emit("Squad Annihilated")
+		view.show_game_over("DEFEAT", "Your entire squad has perished.")
+		return true
+	return false
 
 
 func _apply_combat_loot(loot: Dictionary) -> void:

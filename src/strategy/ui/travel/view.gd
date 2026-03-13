@@ -63,9 +63,12 @@ func show_menu() -> void:
 	self.visible = true
 	confirm_button.visible = true
 	overlay_panel.visible = true
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 func hide_menu() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
+	self.visible = false
 	_clear_location_buttons()
 
 func show_going_mode() -> void:

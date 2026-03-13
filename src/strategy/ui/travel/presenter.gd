@@ -43,20 +43,44 @@ func on_show(_scenario, _locs) -> void:
 		_map_initialized = true
 	view.set_current_location_on_map(current_location.location_id)
 	var mode = get_effective_mode()
-	match mode:
-		TravelMode.GOING:
-			view.show_going_mode()
-		_:
-			_refresh_locations_list()
-			view.show_selection_mode()
+	_refresh_locations_list()
+	view.show_selection_mode()
+	if mode == TravelMode.GOING:
+		view.update_selected_location("Travelling to %s" % towards_location.location_name)
 	view.show_menu()
 	view.update_mode_button(mode)
+	_restore_cached_selection()
 
 func on_hide() -> void:
-	selected_location_id = ""
-	_selected_path = []
-	view.clear_map_highlights()
 	view.hide_menu()
+
+func _restore_cached_selection() -> void:
+	if selected_location_id.is_empty() or _selected_path.is_empty():
+		return
+	var location = actor.aem.world.travel_graph.get_location(selected_location_id)
+	if not location:
+		selected_location_id = ""
+		_selected_path = []
+		return
+	var path_typed: Array[String] = []
+	for p in _selected_path:
+		path_typed.append(p)
+	view.highlight_path_on_map(path_typed)
+	var distance = actor.aem.world.travel_graph.get_distance(
+		current_location.location_id,
+		selected_location_id
+	)
+	var travel_time = actor.aem.world.travel_graph.calculate_travel_time_between(
+		current_location.location_id,
+		selected_location_id
+	)
+	view.update_selected_location("Selected: %s (%d locations, %d turns)" % [
+		location.location_name,
+		distance,
+		travel_time
+	])
+	view.set_confirm_visible(true)
+	view.highlight_location_button(selected_location_id)
 
 func on_mode_toggle() -> void:
 	var mode = get_effective_mode()
@@ -100,7 +124,12 @@ func on_location_selected(location_id: String) -> void:
 
 func on_confirm() -> void:
 	var mode = get_effective_mode()
-	if mode == TravelMode.GOING:
+	if mode == TravelMode.GOING and not selected_location_id.is_empty():
+		# Player is changing destination mid-travel
+		actor.walking_towards = null
+		var path = actor.aem.world.travel_graph.find_path(current_location.location_id, selected_location_id)
+		view.travel_confirmed.emit(path[1])
+	elif mode == TravelMode.GOING:
 		var progress_pct = towards_progress / actor.get_distance(current_location, towards_location) * 100.0
 		view.update_travel_progress(progress_pct)
 		view.travel_confirmed.emit(towards_location.location_id)
@@ -109,10 +138,16 @@ func on_confirm() -> void:
 		view.travel_confirmed.emit(path[1])
 
 func on_cancel() -> void:
+	selected_location_id = ""
+	_selected_path = []
+	view.clear_map_highlights()
 	view.travel_cancelled.emit()
 
 func set_mode_autopilot() -> void:
 	current_mode = TravelMode.AUTOPILOT
+	selected_location_id = ""
+	_selected_path = []
+	view.clear_map_highlights()
 
 func _refresh_locations_list() -> void:
 	var location_data = _gather_location_data()

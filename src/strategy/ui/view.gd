@@ -66,22 +66,42 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	# Wires all UI button signals to the presenter, then triggers the full game boot via bind_view
-	# This is the entry point: view._ready() → _connect_signals() → presenter.bind_view(self) → game starts
 	print(" --- Main gui is ready --- ")
 	_connect_signals()
+	_register_button_animations()
 	presenter.bind_view(self)
+
+#endregion
+
+#region Button Animations
+
+func _register_button_animations() -> void:
+	var action_btns: Array[Button] = [
+		rest_button, drill_button, patrol_button, investigate_button,
+		hold_mass_button, travel_button, attack_button, manage_squad_button,
+		recruit_button, shop_button
+	]
+	for btn in action_btns:
+		UIAnimations.register_button(btn)
+	if continue_travel_button:
+		UIAnimations.register_button(continue_travel_button)
+
+	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button]
+	for btn in nav_btns:
+		UIAnimations.register_button(btn)
+
+	if encounter_flee_button:
+		UIAnimations.register_button(encounter_flee_button)
+	if encounter_negotiate_button:
+		UIAnimations.register_button(encounter_negotiate_button)
+	if encounter_fight_button:
+		UIAnimations.register_button(encounter_fight_button)
 
 #endregion
 
 #region Signal Wiring
 
 func _connect_signals() -> void:
-	# Wires ALL UI button.pressed signals to their corresponding StrategyPresenter handlers
-	# Pattern: button.pressed → presenter.on_*() method
-	# e.g., rest_button.pressed → presenter.on_activity_requested(REST)
-	# e.g., encounter_flee_button.pressed → presenter.on_combat_choice(FLEE)
-	# Also connects child view signals: travel_confirmed, recruitment_completed, purchase_completed, etc.
 	rest_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.REST))
 	drill_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.DRILL))
 	patrol_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.PATROL))
@@ -94,7 +114,10 @@ func _connect_signals() -> void:
 	shop_button.pressed.connect(func(): presenter.on_shop_requested())
 
 	if continue_travel_button:
-		continue_travel_button.pressed.connect(func(): presenter.on_continue_travel())
+		continue_travel_button.pressed.connect(func():
+			_play_sfx("play_ui_confirm")
+			presenter.on_continue_travel()
+		)
 		continue_travel_button.visible = false
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
@@ -106,15 +129,30 @@ func _connect_signals() -> void:
 		scouting_view.closed.connect(func(): presenter.on_scouting_closed())
 
 	if encounter_flee_button:
-		encounter_flee_button.pressed.connect(func(): presenter.on_combat_choice(CombatController.IntermissionChoice.FLEE))
+		encounter_flee_button.pressed.connect(func():
+			_play_sfx("play_ui_cancel")
+			presenter.on_combat_choice(CombatController.IntermissionChoice.FLEE)
+		)
 	if encounter_negotiate_button:
-		encounter_negotiate_button.pressed.connect(func(): presenter.on_combat_choice(CombatController.IntermissionChoice.NEGOTIATE))
+		encounter_negotiate_button.pressed.connect(func():
+			_play_sfx("play_ui_confirm")
+			presenter.on_combat_choice(CombatController.IntermissionChoice.NEGOTIATE)
+		)
 	if encounter_fight_button:
-		encounter_fight_button.pressed.connect(func(): presenter.on_combat_choice(CombatController.IntermissionChoice.FIGHT))
+		encounter_fight_button.pressed.connect(func():
+			_play_sfx("play_ui_confirm")
+			presenter.on_combat_choice(CombatController.IntermissionChoice.FIGHT)
+		)
 
 	if travel_view:
-		travel_view.travel_confirmed.connect(func(id): presenter.on_travel_confirmed(id))
-		travel_view.travel_cancelled.connect(func(): presenter.on_travel_cancelled())
+		travel_view.travel_confirmed.connect(func(id):
+			_play_sfx("play_ui_confirm")
+			presenter.on_travel_confirmed(id)
+		)
+		travel_view.travel_cancelled.connect(func():
+			_play_sfx("play_ui_cancel")
+			presenter.on_travel_cancelled()
+		)
 
 	if investigation_view:
 		investigation_view.investigation_closed.connect(func(): presenter.on_investigation_closed())
@@ -134,7 +172,10 @@ func _connect_signals() -> void:
 		shop_view.presenter.shop_closed.connect(func(): presenter.on_shop_closed())
 
 	if battle_close_button:
-		battle_close_button.pressed.connect(func(): presenter.on_battle_close())
+		battle_close_button.pressed.connect(func():
+			_play_sfx("play_ui_cancel")
+			presenter.on_battle_close()
+		)
 
 #endregion
 
@@ -189,15 +230,24 @@ func disable_all_activity_buttons() -> void:
 
 func show_strategy_ui() -> void:
 	action_buttons.visible = true
+	var btns: Array[Button] = [
+		rest_button, drill_button, patrol_button, investigate_button,
+		hold_mass_button, travel_button, attack_button, manage_squad_button,
+		recruit_button, shop_button
+	]
+	UIAnimations.stagger_buttons(btns)
 
 
 func show_combat_ui() -> void:
 	action_buttons.visible = false
-	combat_panel.visible = true
+	await UIAnimations.slide_in_panel(combat_panel)
 
 
 func hide_combat_panel() -> void:
-	combat_panel.visible = false
+	if combat_panel.visible:
+		await UIAnimations.slide_out_panel(combat_panel)
+	else:
+		combat_panel.visible = false
 
 
 func transition_to_strategy() -> void:
@@ -259,6 +309,13 @@ func set_combat_info_text(text: String) -> void:
 
 
 func show_combat_result_overlay(result: CombatController.CombatResult, morale_before: float, morale_after: float) -> void:
+	if result.victory:
+		_play_sfx("play_player_victory")
+	elif result.fled or result.negotiated:
+		_play_sfx("play_ui_confirm")
+	else:
+		_play_sfx("play_player_defeat")
+
 	# Displays the post-combat result overlay on top of the 3D battle scene:
 	# 1. Creates overlay with result label (VICTORY/DEFEAT/FLED/NEGOTIATED)
 	# 2. Moves morale bar into overlay and animates it from before to after value
@@ -439,6 +496,88 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 
 #endregion
 
+#region Result Summary
+
+func show_result_summary(stat_changes: Dictionary, recruits: Array[CharacterSocialStats]) -> void:
+	var overlay = ColorRect.new()
+	overlay.name = "ResultSummaryOverlay"
+	overlay.color = Color(0, 0, 0, 0.6)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+
+	var panel = PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.anchor_left = 0.3
+	panel.anchor_right = 0.7
+	panel.anchor_top = 0.25
+	panel.anchor_bottom = 0.75
+	panel.offset_left = 0
+	panel.offset_right = 0
+	panel.offset_top = 0
+	panel.offset_bottom = 0
+	overlay.add_child(panel)
+
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	panel.add_child(margin)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title_label = Label.new()
+	title_label.text = "Results"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 28)
+	vbox.add_child(title_label)
+
+	var separator = HSeparator.new()
+	vbox.add_child(separator)
+
+	for stat_name in stat_changes:
+		var value: float = stat_changes[stat_name]
+		if abs(value) < 0.01:
+			continue
+		var line = Label.new()
+		line.add_theme_font_size_override("font_size", 18)
+		if value >= 0:
+			line.text = "+%.0f %s" % [value, stat_name.capitalize()]
+			line.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		else:
+			line.text = "%.0f %s" % [value, stat_name.capitalize()]
+			line.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+		vbox.add_child(line)
+
+	for recruit in recruits:
+		var line = Label.new()
+		line.text = "New warrior: %s" % recruit.name
+		line.add_theme_font_size_override("font_size", 18)
+		line.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
+		vbox.add_child(line)
+
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 20)
+	vbox.add_child(spacer)
+
+	var continue_btn = Button.new()
+	continue_btn.text = "Continue"
+	continue_btn.custom_minimum_size = Vector2(150, 40)
+	continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(continue_btn)
+
+	overlay.modulate = Color(1, 1, 1, 0)
+	var tween = create_tween()
+	tween.tween_property(overlay, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+
+	await continue_btn.pressed
+	overlay.queue_free()
+
+#endregion
+
 #region Stage Delegation
 
 func get_stage_presenter() -> StagePresenter:
@@ -451,6 +590,66 @@ func show_stage() -> void:
 
 func hide_stage() -> void:
 	stage_view.visible = false
+
+#endregion
+
+#region Game Over
+
+func show_game_over(title_text: String, description: String) -> void:
+	disable_all_activity_buttons()
+	action_buttons.visible = false
+
+	var overlay = ColorRect.new()
+	overlay.name = "GameOverOverlay"
+	overlay.color = Color(0, 0, 0, 0.85)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.anchor_left = 0.2
+	vbox.anchor_right = 0.8
+	vbox.anchor_top = 0.3
+	vbox.anchor_bottom = 0.7
+	vbox.offset_left = 0
+	vbox.offset_right = 0
+	vbox.offset_top = 0
+	vbox.offset_bottom = 0
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	overlay.add_child(vbox)
+
+	var title_label = Label.new()
+	title_label.text = title_text
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 48)
+	title_label.add_theme_color_override("font_color", Color(0.9, 0.2, 0.2))
+	title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	title_label.add_theme_constant_override("shadow_offset_x", 3)
+	title_label.add_theme_constant_override("shadow_offset_y", 3)
+	vbox.add_child(title_label)
+
+	var desc_label = Label.new()
+	desc_label.text = description
+	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_label.add_theme_font_size_override("font_size", 20)
+	desc_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	vbox.add_child(desc_label)
+
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 40)
+	vbox.add_child(spacer)
+
+	var restart_btn = Button.new()
+	restart_btn.text = "Restart Campaign"
+	restart_btn.custom_minimum_size = Vector2(200, 50)
+	restart_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	restart_btn.pressed.connect(func(): get_tree().reload_current_scene())
+	vbox.add_child(restart_btn)
+
+	overlay.modulate = Color(1, 1, 1, 0)
+	var tween = create_tween()
+	tween.tween_property(overlay, "modulate:a", 1.0, 0.8).set_ease(Tween.EASE_OUT)
 
 #endregion
 
@@ -483,6 +682,12 @@ func _create_result_label(result: CombatController.CombatResult) -> Label:
 		result_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 	return result_label
+
+
+func _play_sfx(method_name: String) -> void:
+	var sfx = get_tree().root.get_node_or_null("SFX")
+	if sfx and sfx.has_method(method_name):
+		sfx.call(method_name)
 
 
 func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -> void:

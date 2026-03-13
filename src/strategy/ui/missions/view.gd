@@ -147,9 +147,11 @@ func _build_right_column(parent: HBoxContainer) -> void:
 func show_missions() -> void:
 	visible = true
 	overlay_panel.visible = true
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 
 func hide_missions() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 	visible = false
 

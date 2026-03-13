@@ -58,8 +58,10 @@ func show_recruitment_menu() -> void:
 	self.visible = true
 	overlay_panel.visible = true
 	_update_display()
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 func hide_recruitment_menu() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 
 func _update_display() -> void:

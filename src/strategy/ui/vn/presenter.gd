@@ -19,6 +19,7 @@ var current_chain: EventChain
 var character_ids_in_chain: Array[String] = []
 
 var _playback: TimelinePlayback = TimelinePlayback.new()
+var _debug_chain_pending: bool = false
 
 
 func _ready() -> void:
@@ -47,29 +48,34 @@ func queue_event_chain(chain_path: String) -> void:
 
 
 func play_next_queued_chain() -> bool:
-	if _DEBUG:
-		print("[VnPresenter] play_next_queued_chain called (queue size: %d)" % event_chain_queue.size())
-		return true  # In debug mode, skip playback to allow timeline inspection
-
-	# Dequeues and starts playing the next EventChain. Returns true if queue was EMPTY (nothing to play).
-	# Loads the .tres resource, prints instruction count, and calls load_chain() to begin timeline playback
-	# e.g., queue=["camp_fire.tres"] → load chain (5 instructions, 3 dialogues) → load_chain() → returns false
-	# e.g., queue=[] → returns true (caller knows to switch back to STRATEGY mode)
 	var empty = event_chain_queue.is_empty()
-	if not empty:
-		is_playing_chain = true
-		var path: String = event_chain_queue.pop_front()
-		var chain = load(path)
-		assert(chain != null, "EventChain resource failed to load: %s" % path)
-		print(
-			"[VnPresenter] Playing EventChain: %s (%d instructions, %d dialogues)" % [
-				chain.chain_id,
-				chain.get_instruction_count(),
-				chain.get_dialogue_count(),
-			],
-		)
-		load_chain(chain)
-	return empty
+	if empty:
+		return true
+
+	is_playing_chain = true
+	var path: String = event_chain_queue.pop_front()
+	var chain = load(path)
+	assert(chain != null, "EventChain resource failed to load: %s" % path)
+
+	if _DEBUG:
+		print("[VnPresenter] DEBUG skip: '%s' (%d instructions)" % [chain.chain_id, chain.get_instruction_count()])
+		var debug_msg = "This is \"%s\" and is skipped for now because of _DEBUG mode." % chain.chain_id
+		view.setup_narrator_typewriter("DEBUG", debug_msg)
+		view.set_narrator_visible_characters(-1)
+		view.advance_prompt.text = "Click to continue"
+		view.advance_prompt.visible = true
+		_debug_chain_pending = true
+		return false
+
+	print(
+		"[VnPresenter] Playing EventChain: %s (%d instructions, %d dialogues)" % [
+			chain.chain_id,
+			chain.get_instruction_count(),
+			chain.get_dialogue_count(),
+		],
+	)
+	load_chain(chain)
+	return false
 
 
 func has_chain() -> bool:
@@ -80,6 +86,12 @@ func has_chain() -> bool:
 #region Input
 
 func on_advance() -> void:
+	if _debug_chain_pending:
+		_debug_chain_pending = false
+		is_playing_chain = false
+		view.hide_narrator_box()
+		view.chain_completed.emit()
+		return
 	_playback.on_input()
 
 #endregion

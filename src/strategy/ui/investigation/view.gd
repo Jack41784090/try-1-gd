@@ -26,8 +26,10 @@ func show_investigation_menu() -> void:
 	self.visible = true
 	overlay_panel.visible = true
 	_update_clues_list()
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 func hide_investigation_menu() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 	_clear_clue_items()
 

@@ -17,8 +17,10 @@ func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
 	visible = true
 	overlay_panel.visible = true
 	presenter.refresh(world, player_squad)
+	await UIAnimations.show_overlay(self, overlay_panel)
 
 func hide_scouting() -> void:
+	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 	visible = false
 
