@@ -8,11 +8,15 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="try1"
 run/main_scene="uid://dmbcxxfr6jwmu"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://assets/icon.svg"
 
 [autoload]
@@ -21,6 +25,7 @@ StrategyEventBus="*res://src/singletons/StrategyEventBus.gd"
 StatusEffectEventBus="*res://src/singletons/StatusEffectEventBus.gd"
 DamageNumbersManager="*res://src/singletons/DamageNumbersManager.gd"
 SceneManager="*res://scenes/scene_manager.tscn"
+SFX="*res://src/singletons/sfx.gd"
 
 [display]
 

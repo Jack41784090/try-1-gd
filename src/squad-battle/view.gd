@@ -68,6 +68,7 @@ func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> voi
 	for update in updates:
 		var attackers_display = entity_displays_dict.get(update.source) as EntityDisplay
 		var targets_display = entity_displays_dict.get(update.affected) as EntityDisplay
+		var attacker_entity = p_battle.get_entity_by_id(update.source)
 
 		if not targets_display:
 			push_warning("No display found for entity %d" % update.affected)
@@ -78,6 +79,8 @@ func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> voi
 		var took_damage = update.change.to < update.change.from
 
 		if hp_changed:
+			if attacker_entity:
+				_play_attack_sfx(attacker_entity.weapon_class)
 			attackers_display.switch_sprite("attack")
 			await battlefield_controller.animate_attack_lunge(attackers_display)
 			if took_damage:
@@ -85,6 +88,7 @@ func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> voi
 				battlefield_controller.animate_attack_recoil(targets_display)
 				battlefield_controller.animate_attack_recoil(attackers_display)
 		elif change_type == SquadBattleTypes.EntityChangeable.CLINK:
+			_play_combat_sfx("play_combat_clink")
 			attackers_display.switch_sprite("attack")
 			targets_display.switch_sprite("defend")
 			await battlefield_controller.animate_attack_lunge(attackers_display)
@@ -98,6 +102,7 @@ func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> voi
 		targets_display.switch_sprite("idle")
 
 		if change_type == SquadBattleTypes.EntityChangeable.DIE:
+			_play_combat_sfx("play_death")
 			targets_display.visible = false
 			targets_display.queue_free()
 			entity_displays_dict.erase(update.affected)
@@ -115,17 +120,39 @@ func show_outcome(outcome: SquadBattleTypes.BattleOutcome, p_battle: SquadBattle
 	SBLog.section("BATTLE ENDED: %s" % outcome_name, 0, 2, 1)
 	match outcome:
 		SquadBattleTypes.BattleOutcome.ATTACKER_VICTORY:
+			_play_combat_sfx("play_player_victory")
 			var strength = p_battle.check_team_strength(SquadBattleTypes.Side.ATTACKER)
 			print("ATTACKER VICTORY with remaining strength %.1f" % strength)
 		SquadBattleTypes.BattleOutcome.DEFENDER_VICTORY:
+			_play_combat_sfx("play_player_defeat")
 			var strength = p_battle.check_team_strength(SquadBattleTypes.Side.DEFENDER)
 			print("DEFENDER VICTORY with remaining strength %.1f" % strength)
 		SquadBattleTypes.BattleOutcome.DRAW:
+			_play_combat_sfx("play_player_defeat")
 			var atk_str = p_battle.check_team_strength(SquadBattleTypes.Side.ATTACKER)
 			var def_str = p_battle.check_team_strength(SquadBattleTypes.Side.DEFENDER)
 			print("DRAW after %d rounds. Attacker: %.1f, Defender: %.1f" % [
 				p_battle.round_count, atk_str, def_str
 			])
+
+
+func _play_attack_sfx(weapon_class: int) -> void:
+	var sfx = _get_sfx_node()
+	if sfx and sfx.has_method("play_attack_for_weapon"):
+		sfx.call("play_attack_for_weapon", weapon_class)
+
+
+func _play_combat_sfx(method_name: String) -> void:
+	var sfx = _get_sfx_node()
+	if sfx and sfx.has_method(method_name):
+		sfx.call(method_name)
+
+
+func _get_sfx_node() -> Node:
+	var tree = get_tree()
+	if tree == null:
+		return null
+	return tree.root.get_node_or_null("SFX")
 
 func _update_row_positions(row_node: Node3D) -> void:
 	battlefield_controller.update_row_positions(row_node)
