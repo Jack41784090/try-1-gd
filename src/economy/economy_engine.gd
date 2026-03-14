@@ -102,14 +102,20 @@ func _phase_subsistence() -> void:
 
 func _phase_trade_dispatch(result: EconomyTickResult) -> void:
 	var ordered_this_tick: Dictionary = {}
+	var source_reserve_cache: Dictionary = {}
+	var consumption_cache: Dictionary = {}
 	for loc in world.get_economy_locations():
 		var loc_id := loc.location_id
 		for rule: SupplyRule in loc.supply_rules:
 			if rule.action != EconomyTypes.RuleAction.IMPORT:
 				continue
-			var consumption_per_turn := 0.0
-			for person in loc.population.people:
-				consumption_per_turn += person.wants.get(rule.thing, 0.0)
+			var cons_key := "%s:%s" % [loc_id, rule.thing.thing_id]
+			var consumption_per_turn: float
+			if consumption_cache.has(cons_key):
+				consumption_per_turn = consumption_cache[cons_key] as float
+			else:
+				consumption_per_turn = loc.population.get_total_demand(rule.thing)
+				consumption_cache[cons_key] = consumption_per_turn
 			if consumption_per_turn <= 0.0:
 				continue
 			var travel_time := get_travel_time(rule.source_location_id, loc_id)
@@ -129,13 +135,18 @@ func _phase_trade_dispatch(result: EconomyTickResult) -> void:
 			var raw_source := source_inv.get_available(rule.thing)
 			if raw_source <= 0.0:
 				continue
-			var available_at_source := raw_source
-			var source_reserve := 0.0
-			for sp in source_loc.population.people:
-				var w: float = sp.wants.get(rule.thing, 0.0)
-				var h: float = sp.inventory.get(rule.thing, 0.0)
-				source_reserve += maxf(w - h, 0.0)
-			available_at_source = maxf(raw_source - source_reserve, 0.0)
+			var reserve_key := "%s:%s" % [rule.source_location_id, rule.thing.thing_id]
+			var source_reserve: float
+			if source_reserve_cache.has(reserve_key):
+				source_reserve = source_reserve_cache[reserve_key] as float
+			else:
+				source_reserve = 0.0
+				for sp in source_loc.population.people:
+					var w: float = sp.wants.get(rule.thing, 0.0)
+					var h: float = sp.inventory.get(rule.thing, 0.0)
+					source_reserve += maxf(w - h, 0.0)
+				source_reserve_cache[reserve_key] = source_reserve
+			var available_at_source := maxf(raw_source - source_reserve, 0.0)
 			if available_at_source <= 0.0:
 				continue
 			var send_qty := minf(shortfall, minf(available_at_source, rule.capacity_per_turn))
@@ -194,6 +205,7 @@ func _phase_market() -> void:
 				person.buy(thing, buy_qty, price)
 				loc.inventory.consume(thing, buy_qty)
 				_distribute_revenue(loc, buy_qty * price)
+		loc.population.mark_wealth_dirty()
 
 
 func _phase_consumption() -> void:
@@ -231,13 +243,22 @@ func _phase_contracts() -> void:
 		active_contracts.erase(c)
 		completed_contracts.append(c)
 
+	var assigned_set: Dictionary = {}
+	var patron_counts: Dictionary = {}
+	for c in active_contracts:
+		if c.merchant_assigned != null:
+			assigned_set[c.merchant_assigned] = true
+		for w in c.workers_assigned:
+			assigned_set[w] = true
+		patron_counts[c.patron] = patron_counts.get(c.patron, 0) + 1
+
 	for loc in world.get_economy_locations():
 		var nobles := loc.population.get_by_class(EconomyTypes.SocialClass.NOBLE)
 		var merchants := loc.population.get_by_class(EconomyTypes.SocialClass.BOURGEOIS)
 		var workers := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT)
 
 		for noble in nobles:
-			if _noble_active_contract_count(noble) >= 2:
+			if patron_counts.get(noble, 0) >= 2:
 				continue
 			var surplus := noble.money - noble_loan_threshold
 			if surplus < 50.0:
@@ -251,8 +272,9 @@ func _phase_contracts() -> void:
 				contract_type, noble, loc.location_id,
 				budget, labor, 3, wage, merchant_fee,
 			)
-			_assign_staff(contract, merchants, workers)
+			_assign_staff_fast(contract, merchants, workers, assigned_set)
 			active_contracts.append(contract)
+			patron_counts[noble] = patron_counts.get(noble, 0) + 1
 			Log.trace("Economy", "%s creates %s (budget=%.0f, labor=%d)" % [
 				noble.person_name,
 				Contract.ContractType.keys()[contract_type],
@@ -296,6 +318,27 @@ func _assign_staff(
 			assigned += 1
 
 
+func _assign_staff_fast(
+	contract: Contract,
+	merchants: Array[EconPerson],
+	workers: Array[EconPerson],
+	assigned_set: Dictionary,
+) -> void:
+	for m in merchants:
+		if not assigned_set.has(m):
+			contract.assign_merchant(m)
+			assigned_set[m] = true
+			break
+	var assigned := 0
+	for w in workers:
+		if assigned >= contract.labor_needed:
+			break
+		if not assigned_set.has(w):
+			contract.assign_worker(w)
+			assigned_set[w] = true
+			assigned += 1
+
+
 func _person_assigned_to_contract(person: EconPerson) -> bool:
 	for c in active_contracts:
 		if c.merchant_assigned == person:
@@ -306,6 +349,7 @@ func _person_assigned_to_contract(person: EconPerson) -> bool:
 
 
 func _phase_wages() -> void:
+	var any_paid := false
 	for contract in active_contracts:
 		if contract.workers_assigned.is_empty():
 			continue
@@ -328,6 +372,10 @@ func _phase_wages() -> void:
 			var m_pay := merchant_portion * pay_ratio
 			patron.money -= m_pay
 			contract.merchant_assigned.money += m_pay
+		any_paid = true
+	if any_paid:
+		for loc in world.get_economy_locations():
+			loc.population.mark_wealth_dirty()
 
 
 func _phase_household_wages() -> void:
@@ -349,6 +397,7 @@ func _phase_household_wages() -> void:
 					s.money += pay
 				servant_idx += 1
 				count += 1
+		loc.population.mark_wealth_dirty()
 
 
 func _phase_rent() -> void:
@@ -374,6 +423,7 @@ func _phase_rent() -> void:
 			var per_noble := total_rent / nobles.size()
 			for noble in nobles:
 				noble.money += per_noble
+		loc.population.mark_wealth_dirty()
 
 
 func _phase_loan_repayment() -> void:
@@ -391,9 +441,7 @@ func _phase_government_spending() -> void:
 	bank.reserves -= spend
 	var all_workers: Array[EconPerson] = []
 	for loc in world.get_economy_locations():
-		for p in loc.population.people:
-			if p.social_class == EconomyTypes.SocialClass.PEASANT:
-				all_workers.append(p)
+		all_workers.append_array(loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT))
 	if all_workers.is_empty():
 		return
 	var per_worker := spend / all_workers.size()
@@ -434,13 +482,19 @@ func _phase_satisfaction() -> void:
 func _phase_social_mobility() -> void:
 	for loc in world.get_economy_locations():
 		var peasants := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT)
+		var to_promote: Array[EconPerson] = []
 		for p in peasants:
 			if p.money < 100.0 or p.satisfaction < 80.0:
 				continue
 			if randf() > 0.1:
 				continue
+			to_promote.append(p)
+		for p in to_promote:
+			var old_class := p.social_class
+			var old_job := p.job
 			p.social_class = EconomyTypes.SocialClass.BOURGEOIS
 			p.job = EconomyTypes.JobType.MERCHANT
+			loc.population.notify_class_changed(p, old_class, old_job)
 			total_promotions += 1
 			Log.info("Economy", "%s rises to BOURGEOIS at %s (money=%.0f sat=%.0f)" % [
 				p.person_name, loc.location_name, p.money, p.satisfaction,
