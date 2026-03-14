@@ -27,6 +27,7 @@ class CombatResult extends RefCounted:
 	var negotiated: bool = false
 	var player_casualties: Array[String] = []
 	var enemy_casualties: Array[String] = []
+	var escaped_warriors: Array[String] = []
 	var morale_change: float = 0.0
 	var loot: Dictionary = { }
 	var clues_dropped: Array[Clue] = []
@@ -35,13 +36,13 @@ class CombatResult extends RefCounted:
 
 	func _to_string() -> String:
 		if victory:
-			return "CombatResult[VICTORY, casualties=%d, loot=%s]" % [player_casualties.size(), loot]
+			return "CombatResult[VICTORY, casualties=%d, escaped=%d, loot=%s]" % [player_casualties.size(), escaped_warriors.size(), loot]
 		elif fled:
 			return "CombatResult[FLED, casualties=%d]" % player_casualties.size()
 		elif negotiated:
 			return "CombatResult[NEGOTIATED]"
 		else:
-			return "CombatResult[DEFEAT, casualties=%d]" % player_casualties.size()
+			return "CombatResult[DEFEAT, casualties=%d, escaped=%d]" % [player_casualties.size(), escaped_warriors.size()]
 
 
 var combat_bridge: CombatBridge
@@ -143,9 +144,9 @@ func _execute_combat() -> CombatResult:
 	print("[CombatController] Battle scene kept for summary display")
 
 	# Collect all updates from the completed battle
-	all_updates.clear()
+	all_updates = battle_presenter.all_updates.duplicate()
 	combat_phase = battle.round_count
-	print("[CombatController] Battle completed after %d rounds" % combat_phase)
+	print("[CombatController] Battle completed after %d rounds, %d updates collected" % [combat_phase, all_updates.size()])
 
 	print("\n[CombatController] COMBAT CONCLUDED")
 
@@ -157,9 +158,13 @@ func _execute_combat() -> CombatResult:
 	print("[CombatController] Applied results to player squad:")
 	print("[CombatController]   Deaths: %s" % [player_apply_result.deaths])
 	print("[CombatController]   Injuries: %s" % [player_apply_result.injuries])
+	print("[CombatController]   Escaped: %s" % [player_apply_result.escaped])
 
 	for death_id in player_apply_result.deaths:
 		result.player_casualties.append(death_id)
+
+	for escaped_id in player_apply_result.escaped:
+		result.escaped_warriors.append(escaped_id)
 
 	# Calculate morale change based on outcome
 	match outcome:

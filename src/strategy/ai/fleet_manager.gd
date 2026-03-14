@@ -198,6 +198,12 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		Bridge.apply_loot(loser, winner)
 		Log.info("Fleet", "%s looted caravan %s" % [winner.squad_name, loser.squad_name])
 
+	if loser.get_living_warriors().size() > 0:
+		var nearest = scenario.world.find_nearest_location(loser.current_location_id)
+		if nearest != "":
+			loser.set_location(nearest)
+			Log.info("Fleet", "%s fled to %s" % [loser.squad_name, nearest])
+
 
 func cleanup_defeated_squads() -> void:
 	var to_remove: Array[String] = []

@@ -174,7 +174,7 @@ func _connect_signals() -> void:
 	if battle_close_button:
 		battle_close_button.pressed.connect(func():
 			_play_sfx("play_ui_cancel")
-			presenter.on_battle_close()
+			presenter.on_retreat_requested()
 		)
 
 #endregion

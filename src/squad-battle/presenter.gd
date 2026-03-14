@@ -12,6 +12,10 @@ var all_updates: Array[EntityUpdate] = []
 func bind_view(v: SquadBattleView) -> void:
 	view = v
 
+func request_retreat(team: SquadBattleTypes.Side) -> void:
+	if battle:
+		battle.order_retreat(team)
+
 func start(p_battle: SquadBattle, config: Dictionary) -> void:
 	if p_battle == null:
 		if config == null or config.is_empty():

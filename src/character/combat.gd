@@ -34,6 +34,7 @@ var changeable_stats: Dictionary = {
 #endregion
 
 var is_retreating: bool = false
+var has_last_stand: bool = false
 var innate_skills: Array[Skill] = []
 var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
@@ -272,8 +273,15 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 	if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG) <= 0:
 		if not is_retreating:
 			is_retreating = true
-			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
-			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.3)))
+			var current_loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
+			if current_loc < SquadBattleTypes.SquadEntityInSquadLocation.Back:
+				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
+				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			elif not has_last_stand:
+				has_last_stand = true
+				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			else:
+				changes.append(EntityUpdate.new(affected, affected, EntityChange.new(SquadBattleTypes.EntityChangeable.CAPITULATE)))
 	
 	return changes
 

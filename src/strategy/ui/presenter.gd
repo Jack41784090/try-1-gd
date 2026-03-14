@@ -273,6 +273,21 @@ func on_battle_close() -> void:
 	Log.debug("Presenter", "User closed battle manually")
 	view.cleanup_battle_scene()
 
+
+func on_retreat_requested() -> void:
+	Log.info("Presenter", "Player requested retreat mid-battle")
+	var battle_presenter = _get_active_battle_presenter()
+	if battle_presenter:
+		battle_presenter.request_retreat(SquadBattleTypes.Side.ATTACKER)
+
+
+func _get_active_battle_presenter():
+	for child in view.battle_viewport.get_children():
+		var bp = child.get_node_or_null("SquadBattlePresenter")
+		if bp:
+			return bp
+	return null
+
 #endregion
 
 #region Activity Pipeline
@@ -580,15 +595,6 @@ func _find_mission_by_id(mission_id: String) -> Mission:
 #region Combat System
 
 func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
-	# Initiates a combat encounter: injects context into CombatController, switches UI to intermission mode
-	# The controller calculates flee/negotiate chances based on squad stats and engagement type
-	# UI shows the intermission panel with buttons and a countdown timer (30s default)
-	# e.g., enemy="Raiders"(4 warriors), engagement=AMBUSH (player ambushed)
-	#   → inject_context() returns {can_flee: false, can_negotiate: false, ...}
-	#   → UI shows only FIGHT button, timer starts at 30s
-	# e.g., enemy="Bandits"(2 warriors), engagement=SET_PIECE
-	#   → returns {flee_chance: 0.45, negotiate_chance: 0.35, ...}
-	#   → UI shows all 3 buttons with percentages
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 
@@ -600,19 +606,9 @@ func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }
 		view.combat_overlay,
 		engagement_type,
 	)
-	encounter_timeout_timer = combat_options.get("timeout_seconds", 30.0)
+	encounter_timeout_timer = 0
 
-	await set_ui_mode(UIMode.COMBAT_INTERMISSION)
-
-	var enemy_name = combat_options.get("enemy_name", "Unknown Enemy")
-	var enemy_count = combat_options.get("enemy_count", 0)
-	var flee_chance = combat_options.get("flee_chance", 0.0) * 100
-	var negotiate_chance = combat_options.get("negotiate_chance", 0.0) * 100
-
-	view.update_combat_intermission(enemy_name, enemy_count, flee_chance, negotiate_chance, combat_options)
-	view.update_combat_timer(encounter_timeout_timer, combat_options.get("timeout_seconds", 30.0))
-
-	Log.debug("Presenter", "Combat UI updated: flee=%.1f%% negotiate=%.1f%%" % [flee_chance, negotiate_chance])
+	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
 
 
 func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
@@ -659,6 +655,11 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 		if warrior:
 			Log.info("Presenter", "Casualty: %s" % warrior.name)
 
+	for escaped_id in result.escaped_warriors:
+		var warrior = actor.player_squad.get_warrior_by_id(escaped_id)
+		if warrior:
+			Log.info("Presenter", "Escaped (injured): %s" % warrior.name)
+
 	if result.loot:
 		Log.debug("Presenter", "Loot collected: %s" % [result.loot])
 		_apply_combat_loot(result.loot)
@@ -671,6 +672,13 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 
 	var morale_after = actor.player_squad.get_morale()
 	await view.show_combat_result_overlay(result, morale_before, morale_after)
+
+	if not result.victory and not result.fled and not result.negotiated:
+		if not actor.player_squad.get_living_warriors().is_empty():
+			var nearest = game_scenario.world.find_nearest_location(actor.player_squad.current_location_id)
+			if nearest != "":
+				Log.info("Presenter", "Defeated squad teleporting to nearest location: %s" % nearest)
+				actor.player_squad.set_location(nearest)
 
 	if _check_game_over():
 		return

@@ -111,6 +111,30 @@ func move_squad_to_location(squad_id: String, location_id: String) -> void:
 			squad.set_location(location_id)
 			break
 
+
+func find_nearest_location(from_id: String) -> String:
+	var visited: Dictionary = {}
+	var queue: Array[String] = []
+	visited[from_id] = true
+	var from_loc = get_location_by_id(from_id)
+	if not from_loc or not from_loc.connections:
+		return ""
+	for conn in from_loc.connections.tt:
+		if not visited.has(conn.to_location_id):
+			queue.append(conn.to_location_id)
+			visited[conn.to_location_id] = true
+	while queue.size() > 0:
+		var current_id = queue.pop_front()
+		if current_id != from_id:
+			return current_id
+		var loc = get_location_by_id(current_id)
+		if loc and loc.connections:
+			for conn in loc.connections.tt:
+				if not visited.has(conn.to_location_id):
+					queue.append(conn.to_location_id)
+					visited[conn.to_location_id] = true
+	return ""
+
 func get_adjacent_squads(location_id: String) -> Array[SquadStrategicData]:
 	var adjacent_squads: Array[SquadStrategicData] = []
 	var location = get_location_by_id(location_id)

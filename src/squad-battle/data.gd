@@ -14,6 +14,7 @@ var defender_tactic: Tactic = null
 
 # Max rounds is determined by attacker's tactic action_count
 var max_rounds: int = 3
+var retreating_team: Variant = null
 
 
 func _init(config: Dictionary):
@@ -160,44 +161,69 @@ func squad_recoveries():
 				squad.recovery()
 
 
+func order_retreat(team: SquadBattleTypes.Side) -> void:
+	retreating_team = team
+
+
+func _produce_retreat_updates(team_side) -> Array[EntityUpdate]:
+	var updates: Array[EntityUpdate] = []
+	var squads: Array = teams_and_squads.get(team_side, [])
+	for squad in squads:
+		for entity in squad.entities:
+			if entity.is_dead():
+				continue
+			var eid = entity.player_id
+			var current_loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC)
+			if current_loc < Types.SquadEntityInSquadLocation.Back:
+				entity.is_retreating = true
+				updates.append(EntityUpdate.new(eid, eid, entity.mod_changeable_stat(Types.EntityChangeable.LOC, 1)))
+				updates.append(EntityUpdate.new(eid, eid, entity.set_changeable_stat(Types.EntityChangeable.ORG, entity.calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			elif not entity.has_last_stand:
+				entity.has_last_stand = true
+				entity.is_retreating = true
+				updates.append(EntityUpdate.new(eid, eid, entity.set_changeable_stat(Types.EntityChangeable.ORG, entity.calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			else:
+				updates.append(EntityUpdate.new(eid, eid, EntityChange.new(Types.EntityChangeable.CAPITULATE)))
+	return updates
+
+
 func squad_actions() -> Array[EntityUpdate]:
-	# Core round execution: attackers act first, then defenders react
-	# Returns all EntityUpdate objects from both phases
-	# e.g., Round 2: attacker squad acts (3 entities × 1 action each) → defender squad reacts (2 reactions)
-	#   → returns [EntityUpdate(hit on E3, HP 80→50), EntityUpdate(heal E1, HP 40→60), ...]
 	var updates: Array[EntityUpdate] = []
 
-	# Get attacker and defender squads from the teams dict
 	var attacker_squads: Array = teams_and_squads.get(Types.Side.ATTACKER, [])
 	var defender_squads: Array = teams_and_squads.get(Types.Side.DEFENDER, [])
 
-	SBLog.section("Round %d/%d - Attacker Phase" % [round_count, max_rounds], 2, 1, 0)
-
-	# Phase 1: Each attacker entity gets 1 action modified by tactic.attack_modifier
-	# e.g., Aggressive tactic: attack_modifier=1.3 → 30% more damage
-	for squad in attacker_squads:
-		var squad_updates = squad.perform_actions(
-			defender_squads,
-			round_count,
-			1,
-			attacker_tactic.attack_modifier,
-		)
-		for update in squad_updates:
+	if retreating_team == Types.Side.ATTACKER:
+		SBLog.section("Round %d/%d - Attacker Retreating" % [round_count, max_rounds], 2, 1, 0)
+		for update in _produce_retreat_updates(Types.Side.ATTACKER):
 			updates.append(update)
+	else:
+		SBLog.section("Round %d/%d - Attacker Phase" % [round_count, max_rounds], 2, 1, 0)
+		for squad in attacker_squads:
+			var squad_updates = squad.perform_actions(
+				defender_squads,
+				round_count,
+				1,
+				attacker_tactic.attack_modifier,
+			)
+			for update in squad_updates:
+				updates.append(update)
 
-	SBLog.section("Round %d/%d - Defender Phase (%d reactions)" % [round_count, max_rounds, defender_tactic.reaction_count], 2, 1, 0)
-
-	# Phase 2: Defender entities get reaction_count counter-attacks
-	# e.g., Defensive tactic: reaction_count=2 → each defender entity gets 2 reactions
-	for squad in defender_squads:
-		var squad_updates = squad.perform_reactions(
-			attacker_squads,
-			round_count,
-			defender_tactic.reaction_count,
-			defender_tactic.defense_modifier,
-		)
-		for update in squad_updates:
+	if retreating_team == Types.Side.DEFENDER:
+		SBLog.section("Round %d/%d - Defender Retreating" % [round_count, max_rounds], 2, 1, 0)
+		for update in _produce_retreat_updates(Types.Side.DEFENDER):
 			updates.append(update)
+	else:
+		SBLog.section("Round %d/%d - Defender Phase (%d reactions)" % [round_count, max_rounds, defender_tactic.reaction_count], 2, 1, 0)
+		for squad in defender_squads:
+			var squad_updates = squad.perform_reactions(
+				attacker_squads,
+				round_count,
+				defender_tactic.reaction_count,
+				defender_tactic.defense_modifier,
+			)
+			for update in squad_updates:
+				updates.append(update)
 
 	return updates
 
@@ -224,6 +250,7 @@ func run_headless() -> Array[EntityUpdate]:
 	# e.g., 3-round battle: Round 1 (2 hits, 1 kill) → Round 2 (1 hit) → Round 3 (DRAW at max_rounds)
 	#   → returns all ~8 EntityUpdate objects collected across all rounds
 	var all_updates: Array[EntityUpdate] = []
+	var headless_capitulated: Array = []
 
 	print("[SquadBattle] Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
 
@@ -233,9 +260,16 @@ func run_headless() -> Array[EntityUpdate]:
 		round_count += 1
 		print("[SquadBattle] === Round %d/%d ===" % [round_count, max_rounds])
 		squad_recoveries()
-		for update in squad_actions():
+		var round_updates = squad_actions()
+		for update in round_updates:
 			all_updates.append(update)
+			if update.change.property == SquadBattleTypes.EntityChangeable.CAPITULATE:
+				var entity = get_entity_by_id(update.affected)
+				if entity:
+					headless_capitulated.append(entity)
 		remove_dead_entities()
+		remove_capitulated_entities(headless_capitulated)
+		headless_capitulated.clear()
 		var outcome = get_battle_outcome()
 		print("[SquadBattle] Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
 

@@ -1444,7 +1444,7 @@ offset_right = -20.0
 offset_bottom = 70.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 18
-text = "⬅️ Return to Camp"
+text = "Retreat"
 
 [node name="ActivityExecuteManager" type="Control" parent="." unique_id=926143068]
 visible = false

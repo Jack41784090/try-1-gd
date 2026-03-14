@@ -117,6 +117,7 @@ func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpd
 	var result = {
 		"deaths": [],
 		"injuries": [],
+		"escaped": [],
 		"morale_changes": { },
 	}
 
@@ -167,6 +168,10 @@ func apply_results(strategic_squad: SquadStrategicData, updates: Array[EntityUpd
 				warrior.morale = 0.0
 				if not result.deaths.has(warrior_id):
 					result.deaths.append(warrior_id)
+			SquadBattleTypes.EntityChangeable.CAPITULATE:
+				warrior.is_injured = true
+				if not result.escaped.has(warrior_id):
+					result.escaped.append(warrior_id)
 
 	# 3. Clean up the strategic squad — recalculate average morale and remove corpses
 	strategic_squad.update_aggregate_morale()
