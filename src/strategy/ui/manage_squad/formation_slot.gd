@@ -1,0 +1,222 @@
+class_name FormationSlot
+extends PanelContainer
+
+signal warrior_dropped(warrior: CharacterSocialStats, slot: Variant)
+
+var warrior: CharacterSocialStats = null
+var row_position: SquadBattleTypes.SquadEntityInSquadLocation
+var slot_index: int = 0
+
+var _name_label: Label
+var _class_label: Label
+var _hp_label: Label
+var _style_empty: StyleBoxFlat
+var _style_filled: StyleBoxFlat
+var _style_hover: StyleBoxFlat
+var _is_hovered: bool = false
+
+
+func _init() -> void:
+	custom_minimum_size = Vector2(120, 80)
+
+	_style_empty = StyleBoxFlat.new()
+	_style_empty.bg_color = Color(0.1, 0.1, 0.14, 0.6)
+	_style_empty.border_width_left = 1
+	_style_empty.border_width_top = 1
+	_style_empty.border_width_right = 1
+	_style_empty.border_width_bottom = 1
+	_style_empty.border_color = Color(0.3, 0.3, 0.35, 0.5)
+	_style_empty.corner_radius_top_left = 4
+	_style_empty.corner_radius_top_right = 4
+	_style_empty.corner_radius_bottom_left = 4
+	_style_empty.corner_radius_bottom_right = 4
+
+	_style_filled = StyleBoxFlat.new()
+	_style_filled.bg_color = Color(0.15, 0.18, 0.12, 0.9)
+	_style_filled.border_width_left = 2
+	_style_filled.border_width_top = 1
+	_style_filled.border_width_right = 1
+	_style_filled.border_width_bottom = 1
+	_style_filled.border_color = Color(0.6, 0.5, 0.3, 0.8)
+	_style_filled.corner_radius_top_left = 4
+	_style_filled.corner_radius_top_right = 4
+	_style_filled.corner_radius_bottom_left = 4
+	_style_filled.corner_radius_bottom_right = 4
+
+	_style_hover = StyleBoxFlat.new()
+	_style_hover.bg_color = Color(0.2, 0.25, 0.15, 0.9)
+	_style_hover.border_width_left = 2
+	_style_hover.border_width_top = 2
+	_style_hover.border_width_right = 2
+	_style_hover.border_width_bottom = 2
+	_style_hover.border_color = Color(0.9, 0.8, 0.4, 0.9)
+	_style_hover.corner_radius_top_left = 4
+	_style_hover.corner_radius_top_right = 4
+	_style_hover.corner_radius_bottom_left = 4
+	_style_hover.corner_radius_bottom_right = 4
+
+
+func _ready() -> void:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox)
+
+	_name_label = Label.new()
+	_name_label.add_theme_font_size_override("font_size", 14)
+	_name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1.0))
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_name_label)
+
+	_class_label = Label.new()
+	_class_label.add_theme_font_size_override("font_size", 11)
+	_class_label.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65, 1.0))
+	_class_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_class_label)
+
+	_hp_label = Label.new()
+	_hp_label.add_theme_font_size_override("font_size", 11)
+	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_hp_label)
+
+	_refresh_display()
+
+
+func setup(pos: SquadBattleTypes.SquadEntityInSquadLocation, idx: int) -> void:
+	row_position = pos
+	slot_index = idx
+
+
+func set_warrior(w: CharacterSocialStats) -> void:
+	warrior = w
+	_refresh_display()
+
+
+func clear_warrior() -> void:
+	warrior = null
+	_refresh_display()
+
+
+func is_empty() -> bool:
+	return warrior == null
+
+
+func _refresh_display() -> void:
+	if not is_node_ready():
+		return
+
+	if warrior:
+		_name_label.text = warrior.name
+		_class_label.text = EntityClasses.Types.keys()[warrior.class_id]
+		if warrior.is_dead:
+			_hp_label.text = "DEAD"
+			_hp_label.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3, 1.0))
+		elif warrior.is_injured:
+			_hp_label.text = "INJURED"
+			_hp_label.add_theme_color_override("font_color", Color(0.9, 0.6, 0.3, 1.0))
+		else:
+			_hp_label.text = "Healthy"
+			_hp_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4, 1.0))
+		add_theme_stylebox_override("panel", _style_hover if _is_hovered else _style_filled)
+	else:
+		_name_label.text = "(empty)"
+		_class_label.text = ""
+		_hp_label.text = ""
+		add_theme_stylebox_override("panel", _style_hover if _is_hovered else _style_empty)
+
+
+func _get_drag_data(_at_position: Vector2) -> Variant:
+	if warrior == null:
+		return null
+
+	var preview := Label.new()
+	preview.text = warrior.name
+	preview.add_theme_font_size_override("font_size", 14)
+	preview.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7, 1.0))
+
+	var preview_panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.22, 0.15, 0.95)
+	style.border_color = Color(0.8, 0.7, 0.3, 1.0)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	preview_panel.add_theme_stylebox_override("panel", style)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	preview_panel.add_child(margin)
+	margin.add_child(preview)
+
+	set_drag_preview(preview_panel)
+
+	return { "warrior": warrior, "source_slot": self }
+
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	if not data is Dictionary:
+		return false
+	if not data.has("warrior"):
+		return false
+	return true
+
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	if not data is Dictionary:
+		return
+	var dropped_warrior: CharacterSocialStats = data["warrior"]
+	var source_slot = data["source_slot"]
+
+	if source_slot == self:
+		return
+
+	var my_warrior := warrior
+	source_slot.set_warrior(my_warrior)
+	set_warrior(dropped_warrior)
+
+	warrior_dropped.emit(dropped_warrior, self)
+	if my_warrior:
+		warrior_dropped.emit(my_warrior, source_slot)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_DRAG_BEGIN:
+			_is_hovered = false
+		NOTIFICATION_DRAG_END:
+			_is_hovered = false
+			_refresh_display()
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		if is_drag_successful():
+			return
+		var is_over := get_global_rect().has_point(event.global_position)
+		if is_over != _is_hovered:
+			_is_hovered = is_over
+			_refresh_display()
+
+
+func _mouse_enter() -> void:
+	_is_hovered = true
+	_refresh_display()
+
+
+func _mouse_exit() -> void:
+	_is_hovered = false
+	_refresh_display()

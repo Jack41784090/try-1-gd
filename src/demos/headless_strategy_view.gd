@@ -205,7 +205,7 @@ func show_investigation_menu(): pass
 func hide_investigation_menu(): pass
 func show_recruitment_menu(): pass
 func hide_recruitment_menu(): pass
-func show_manage_squad(_squad): pass
+func show_manage_squad(_squad, _actor = null): pass
 func show_shop(_shop, _squad, _location = null): pass
 func show_scouting(_world, _squad): pass
 func show_missions(_factions): pass

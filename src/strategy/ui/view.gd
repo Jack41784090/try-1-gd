@@ -27,7 +27,7 @@ extends Control
 @onready var travel_view: TravelView = $TravelView
 @onready var investigation_view: InvestigationView = $InvestigationView
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
-@onready var manage_squad_view: ManageSquadView = $ManageSquadView
+@onready var manage_squad_page = $ManageSquadPage
 @onready var shop_view: ShopView = $ShopView
 @onready var scouting_view: ScoutingView = $ScoutingView
 @onready var missions_view: MissionsView = $MissionsView
@@ -161,8 +161,9 @@ func _connect_signals() -> void:
 		recruitment_view.recruitment_completed.connect(func(warrior): presenter.on_recruitment_completed(warrior))
 		recruitment_view.closed.connect(func(): presenter.on_recruitment_closed())
 
-	if manage_squad_view:
-		manage_squad_view.closed.connect(func(): presenter.on_manage_squad_closed())
+	if manage_squad_page:
+		manage_squad_page.presenter.closed.connect(func(): presenter.on_manage_squad_closed())
+		manage_squad_page.presenter.recruitment_completed.connect(func(warrior): presenter.on_recruitment_completed(warrior))
 
 	if missions_view:
 		missions_view.presenter.missions_closed.connect(func(): presenter.on_missions_closed())
@@ -460,8 +461,8 @@ func hide_recruitment_menu() -> void:
 	recruitment_view.hide_recruitment_menu()
 
 
-func show_manage_squad(squad) -> void:
-	manage_squad_view.call("show_squad", squad)
+func show_manage_squad(squad: SquadStrategicData, p_actor: ActivityRunner) -> void:
+	manage_squad_page.presenter.open(squad, p_actor)
 
 
 func show_shop(shop: Shop, squad: SquadStrategicData, location: Location = null) -> void:

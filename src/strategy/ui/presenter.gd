@@ -165,7 +165,7 @@ func on_recruit_requested() -> void:
 
 
 func on_manage_squad_requested() -> void:
-	view.show_manage_squad(actor.player_squad)
+	view.show_manage_squad(actor.player_squad, actor)
 
 
 func on_shop_requested() -> void:

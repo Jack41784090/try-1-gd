@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://by5hoqack8b3u" path="res://assets/hoi4_icons/supply_texticon.png" id="9_jx64g"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
 [ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/view.gd" id="12_manage_squad"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="13_vn_view"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
@@ -977,69 +978,8 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="ManageSquadView" type="Control" parent="." unique_id=605624804]
-visible = false
+[node name="ManageSquadPage" parent="." instance=ExtResource("30_manage_page")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("12_manage_squad")
-
-[node name="OverlayPanel" type="PanelContainer" parent="ManageSquadView" unique_id=451547986]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_header")
-
-[node name="MarginContainer" type="MarginContainer" parent="ManageSquadView/OverlayPanel" unique_id=256136644]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ManageSquadView/OverlayPanel/MarginContainer" unique_id=330168857]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="TitleLabel" type="Label" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=2004766213]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 22
-text = "Squad Management"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=2138892481]
-custom_minimum_size = Vector2(0, 400)
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="WarriorsContainer" type="VBoxContainer" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer" unique_id=422026796]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="CloseButton" type="Button" parent="ManageSquadView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=456373941]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "Close"
 
 [node name="ShopView" type="Control" parent="." unique_id=1931131453]
 visible = false
