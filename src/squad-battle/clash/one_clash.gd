@@ -170,24 +170,20 @@ func commit() -> Array[EntityUpdate]:
 
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnCastSkill)
 
-	# 2. Roll for hit
+	# 2. Roll for hit → pierce → damage (only for damage skills)
 	if skill.roll_for_damage:
 		var hit = roll_for_hit()
 		if not hit:
-
 			return cleanup()
 
 		StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, target_manifestation())
 
-	# 3. Roll for pierce
-	var pierce = roll_for_pierce()
-	if not pierce:
-		return cleanup()
+		var pierce = roll_for_pierce()
+		if not pierce:
+			return cleanup()
 
-	# 4. Calculate damage
-	damage_calculation()
+		damage_calculation()
 
-	# 5. Done
 	return cleanup()
 
 # func _get_effect_type_name(effect: SkillEffect) -> String:

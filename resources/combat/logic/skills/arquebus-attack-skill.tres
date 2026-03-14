@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
 
 [sub_resource type="Resource" id="Resource_suppress"]
 script = ExtResource("5_flat")
-value = -12.0
+value = -6.0
 property_direct = 2
 name = "Arquebus Suppression"
 triggers = Array[int]([1])

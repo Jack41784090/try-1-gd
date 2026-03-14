@@ -193,7 +193,7 @@ func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
 		SquadBattleTypes.Reality.Force:
 			return 1 + (stats.strength * 2) * (stats.spd * 1) * (stats.siz * 1)
 		SquadBattleTypes.Reality.Guts:
-			return 1 + stats.wil * stats.fai
+			return 10 + (stats.wil * 8) + (stats.fai * 5)
 		SquadBattleTypes.Reality.Mana:
 			return (stats.int_stat * 3) + (stats.spr * 2) + (stats.fai * 1)
 		SquadBattleTypes.Reality.Spirituality:
@@ -273,7 +273,7 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 		if not is_retreating:
 			is_retreating = true
 			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
-			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
+			changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.3)))
 	
 	return changes
 

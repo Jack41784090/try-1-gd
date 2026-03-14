@@ -12,6 +12,10 @@ extends Resource
 @export var starting_location_id: String = ""
 
 var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
+var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
+var cargo_manifest: Dictionary = {}
+var cargo_destination_id: String = ""
+var shipment_id: String = ""
 
 var aggregate_morale: float:
 	get:
@@ -23,7 +27,7 @@ var _initialized: bool = false
 
 
 func _init() -> void:
-	print(" --- SquadStrategicData init --- ")
+	pass
 	if current_tactic == null:
 		current_tactic = Tactic.create_balanced()
 	print(" \\=> SquadStrategicData _init complete")
@@ -102,20 +106,19 @@ func modify_karma(amount: float) -> void:
 
 
 func modify_morale(amount: float) -> void:
-	print("SquadStrategicData.modify_morale amount=%.2f warrior_count=%d" % [amount, warriors.size()])
+	Log.trace("Squad", "modify_morale amount=%.2f warrior_count=%d" % [amount, warriors.size()])
 	for warrior in warriors:
+		if warrior.is_dead:
+			continue
 		var old_morale := warrior.morale
 		warrior.modify_morale(amount)
-		print("  warrior=%s is_dead=%s morale: %.2f -> %.2f" % [warrior.name, str(warrior.is_dead), old_morale, warrior.morale])
+		Log.trace("Squad", "  warrior=%s morale: %.2f -> %.2f" % [warrior.name, old_morale, warrior.morale])
 	# update_aggregate_morale()
 
 
 func update_aggregate_morale() -> void:
-	# Recalculates the squad's average morale from all living warriors
-	# e.g., warriors: [Hans(morale=80), Fritz(morale=60, dead), Karl(morale=40)] → (80+40)/2 = 60.0
 	if warriors.size() == 0:
 		aggregate_morale = 0.0
-		print("SquadStrategicData.update_aggregate_morale no_warriors aggregate=0")
 		return
 
 	var total_morale := 0.0
@@ -132,13 +135,6 @@ func update_aggregate_morale() -> void:
 		aggregate_morale = total_morale / living_count
 	else:
 		aggregate_morale = 0.0
-
-	print(
-		"SquadStrategicData.update_aggregate_morale living=%d total=%.2f " % [
-			living_count,
-			total_morale,
-		],
-	)
 
 
 func modify_aggregate_morale(mod: float) -> void:
@@ -254,6 +250,28 @@ func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Ch
 
 func set_location(location_id: String) -> void:
 	current_location_id = location_id
+
+
+func is_caravan() -> bool:
+	return squad_role == StrategyTypes.SquadRole.MERCHANT
+
+
+func has_cargo() -> bool:
+	for item_type in cargo_manifest:
+		if cargo_manifest[item_type] > 0.0:
+			return true
+	return false
+
+
+func get_cargo_value() -> float:
+	var total := 0.0
+	for item_type in cargo_manifest:
+		total += cargo_manifest[item_type]
+	return total
+
+
+func has_reached_destination() -> bool:
+	return is_caravan() and not cargo_destination_id.is_empty() and current_location_id == cargo_destination_id
 
 
 func get_location_id() -> String:
