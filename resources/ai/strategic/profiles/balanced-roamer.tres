@@ -7,7 +7,6 @@
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/mercenary-work-low-money.tres" id="5_merc"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/attack-weak-enemy.tres" id="6_attack"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/pursue-clues.tres" id="7_clues"]
-[ext_resource type="Resource" uid="uid://dlmoi35at81a2" path="res://resources/ai/strategic/considerations/hunt-enemies.tres" id="8_hunt"]
 [ext_resource type="Resource" uid="uid://ox0bq147kqq" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="9_patrol"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/drill-when-idle.tres" id="10_drill"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/ambush-opportunity.tres" id="11_ambush"]
@@ -18,9 +17,10 @@
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/buy-supplies-at-town.tres" id="16_buy"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/considerations/recruit-when-depleted.tres" id="17_recruit"]
 [ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="18_fallback"]
+[ext_resource type="Resource" uid="uid://dlmoi35at81a2" path="res://resources/ai/strategic/considerations/hunt-enemies.tres" id="19_hunt"]
 
 [resource]
 script = ExtResource("1_script")
 profile_name = "balanced-roamer"
-considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_attack"), ExtResource("7_clues"), ExtResource("8_hunt"), ExtResource("9_patrol"), ExtResource("10_drill"), ExtResource("11_ambush"), ExtResource("12_break"), ExtResource("13_rest_exhausted"), ExtResource("14_finish"), ExtResource("15_heal"), ExtResource("16_buy"), ExtResource("17_recruit")])
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_forage"), ExtResource("4_travel"), ExtResource("5_merc"), ExtResource("6_attack"), ExtResource("7_clues"), ExtResource("9_patrol"), ExtResource("10_drill"), ExtResource("11_ambush"), ExtResource("12_break"), ExtResource("13_rest_exhausted"), ExtResource("14_finish"), ExtResource("15_heal"), ExtResource("16_buy"), ExtResource("17_recruit"), ExtResource("19_hunt")])
 fallback_action = ExtResource("18_fallback")

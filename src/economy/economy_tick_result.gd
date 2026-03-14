@@ -5,6 +5,21 @@ var turn: int = 0
 var location_snapshots: Array[LocationSnapshot] = []
 var moves_created: Array[EconomyMove] = []
 var moves_completed: Array[EconomyMove] = []
+var shipment_dispatches: Array[ShipmentDispatch] = []
+
+
+class ShipmentDispatch:
+	var shipment_id: String
+	var move: EconomyMove
+	var guard_count: int
+
+
+	static func create(p_id: String, p_move: EconomyMove, p_guards: int) -> ShipmentDispatch:
+		var d := ShipmentDispatch.new()
+		d.shipment_id = p_id
+		d.move = p_move
+		d.guard_count = p_guards
+		return d
 
 class LocationSnapshot:
 	var location_id: String

@@ -146,7 +146,6 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 	var tracker = world.contact_tracker
 
 	# 1. Find enemy squads at the same location
-	# e.g., world.get_squads_at_location("salzburg") → [SquadStrategicData("Bandits")]
 	var enemies_here = world.get_squads_at_location(squad.current_location_id)
 
 	# 2. If no enemies, attack fails with morale penalty
@@ -154,8 +153,16 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
 		return result
 
-	# 3. Pick the first enemy as target
-	var target_enemy = enemies_here[0]
+	# 3. Pick target — prefer the brain's chosen target if available
+	var target_enemy: SquadStrategicData = null
+	var chosen_id = context.get("attack_target", "")
+	if not chosen_id.is_empty():
+		for e in enemies_here:
+			if e.squad_id == chosen_id:
+				target_enemy = e
+				break
+	if target_enemy == null:
+		target_enemy = enemies_here[0]
 
 	# 4. Check contact state — need at least SUSPECTED to attack
 	# e.g., contact.get_state() = NONE → attack blocked (can't attack what you haven't detected)
@@ -372,22 +379,23 @@ func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
 		return result
 
 	var shop = location.shop
-	var supply_item = shop.get_item_by_type(StrategyTypes.ItemType.SUPPLY)
-	if not supply_item:
+	var supply_thing: Thing = shop.get_thing_by_type(EconomyTypes.ThingType.FOOD)
+	if not supply_thing:
 		return result
 
+	var price: float = supply_thing.base_price
 	var desired_amount := 5
-	var affordable = int(squad.money / supply_item.price)
+	var affordable = int(squad.money / price)
 	var buy_amount = mini(desired_amount, affordable)
 
 	if buy_amount > 0:
-		squad.spend_money(buy_amount * supply_item.price)
+		squad.spend_money(buy_amount * price)
 		squad.food += buy_amount
 		print(
 			"[Activity] BUY_SUPPLIES at %s: bought %d supplies for %.0f gold (food now %d)" % [
 				location.location_name,
 				buy_amount,
-				buy_amount * supply_item.price,
+				buy_amount * price,
 				squad.food,
 			],
 		)

@@ -8,6 +8,6 @@
 [resource]
 script = ExtResource("1_script")
 name = "patrol-for-info"
-weight = 3.0
+weight = 5.0
 glances = Array[ExtResource("2_glance_type")]([ExtResource("3_glance1")])
 returning = ExtResource("4_action")

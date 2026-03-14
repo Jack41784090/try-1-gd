@@ -6,7 +6,8 @@
 script = ExtResource("1_script")
 subject = 2
 world_property = 2
-normalize_max = 1.0
+normalize_max = 5.0
+inverse = true
 use_comparison = true
 comparison = 1
 threshold = 0.0

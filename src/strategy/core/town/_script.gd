@@ -10,6 +10,13 @@ class_name Location
 @export var available_activity_types: Array[StrategyTypes.ActivityType] = []
 @export var shop: Shop
 @export var clues: Array[Clue] = []
+@export var supply_rules: Array[SupplyRule] = []
+@export var inventory: LocationInventory
+
+var population: Population
+
+func has_economy() -> bool:
+	return population != null and inventory != null
 
 func modify_stability(amount: float) -> void:
 	stability = clamp(stability + amount, 0.0, 200.0)
@@ -18,18 +25,14 @@ func modify_development(amount: int) -> void:
 	development = clamp(development + amount, 0, 200)
 
 func is_connected_to(location_id_check: String) -> bool:
-	if connections == null:
-		return false
-	for conn in connections.tt:
-		if conn.to_location_id == location_id_check:
-			return true
-	return false
+	return get_connection_to(location_id_check) != null
 
 func calculate_base_travel_time(to_location: Location) -> int:
-	if not is_connected_to(to_location.location_id):
+	var conn := get_connection_to(to_location.location_id)
+	if conn == null:
 		return -1
 	
-	var base_time = 1
+	var base_time: int = conn.travel_time
 	
 	if self.type == StrategyTypes.LocationType.ROAD:
 		base_time -= 1
@@ -43,6 +46,14 @@ func calculate_base_travel_time(to_location: Location) -> int:
 		base_time += 1
 	
 	return base_time
+
+func get_connection_to(location_id_check: String) -> TownConnection:
+	if connections == null:
+		return null
+	for conn in connections.tt:
+		if conn.to_location_id == location_id_check:
+			return conn
+	return null
 
 func has_shop() -> bool:
 	return shop != null and shop.items.size() > 0

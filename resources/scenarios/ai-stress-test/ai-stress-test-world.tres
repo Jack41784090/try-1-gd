@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="3_conn"]
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_squad"]
-[ext_resource type="Script" uid="uid://circeq7y0hj5g" path="res://src/strategy/core/shop/item.gd" id="5_shopitem"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="5_thing"]
 [ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="6_shop"]
 [ext_resource type="Resource" uid="uid://dqekkd30ffwmi" path="res://resources/strategy-squads/test-squad-bandits.tres" id="sq_bandits"]
 [ext_resource type="Resource" uid="uid://cr5o01s6i10tl" path="res://resources/strategy-squads/test-squad-cultists.tres" id="sq_cultists"]
@@ -34,16 +34,19 @@ script = ExtResource("3_conns")
 tt = Array[ExtResource("3_conn")]([SubResource("conn_moscow_road1"), SubResource("conn_moscow_forest")])
 metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 
-[sub_resource type="Resource" id="shopitem_supply"]
-script = ExtResource("5_shopitem")
-display_name = "Supplies"
+[sub_resource type="Resource" id="thing_supply"]
+script = ExtResource("5_thing")
+thing_id = "food"
+thing_name = "Supplies"
+thing_type = 0
+base_price = 5.0
 description = "Food and basic supplies for the road."
-metadata/_custom_type_script = "uid://circeq7y0hj5g"
+metadata/_custom_type_script = "uid://ducmw8b2bkj4x"
 
 [sub_resource type="Resource" id="shop_moscow"]
 script = ExtResource("6_shop")
 shop_name = "Moscow Grand Bazaar"
-items = Array[ExtResource("5_shopitem")]([SubResource("shopitem_supply")])
+items = Array[ExtResource("5_thing")]([SubResource("thing_supply")])
 metadata/_custom_type_script = "uid://b136kr6rocls5"
 
 [sub_resource type="Resource" id="loc_moscow"]
@@ -109,7 +112,7 @@ metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 [sub_resource type="Resource" id="shop_smolensk"]
 script = ExtResource("6_shop")
 shop_name = "Smolensk Market"
-items = Array[ExtResource("5_shopitem")]([SubResource("shopitem_supply")])
+items = Array[ExtResource("5_thing")]([SubResource("thing_supply")])
 metadata/_custom_type_script = "uid://b136kr6rocls5"
 
 [sub_resource type="Resource" id="loc_smolensk"]
@@ -170,7 +173,7 @@ metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 [sub_resource type="Resource" id="shop_minsk"]
 script = ExtResource("6_shop")
 shop_name = "Minsk Traders"
-items = Array[ExtResource("5_shopitem")]([SubResource("shopitem_supply")])
+items = Array[ExtResource("5_thing")]([SubResource("thing_supply")])
 metadata/_custom_type_script = "uid://b136kr6rocls5"
 
 [sub_resource type="Resource" id="loc_minsk"]
@@ -315,7 +318,7 @@ metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 [sub_resource type="Resource" id="shop_market"]
 script = ExtResource("6_shop")
 shop_name = "Market Town Bazaar"
-items = Array[ExtResource("5_shopitem")]([SubResource("shopitem_supply")])
+items = Array[ExtResource("5_thing")]([SubResource("thing_supply")])
 metadata/_custom_type_script = "uid://b136kr6rocls5"
 
 [sub_resource type="Resource" id="loc_market"]

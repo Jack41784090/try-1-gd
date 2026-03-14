@@ -110,15 +110,11 @@ static func _create_demo_squad(demo_values: Dictionary) -> SquadStrategicData:
 	)
 
 static func _create_demo_shop() -> Shop:
-	var supply_item = ShopItem.new()
-	supply_item.item_type = StrategyTypes.ItemType.SUPPLY
-	supply_item.price = 5.0
-	supply_item.display_name = "Supply"
-	supply_item.description = "Replenish food stores"
+	var supply_thing := Thing.create("food", "Supply", EconomyTypes.ThingType.FOOD, 5.0, "Replenish food stores")
 
 	var shop = Shop.new()
 	shop.shop_name = "Ravenna Market"
-	shop.items.append(supply_item)
+	shop.items.append(supply_thing)
 	return shop
 
 static func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:

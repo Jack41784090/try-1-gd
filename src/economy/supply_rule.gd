@@ -7,6 +7,8 @@ class_name SupplyRule
 @export var source_location_id: String = ""
 @export var capacity_per_turn: float = 10.0
 @export var priority: int = 0
+var worker_job: EconomyTypes.JobType = EconomyTypes.JobType.FARMER
+var workers_per_full_output: float = 50.0
 
 func execute(inventory: LocationInventory, population: Population) -> float:
 	match action:
@@ -19,11 +21,11 @@ func execute(inventory: LocationInventory, population: Population) -> float:
 	return 0.0
 
 func _execute_extract(inventory: LocationInventory, population: Population) -> float:
-	var farmers := population.get_by_job(EconomyTypes.JobType.FARMER)
-	var worker_count := farmers.size()
+	var workers := population.get_by_job(worker_job)
+	var worker_count := workers.size()
 	if worker_count == 0:
 		return 0.0
-	var worker_ratio := minf(float(worker_count) / 50.0, 1.0)
+	var worker_ratio := minf(float(worker_count) / workers_per_full_output, 1.0)
 	var produced := capacity_per_turn * worker_ratio
 	inventory.add(thing, produced)
 	return produced
@@ -58,6 +60,22 @@ static func create_extract(
 	r.rule_id = id
 	r.thing = p_thing
 	r.action = EconomyTypes.RuleAction.EXTRACT
+	r.capacity_per_turn = capacity
+	r.priority = p_priority
+	return r
+
+static func create_craft(
+	id: String,
+	p_thing: Thing,
+	capacity: float,
+	p_priority: int = 0,
+) -> SupplyRule:
+	var r := SupplyRule.new()
+	r.rule_id = id
+	r.thing = p_thing
+	r.action = EconomyTypes.RuleAction.EXTRACT
+	r.worker_job = EconomyTypes.JobType.CRAFTSMAN
+	r.workers_per_full_output = 20.0
 	r.capacity_per_turn = capacity
 	r.priority = p_priority
 	return r

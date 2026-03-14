@@ -23,6 +23,7 @@ enum MoveState {
 	IN_TRANSIT,
 	COMPLETED,
 	CANCELLED,
+	CAPTURED,
 }
 
 enum RuleAction {
@@ -34,4 +35,7 @@ enum RuleAction {
 enum ThingType {
 	FOOD,
 	MONEY,
+	CLOTH,
+	TOOLS,
+	LUXURY,
 }

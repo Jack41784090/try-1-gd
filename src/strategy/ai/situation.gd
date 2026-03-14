@@ -135,23 +135,27 @@ func _init(p_squad: SquadStrategicData, p_world: World, p_faction: Faction, p_di
 
 
 func _find_enemies_here() -> Array[SquadStrategicData]:
-	# Finds all non-self squads at the same location (lazy-computed by enemies_here getter)
-	# e.g., location="salzburg" has ["Wolves", "Raiders", "Merchants"] → returns ["Raiders", "Merchants"]
 	var result: Array[SquadStrategicData] = []
+	var tracker = world.contact_tracker
 	var squads_at_loc = world.get_squads_at_location(location.location_id)
 	for s in squads_at_loc:
-		if s.squad_id != squad.squad_id:
+		if s.squad_id == squad.squad_id:
+			continue
+		var contact = tracker.get_contact(squad.squad_id, s.squad_id)
+		if contact and contact.get_state() >= StrategyTypes.ContactState.SUSPECTED:
 			result.append(s)
 	return result
 
 
 func _find_adjacent_enemies() -> Array[SquadStrategicData]:
-	# Finds all non-self squads in neighboring locations (1 hop away)
-	# e.g., "salzburg" connects to ["linz", "vienna"] → collects squads at both → returns ["Raiders" at "linz"]
 	var result: Array[SquadStrategicData] = []
+	var tracker = world.contact_tracker
 	var adjacent = world.get_adjacent_squads(location.location_id)
 	for s in adjacent:
-		if s.squad_id != squad.squad_id:
+		if s.squad_id == squad.squad_id:
+			continue
+		var contact = tracker.get_contact(squad.squad_id, s.squad_id)
+		if contact and contact.get_state() >= StrategyTypes.ContactState.SUSPECTED:
 			result.append(s)
 	return result
 
@@ -187,33 +191,27 @@ func _find_nearest_of_type(types: Array) -> Location:
 
 
 func _find_nearest_enemy_location() -> Location:
-	# BFS from current location to find the nearest location with any non-self squads
-	# e.g., from "salzburg" → BFS: salzburg(self only)→linz(has "Raiders", found!) → returns linz
-	if not world.travel_graph:
+	var tracker = world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(squad.squad_id)
+	if our_contacts.is_empty():
 		return null
 
-	var visited: Dictionary = { }
-	var queue: Array = [location.location_id]
-	visited[location.location_id] = true
-
-	while queue.size() > 0:
-		var current_id = queue.pop_front()
-		if current_id != location.location_id:
-			var squads = world.get_squads_at_location(current_id)
-			for s in squads:
-				if s.squad_id != squad.squad_id:
-					return world.get_location_by_id(current_id)
-
-		var current_loc = world.get_location_by_id(current_id)
-		if not current_loc:
+	var best_loc: Location = null
+	var best_dist := 999
+	for c in our_contacts:
+		if c.get_state() < StrategyTypes.ContactState.SUSPECTED:
 			continue
-		for connection in current_loc.connections.tt:
-			var neighbor_id = connection.to_location_id
-			if not visited.has(neighbor_id):
-				visited[neighbor_id] = true
-				queue.append(neighbor_id)
-
-	return null
+		var target = _find_squad_by_id(c.target_id)
+		if not target:
+			continue
+		var target_loc = world.get_location_by_id(target.current_location_id)
+		if not target_loc:
+			continue
+		var dist = world.travel_graph.get_distance(location.location_id, target_loc.location_id)
+		if dist < best_dist:
+			best_dist = dist
+			best_loc = target_loc
+	return best_loc
 
 
 func _find_clue_destination() -> String:

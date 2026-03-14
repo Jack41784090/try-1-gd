@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_d8gha"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_squad"]
 [ext_resource type="Resource" uid="uid://dqekkd30ffwmi" path="res://resources/strategy-squads/test-squad-bandits.tres" id="4_5wn4r"]
-[ext_resource type="Script" uid="uid://circeq7y0hj5g" path="res://src/strategy/core/shop/item.gd" id="5_juk78"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="5_thing"]
 [ext_resource type="Resource" uid="uid://bvmnx8q3fy7qi" path="res://resources/strategy-squads/test-squad-mercenaries.tres" id="5_merc"]
 [ext_resource type="Resource" uid="uid://cp3nyaq4g08rj" path="res://resources/strategy-squads/test-squad-rebels.tres" id="6_rebel"]
 [ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="6_s5v8c"]
@@ -29,13 +29,17 @@ tt = Array[ExtResource("3_1wmke")]([SubResource("Resource_6275e")])
 metadata/_custom_type_script = "uid://vgwgx2k2ibcn"
 
 [sub_resource type="Resource" id="Resource_1i11f"]
-script = ExtResource("5_juk78")
+script = ExtResource("5_thing")
+thing_id = "food"
+thing_name = "Supplies"
+thing_type = 0
+base_price = 5.0
 description = "Supply, duh"
-metadata/_custom_type_script = "uid://circeq7y0hj5g"
+metadata/_custom_type_script = "uid://ducmw8b2bkj4x"
 
 [sub_resource type="Resource" id="Resource_w6qqo"]
 script = ExtResource("6_s5v8c")
-items = Array[ExtResource("5_juk78")]([SubResource("Resource_1i11f")])
+items = Array[ExtResource("5_thing")]([SubResource("Resource_1i11f")])
 metadata/_custom_type_script = "uid://b136kr6rocls5"
 
 [sub_resource type="Resource" id="Resource_camp"]

@@ -13,6 +13,16 @@ class_name World
 @export var turn_count: int = 0
 @export var roaming_squads: Array[SquadStrategicData] = []
 @export var map_scene: PackedScene
+@export var goods: Array[Thing] = []
+
+var economy_engine: EconomyEngine = null
+
+func get_economy_locations() -> Array[Location]:
+	var result: Array[Location] = []
+	for loc in locations:
+		if loc.has_economy():
+			result.append(loc)
+	return result
 
 var contact_tracker:
 	get:

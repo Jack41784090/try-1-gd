@@ -397,6 +397,10 @@ func queue_vn_chain(path: String) -> void:
 	vn_view.queue_event_chain(path)
 
 
+func has_queued_vn_chains() -> bool:
+	return not vn_view.presenter.event_chain_queue.is_empty()
+
+
 func play_next_queued_chain() -> bool:
 	return vn_view.play_next_queued_chain()
 
@@ -460,8 +464,8 @@ func show_manage_squad(squad) -> void:
 	manage_squad_view.call("show_squad", squad)
 
 
-func show_shop(shop: Shop, squad: SquadStrategicData) -> void:
-	shop_view.presenter.open(shop, squad)
+func show_shop(shop: Shop, squad: SquadStrategicData, location: Location = null) -> void:
+	shop_view.presenter.open(shop, squad, location)
 
 
 func hide_shop() -> void:

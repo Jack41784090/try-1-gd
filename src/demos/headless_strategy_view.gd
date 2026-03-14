@@ -154,6 +154,9 @@ func show_strategy_ui(): pass
 func queue_vn_chain(path: String):
 	vn_view.queue_event_chain(path)
 
+func has_queued_vn_chains() -> bool:
+	return false
+
 func play_next_queued_chain() -> bool:
 	return true
 
@@ -203,7 +206,7 @@ func hide_investigation_menu(): pass
 func show_recruitment_menu(): pass
 func hide_recruitment_menu(): pass
 func show_manage_squad(_squad): pass
-func show_shop(_shop, _squad): pass
+func show_shop(_shop, _squad, _location = null): pass
 func show_scouting(_world, _squad): pass
 func show_missions(_factions): pass
 

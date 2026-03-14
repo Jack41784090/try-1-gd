@@ -124,8 +124,9 @@ enum SquadProperty {
 	EXPERIENCE,
 }
 
-enum ItemType {
-	SUPPLY,
+enum SquadRole {
+	COMBAT,
+	MERCHANT,
 }
 
 enum ContactState {
@@ -159,14 +160,14 @@ enum SocialClass {
 static func get_social_class_food_demand(social_class: SocialClass) -> float:
 	match social_class:
 		SocialClass.PEASANT:
-			return 0.5
+			return 0.25
 		SocialClass.SOLDIER:
-			return 1.0
+			return 0.5
 		SocialClass.MERCHANT:
-			return 0.75
+			return 0.4
 		SocialClass.NOBLE:
-			return 1.5
-		SocialClass.CLERGY:
 			return 0.75
+		SocialClass.CLERGY:
+			return 0.4
 		_:
-			return 1.0
+			return 0.5

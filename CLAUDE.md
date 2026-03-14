@@ -24,6 +24,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
   - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
   - `economy_demo.tscn` — economy simulation: 3-location supply chain (Farmstead→Market Town→Castle), 130 people across 3 social classes, 20-turn headless simulation with disruption at turn 10. Tests food production, trade dispatch with in-transit tracking, price dynamics, class-based purchasing, satisfaction. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
+  - `caravan_demo.tscn` — caravan bridge integration: economy+strategy bridge test. 3-location world (Farmstead→Market Town→Castle) with EconomyEngine supply rules dispatching ShipmentDispatch artifacts → CaravanBridge creates SquadStrategicData caravans with MERCHANT role → CaravanBrain pathfinds to destination → delivery applies goods to LocationInventory. 15-turn headless simulation, assertions on spawn/delivery/role. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
 - **Sound generation**: `python3 tools/sound_designer.py` writes synthesized SFX to `assets/sfx/` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
@@ -44,11 +45,13 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
    - `GameScenario` (core/scenario.gd) is the main orchestrator
-   - `World` (core/world.gd) holds location graph, roaming squads, turn counter
+   - `World` (core/world.gd) holds location graph, roaming squads, turn counter, `@export goods: Array[Thing]` for economy goods registry
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override). `GameEvent.result` typed as `GenericResult` (widened from deprecated `EventResult`). `EventResult` kept only for .tres backward compatibility
    - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
+
+   - **Travel time system**: `TownConnection.travel_time` (int, @export) is the base cost per connection hop. `Location.calculate_base_travel_time(to)` uses `connection.travel_time` as base, then applies ROAD bonuses (-1 per road endpoint) and stability penalties (+1 if either location <50 stability). `TravelGraph.calculate_travel_time(path)` sums per-hop times. Goetz scenario connections range 2-3 turns per hop. Food demand halved to compensate (SOLDIER: 0.5/turn, PEASANT: 0.25, MERCHANT/CLERGY: 0.4, NOBLE: 0.75)
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
    - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers
@@ -109,13 +112,14 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
   - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
   - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies. Uses next-hop pathfinding for travel/force-march destinations
-  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking
+  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking. **Contact-gated**: `enemies_here`, `adjacent_enemies`, `nearest_enemy_location`, `nearest_enemy_distance` all require SUSPECTED+ contact via `world.contact_tracker` — AI squads cannot see enemies they haven't detected through the contact system
   - `FactionBrain` (faction_brain.gd) — stub for faction-level coordination (returns NONE directives)
   - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
   - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
-  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
-  - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
+  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), hunt-enemies (6), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), patrol-for-info (5), drill-when-idle (1)
+  - Three profiles: aggressive-hunter (combat-focused, has hunt-enemies), balanced-roamer (versatile, default, has hunt-enemies), cautious-survivor (economic survival, no combat considerations)
+  - **Patrol→Detect→Pursue cycle**: Squads patrol to build contact awareness via ContactTracker → once SUSPECTED+ contact is reached, hunt-enemies and attack considerations activate → squads travel toward and engage detected enemies. No omniscient enemy tracking
 - **AIAct Scripted Testing** (`src/strategy/ai/ai_act.gd`): Resource for deterministic headless game testing
   - `AIAct` — Resource with `activity_type`, `destination_id`, `target_squad_id`, `description` + assertion fields (`expect_location`, `expect_min_food`, `expect_max_food`, `expect_min_morale`, `expect_event_fired`, `expect_events_fired: Array[String]`, `expect_min_warriors`)
   - `AIAct.create(type, desc, dest, target)` — static factory for programmatic test sequences
@@ -156,22 +160,35 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `patrol-for-info` weight reduced to 3.0 — prevents patrol from dominating other decisions
   - Force march resolves destination via next-hop pathfinding (no teleportation), moves 2 hops per turn (double speed)
 - **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
-  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
-  - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
-  - `Location.shop: Shop` — optional exported property; `has_shop()` helper
-  - Purchase effects mapped in `ShopPresenter._apply_item_effect()`: SUPPLY → food
-- **Economy System** (`src/economy/`): Odoo-inspired supply chain simulation with per-location populations, production, and trade
-  - `EconomyTypes` (types.gd) — All enums: SocialClass (PEASANT, BOURGEOIS, NOBLE), JobType (FARMER, MERCHANT, LANDLORD, CRAFTSMAN, LABORER, SERVANT, TAX_COLLECTOR, UNEMPLOYED), MoveState (PENDING, IN_TRANSIT, COMPLETED, CANCELLED), RuleAction (EXTRACT, PRODUCE, IMPORT), ThingType (FOOD, MONEY)
-  - `Thing` (thing.gd) — Resource: goods definition with `thing_id`, `thing_name`, `thing_type`, `base_price`. Static `create()` factory
-  - `EconPerson` (person.gd) — RefCounted: individual economic actor with `social_class`, `job`, `money`, `inventory` (Dict[Thing,float]), `wants`, `satisfaction` (0-100). `compute_wants()` assigns universal 1.0 FOOD need. `consume()`, `can_afford()`, `buy()`. Static factories: `create_peasant()`, `create_bourgeois()`, `create_noble()`
+  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[Thing]`, configurable in Godot inspector
+  - `Location.shop: Shop` — optional exported property; `has_shop()` helper. Goetz scenario: 6 towns have shops (Öhringen, Heilbronn, Schwäbisch Hall, Rothenburg, Nürnberg, Bamberg) with food/cloth/tools/luxury scaled by development
+  - `Location.inventory: LocationInventory` — optional exported property with initial stock entries. Goetz scenario: all 7 locations have initial inventories scaled by development (Hornberg Castle: food/cloth/tools; cities like Nürnberg: food/cloth/tools/luxury with high amounts)
+  - `Location.supply_rules: Array[SupplyRule]` — exported, configurable per-location production/import rules for economy engine
+  - Purchase effects mapped in `ShopPresenter._apply_thing_effect()`: ThingType.FOOD → food, CLOTH → money, TOOLS → travel_tools, LUXURY → morale
+- **Economy System** (`src/economy/`): Odoo-inspired supply chain simulation with per-location populations, production, trade, and social mobility
+  - `EconomyTypes` (types.gd) — All enums: SocialClass (PEASANT, BOURGEOIS, NOBLE), JobType (FARMER, MERCHANT, LANDLORD, CRAFTSMAN, LABORER, SERVANT, TAX_COLLECTOR, UNEMPLOYED), MoveState (PENDING, IN_TRANSIT, COMPLETED, CANCELLED), RuleAction (EXTRACT, PRODUCE, IMPORT), ThingType (FOOD, CLOTH, TOOLS, LUXURY, MONEY)
+  - `Thing` (thing.gd) — Resource: unified goods definition with `thing_id`, `thing_name`, `thing_type: EconomyTypes.ThingType`, `base_price`, `description`. Static `create()` factory. `get_label()` returns `thing_name` or capitalized type. Used by Shop, CaravanBridge, and economy engine
+  - `EconPerson` (person.gd) — RefCounted: individual economic actor with `social_class`, `job`, `money`, `inventory` (Dict[Thing,float]), `wants`, `satisfaction` (0-100), `_fed_this_turn`, `_comfort_this_turn`. Class-aware `compute_wants(goods_list)`: Peasants want food 1.0/cloth 0.3/tools 0.1; Bourgeois want food 1.0/cloth 0.5/tools 0.3/luxury 0.2; Nobles want food 1.0/cloth 1.0/tools 0.3/luxury 0.5. `consume()`, `can_afford()`, `buy()`. Static factories: `create_peasant()`, `create_bourgeois()`, `create_noble()`
   - `Population` (population.gd) — RefCounted: `Array[EconPerson]` wrapper with `get_by_class()`, `get_by_job()`, `get_total_demand()`, `sorted_by_wealth_desc()`, `create_batch()` static factory
-  - `LocationInventory` (location_inventory.gd) — RefCounted: per-location warehouse. `stocks`/`prices` dicts. `update_prices(demand_totals)` uses `base_price * clamp(demand/supply, 0.5, 3.0)`. Price update runs BEFORE market phase to reflect actual supply
+  - `LocationInventory` (location_inventory.gd) — Resource: per-location warehouse with `@export var initial_stocks: Array[StockEntry]` for inspector-configurable starting inventory. Runtime `stocks`/`prices` dicts populated lazily via `_ensure_initialized()` from initial_stocks on first access. `update_prices(demand_totals)` uses `base_price * clamp(demand/supply, 0.5, 3.0)`. `init_thing()` still works for programmatic setup (demos). Price update runs BEFORE market phase to reflect actual supply
+  - `StockEntry` (stock_entry.gd) — Resource: simple `@export var thing: Thing` + `@export var amount: float` pair for configuring LocationInventory initial stocks in the inspector. Static `create(thing, amount)` factory
   - `EconomyMove` (economy_move.gd) — RefCounted: goods in transit (like Odoo stock.move). `advance()` decrements `turns_remaining`, marks COMPLETED on arrival
-  - `SupplyRule` (supply_rule.gd) — RefCounted: procurement rule (like Odoo stock.rule). Actions: EXTRACT (worker-ratio capped at workers/50), PRODUCE, IMPORT. `create_extract()`, `create_import()` static factories
+  - `SupplyRule` (supply_rule.gd) — RefCounted: procurement rule (like Odoo stock.rule). Actions: EXTRACT (worker-ratio capped at workers/workers_per_full_output), PRODUCE, IMPORT. `create_extract()`, `create_import()`, `create_craft()` (EXTRACT with CRAFTSMAN job, workers_per_full_output=20) static factories
   - `EconomyTickResult` (economy_tick_result.gd) — Turn log collector with `LocationSnapshot` inner class
-  - `EconomyEngine` (economy_engine.gd) — Core 9-phase turn scheduler: Demand → Production → TradeAdvance → PriceUpdate → Market → Consumption → Income → TradeDispatch → Satisfaction. Trade dispatch uses `pop.size() * 1.3` buffer with in-transit awareness (`_get_in_transit_to()`) to prevent oscillation. Market phase sorts buyers by wealth descending (class dynamics). Satisfaction: +5 if fed, -15 if not
+  - `EconomyEngine` (economy_engine.gd) — Core turn scheduler. Has `var world: World` reference — reads locations, populations, inventories, supply_rules, and goods from `world.get_economy_locations()` and `world.goods`. No internal registries. Phases: Demand → Production → Subsistence → TradeAdvance → TradeDispatch → PriceUpdate → Market → Consumption → Satisfaction → SocialMobility (+ financial phases: wages, rent, loans, government). Trade dispatch uses **lookahead ordering**: `coverage_needed = consumption_per_turn * (travel_time + 1)`, `projected_supply = local_stock + all_in_transit + ordered_this_tick`, orders only the shortfall. `ordered_this_tick` dictionary prevents multiple routes for the same good from double-ordering. Source reserve system: `reserve = sum(max(want - held, 0) per person)` protects local population before exporting. Market phase sorts buyers by wealth descending (class dynamics). Satisfaction: +5 if fed, -15 if not, plus comfort_bonus from non-food goods consumed
+  - **Social mobility**: `_phase_social_mobility()` promotes peasants with money≥100 AND satisfaction≥80, 10% chance per turn → BOURGEOIS/MERCHANT
   - Key price dynamics: production locations have low prices (0.50), importing locations adjust based on supply/demand ratio (0.77-1.25), end-of-chain locations (castles) have higher prices
   - Supply chain patterns: direct routes (1 hop), hub-and-spoke (via market towns), dual sourcing (multiple import rules per location)
+- **Caravan Bridge** (`src/economy/caravan_bridge.gd`): Economy→Strategy integration that materializes trade dispatches as trackable strategy squads
+  - `CaravanBridge` — static utility class (via `class_name`). `create_caravan_squad(move, shipment_id, guard_count)` creates `SquadStrategicData` with `squad_role=MERCHANT`, cargo manifest (keyed by `thing_id: String`), guards (via `WarriorFactory`). `apply_delivery(squad, inventory, goods)` transfers cargo to `LocationInventory`. `apply_loot(caravan, attacker)` transfers cargo to attacking squad on defeat
+  - `CaravanBrain` (`src/strategy/ai/caravan_brain.gd`) — Simple AI: always TRAVEL toward `cargo_destination_id` via `TravelGraph.find_path()` next-hop. REST if already at destination or no path
+  - `EconomyTickResult.ShipmentDispatch` — inner class emitted by `EconomyEngine._phase_trade_dispatch()` containing `EconomyMove`, `shipment_id`, `guard_count` (based on cargo value)
+  - **Presenter integration**: `StrategyPresenter._tick_economy_and_spawn_caravans()` called in `_execute_activity_obj()` after `prepare_ai_turns()`. Ticks economy engine, reconciles arrived caravans (delivery), spawns new caravans from dispatches. Caravans registered with `AIFleetManager.register_caravan()` for brain/executor management
+  - **Lifecycle**: Economy dispatch → CaravanBridge creates squad → AIFleetManager registers brain → CaravanBrain pathfinds each turn → arrival triggers delivery → squad removed + unregistered
+  - `StrategyTypes.SquadRole` — COMBAT (default), MERCHANT (caravans). `SquadStrategicData.is_caravan()`, `has_reached_destination()`, `cargo_manifest` (keyed by `thing_id: String`), `cargo_destination_id`, `shipment_id`
+  - `EconomyTypes.MoveState` — expanded: PENDING, IN_TRANSIT, COMPLETED, CANCELLED, CAPTURED
+  - **Dynamic shop pricing**: `ShopPresenter` accepts optional `Location` for economy-driven prices via `Location.inventory.prices`
+  - **Scouting integration**: `ScoutingPresenter._build_card_data()` adds caravan-specific titles/cargo/destination hints at each contact state level
 
 ### Key Enums and Types
 
@@ -180,10 +197,10 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - Armor: `src/squad-battle/armor/_factory.gd` (ArmorClasses: Unarmored, LeatherArmor, PaddedArmor, HalfPlate)
 - Logic: `src/squad-battle/entity/logic/_factory.gd` (LogicAvailable: Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster)
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
-- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ContactState, EngagementType, EngagementStance, SquadRole [COMBAT, MERCHANT])
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
-- Economy: `src/economy/types.gd` (EconomyTypes — SocialClass, JobType, MoveState, RuleAction [EXTRACT, PRODUCE, IMPORT], ThingType [FOOD, MONEY])
+- Economy: `src/economy/types.gd` (EconomyTypes — SocialClass, JobType, MoveState [PENDING, IN_TRANSIT, COMPLETED, CANCELLED, CAPTURED], RuleAction [EXTRACT, PRODUCE, IMPORT], ThingType [FOOD, CLOTH, TOOLS, LUXURY, MONEY])
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ### Unit Classes & Combat Configuration
@@ -191,8 +208,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 7 unit classes with distinct combat roles:
 - **Landsknecht** — melee frontline DPS. Flammenschwert (Force→Slash+Strike), Leather Armor, Frontline logic. Front position. Cost: 100
 - **Healer** — backline support. Unarmed, Unarmored, BacklineHeal logic (move-to-back + heal). Back position. Cost: 150
-- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -8 ORG suppression on hit. Back position. Cost: 120
-- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -12 ORG suppression on hit. Back position. Cost: 200
+- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -4 ORG suppression on hit. Back position. Cost: 120
+- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -6 ORG suppression on hit. Back position. Cost: 200
 - **Pikeman** — defensive frontline with reach. Pike (Force→Stab+Strike, range: Front→Front+Mid, Mid→Front), Half Plate, DefensiveFrontline logic. Front position. Cost: 130
 - **Feldprediger** — enhanced support. Mace (Force→Strike, Front→Front only), Padded Armor, BacklineSupport logic (move-to-back + heal + inspire ORG boost). Back position. Cost: 180
 - **Gelehrter** — AoE backline mage. Alchemical Fire (Mana→Arcane, `is_magical=true`, range: Back→Front+Mid, Mid→Front, Front→Front), Unarmored, BacklineCaster logic (move-to-back + fireball). Fireball splash deals 50% damage to all enemies at target's position via `SkillEffectSplash`. Back position. Cost: 250
@@ -236,6 +253,7 @@ Ranged targeting works via WeaponLocation.can_hit arrays — each weapon defines
   PYEOF
   ```
 - **Prefer `replace_string_in_file`** for targeted edits to existing files — avoids full rewrites entirely.
+- Make a github commit whenever you update the code, no matter how minor.
 
 ### Typed Array Assignment (Critical Pitfall)
 

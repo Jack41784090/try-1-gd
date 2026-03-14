@@ -59,7 +59,7 @@ func prepare_ai_turns() -> Dictionary:
 	var default_directive = directives[0] if not directives.is_empty() else FactionDirective.create_none()
 
 	for squad_id in squad_brains:
-		var brain: SquadBrain = squad_brains[squad_id]
+		var brain = squad_brains[squad_id]
 		var result = brain.decide(scenario.world, null, default_directive)
 
 		var activity_type: StrategyTypes.ActivityType = result["activity_type"]
@@ -87,6 +87,8 @@ func prepare_ai_turns() -> Dictionary:
 			"activity": activity,
 			"location_at_decision": brain.squad.current_location_id,
 		}
+		if squad_executors.has(squad_id):
+			squad_executors[squad_id].ai_decision_context = context
 
 	return {
 		"decisions_this_turn": decisions_this_turn,
@@ -191,16 +193,18 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		loser.get_living_warriors().size(),
 	])
 
+	if loser.is_caravan() and loser.has_cargo():
+		var Bridge = load("res://src/economy/caravan_bridge.gd")
+		Bridge.apply_loot(loser, winner)
+		Log.info("Fleet", "%s looted caravan %s" % [winner.squad_name, loser.squad_name])
+
 
 func cleanup_defeated_squads() -> void:
-	# After combat, remove any squads with 0 living warriors from the game
-	# Also cleans up their brain, executor, contacts, and world references
 	var to_remove: Array[String] = []
 
-	# 1. Check each squad's living warrior count
 	for squad_id in squad_brains:
-		var brain: SquadBrain = squad_brains[squad_id]
-		var squad = brain.squad
+		var brain = squad_brains[squad_id]
+		var squad: SquadStrategicData = brain.squad
 
 		var living_count = 0
 		var total_count = squad.warriors.size()
@@ -218,9 +222,22 @@ func cleanup_defeated_squads() -> void:
 		if living_count == 0:
 			Log.info("Fleet", "Squad %s eliminated - removing from fleet" % squad.squad_name)
 			to_remove.append(squad_id)
+			continue
+
+		if squad.get_morale() <= 0.0 and living_count > 0:
+			var deserters := 0
+			for warrior in squad.get_living_warriors():
+				if warrior.morale <= 0.0:
+					warrior.is_dead = true
+					deserters += 1
+			if deserters > 0:
+				Log.info("Fleet", "%s: %d warrior(s) deserted (0 morale)" % [squad.squad_name, deserters])
+			if squad.get_living_warriors().size() == 0:
+				Log.info("Fleet", "Squad %s disbanded from mass desertion" % squad.squad_name)
+				to_remove.append(squad_id)
 
 	for squad_id in to_remove:
-		var brain: SquadBrain = squad_brains[squad_id]
+		var brain = squad_brains[squad_id]
 		scenario.world.roaming_squads.erase(brain.squad)
 		scenario.world.contact_tracker.clear_contacts_for(squad_id)
 		squad_brains.erase(squad_id)
@@ -244,10 +261,40 @@ func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
 				edge_log[squad_id] = { "from": decision["location_at_decision"], "to": destination }
 
 
+const WARRIOR_NAMES := [
+	"Albrecht", "Bernhard", "Conrad", "Dietrich", "Eberhard",
+	"Friedrich", "Gunther", "Heinrich", "Ivo", "Jakob",
+	"Karl", "Ludwig", "Markus", "Nikolaus", "Otto",
+	"Philipp", "Reinhard", "Siegmund", "Theodor", "Ulrich",
+	"Volker", "Wilhelm", "Xaver", "Yannick", "Zacharias",
+]
+
 func _ensure_unique_warriors(squad: SquadStrategicData) -> void:
 	var unique_warriors: Array[CharacterSocialStats] = []
 	for i in range(squad.warriors.size()):
 		var copy: CharacterSocialStats = squad.warriors[i].duplicate(true)
 		copy.id = "%s_w%d" % [squad.squad_id, i]
+		copy.name = WARRIOR_NAMES[(squad.squad_id.hash() + i) % WARRIOR_NAMES.size()]
 		unique_warriors.append(copy)
 	squad.warriors = unique_warriors
+
+
+func register_caravan(squad: SquadStrategicData) -> void:
+	assert(squad.is_caravan(), "register_caravan requires a merchant squad")
+	_ensure_unique_warriors(squad)
+	var profile = AIProfileFactory.get_default_squad_profile()
+	var BrainClass = load("res://src/strategy/ai/caravan_brain.gd")
+	var brain = BrainClass.new(squad, profile)
+	squad_brains[squad.squad_id] = brain
+	var executor = ActivityExecuteManager.new(true)
+	executor.setup(scenario, {"squad": squad})
+	squad_executors[squad.squad_id] = executor
+	Log.debug("Fleet", "Registered caravan brain: %s" % squad.squad_name)
+
+
+func unregister_caravan(squad_id: String) -> void:
+	squad_brains.erase(squad_id)
+	squad_executors.erase(squad_id)
+	decisions_this_turn.erase(squad_id)
+	scenario.world.contact_tracker.clear_contacts_for(squad_id)
+	Log.debug("Fleet", "Unregistered caravan: %s" % squad_id)

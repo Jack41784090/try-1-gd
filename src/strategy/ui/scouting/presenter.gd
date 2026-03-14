@@ -24,8 +24,8 @@ func _display_warnings(contacts_on_us: Array, world: World) -> void:
 				warnings.append("An unknown force is watching you")
 			StrategyTypes.ContactState.TRACKED, StrategyTypes.ContactState.LOCKED:
 				var squad = _find_squad(contact.observer_id, world)
-				var name = squad.squad_name if squad else "Unknown"
-				warnings.append("%s is tracking you (%.0f%%)" % [name, contact.progress])
+				var squad_name = squad.squad_name if squad else "Unknown"
+				warnings.append("%s is tracking you (%.0f%%)" % [squad_name, contact.progress])
 	view.display_warnings(warnings)
 
 func _display_contact_cards(contacts: Array, world: World) -> void:
@@ -53,18 +53,26 @@ func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
 		"state": state,
 		"progress": contact.progress,
 		"target_id": contact.target_id,
-		"being_tracked": contact.being_tracked
+		"being_tracked": contact.being_tracked,
+		"is_caravan": target_squad.is_caravan(),
 	}
 	match state:
 		StrategyTypes.ContactState.SUSPECTED:
-			data["title"] = "Unknown Force"
-			data["size_hint"] = _get_size_hint(target_squad)
+			if target_squad.is_caravan():
+				data["title"] = "Trade Caravan"
+				data["size_hint"] = _get_size_hint(target_squad)
+			else:
+				data["title"] = "Unknown Force"
+				data["size_hint"] = _get_size_hint(target_squad)
 			data["area_hint"] = target_squad.current_location_id
 		StrategyTypes.ContactState.TRACKED:
 			data["title"] = target_squad.squad_name
 			data["warrior_count"] = target_squad.get_living_warriors().size()
 			data["location"] = target_squad.current_location_id
 			data["morale_hint"] = _get_morale_category(target_squad.get_morale())
+			if target_squad.is_caravan():
+				data["cargo_hint"] = "Carrying goods"
+				data["destination_hint"] = target_squad.cargo_destination_id
 		StrategyTypes.ContactState.LOCKED:
 			data["title"] = target_squad.squad_name
 			data["warrior_count"] = target_squad.get_living_warriors().size()
@@ -72,6 +80,9 @@ func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
 			data["morale"] = target_squad.get_morale()
 			data["warriors"] = _get_warrior_details(target_squad)
 			data["stance"] = target_squad.engagement_stance
+			if target_squad.is_caravan():
+				data["cargo_value"] = target_squad.get_cargo_value()
+				data["cargo_destination"] = target_squad.cargo_destination_id
 	return data
 
 func _get_size_hint(squad: SquadStrategicData) -> String:

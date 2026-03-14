@@ -3,13 +3,14 @@ extends RefCounted
 
 var config: SquadBrainConfig
 var squad: SquadStrategicData
-
+var _rng := RandomNumberGenerator.new()
 
 func _init(p_squad: SquadStrategicData, p_config: SquadBrainConfig) -> void:
 	assert(p_squad != null, "SquadBrain requires a squad")
 	assert(p_config != null, "SquadBrain requires a config")
 	squad = p_squad
 	config = p_config
+	_rng.randomize()
 
 
 func decide(world: World, faction: Faction, directive: FactionDirective) -> Dictionary:
@@ -39,14 +40,17 @@ func decide(world: World, faction: Faction, directive: FactionDirective) -> Dict
 		if score <= 0.0:
 			continue
 
-		# 2.3 Check if the action is actually executable in this situation
+		# 2.3 Add noise (±10%) to break determinism
+		score *= _rng.randf_range(0.9, 1.1)
+
+		# 2.4 Check if the action is actually executable in this situation
 		# e.g., TRAVEL needs a valid destination, ATTACK needs a tracked enemy
 		if not _can_execute_action(action, situation):
 			continue
 
 		Log.trace("Brain:%s" % squad.squad_name, "%s → %.2f" % [consideration.name, score])
 
-		# 2.4 Track the highest-scoring action
+		# 2.5 Track the highest-scoring action
 		if score > best_score:
 			best_score = score
 			best_action = action

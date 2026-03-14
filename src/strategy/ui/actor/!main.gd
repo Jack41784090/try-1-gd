@@ -2,6 +2,7 @@ class_name ActivityExecuteManager
 extends RefCounted
 
 var _IS_AI: bool = false
+var ai_decision_context: Dictionary = {}
 
 #region ===== DATA =====
 var previous_location: Location
@@ -129,7 +130,7 @@ func _build_context(activity: Activity = null) -> Dictionary:
 				next_location = world.get_location_by_id(dest_id)
 
 	# 3. Assemble and return the context dictionary — this is passed to every .evaluate() and .execute()
-	return {
+	var ctx := {
 		"squad": player_squad,
 		"world": world,
 		"activity": activity,
@@ -140,6 +141,9 @@ func _build_context(activity: Activity = null) -> Dictionary:
 		"turn": world.turn_count,
 		"completed_missions": completed_mission_ids,
 	}
+	if _IS_AI:
+		ctx.merge(ai_decision_context)
+	return ctx
 
 
 func exec_before(activity: Activity) -> Array[GenericResult]:

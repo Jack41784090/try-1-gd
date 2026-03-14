@@ -23,6 +23,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `aoe_combat_demo.tscn` — AoE combat: Gelehrter mages with Alchemical Fire (magical weapon). Tests splash damage (50% ratio), magical pierce rolls, BattleContext enemy-at-position lookup
   - `cinematic_instruction_demo.tscn` — cinematic instruction system: after_id resolution, chained dependencies, mixed absolute/relative timing, TimelinePlayback firing order, gate pausing, tutorial EventChain .tres loading. Headless-only test
   - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
+  - `caravan_demo.tscn` — caravan bridge integration: economy+strategy bridge test. 3-location world (Farmstead→Market Town→Castle) with EconomyEngine supply rules dispatching ShipmentDispatch artifacts → CaravanBridge creates SquadStrategicData caravans with MERCHANT role → CaravanBrain pathfinds to destination → delivery applies goods to LocationInventory. 15-turn headless simulation, assertions on spawn/delivery/role. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
 - **Sound generation**: `python3 tools/sound_designer.py` writes synthesized SFX to `assets/sfx/` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
@@ -43,11 +44,13 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
    - `GameScenario` (core/scenario.gd) is the main orchestrator
-   - `World` (core/world.gd) holds location graph, roaming squads, turn counter
+   - `World` (core/world.gd) holds location graph, roaming squads, turn counter, `@export goods: Array[Thing]` for economy goods registry
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override)
    - **Mission system**: `Faction.check_mission_completions(context)` evaluates all unlocked missions against context (location, squad status, etc.), completes matching ones, and unlocks postrequisites. `StrategyPresenter._check_missions()` calls this after GAME_START and after each activity turn, queuing event chains for VN playback. Missions use `dialogue_scene_path` (mapped to `event_chain_path` on MissionResult) for narrative cutscenes
+
+   - **Travel time system**: `TownConnection.travel_time` (int, @export) is the base cost per connection hop. `Location.calculate_base_travel_time(to)` uses `connection.travel_time` as base, then applies ROAD bonuses (-1 per road endpoint) and stability penalties (+1 if either location <50 stability). `TravelGraph.calculate_travel_time(path)` sums per-hop times. Goetz scenario connections range 2-3 turns per hop. Food demand halved to compensate (SOLDIER: 0.5/turn, PEASANT: 0.25, MERCHANT/CLERGY: 0.4, NOBLE: 0.75)
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
    - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers
@@ -108,13 +111,14 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `StrategicConsideration` (consideration.gd) — holds glances, weight, op, returns a StrategicAction
   - `StrategicGlance` (glance.gd) — reads one property from StrategicSituation, normalizes, gates
   - `StrategicAction` (action.gd) — packages ActivityType + destination/target resolution strategies. Uses next-hop pathfinding for travel/force-march destinations
-  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking
+  - `StrategicSituation` (situation.gd) — pre-computed snapshot with lazy BFS for distances, contact analysis, enemy weakness tracking. **Contact-gated**: `enemies_here`, `adjacent_enemies`, `nearest_enemy_location`, `nearest_enemy_distance` all require SUSPECTED+ contact via `world.contact_tracker` — AI squads cannot see enemies they haven't detected through the contact system
   - `FactionBrain` (faction_brain.gd) — stub for faction-level coordination (returns NONE directives)
   - `AIProfileFactory` (profile_factory.gd) — static loader with cache for SquadBrainConfig profiles
   - AI behavior is authored as .tres files in `resources/ai/strategic/` (glances, considerations, actions, profiles)
   - Mirrors the combat AI pattern: `Glance → Consideration → Config → Brain`
-  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), hunt-enemies (4), patrol-for-info (3), drill-when-idle (1)
-  - Three profiles: aggressive-hunter (combat-focused), balanced-roamer (versatile, default), cautious-survivor (economic survival)
+  - Key considerations: attack-weak-enemy (15, MUL), buy-supplies-at-town (12), forage-when-hungry (10), rest-when-exhausted (8), finish-off-enemy (8), ambush-opportunity (8), travel-to-town (8), mercenary-work (7), hunt-enemies (6), heal-at-town (6), pursue-clues (5), break-contact (5), recruit-when-depleted (5), patrol-for-info (5), drill-when-idle (1)
+  - Three profiles: aggressive-hunter (combat-focused, has hunt-enemies), balanced-roamer (versatile, default, has hunt-enemies), cautious-survivor (economic survival, no combat considerations)
+  - **Patrol→Detect→Pursue cycle**: Squads patrol to build contact awareness via ContactTracker → once SUSPECTED+ contact is reached, hunt-enemies and attack considerations activate → squads travel toward and engage detected enemies. No omniscient enemy tracking
 - **AIAct Scripted Testing** (`src/strategy/ai/ai_act.gd`): Resource for deterministic headless game testing
   - `AIAct` — Resource with `activity_type`, `destination_id`, `target_squad_id`, `description` + assertion fields (`expect_location`, `expect_min_food`, `expect_max_food`, `expect_min_morale`, `expect_event_fired`, `expect_events_fired: Array[String]`, `expect_min_warriors`)
   - `AIAct.create(type, desc, dest, target)` — static factory for programmatic test sequences
@@ -153,10 +157,10 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `patrol-for-info` weight reduced to 3.0 — prevents patrol from dominating other decisions
   - Force march resolves destination via next-hop pathfinding (no teleportation), moves 2 hops per turn (double speed)
 - **Shop System** (`src/strategy/core/shop/`): Data-driven shop per Location
-  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[ShopItem]`, configurable in Godot inspector
-  - `ShopItem` (item.gd) — Resource with `item_type: StrategyTypes.ItemType`, `price`, `display_name`, `description`
-  - `Location.shop: Shop` — optional exported property; `has_shop()` helper
-  - Purchase effects mapped in `ShopPresenter._apply_item_effect()`: SUPPLY → food
+  - `Shop` (shop.gd) — Resource with `shop_name` and `items: Array[Thing]`, configurable in Godot inspector
+  - `Location.shop: Shop` — optional exported property; `has_shop()` helper. Goetz scenario: 6 towns have shops (Öhringen, Heilbronn, Schwäbisch Hall, Rothenburg, Nürnberg, Bamberg) with food/cloth/tools/luxury scaled by development
+  - `Location.supply_rules: Array[SupplyRule]` — exported, configurable per-location production/import rules for economy engine
+  - Purchase effects mapped in `ShopPresenter._apply_thing_effect()`: ThingType.FOOD → food, CLOTH → money, TOOLS → travel_tools, LUXURY → morale
 
 ### Key Enums and Types
 
@@ -165,7 +169,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - Armor: `src/squad-battle/armor/_factory.gd` (ArmorClasses: Unarmored, LeatherArmor, PaddedArmor, HalfPlate)
 - Logic: `src/squad-battle/entity/logic/_factory.gd` (LogicAvailable: Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster)
 - Combat: `src/squad-battle/types.gd` (Potency, DamageType, Reality, EntityChangeable, BattleOutcome)
-- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ItemType, ContactState, EngagementType, EngagementStance)
+- Strategy: `src/strategy/types.gd` (LocationType, Religion, ActivityType [includes HEAL=13, BUY_SUPPLIES=14], WarriorAttribute, GlobalModifier, ContactState, EngagementType, EngagementStance, SquadRole [COMBAT, MERCHANT])
 - Strategic AI: `src/strategy/ai/types.gd` (GlanceSubject, SquadGlanceable [includes WEAKEST_TRACKED_ENEMY_WARRIORS, INJURED_WARRIOR_COUNT], LocationGlanceable [includes HAS_SHOP], WorldGlanceable, DestinationStrategy, TargetStrategy, DirectiveType)
 - Combat AI shared: `src/squad-battle/entity/logic/consideration/_types.gd` (CsdrTypes.OP [ADD=0, RDC=1, MUL=2, AVG=3], CsdrTypes.DETECTION [BELOW=0, ABOVE=1, EQUAL=2] — reused by strategic AI)
 - Animation: `src/animation/types.gd` (AnimTypes.Behavior — IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
@@ -175,8 +179,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 7 unit classes with distinct combat roles:
 - **Landsknecht** — melee frontline DPS. Flammenschwert (Force→Slash+Strike), Leather Armor, Frontline logic. Front position. Cost: 100
 - **Healer** — backline support. Unarmed, Unarmored, BacklineHeal logic (move-to-back + heal). Back position. Cost: 150
-- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -8 ORG suppression on hit. Back position. Cost: 120
-- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -12 ORG suppression on hit. Back position. Cost: 200
+- **Crossbowman** — ranged DPS. Crossbow (Precision→Stab+Strike, range: Back→all, Mid→Front+Mid, Front→Front), Padded Armor, BacklineShooter logic. -4 ORG suppression on hit. Back position. Cost: 120
+- **Arquebusier** — glass cannon. Arquebus (Force→Strike+Stab, high penetration, low accuracy, range: Back→all, Mid→Front+Mid), Unarmored, BacklineGunner logic. -6 ORG suppression on hit. Back position. Cost: 200
 - **Pikeman** — defensive frontline with reach. Pike (Force→Stab+Strike, range: Front→Front+Mid, Mid→Front), Half Plate, DefensiveFrontline logic. Front position. Cost: 130
 - **Feldprediger** — enhanced support. Mace (Force→Strike, Front→Front only), Padded Armor, BacklineSupport logic (move-to-back + heal + inspire ORG boost). Back position. Cost: 180
 - **Gelehrter** — AoE backline mage. Alchemical Fire (Mana→Arcane, `is_magical=true`, range: Back→Front+Mid, Mid→Front, Front→Front), Unarmored, BacklineCaster logic (move-to-back + fireball). Fireball splash deals 50% damage to all enemies at target's position via `SkillEffectSplash`. Back position. Cost: 250

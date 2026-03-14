@@ -12,6 +12,7 @@ var satisfaction: float = 50.0
 var income_per_turn: float = 0.0
 var employer_id: String = ""
 var _fed_this_turn: bool = false
+var _comfort_this_turn: float = 0.0
 
 static var _next_id: int = 0
 
@@ -19,11 +20,27 @@ static func _generate_id() -> String:
 	_next_id += 1
 	return "person_%d" % _next_id
 
-func compute_wants(goods: Array[Thing]) -> void:
+func compute_wants(goods_list: Array[Thing]) -> void:
 	wants.clear()
-	for thing in goods:
-		if thing.thing_type == EconomyTypes.ThingType.FOOD:
-			wants[thing] = 1.0
+	for thing in goods_list:
+		match thing.thing_type:
+			EconomyTypes.ThingType.FOOD:
+				wants[thing] = 1.0
+			EconomyTypes.ThingType.CLOTH:
+				match social_class:
+					EconomyTypes.SocialClass.PEASANT: wants[thing] = 0.3
+					EconomyTypes.SocialClass.BOURGEOIS: wants[thing] = 0.5
+					EconomyTypes.SocialClass.NOBLE: wants[thing] = 1.0
+			EconomyTypes.ThingType.TOOLS:
+				match social_class:
+					EconomyTypes.SocialClass.PEASANT: wants[thing] = 0.1
+					EconomyTypes.SocialClass.BOURGEOIS: wants[thing] = 0.3
+					EconomyTypes.SocialClass.NOBLE: wants[thing] = 0.3
+			EconomyTypes.ThingType.LUXURY:
+				if social_class == EconomyTypes.SocialClass.NOBLE:
+					wants[thing] = 0.5
+				elif social_class == EconomyTypes.SocialClass.BOURGEOIS:
+					wants[thing] = 0.2
 
 func get_food_in_inventory(food_thing: Thing) -> float:
 	return inventory.get(food_thing, 0.0)

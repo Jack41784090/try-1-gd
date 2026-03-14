@@ -1,6 +1,6 @@
 class_name ShopView extends Control
 
-signal item_quantity_changed(item_type: StrategyTypes.ItemType, delta: int)
+signal thing_quantity_changed(thing_id: String, delta: int)
 signal confirm_pressed
 signal pay_pressed
 signal back_pressed
@@ -39,18 +39,18 @@ func show_shop(shop_name: String, money: float) -> void:
 	show_browsing()
 	await UIAnimations.show_overlay(self, overlay_panel)
 
-func display_items(items: Array[ShopItem], cart: Dictionary, money: float) -> void:
+func display_items(items: Array[Thing], cart: Dictionary, money: float) -> void:
 	_clear_items()
 	money_label.text = "Available: %.0f gold" % money
 
 	var cart_total := 0.0
-	for item in items:
-		cart_total += item.price * cart.get(item.item_type, 0)
+	for thing in items:
+		cart_total += thing.base_price * cart.get(thing.thing_id, 0)
 
-	for item in items:
-		var quantity: int = cart.get(item.item_type, 0)
-		var can_afford_more: bool = (money - cart_total) >= item.price
-		_create_item_row(item, quantity, can_afford_more)
+	for thing in items:
+		var quantity: int = cart.get(thing.thing_id, 0)
+		var can_afford_more: bool = (money - cart_total) >= thing.base_price
+		_create_item_row(thing, quantity, can_afford_more)
 
 func update_total(total: float, can_confirm: bool) -> void:
 	if total > 0:
@@ -86,7 +86,7 @@ func hide_shop() -> void:
 	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 
-func _create_item_row(item: ShopItem, quantity: int, can_afford_more: bool) -> void:
+func _create_item_row(thing: Thing, quantity: int, can_afford_more: bool) -> void:
 	var row_panel = PanelContainer.new()
 	row_panel.custom_minimum_size = Vector2(0, 90)
 
@@ -105,21 +105,21 @@ func _create_item_row(item: ShopItem, quantity: int, can_afford_more: bool) -> v
 	vbox.add_child(top_row)
 
 	var name_label = Label.new()
-	name_label.text = item.get_label()
+	name_label.text = thing.get_label()
 	name_label.add_theme_font_size_override("font_size", 18)
 	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.75))
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(name_label)
 
 	var price_label = Label.new()
-	price_label.text = "%.0f gold" % item.price
+	price_label.text = "%.0f gold" % thing.base_price
 	price_label.add_theme_font_size_override("font_size", 16)
 	price_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
 	top_row.add_child(price_label)
 
-	if item.description != "":
+	if thing.description != "":
 		var desc_label = Label.new()
-		desc_label.text = item.description
+		desc_label.text = thing.description
 		desc_label.add_theme_font_size_override("font_size", 13)
 		desc_label.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -134,7 +134,8 @@ func _create_item_row(item: ShopItem, quantity: int, can_afford_more: bool) -> v
 	minus_button.text = "-"
 	minus_button.custom_minimum_size = Vector2(40, 32)
 	minus_button.disabled = quantity <= 0
-	minus_button.pressed.connect(func(): item_quantity_changed.emit(item.item_type, -1))
+	var tid_minus := thing.thing_id
+	minus_button.pressed.connect(func(): thing_quantity_changed.emit(tid_minus, -1))
 	controls_row.add_child(minus_button)
 
 	var qty_label = Label.new()
@@ -149,12 +150,13 @@ func _create_item_row(item: ShopItem, quantity: int, can_afford_more: bool) -> v
 	plus_button.text = "+"
 	plus_button.custom_minimum_size = Vector2(40, 32)
 	plus_button.disabled = not can_afford_more
-	plus_button.pressed.connect(func(): item_quantity_changed.emit(item.item_type, 1))
+	var tid_plus := thing.thing_id
+	plus_button.pressed.connect(func(): thing_quantity_changed.emit(tid_plus, 1))
 	controls_row.add_child(plus_button)
 
 	if quantity > 0:
 		var subtotal_label = Label.new()
-		subtotal_label.text = "= %.0f gold" % (item.price * quantity)
+		subtotal_label.text = "= %.0f gold" % (thing.base_price * quantity)
 		subtotal_label.add_theme_font_size_override("font_size", 14)
 		subtotal_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.5))
 		controls_row.add_child(subtotal_label)

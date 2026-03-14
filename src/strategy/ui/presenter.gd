@@ -18,6 +18,7 @@ var ai_fleet: AIFleetManager
 var vn_view
 var stage_presenter
 var combat_controller: CombatController
+var _active_shipments: Dictionary = {}
 
 var game_scenario: GameScenario:
 	get:
@@ -170,7 +171,7 @@ func on_manage_squad_requested() -> void:
 func on_shop_requested() -> void:
 	var location = actor.current_location
 	assert(location.has_shop(), "Shop requested but location has no shop")
-	view.show_shop(location.shop, actor.player_squad)
+	view.show_shop(location.shop, actor.player_squad, location)
 
 
 func on_travel_confirmed(location_id: String) -> void:
@@ -293,6 +294,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 	var player_location_before = actor.player_squad.current_location_id
 
 	var ai_results = ai_fleet.prepare_ai_turns()
+	_tick_economy_and_spawn_caravans()
 	var turn_entries = _build_karma_sorted_entries(ai_results)
 
 	for entry in turn_entries:
@@ -493,15 +495,16 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 func _vn_play_next_recurs():
 	# Recursively plays all queued EventChains: dequeue → play → wait for completion → repeat
 	# When queue is empty, transitions back to STRATEGY mode
-	# e.g., queue=["opening_cutscene", "camp_fire"] → play "opening_cutscene" → await done → play "camp_fire" → await done → STRATEGY
-	var play_empty = view.play_next_queued_chain()
-	if play_empty:
+	# Chain playback starts AFTER the VN transition completes to prevent
+	# a race condition where chain_completed fires before we await it
+	if not view.has_queued_vn_chains():
 		await _show_pending_results()
 		await set_ui_mode(UIMode.STRATEGY)
-	else:
-		await set_ui_mode(UIMode.VISUAL_NOVEL)
-		await view.get_chain_completed_signal()
-		await _vn_play_next_recurs()
+		return
+	await set_ui_mode(UIMode.VISUAL_NOVEL)
+	view.play_next_queued_chain()
+	await view.get_chain_completed_signal()
+	await _vn_play_next_recurs()
 
 
 func _show_pending_results() -> void:
@@ -691,6 +694,80 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 	if loot.has("food"):
 		squad.food += int(loot.food)
 		Log.debug("Presenter", "Gained food: %d" % int(loot.food))
+	if loot.has("caravan_cargo"):
+		var cargo: Dictionary = loot["caravan_cargo"]
+		for thing_id in cargo:
+			var qty: float = cargo[thing_id]
+			if thing_id == "food":
+				squad.food += int(qty)
+				Log.debug("Presenter", "Looted caravan food: %d" % int(qty))
+			else:
+				squad.gain_money(qty * 2.0)
+				Log.debug("Presenter", "Looted caravan goods worth: %.0f" % (qty * 2.0))
+
+#endregion
+
+#region Economy & Caravans
+
+func _tick_economy_and_spawn_caravans() -> void:
+	var economy_engine := game_scenario.world.economy_engine
+	if economy_engine == null:
+		return
+	var turn := game_scenario.world.turn_count
+	var tick_result := economy_engine.tick(turn)
+	_reconcile_arrived_caravans(tick_result)
+	_spawn_caravans_from_dispatches(tick_result)
+
+
+func _spawn_caravans_from_dispatches(tick_result: EconomyTickResult) -> void:
+	var Bridge = load("res://src/economy/caravan_bridge.gd")
+	for dispatch in tick_result.shipment_dispatches:
+		if _active_shipments.has(dispatch.shipment_id):
+			continue
+		var squad: SquadStrategicData = Bridge.create_caravan_squad(
+			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
+		)
+		game_scenario.world.add_roaming_squad(squad)
+		ai_fleet.register_caravan(squad)
+		_active_shipments[dispatch.shipment_id] = squad.squad_id
+		Log.info("Presenter", "Spawned caravan: %s at %s → %s (%d guards)" % [
+			squad.squad_name,
+			squad.current_location_id,
+			squad.cargo_destination_id,
+			dispatch.guard_count,
+		])
+
+
+func _reconcile_arrived_caravans(_tick_result: EconomyTickResult) -> void:
+	var Bridge = load("res://src/economy/caravan_bridge.gd")
+	var to_remove: Array[String] = []
+	for squad in game_scenario.world.roaming_squads:
+		if not squad.is_caravan():
+			continue
+		if squad.has_reached_destination():
+			var dest_loc := game_scenario.world.get_location_by_id(squad.cargo_destination_id)
+			if dest_loc and dest_loc.has_economy():
+				Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
+			to_remove.append(squad.squad_id)
+			Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo_destination_id])
+
+	for squad_id in to_remove:
+		game_scenario.world.remove_roaming_squad(squad_id)
+		ai_fleet.unregister_caravan(squad_id)
+		for shipment_id in _active_shipments:
+			if _active_shipments[shipment_id] == squad_id:
+				_active_shipments.erase(shipment_id)
+				break
+
+
+func handle_caravan_defeated(caravan: SquadStrategicData, attacker: SquadStrategicData) -> Dictionary:
+	var Bridge = load("res://src/economy/caravan_bridge.gd")
+	var looted: Dictionary = Bridge.apply_loot(caravan, attacker)
+	for shipment_id in _active_shipments:
+		if _active_shipments[shipment_id] == caravan.squad_id:
+			_active_shipments.erase(shipment_id)
+			break
+	return looted
 
 #endregion
 
