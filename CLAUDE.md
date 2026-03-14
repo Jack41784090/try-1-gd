@@ -140,7 +140,12 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `VnView` (vn/view.gd) + `VnPresenter` (vn/presenter.gd) — visual novel chain playback, delegates to StagePresenter
   - `InvestigationView` (investigation/view.gd) — clue display, no presenter (below split threshold)
   - `RecruitmentView` (recruitment/view.gd) — warrior recruitment, no presenter (below split threshold)
-  - `ManageSquadView` (manage_squad/view.gd) — roster display, no presenter (below split threshold)
+  - `ManageSquadPage` (manage_squad/page.gd) + `ManageSquadPagePresenter` (manage_squad/page_presenter.gd) — full-screen squad management overlay with tabbed navbar (Tactics/Units/Formation/Recruitment). Replaces old ManageSquadView. Tabs indexed 0-3 (TACTICS/UNITS/FORMATION/RECRUITMENT)
+  - Tactics tab (manage_squad/tactics_tab.gd): tactic selection cards with active highlight, creates Tactic via `Tactic.create_from_type()`
+  - Units tab (manage_squad/units_tab.gd): warrior list using existing WarriorItem scene with dropdown menus for position/actions
+  - Formation tab (manage_squad/formation_tab.gd): drag-and-drop grid with Front/Middle/Back rows (5 slots each via FormationSlot). Drag between rows changes `warrior.location_prebattle`
+  - FormationSlot (manage_squad/formation_slot.gd): PanelContainer with Godot native drag-and-drop (swap mechanics). Visual feedback: hover/empty/filled styles, drag preview
+  - Recruitment tab (manage_squad/recruitment_tab.gd): inline class recruitment cards with cost/stats/afford check. Emits `recruit_requested` signal
   - `ShopView` (shop/view.gd) + `ShopPresenter` (shop/presenter.gd) — shop with cart system, quantity controls, confirmation flow
   - `ScoutingView` (scouting/view.gd) + `ScoutingPresenter` (scouting/presenter.gd) — scouting intelligence overlay with progressive contact revelation
   - `MissionsView` (missions/view.gd) + `MissionsPresenter` (missions/presenter.gd) — two-column missions overlay: left column lists active/completed missions, right column shows selected mission details (description, conditions, rewards). UI built programmatically. Opened via "Missions" button in bottom nav bar. `MissionsPresenter.open()` accepts `Array[Mission]` (caller collects from factions). Guarded against empty factions in presenter
