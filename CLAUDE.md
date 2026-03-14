@@ -34,18 +34,20 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 ### Three-Layer System
 
 1. **Tactical Combat** (`src/squad-battle/`) — Turn-based battle engine, View/Presenter/Model split
-   - `SquadBattle` (data.gd) — Model: battle state, round logic, headless execution
+   - `SquadBattle` (data.gd) — Model: battle state, round logic, headless execution. `retreating_team: Variant` + `order_retreat(team)` for forced retreat. `_produce_retreat_updates()` generates LOC+1/last-stand/CAPITULATE updates for retreating team. `squad_actions()` skips retreating team's attack phase
    - `SquadBattleView` (view.gd) — View: entity spawning, animations, visual rendering (Node3D)
-   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View)
+   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View). `request_retreat(team)` delegates to battle model
    - `SBGraphics` (graphics.gd) — 3D battlefield rendering, row management, attack/movement animations
    - `SquadBattleMasterFactory` (_factory.gd) — creates configured battle scene instances
    - Flow: `squad_actions() → choose_action() → action() → OneClash.execute() → Array[EntityUpdate]`
    - All state changes produce immutable `EntityUpdate`/`EntityChange` objects
    - External consumers access `battle_scene.presenter.battle_completed` signal
+   - **Multi-retreat & capitulation**: Entities with ORG≤0 retreat progressively across rounds. `is_retreating` (reset per round) gates one retreat per round; `has_last_stand` (persistent) tracks final stand. LOC<Back → LOC+1 + ORG=Guts×0.1; LOC==Back + no last stand → has_last_stand=true + ORG=Guts×0.1; LOC==Back + has last stand → CAPITULATE (entity removed alive). `run_headless()` handles capitulated entities
+   - **Forced retreat**: "Retreat" button (was "Return to Camp") triggers `order_retreat(ATTACKER)` mid-battle. Retreating team's entities flee instead of attacking; enemy side keeps attacking normally. Entities progress Front→Mid→Back→last stand→capitulate over successive rounds
 
 2. **Strategic Campaign** (`src/strategy/`) — Overworld activities, events, factions
    - `GameScenario` (core/scenario.gd) is the main orchestrator
-   - `World` (core/world.gd) holds location graph, roaming squads, turn counter, `@export goods: Array[Thing]` for economy goods registry
+   - `World` (core/world.gd) holds location graph, roaming squads, turn counter, `@export goods: Array[Thing]` for economy goods registry. `find_nearest_location(from_id)` BFS for defeated squad teleport
    - **Unified turn pipeline** (karma-sorted phase loop): All squads (player + AI) sorted by karma descending, then each phase (TURN_START → BEFORE → ACTIVITY → AFTER) executes for all squads before moving to the next phase. Combat resolved inline per-result (headless for AI, visual for player). No separate attack conflict resolution step.
    - `ActivityExecuteManager` (!main.gd) — shared execution engine with `exec_before()`, `exec_activity()`, `exec_after()` phase methods used by both `ActivityRunner` (player) and AI executors
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending — each with conditions, results, and a `TriggerableManager` registry. `TriggerableManager.triggerable_fired` signal emitted by AEM after each trigger fires and by StrategyPresenter after mission completions. `TriggerableManager.get_triggerables_triggered()` uses `can_trigger()` (respects repeat limits and chance rolls via GameEvent override). `GameEvent.result` typed as `GenericResult` (widened from deprecated `EventResult`). `EventResult` kept only for .tres backward compatibility
@@ -54,8 +56,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
    - **Travel time system**: `TownConnection.travel_time` (int, @export) is the base cost per connection hop. `Location.calculate_base_travel_time(to)` uses `connection.travel_time` as base, then applies ROAD bonuses (-1 per road endpoint) and stability penalties (+1 if either location <50 stability). `TravelGraph.calculate_travel_time(path)` sums per-hop times. Goetz scenario connections range 2-3 turns per hop. Food demand halved to compensate (SOLDIER: 0.5/turn, PEASANT: 0.25, MERCHANT/CLERGY: 0.4, NOBLE: 0.75)
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
-   - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers
-   - `CombatController` (control.gd) — stateful orchestration: intermission → combat → resolution
+   - `CombatBridge` (!main.gd) — stateless data translation between strategic and tactical layers. `apply_results()` handles CAPITULATE: marks warrior `is_injured=true` (alive but escaped), populates `result.escaped` array
+   - `CombatController` (control.gd) — stateful orchestration: combat → resolution (intermission bypassed). `CombatResult` includes `escaped_warriors: Array[String]` for capitulated entities
 
 ### Supporting Systems
 
@@ -253,7 +255,7 @@ Ranged targeting works via WeaponLocation.can_hit arrays — each weapon defines
   PYEOF
   ```
 - **Prefer `replace_string_in_file`** for targeted edits to existing files — avoids full rewrites entirely.
-- Make a github commit whenever you update the code, no matter how minor.
+- Make a github commit whenever you update the code, no matter how minor, but always make sure you only add+commit what you changed, such that your changes don't paralleledly conflict with other coding agent. 
 
 ### Typed Array Assignment (Critical Pitfall)
 
