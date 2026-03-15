@@ -70,6 +70,8 @@ func _setup_world() -> void:
 	engine.bank.print_per_turn = 4000.0
 	engine.noble_loan_threshold = 150.0
 	engine.loan_amount = 1000.0
+	var cs_ok := engine.enable_csharp()
+	print("  C# engine: %s" % ("ENABLED" if cs_ok else "DISABLED (GDScript fallback)"))
 	world.economy_engine = engine
 
 
@@ -324,6 +326,7 @@ func _run_simulation() -> void:
 		var elapsed_ms := elapsed_usec / 1000.0
 		_turn_times.append(elapsed_ms)
 
+		engine.sync_full()
 		_record_metrics(turn)
 
 		if turn == 1 or turn % LOG_INTERVAL == 0 or turn == MAX_TURNS:

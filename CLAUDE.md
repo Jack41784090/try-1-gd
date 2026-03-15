@@ -196,6 +196,16 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `EconomyTypes.MoveState` — expanded: PENDING, IN_TRANSIT, COMPLETED, CANCELLED, CAPTURED
   - **Dynamic shop pricing**: `ShopPresenter` accepts optional `Location` for economy-driven prices via `Location.inventory.prices`
   - **Scouting integration**: `ScoutingPresenter._build_card_data()` adds caravan-specific titles/cargo/destination hints at each contact state level
+  - **C# Inner Engine** (`src/economy/csharp/`): High-performance C#/.NET reimplementation of the economy hot path. ~14x faster than GDScript for 25K+ population (177ms vs 2497ms per tick). Architecture: C# inner engine + GDScript shell pattern — Resource classes (Thing, SupplyRule, LocationInventory, StockEntry) stay as GDScript for .tres compatibility; computation classes ported to C#
+    - `CsEconomyEngine` — Core tick scheduler mirroring all 18 GDScript phases. Uses flat arrays indexed by location/thing index instead of Dictionary[Resource] for cache-friendly iteration. `GetTravelTimeFunc` callback queries GDScript World for path costs
+    - `CsEconomyBridge` (Node, `[GlobalClass]`) — Godot-visible bridge between GDScript and C#. `Setup(world)` mirrors GDScript World/Location/Population/Inventory data into C# structs. `Tick(turn)` runs C# engine and returns Dictionary. `SyncInventories()` fast-path: only writes location stocks/prices back (~0.3ms). `SyncBackToGdScript()` full sync: also writes per-person money/satisfaction/class (~420ms for 25K pop, call only when GDScript reads person data)
+    - `CsPerson`, `CsPopulation` — Flat-array person model with per-good inventory as `float[]` indexed by thing index
+    - `CsEconomyMove`, `CsContract`, `CsLoan`, `CsCentralBank` — C# equivalents of GDScript counterparts
+    - `ThingDef`, `EconomyEnums` — C# type definitions mirroring GDScript EconomyTypes
+    - `CsEconomyTickResult` — Result accumulator with `LocationSnapshot`, `ShipmentDispatch` inner classes
+    - Integration: `EconomyEngine.enable_csharp()` loads `CsEconomyBridge.cs` via `load()`, returns true if C# available. `tick()` automatically delegates to C# when bridge is active. `sync_full()` triggers full person-level writeback when needed (UI display, metrics, save game)
+    - Building: `dotnet build` from project root. Requires `try1.csproj` (Godot.NET.Sdk/4.6.0, net8.0). Must run with `godot-mono` not `godot`
+    - Performance: 25K population, 8 locations, 50 turns — GDScript: 2497ms/tick, C# fast-sync: 178ms/tick (**14x speedup**)
 
 ### Key Enums and Types
 

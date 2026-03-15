@@ -41,6 +41,7 @@ func _setup_world() -> void:
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 500.0
+	engine.enable_csharp()
 	world.economy_engine = engine
 
 	Log.info("EconDemo", "World: 3 locations, %d total people" % _total_population())

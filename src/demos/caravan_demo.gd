@@ -94,6 +94,7 @@ func _setup_economy() -> void:
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 500.0
+	engine.enable_csharp()
 	world.economy_engine = engine
 
 

@@ -11,6 +11,39 @@ var loan_amount: float = 500.0
 var total_promotions: int = 0
 var _shipment_counter: int = 0
 
+var _cs_bridge: Node = null
+var _cs_initialized: bool = false
+
+func sync_full() -> void:
+	if _cs_bridge != null:
+		_cs_bridge.call("SyncBackToGdScript")
+
+func enable_csharp() -> bool:
+	if _cs_bridge != null:
+		return true
+	var script = load("res://src/economy/csharp/CsEconomyBridge.cs")
+	if script == null:
+		Log.info("Economy", "C# bridge not available, using GDScript engine")
+		return false
+	var instance = script.new()
+	if instance == null:
+		Log.info("Economy", "C# bridge instantiation failed, using GDScript engine")
+		return false
+	_cs_bridge = instance as Node
+	Log.info("Economy", "C# economy engine enabled")
+	return true
+
+func _setup_cs_bridge() -> void:
+	if _cs_bridge == null or _cs_initialized:
+		return
+	_cs_bridge.call("Setup", world)
+	if bank != null:
+		_cs_bridge.call("SetupBank", bank.loan_interest_rate, bank.print_per_turn, noble_loan_threshold, loan_amount)
+	_cs_initialized = true
+	Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [
+		world.get_economy_locations().size(), world.goods.size(),
+	])
+
 func get_travel_time(from_id: String, to_id: String) -> int:
 	assert(world != null)
 	var t := world.calculate_travel_time(from_id, to_id)
@@ -40,6 +73,10 @@ func _calculate_guard_count(move: EconomyMove) -> int:
 
 
 func tick(turn: int) -> EconomyTickResult:
+	if _cs_bridge != null:
+		_setup_cs_bridge()
+		return _tick_csharp(turn)
+
 	var result := EconomyTickResult.new()
 	result.turn = turn
 
@@ -499,3 +536,72 @@ func _phase_social_mobility() -> void:
 			Log.info("Economy", "%s rises to BOURGEOIS at %s (money=%.0f sat=%.0f)" % [
 				p.person_name, loc.location_name, p.money, p.satisfaction,
 			])
+
+
+func _tick_csharp(turn: int) -> EconomyTickResult:
+	var cs_dict: Dictionary = _cs_bridge.call("Tick", turn)
+	_cs_bridge.call("SyncInventories")
+
+	var result := EconomyTickResult.new()
+	result.turn = cs_dict.get("turn", turn)
+
+	var snapshots: Array = cs_dict.get("location_snapshots", [])
+	for snap_dict: Dictionary in snapshots:
+		var snap := EconomyTickResult.LocationSnapshot.new()
+		snap.location_id = snap_dict.get("location_id", "")
+		snap.location_name = snap_dict.get("location_name", "")
+		snap.population_count = snap_dict.get("population_count", 0)
+		snap.avg_satisfaction = snap_dict.get("avg_satisfaction", 0.0)
+		snap.avg_money = snap_dict.get("avg_money", 0.0)
+		var stocks_raw: Dictionary = snap_dict.get("stocks", {})
+		for thing_id: String in stocks_raw:
+			var thing := _find_thing_by_id(thing_id)
+			if thing:
+				snap.stocks[thing] = stocks_raw[thing_id]
+		var prices_raw: Dictionary = snap_dict.get("prices", {})
+		for thing_id: String in prices_raw:
+			var thing := _find_thing_by_id(thing_id)
+			if thing:
+				snap.prices[thing] = prices_raw[thing_id]
+		result.location_snapshots.append(snap)
+
+	var dispatches_raw: Array = cs_dict.get("shipment_dispatches", [])
+	for d_dict: Dictionary in dispatches_raw:
+		var move_dict: Dictionary = d_dict.get("move", {})
+		var move := _move_from_dict(move_dict)
+		active_moves.append(move)
+		result.moves_created.append(move)
+		_shipment_counter += 1
+		var dispatch := EconomyTickResult.ShipmentDispatch.create(
+			d_dict.get("shipment_id", "shipment_%d" % _shipment_counter),
+			move,
+			d_dict.get("guard_count", 2),
+		)
+		result.shipment_dispatches.append(dispatch)
+
+	var moves_completed_raw: Array = cs_dict.get("moves_completed", [])
+	for m_dict: Dictionary in moves_completed_raw:
+		result.moves_completed.append(_move_from_dict(m_dict))
+
+	total_promotions = _cs_bridge.call("GetTotalPromotions")
+	return result
+
+
+func _find_thing_by_id(thing_id: String) -> Thing:
+	for thing in world.goods:
+		if thing.thing_id == thing_id:
+			return thing
+	return null
+
+
+func _move_from_dict(d: Dictionary) -> EconomyMove:
+	var thing := _find_thing_by_id(d.get("thing_id", ""))
+	assert(thing != null, "Unknown thing_id in C# result: %s" % d.get("thing_id", ""))
+	return EconomyMove.create(
+		thing,
+		d.get("quantity", 0.0),
+		d.get("source_location_id", ""),
+		d.get("dest_location_id", ""),
+		d.get("turns_remaining", 1),
+		d.get("origin", ""),
+	)
