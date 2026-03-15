@@ -39,7 +39,7 @@ func show_shop(shop_name: String, money: float) -> void:
 	show_browsing()
 	await UIAnimations.show_overlay(self, overlay_panel)
 
-func display_items(items: Array[Thing], cart: Dictionary, money: float) -> void:
+func display_items(items: Array[Thing], cart: Dictionary, money: float, stock_info: Dictionary = {}) -> void:
 	_clear_items()
 	money_label.text = "Available: %.0f gold" % money
 
@@ -49,8 +49,9 @@ func display_items(items: Array[Thing], cart: Dictionary, money: float) -> void:
 
 	for thing in items:
 		var quantity: int = cart.get(thing.thing_id, 0)
-		var can_afford_more: bool = (money - cart_total) >= thing.base_price
-		_create_item_row(thing, quantity, can_afford_more)
+		var remaining_stock: int = stock_info.get(thing.thing_id, 999)
+		var can_afford_more: bool = (money - cart_total) >= thing.base_price and remaining_stock > 0
+		_create_item_row(thing, quantity, can_afford_more, remaining_stock)
 
 func update_total(total: float, can_confirm: bool) -> void:
 	if total > 0:
@@ -86,7 +87,7 @@ func hide_shop() -> void:
 	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 
-func _create_item_row(thing: Thing, quantity: int, can_afford_more: bool) -> void:
+func _create_item_row(thing: Thing, quantity: int, can_afford_more: bool, remaining_stock: int = 999) -> void:
 	var row_panel = PanelContainer.new()
 	row_panel.custom_minimum_size = Vector2(0, 90)
 
@@ -116,6 +117,17 @@ func _create_item_row(thing: Thing, quantity: int, can_afford_more: bool) -> voi
 	price_label.add_theme_font_size_override("font_size", 16)
 	price_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
 	top_row.add_child(price_label)
+
+	if remaining_stock < 999:
+		var stock_label = Label.new()
+		if remaining_stock + quantity <= 0:
+			stock_label.text = "Out of Stock"
+			stock_label.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3))
+		else:
+			stock_label.text = "Stock: %d" % (remaining_stock + quantity)
+			stock_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6))
+		stock_label.add_theme_font_size_override("font_size", 14)
+		top_row.add_child(stock_label)
 
 	if thing.description != "":
 		var desc_label = Label.new()

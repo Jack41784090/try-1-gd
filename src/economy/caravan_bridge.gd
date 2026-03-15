@@ -40,6 +40,8 @@ static func _create_caravan_guard(squad_id: String, index: int) -> CharacterSoci
 		EntityBaseStats.new(),
 	)
 	guard.morale = 60.0
+	guard.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, 15)
+	guard.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, 5)
 	return guard
 
 

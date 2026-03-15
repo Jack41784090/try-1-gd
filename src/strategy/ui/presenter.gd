@@ -434,6 +434,9 @@ func _update_contacts(activity: Activity, player_location_before: String, ai_res
 	var player_location_after = player.current_location_id
 	if player_location_before != player_location_after:
 		edge_log[player.squad_id] = { "from": player_location_before, "to": player_location_after }
+	elif actor.walking_towards and actor.walking_towards is Dictionary and actor.walking_towards.get("location") != null:
+		var dest_loc: Location = actor.walking_towards["location"]
+		edge_log[player.squad_id] = { "from": player_location_after, "to": dest_loc.location_id }
 
 	ai_fleet.fill_activity_log(activity_log, edge_log)
 
@@ -959,14 +962,32 @@ func _update_activity_buttons() -> void:
 
 	var enemies_here = game_scenario.world.get_squads_at_location(location.location_id)
 	var attack_tooltip: String
-	if not enemies_here.is_empty():
-		attack_tooltip = "Attack %s" % [enemies_here]
-	else:
+	var attack_disabled := true
+	if enemies_here.is_empty():
 		attack_tooltip = "No enemies at this location"
+	else:
+		var tracker = game_scenario.world.contact_tracker
+		var player_id = actor.player_squad.squad_id
+		var attackable: Array[SquadStrategicData] = []
+		var tooltip_lines: Array[String] = []
+		for enemy in enemies_here:
+			var contact = tracker.get_contact(player_id, enemy.squad_id)
+			var state = contact.get_state() if contact else StrategyTypes.ContactState.NONE
+			var state_name = StrategyTypes.ContactState.keys()[state]
+			if state >= StrategyTypes.ContactState.LOCKED:
+				attackable.append(enemy)
+				tooltip_lines.append("%s [%s]" % [enemy.squad_name, state_name])
+			else:
+				tooltip_lines.append("Unknown presence [%s]" % state_name)
+		if attackable.is_empty():
+			attack_tooltip = "Enemies detected but contact not LOCKED.\nPatrol or investigate to improve awareness.\n\n" + "\n".join(tooltip_lines)
+		else:
+			attack_disabled = false
+			attack_tooltip = "Engage enemy forces:\n" + "\n".join(tooltip_lines)
 	view.update_activity_button(
 		view.attack_button,
 		"Attack",
-		enemies_here.is_empty(),
+		attack_disabled,
 		attack_tooltip,
 	)
 

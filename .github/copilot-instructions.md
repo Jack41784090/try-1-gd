@@ -162,11 +162,11 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 - **Contact & Spotting System** (`src/strategy/core/contact/`): HOI4-inspired gradual awareness between squads
   - `Contact` (contact.gd) — RefCounted, tracks one squad's awareness of another (0-100 progress → NONE/SUSPECTED/TRACKED/LOCKED)
   - `ContactTracker` (tracker.gd) — RefCounted, central manager on `World.contact_tracker`. Update loop, proximity detection, engagement checks, tracking capacity
-  - Spotting formula: `BASE_SPOTTING_RATE * proximity * (eff_scouting / (eff_scouting + eff_stealth)) * size_factor`
+  - Spotting formula: `BASE_SPOTTING_RATE * proximity * (eff_scouting / (eff_scouting + eff_stealth)) * size_factor`. MERCHANT squads get 0.3x stealth modifier (caravans are openly visible)
   - Proximity levels: SAME_LOCATION (1.0), SAME_EDGE (0.7), ADJACENT (0.3), none (0.0 → decay)
   - Activity modifiers: PATROL boosts scouting (1.5x), REST boosts stealth (1.3x), ATTACK reduces stealth (0.4x)
   - Tracking capacity per squad: `1 + floor(avg_perception / 30)`, PATROL adds +1 slot
-  - ATTACK activity gated on SUSPECTED+ contact (1+ progress) for same-location enemies (both AI fleet_manager and activity script.gd use SUSPECTED threshold)
+  - ATTACK activity gated on LOCKED contact (100+ progress) for same-location enemies (both AI fleet_manager, activity script.gd, AND UI presenter use LOCKED threshold). UI Attack button disabled when no enemy has LOCKED contact; tooltip shows per-enemy contact state. Backend target selection prefers the enemy with highest contact progress (minimum LOCKED), not just first in list
   - Engagement types: AMBUSH (attacker LOCKED, defender unaware), SET_PIECE (both LOCKED), MEETING (both TRACKED)
   - `SquadStrategicData.engagement_stance`: ALWAYS_ENGAGE or ENGAGE_WHEN_CONFIRMED
   - `CombatController` accepts engagement_type: AMBUSH disables flee/negotiate for defender
@@ -182,6 +182,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `Location.inventory: LocationInventory` — optional exported property with initial stock entries. Goetz scenario: all 7 locations have initial inventories scaled by development (Hornberg Castle: food/cloth/tools; cities like Nürnberg: food/cloth/tools/luxury with high amounts)
   - `Location.supply_rules: Array[SupplyRule]` — exported, configurable per-location production/import rules for economy engine
   - Purchase effects mapped in `ShopPresenter._apply_thing_effect()`: ThingType.FOOD → food, CLOTH → money, TOOLS → travel_tools, LUXURY → morale
+  - **Stock-aware purchasing**: `ShopPresenter._get_available_stock()` checks `LocationInventory` stock. Items with 0 stock shown as "Out of Stock" (red). Quantity capped by available stock. Locations without economy allow unlimited purchases
 - **Economy System** (`src/economy/`): Odoo-inspired supply chain simulation with per-location populations, production, trade, and social mobility
   - `EconomyTypes` (types.gd) — All enums: SocialClass (PEASANT, BOURGEOIS, NOBLE), JobType (FARMER, MERCHANT, LANDLORD, CRAFTSMAN, LABORER, SERVANT, TAX_COLLECTOR, UNEMPLOYED), MoveState (PENDING, IN_TRANSIT, COMPLETED, CANCELLED), RuleAction (EXTRACT, PRODUCE, IMPORT), ThingType (FOOD, CLOTH, TOOLS, LUXURY, MONEY)
   - `Thing` (thing.gd) — Resource: unified goods definition with `thing_id`, `thing_name`, `thing_type: EconomyTypes.ThingType`, `base_price`, `description`. Static `create()` factory. `get_label()` returns `thing_name` or capitalized type. Used by Shop, CaravanBridge, and economy engine

@@ -95,6 +95,9 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 			var eff_scouting = observer.get_aggregate_scouting() * _get_scouting_mod(observer_activity) * location_vis
 			var eff_stealth = enemy.get_aggregate_stealth() * _get_stealth_mod(enemy_activity)
 
+			if enemy.squad_role == StrategyTypes.SquadRole.MERCHANT:
+				eff_stealth *= 0.3
+
 			var size_factor = 1.0 + 0.15 * log(1.0 + enemy.get_living_warriors().size())
 			var divisor = eff_scouting + eff_stealth
 			var ratio = eff_scouting / divisor if divisor > 0.0 else 0.5
@@ -182,11 +185,14 @@ func classify_engagement(attacker_id: String, defender_id: String) -> StrategyTy
 	var state_atk = contact_atk.get_state() if contact_atk else StrategyTypes.ContactState.NONE
 	var state_def = contact_def.get_state() if contact_def else StrategyTypes.ContactState.NONE
 
-	if state_atk == StrategyTypes.ContactState.LOCKED and state_def in [StrategyTypes.ContactState.NONE, StrategyTypes.ContactState.SUSPECTED]:
+	Log.debug("Contact", "Engagement classification: attacker=%s defender=%s" % [
+		StrategyTypes.ContactState.keys()[state_atk],
+		StrategyTypes.ContactState.keys()[state_def]])
+
+	# Only LOCKED attackers can initiate — classify by defender awareness
+	if state_def <= StrategyTypes.ContactState.SUSPECTED:
 		return StrategyTypes.EngagementType.AMBUSH
-	elif state_atk == StrategyTypes.ContactState.LOCKED and state_def == StrategyTypes.ContactState.LOCKED:
-		return StrategyTypes.EngagementType.SET_PIECE
-	elif state_atk in [StrategyTypes.ContactState.TRACKED, StrategyTypes.ContactState.LOCKED]:
+	if state_def == StrategyTypes.ContactState.TRACKED:
 		return StrategyTypes.EngagementType.MEETING
 	return StrategyTypes.EngagementType.SET_PIECE
 
@@ -208,7 +214,7 @@ func _determine_proximity(observer: SquadStrategicData, target: SquadStrategicDa
 		if obs_from == tgt_to and obs_to == tgt_from:
 			return SAME_EDGE_PROXIMITY
 		if obs_from == tgt_from and obs_to == tgt_to:
-			return ADJACENT_PROXIMITY
+			return SAME_EDGE_PROXIMITY
 
 	if obs_edge:
 		if target.current_location_id == obs_edge["from"] or target.current_location_id == obs_edge["to"]:

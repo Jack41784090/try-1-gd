@@ -105,6 +105,8 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 			activity_result = _execute_buy_supplies(context)
 		StrategyTypes.ActivityType.MERCENARY_WORK:
 			activity_result = _execute_mercenary_work(context)
+		StrategyTypes.ActivityType.PATROL:
+			activity_result = _execute_patrol(context)
 		_:
 			# Generic activities (REST, DRILL, PATROL, etc.) just return the template result as-is
 			pass
@@ -153,7 +155,7 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
 		return result
 
-	# 3. Pick target — prefer the brain's chosen target if available
+	# 3. Pick target — prefer brain's chosen target, then best-contacted enemy
 	var target_enemy: SquadStrategicData = null
 	var chosen_id = context.get("attack_target", "")
 	if not chosen_id.is_empty():
@@ -161,21 +163,23 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 			if e.squad_id == chosen_id:
 				target_enemy = e
 				break
-	if target_enemy == null:
-		target_enemy = enemies_here[0]
 
-	# 4. Check contact state — need at least SUSPECTED to attack
-	# e.g., contact.get_state() = NONE → attack blocked (can't attack what you haven't detected)
-	# e.g., contact.get_state() = TRACKED → attack allowed
+	if target_enemy == null:
+		var best_progress: float = -1.0
+		for e in enemies_here:
+			var c = tracker.get_contact(squad.squad_id, e.squad_id)
+			if c and c.progress > best_progress:
+				best_progress = c.progress
+				target_enemy = e
+		if target_enemy == null:
+			target_enemy = enemies_here[0]
+
+	# 4. Check contact state — need LOCKED to attack
 	var contact = tracker.get_contact(squad.squad_id, target_enemy.squad_id)
-	if not contact or contact.get_state() < StrategyTypes.ContactState.SUSPECTED:
+	if not contact or contact.get_state() < StrategyTypes.ContactState.LOCKED:
 		var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
-		print(
-			"[Activity] ATTACK blocked — contact on %s is only %s (need SUSPECTED+)" % [
-				target_enemy.squad_name,
-				state_name,
-			],
-		)
+		Log.info("Activity", "ATTACK blocked — contact on %s is only %s (need LOCKED)" % [
+			target_enemy.squad_name, state_name])
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -3.0)
 		return result
 
@@ -187,7 +191,9 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 	# 6. Classify engagement type (AMBUSH if we have LOCKED contact but they don't know us, else SET_PIECE/MEETING)
 	result.engagement_type = tracker.classify_engagement(squad.squad_id, target_enemy.squad_id)
 
-	print("[Activity] ATTACK engagement classified as %s" % StrategyTypes.EngagementType.keys()[result.engagement_type])
+	Log.info("Activity", "ATTACK engagement: %s vs %s [%s]" % [
+		squad.squad_name, target_enemy.squad_name,
+		StrategyTypes.EngagementType.keys()[result.engagement_type]])
 	return result
 
 
@@ -399,6 +405,24 @@ func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
 				squad.food,
 			],
 		)
+
+	return result
+
+
+func _execute_patrol(context: Dictionary) -> ActivityResult:
+	var squad = context.get("squad") as SquadStrategicData
+	var world = context.get("world") as World
+	var tracker = world.contact_tracker
+
+	var contacts_for = tracker.get_contacts_for(squad.squad_id)
+	var detected_count := 0
+	for c in contacts_for:
+		if c.get_state() >= StrategyTypes.ContactState.SUSPECTED:
+			detected_count += 1
+
+	result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, 2.0)
+
+	Log.info("Activity", "PATROL: detected %d contacts, morale +2" % detected_count)
 
 	return result
 

@@ -35,6 +35,8 @@ func _on_thing_quantity_changed(thing_id: String, delta: int) -> void:
 		var thing := _find_thing(thing_id)
 		assert(thing != null)
 		var max_qty = _get_max_affordable(thing)
+		var stock_limit := _get_available_stock(thing)
+		max_qty = mini(max_qty, stock_limit)
 		new_qty = min(new_qty, max_qty)
 
 	if new_qty == 0:
@@ -89,7 +91,10 @@ func _on_closed() -> void:
 	shop_closed.emit()
 
 func _refresh_display() -> void:
-	view.display_items(current_shop.items, cart, squad.money)
+	var stock_info: Dictionary = {}
+	for thing in current_shop.items:
+		stock_info[thing.thing_id] = _get_available_stock(thing)
+	view.display_items(current_shop.items, cart, squad.money, stock_info)
 	var total := _calculate_total()
 	var can_confirm := total > 0 and squad.money >= total
 	view.update_total(total, can_confirm)
@@ -156,3 +161,12 @@ func _find_thing(thing_id: String) -> Thing:
 		if thing.thing_id == thing_id:
 			return thing
 	return null
+
+
+func _get_available_stock(thing: Thing) -> int:
+	if _location == null or not _location.has_economy():
+		return 999
+	var inv := _location.inventory
+	var in_cart: int = cart.get(thing.thing_id, 0)
+	var available := inv.get_available(thing)
+	return maxi(int(available) - in_cart, 0)
