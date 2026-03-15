@@ -269,6 +269,7 @@ Ranged targeting works via WeaponLocation.can_hit arrays — each weapon defines
 - **Don't export RefCounted types** — only Resources, Nodes, built-ins, or enums.
 - **Don't use `class_name` for inner classes** — causes namespace pollution.
 - **Don't add comments in `.tscn` files** — Godot scene format doesn't support them.
+- **`Resource.duplicate(true)` does NOT deep-copy external `.tres` sub-resources** — only inline sub-resources are duplicated. When duplicating an Activity or similar Resource that has an `@export var result: Resource` loaded from a separate `.tres` file, the duplicate shares the SAME result reference. Always explicitly duplicate external sub-resources: `activity.result = activity.result.duplicate(true)` after `activity = activity.duplicate(true)`.
 
 ### Terminal / File Operations
 

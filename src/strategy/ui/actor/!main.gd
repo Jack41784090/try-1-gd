@@ -72,7 +72,7 @@ func _apply_stats_changes_result(_scr: GenericResult):
 func _apply_location_change_result(_lcr: GenericResult):
 	assert(_lcr is GenericResult)
 	assert(_lcr.location_changed != null)
-	Log.debug("AEM", "Location changed to: %s" % _lcr.location_changed)
+	Log.debug("AEM", "[%s] Location changed to: %s (from %s)" % [player_squad.squad_name, _lcr.location_changed, player_squad.current_location_id])
 
 	var current_location = world.get_location_by_id(player_squad.current_location_id)
 	previous_location = current_location

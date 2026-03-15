@@ -182,12 +182,15 @@ func create_travel_activity(location_id: String) -> Activity:
 	if walking_towards_location == null: # if we are not already travelling
 		walking_towards = location_id # set to { "location": confirmed_location_id, "progress": 0 } by setters
 		activity.result.location_changed = "" # no location change yet, just starting journey
+		Log.debug("Runner", "New journey to %s from %s (progress=0)" % [location_id, current_location.location_id if current_location else "null"])
 	elif location_id == walking_towards_location.location_id:
 		Log.debug("Runner", "Continuing down the path towards intended location")
 		(current_location as Location).type = StrategyTypes.LocationType.ROAD # temporarily set current location to road to allow travel between towns
 		walking_towards = location_id # Assigning the same location will increment progres by 1, refer to setter
-		if travel_progress >= get_distance(current_location, walking_towards_location):
-			Log.debug("Runner", "Arrived at destination")
+		var dist = get_distance(current_location, walking_towards_location)
+		Log.debug("Runner", "Travel progress: %d / %d (from %s to %s)" % [travel_progress, dist, current_location.location_id, walking_towards_location.location_id])
+		if travel_progress >= dist:
+			Log.debug("Runner", "Arrived at destination: %s" % location_id)
 			current_location = walking_towards_location
 			walking_towards = null
 			activity.result.location_changed = location_id # signal arrival to _execute_travel

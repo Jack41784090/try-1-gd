@@ -73,6 +73,7 @@ func prepare_ai_turns() -> Dictionary:
 		match activity_type:
 			StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH:
 				activity = activity.duplicate(true)
+				activity.result = activity.result.duplicate(true)
 				var destination = context.get("travel_destination", "")
 				if not destination.is_empty():
 					activity.destination_id = destination
