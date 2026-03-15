@@ -1,11 +1,11 @@
 class_name MarketPresenter
 extends Node
 
-var view: MarketView
+var view: Control
 
 
 func _ready() -> void:
-	view = get_parent() as MarketView
+	view = get_parent() as Control
 
 
 func refresh(world: World, location: Location, visited_location_ids: Array[String]) -> void:

@@ -4,7 +4,7 @@ extends Control
 signal closed
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
-@onready var presenter: MarketPresenter = $MarketPresenter
+@onready var presenter: Node = $MarketPresenter
 
 var _title_label: Label
 var _content_vbox: VBoxContainer
@@ -118,7 +118,7 @@ func hide_market() -> void:
 
 
 func display_market(location: Location, goods_cards: Array[Dictionary], production: Array[String], pop_data: Dictionary, rumors: Array[String]) -> void:
-	var type_str := StrategyTypes.LocationType.keys()[location.type].capitalize()
+	var type_str: String = str(StrategyTypes.LocationType.keys()[location.type]).capitalize()
 	_title_label.text = "Market Board — %s (%s)" % [location.location_name, type_str]
 
 	_display_goods(goods_cards)
