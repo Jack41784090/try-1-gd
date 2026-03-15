@@ -65,6 +65,18 @@ func zoom_to(zoom_level: float, duration: float) -> void:
 	_active_tween.tween_property(self, "zoom", Vector2(zoom_level, zoom_level), duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 
 
+func pan_to_world_at_screen_fraction(world_pos: Vector2, screen_fraction: float, duration: float) -> void:
+	var vp_size = get_viewport_rect().size
+	var screen_target_x = vp_size.x * clampf(screen_fraction, 0.0, 1.0)
+	var screen_center_x = vp_size.x * 0.5
+	var offset_x = (screen_center_x - screen_target_x) / zoom.x
+	var target = Vector2(world_pos.x + offset_x, world_pos.y)
+	_include_targets.clear()
+	kill_tween()
+	_active_tween = create_tween()
+	_active_tween.tween_property(self, "global_position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+
+
 func set_include_targets(ids: Array[String], rig_lookup: Callable, duration: float = 0.4) -> void:
 	kill_tween()
 	_include_targets = ids.duplicate()

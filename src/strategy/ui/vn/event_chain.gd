@@ -17,6 +17,12 @@ class_name EventChain
 		timeline = value
 		resolve_after_ids()
 
+enum TransitionType { NONE, FADE_FROM_BLACK, QUICK, CUT_TO_BLACK, CROSSFADE }
+var transition_type: TransitionType = TransitionType.QUICK
+
+## Root group for group-based playback. Null when using legacy flat timeline.
+var root_group: CinematicGroup = null
+
 
 func _init(config: Dictionary = { }) -> void:
 	# Constructs an EventChain from a config dict (from .tres @export or JSON parse)
@@ -47,26 +53,29 @@ func _init(config: Dictionary = { }) -> void:
 			if entry is StagePosition:
 				setting.append(entry)
 			elif entry is Dictionary:
-				setting.append(
-					StagePosition.new(
-						entry.get("character_id", ""),
-						Vector2(entry.get("x", 0.0), entry.get("y", 0.0)),
-						entry.get("face_direction", 1),
-					),
-				)
+				setting.append(StagePosition.from_dict(entry))
 
-	var raw_timeline = config.get("timeline", [])
-	if raw_timeline is Array:
+	var raw_timeline = config.get("timeline", null)
+	if raw_timeline is Dictionary and raw_timeline.get("type", "") == "group":
+		root_group = CinematicGroup.from_dict(raw_timeline)
+	elif raw_timeline is Array:
 		for entry in raw_timeline:
 			if entry is CinematicInstruction:
 				timeline.append(entry)
 			elif entry is Dictionary:
-				var inst = _parse_instruction(entry)
+				var inst = CinematicGroup.parse_instruction(entry)
 				if inst:
 					timeline.append(inst)
 
+	var trans_str: String = config.get("transition_type", "")
+	if not trans_str.is_empty():
+		transition_type = _parse_transition_type(trans_str)
+
 	if character_ids.is_empty():
 		_extract_character_ids()
+
+	if root_group:
+		_extract_character_ids_from_group(root_group)
 
 	resolve_after_ids()
 
@@ -128,6 +137,35 @@ func _extract_character_ids() -> void:
 			character_ids.append(key)
 
 
+func _extract_character_ids_from_group(group: CinematicGroup) -> void:
+	var char_set: Dictionary = {}
+	for cid in character_ids:
+		char_set[cid] = true
+	_collect_group_characters(group, char_set)
+	character_ids.clear()
+	for key in char_set.keys():
+		if key is String:
+			character_ids.append(key)
+
+
+func _collect_group_characters(group: CinematicGroup, char_set: Dictionary) -> void:
+	for child in group.children:
+		if child is CinematicGroup:
+			_collect_group_characters(child, char_set)
+		elif child is DialogueInstruction:
+			if not child.speaker_name.is_empty() and child.speaker_name != "narrator":
+				char_set[child.speaker_name] = true
+		elif child is CharacterInstruction:
+			if not child.character_id.is_empty():
+				char_set[child.character_id] = true
+		elif child is CameraInstruction:
+			if not child.target_character_id.is_empty():
+				char_set[child.target_character_id] = true
+			for cid in child.include_character_ids:
+				if not cid.is_empty():
+					char_set[cid] = true
+
+
 func set_character_ids(ids: Array[String]) -> void:
 	character_ids.clear()
 	character_ids.append_array(ids)
@@ -161,23 +199,7 @@ func get_dialogue_count() -> int:
 
 
 static func _parse_instruction(data: Dictionary) -> CinematicInstruction:
-	# Factory method: creates the correct CinematicInstruction subclass from a raw dict
-	# Dispatches on "type" key: "dialogue" → DialogueInstruction, "camera" → CameraInstruction,
-	# "character" → CharacterInstruction, "gate" → GateInstruction
-	# e.g., {type:"dialogue", speaker_name:"Hans", line:"Hi", time:0} → DialogueInstruction.new({...})
-	var type_str: String = data.get("type", "dialogue")
-	match type_str:
-		"dialogue":
-			return DialogueInstruction.new(data)
-		"camera":
-			return CameraInstruction.new(data)
-		"character":
-			return CharacterInstruction.new(data)
-		"gate":
-			return GateInstruction.new(data)
-		_:
-			push_error("Unknown instruction type: %s" % type_str)
-			return null
+	return CinematicGroup.parse_instruction(data)
 
 
 static func load_from_json_file(file_path: String) -> EventChain:
@@ -208,6 +230,24 @@ static func load_from_json_file(file_path: String) -> EventChain:
 		return null
 
 	return EventChain.new(data)
+
+
+func has_root_group() -> bool:
+	return root_group != null
+
+
+static func _parse_transition_type(s: String) -> TransitionType:
+	match s.to_upper():
+		"NONE":
+			return TransitionType.NONE
+		"FADE_FROM_BLACK":
+			return TransitionType.FADE_FROM_BLACK
+		"CUT_TO_BLACK":
+			return TransitionType.CUT_TO_BLACK
+		"CROSSFADE":
+			return TransitionType.CROSSFADE
+		_:
+			return TransitionType.QUICK
 
 
 static func load_from_json_string(json_string: String) -> EventChain:

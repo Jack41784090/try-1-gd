@@ -31,6 +31,10 @@ func queue_event_chain(chain_path: String) -> void:
 func play_next_queued_chain() -> bool:
 	return presenter.play_next_queued_chain()
 
+
+func peek_next_transition_type() -> EventChain.TransitionType:
+	return presenter.peek_next_transition_type()
+
 #region Display Methods
 
 func display_dialogue(data: Dictionary, progress_text: String) -> void:

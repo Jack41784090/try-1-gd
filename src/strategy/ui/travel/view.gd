@@ -132,8 +132,8 @@ func _create_location_button(location: Location, distance: int, mode: TravelPres
 	locations_container.add_child(button)
 
 func _format_location_text(location: Location, distance: int, mode: TravelPresenter.TravelMode) -> String:
-	var type_str = _location_type_to_string(location.type)
-	var icon = _location_type_to_icon(location.type)
+	var type_str: String = _location_type_to_string(location.type)
+	var icon: String = _location_type_to_icon(location.type)
 
 	if mode == TravelPresenter.TravelMode.AUTOPILOT:
 		var distance_str = ""

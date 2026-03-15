@@ -22,6 +22,10 @@ class_name CinematicInstruction
 ## Additional delay in seconds after the referenced instruction ends.
 @export var after_offset: float = 0.0
 
+## Fraction of parent group's duration this child occupies (parallel mode).
+## -1 = unset. -2 = FILL (takes remaining time).
+var occupation: float = -1.0
+
 
 func _init(config: Dictionary = { }) -> void:
 	if config.is_empty():
@@ -31,6 +35,7 @@ func _init(config: Dictionary = { }) -> void:
 	duration = config.get("duration", 0.0)
 	after_id = config.get("after_id", "")
 	after_offset = config.get("after_offset", 0.0)
+	occupation = config.get("occupation", -1.0)
 
 
 func has_after_dependency() -> bool:

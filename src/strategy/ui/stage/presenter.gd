@@ -68,12 +68,13 @@ func prepare_for_dialogue(character_ids: Array[String]) -> void:
 
 
 func apply_setting(positions: Array[StagePosition]) -> void:
-	# Places characters at their initial positions from an EventChain's setting array
-	# Called before timeline starts to establish the scene layout
-	# e.g., positions=[StagePosition("Hans", Vector2(100,50), face=1), StagePosition("Fritz", Vector2(300,50), face=-1)]
-	#   → Hans placed at (100,50) facing right, Fritz at (300,50) facing left
 	for pos in positions:
-		place_character(pos.character_id, pos.position, pos.face_direction)
+		var resolved_pos = pos.position
+		if pos.anchor != CharacterInstruction.StageAnchor.NONE:
+			resolved_pos = view.resolve_anchor(pos.anchor) + pos.anchor_offset
+		place_character(pos.character_id, resolved_pos, pos.face_direction)
+		if not pos.visible_on_start:
+			hide_character(pos.character_id)
 
 
 func place_character(character_id: String, target_position: Vector2, face_dir: int = 1) -> void:
@@ -163,6 +164,27 @@ func set_character_behavior(character_id: String, behavior: AnimTypes.Behavior) 
 	if not rig:
 		return
 	rig.play_behavior(behavior)
+
+
+func show_character(character_id: String) -> void:
+	var rig = view.get_rig(character_id)
+	if not rig:
+		return
+	rig.visible = true
+
+
+func hide_character(character_id: String) -> void:
+	var rig = view.get_rig(character_id)
+	if not rig:
+		return
+	rig.visible = false
+
+
+func pan_to_character_at_screen_position(character_id: String, screen_fraction: float, duration: float) -> void:
+	var rig = view.get_rig(character_id)
+	if not rig:
+		return
+	view.stage_camera.pan_to_world_at_screen_fraction(rig.global_position, screen_fraction, duration)
 
 #endregion
 

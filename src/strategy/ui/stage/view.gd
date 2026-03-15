@@ -190,3 +190,28 @@ func reset_camera(duration: float) -> void:
 	stage_camera.reset_to_wide(duration)
 
 #endregion
+
+#region Anchor Resolution
+
+func resolve_anchor(anchor: CharacterInstruction.StageAnchor) -> Vector2:
+	var width = _get_stage_width()
+	var half_w = width * 0.5
+	match anchor:
+		CharacterInstruction.StageAnchor.OFFSCREEN_LEFT:
+			return Vector2(-half_w - 100.0, MARCH_Y_BASE)
+		CharacterInstruction.StageAnchor.OFFSCREEN_RIGHT:
+			return Vector2(half_w + 100.0, MARCH_Y_BASE)
+		CharacterInstruction.StageAnchor.OFFSCREEN_TOP:
+			return Vector2(0.0, -200.0)
+		CharacterInstruction.StageAnchor.OFFSCREEN_BOTTOM:
+			return Vector2(0.0, 300.0)
+		CharacterInstruction.StageAnchor.CENTER:
+			return Vector2(0.0, MARCH_Y_BASE)
+		CharacterInstruction.StageAnchor.LEFT_QUARTER:
+			return Vector2(-half_w * 0.5, MARCH_Y_BASE)
+		CharacterInstruction.StageAnchor.RIGHT_QUARTER:
+			return Vector2(half_w * 0.5, MARCH_Y_BASE)
+		_:
+			return Vector2(0.0, MARCH_Y_BASE)
+
+#endregion

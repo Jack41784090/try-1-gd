@@ -1,14 +1,14 @@
 class_name VnPresenter
 extends Node
-## Timeline-driven VN playback engine.
-## Reads EventChain timelines, dispatches CinematicInstructions to the Stage,
-## manages player interaction gates and speed control via TimelinePlayback.
+## Group-driven VN playback engine.
+## Reads EventChain timelines/groups, dispatches CinematicInstructions to the Stage,
+## manages player interaction gates and speed control via GroupPlayback.
 ##
 ## Roles:
 ##   VnPresenter = the director (reads timelines, issues commands)
 ##   StagePresenter = the theater (executes visual commands, knows nothing about timelines)
 
-var _DEBUG: bool = false  # If true, skips timeline playback for easier debugging of timelines and stage presentation
+var _DEBUG: bool = true  # If true, skips timeline playback for easier debugging of timelines and stage presentation
 
 var view: VnView
 var stage_presenter: StagePresenter
@@ -18,7 +18,7 @@ var is_playing_chain: bool = false
 var current_chain: EventChain
 var character_ids_in_chain: Array[String] = []
 
-var _playback: TimelinePlayback = TimelinePlayback.new()
+var _playback: GroupPlayback = GroupPlayback.new()
 var _debug_chain_pending: bool = false
 
 
@@ -54,7 +54,11 @@ func play_next_queued_chain() -> bool:
 
 	is_playing_chain = true
 	var path: String = event_chain_queue.pop_front()
-	var chain = load(path)
+	var chain: EventChain
+	if path.ends_with(".json"):
+		chain = EventChain.load_from_json_file(path)
+	else:
+		chain = load(path)
 	assert(chain != null, "EventChain resource failed to load: %s" % path)
 
 	if _DEBUG:
@@ -80,6 +84,20 @@ func play_next_queued_chain() -> bool:
 
 func has_chain() -> bool:
 	return current_chain != null
+
+
+func peek_next_transition_type() -> EventChain.TransitionType:
+	if event_chain_queue.is_empty():
+		return EventChain.TransitionType.QUICK
+	var path: String = event_chain_queue[0]
+	var chain: EventChain
+	if path.ends_with(".json"):
+		chain = EventChain.load_from_json_file(path)
+	else:
+		chain = load(path)
+	if chain:
+		return chain.transition_type
+	return EventChain.TransitionType.QUICK
 
 #endregion
 
@@ -109,7 +127,7 @@ func load_chain(chain: EventChain) -> bool:
 	if not chain:
 		push_error("Cannot load null EventChain")
 		return false
-	if chain.timeline.is_empty():
+	if chain.timeline.is_empty() and not chain.has_root_group():
 		push_warning("EventChain '%s' has empty timeline, completing immediately" % chain.chain_id)
 		current_chain = null
 		view.chain_completed.emit()
@@ -118,7 +136,7 @@ func load_chain(chain: EventChain) -> bool:
 	current_chain = chain
 	character_ids_in_chain = chain.get_all_character_ids()
 	_playback.reset()
-	print("[VnPresenter] Loaded chain '%s' with %d instructions" % [chain.chain_id, chain.timeline.size()])
+	print("[VnPresenter] Loaded chain '%s'" % chain.chain_id)
 
 	if stage_presenter:
 		_ensure_npc_rigs()
@@ -126,11 +144,14 @@ func load_chain(chain: EventChain) -> bool:
 		if not chain.setting.is_empty():
 			stage_presenter.apply_setting(chain.setting)
 
-	var typed_timeline: Array[CinematicInstruction] = []
-	for inst in chain.timeline:
-		if inst is CinematicInstruction:
-			typed_timeline.append(inst)
-	_playback.load_timeline(typed_timeline)
+	if chain.has_root_group():
+		_playback.load_group(chain.root_group)
+	else:
+		var typed_timeline: Array[CinematicInstruction] = []
+		for inst in chain.timeline:
+			if inst is CinematicInstruction:
+				typed_timeline.append(inst)
+		_playback.load_timeline(typed_timeline)
 	return true
 
 #endregion
@@ -181,7 +202,7 @@ func _execute_dialogue(inst: DialogueInstruction) -> void:
 
 	if has_stage_rig:
 		if not inst.expression_override.is_empty():
-			var anim = TimelinePlayback.BEHAVIOR_MAP.get(inst.expression_override.to_lower())
+			var anim = GroupPlayback.BEHAVIOR_MAP.get(inst.expression_override.to_lower())
 			if anim != null:
 				stage_presenter.set_character_behavior(speaker_id, anim)
 
@@ -217,6 +238,10 @@ func _execute_camera(inst: CameraInstruction) -> void:
 		Log.info("VnPresenter", "Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
 		stage_presenter.move_camera(inst.move_offset, maxf(inst.duration, 0.01))
 
+	if inst.target_screen_position >= 0.0 and not inst.target_character_id.is_empty():
+		Log.info("VnPresenter", "Camera → pan to %s at screen %.1f" % [inst.target_character_id, inst.target_screen_position])
+		stage_presenter.pan_to_character_at_screen_position(inst.target_character_id, inst.target_screen_position, maxf(inst.duration, 0.4))
+
 func _execute_character(inst: CharacterInstruction) -> void:
 	# Dispatches character movement/behavior commands to the stage presenter
 	# e.g., MOVE("Hans", target=Vector2(400,50), duration=0.8) → Hans walks to new position over 0.8s
@@ -234,13 +259,19 @@ func _execute_character(inst: CharacterInstruction) -> void:
 			stage_presenter.set_character_facing(inst.character_id, inst.face_direction)
 		CharacterInstruction.Action.BEHAVIOR:
 			print("[VnPresenter] Character %s → behavior '%s'" % [inst.character_id, inst.behavior])
-			var anim = TimelinePlayback.BEHAVIOR_MAP.get(inst.behavior.to_lower())
+			var anim = GroupPlayback.BEHAVIOR_MAP.get(inst.behavior.to_lower())
 			if anim != null:
 				stage_presenter.set_character_behavior(inst.character_id, anim)
 		CharacterInstruction.Action.SPAWN:
 			print("[VnPresenter] Character %s → spawn at %s" % [inst.character_id, str(inst.target_position)])
 			stage_presenter.spawn_npc_rig(inst.character_id)
 			stage_presenter.place_character(inst.character_id, inst.target_position, inst.face_direction)
+		CharacterInstruction.Action.SHOW:
+			print("[VnPresenter] Character %s → show" % inst.character_id)
+			stage_presenter.show_character(inst.character_id)
+		CharacterInstruction.Action.HIDE:
+			print("[VnPresenter] Character %s → hide" % inst.character_id)
+			stage_presenter.hide_character(inst.character_id)
 
 #endregion
 
@@ -281,21 +312,9 @@ func _reset() -> void:
 func _ensure_npc_rigs() -> void:
 	var chain = current_chain
 	var stage_view = stage_presenter.view
-	if chain.setting:
-		for pos in chain.setting:
-			if not stage_view.rigs.has(pos.character_id):
-				stage_view.presenter.spawn_npc_rig(pos.character_id)
-				print("[Demo] Spawned NPC rig for: %s" % pos.character_id)
-
-	for inst in chain.timeline:
-		if inst is DialogueInstruction:
-			var id = _resolve_speaker_id(inst.speaker_name)
-			if not id.is_empty() and not stage_view.rigs.has(id):
-				stage_view.presenter.spawn_npc_rig(id)
-				print("[Demo] Spawned NPC rig for: %s" % id)
-		elif inst is CharacterInstruction:
-			if not inst.character_id.is_empty() and not stage_view.rigs.has(inst.character_id):
-				stage_view.presenter.spawn_npc_rig(inst.character_id)
-				print("[Demo] Spawned NPC rig for: %s" % inst.character_id)
+	for char_id in chain.character_ids:
+		if not char_id.is_empty() and not stage_view.rigs.has(char_id):
+			stage_view.presenter.spawn_npc_rig(char_id)
+			print("[VnPresenter] Spawned NPC rig for: %s" % char_id)
 
 #endregion

@@ -28,6 +28,11 @@ enum Action {
 ## Target zoom level for ZOOM or FOCUS_CHARACTER.
 @export var zoom_level: float = 1.0
 
+## Normalized screen position (0.0=left, 1.0=right) for character-relative camera.
+## Used with target_character_id: pans until character appears at this screen fraction.
+## -1 = not set.
+var target_screen_position: float = -1.0
+
 
 func _init(config: Dictionary = { }) -> void:
 	super(config)
@@ -62,3 +67,4 @@ func _init(config: Dictionary = { }) -> void:
 		move_offset = Vector2(offset.get("x", 0.0), offset.get("y", 0.0))
 
 	zoom_level = config.get("zoom_level", 1.0)
+	target_screen_position = config.get("target_screen_position", -1.0)

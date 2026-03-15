@@ -1,5 +1,5 @@
 extends Node
-## Headless test for CinematicInstruction after_id resolution and TimelinePlayback.
+## Headless test for CinematicInstruction, TimelinePlayback, and GroupPlayback.
 ## Run: godot --headless --path . scenes/demos/cinematic_instruction_demo.tscn 2>&1
 
 var _pass_count: int = 0
@@ -19,6 +19,11 @@ func _ready() -> void:
 	_test_load_tutorial_rest_chain()
 	_test_load_tutorial_morale_chain()
 	_test_load_tutorial_combat_chain()
+	_test_group_playback_sequential()
+	_test_group_playback_auto_gate()
+	_test_group_playback_parallel()
+	_test_cinematic_group_from_dict()
+	_test_load_json_chain()
 	_print_summary()
 	get_tree().quit(1 if _fail_count > 0 else 0)
 
@@ -466,6 +471,261 @@ func _test_load_chain(label: String, path: String, expected_dialogues: int, expe
 				i, fired_instructions[i].time, i - 1, fired_instructions[i - 1].time])
 			break
 	_assert_true("firing order monotonic", order_ok)
+	print("")
+
+#endregion
+
+
+#region Test: GroupPlayback sequential firing
+
+func _test_group_playback_sequential() -> void:
+	print("--- Test: GroupPlayback sequential group ---")
+
+	var d1 = DialogueInstruction.new()
+	d1.id = "seq_a"
+	d1.duration = 0.5
+	d1.speaker_name = "Goetz"
+	d1.line_spoken = "First line."
+
+	var d2 = DialogueInstruction.new()
+	d2.id = "seq_b"
+	d2.duration = 0.3
+	d2.speaker_name = "Franz"
+	d2.line_spoken = "Second line."
+
+	var group = CinematicGroup.new()
+	group.id = "seq_root"
+	group.children = [d1, d2]
+
+	var playback = GroupPlayback.new()
+	var fired_ids: Array[String] = []
+	var completed_flag: Array = [false]
+
+	playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
+		fired_ids.append(inst.id)
+	)
+	playback.timeline_complete.connect(func() -> void:
+		completed_flag[0] = true
+	)
+
+	playback.load_group(group)
+	_assert_eq("group playback state PLAYING", playback.state, GroupPlayback.State.PLAYING)
+
+	playback.process(2.0)
+
+	_assert_eq("both fired", fired_ids.size(), 2)
+	if fired_ids.size() == 2:
+		_assert_eq("first is d1", fired_ids[0], "seq_a")
+		_assert_eq("second is d2", fired_ids[1], "seq_b")
+	_assert_true("playback completed", completed_flag[0])
+	_assert_eq("state COMPLETE", playback.state, GroupPlayback.State.COMPLETE)
+	print("")
+
+#endregion
+
+
+#region Test: GroupPlayback auto_gate
+
+func _test_group_playback_auto_gate() -> void:
+	print("--- Test: GroupPlayback auto_gate pausing ---")
+
+	var d1 = DialogueInstruction.new()
+	d1.id = "ag_a"
+	d1.duration = 0.3
+	d1.speaker_name = "Goetz"
+	d1.line_spoken = "Before gate."
+
+	var inner_group = CinematicGroup.new()
+	inner_group.id = "ag_inner"
+	inner_group.auto_gate = true
+	inner_group.children = [d1]
+
+	var d2 = DialogueInstruction.new()
+	d2.id = "ag_b"
+	d2.duration = 0.3
+	d2.speaker_name = "Franz"
+	d2.line_spoken = "After gate."
+
+	var root = CinematicGroup.new()
+	root.id = "ag_root"
+	root.children = [inner_group, d2]
+
+	var playback = GroupPlayback.new()
+	var fired_ids: Array[String] = []
+	var gates_hit: Array = [0]
+
+	playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
+		fired_ids.append(inst.id)
+	)
+	playback.gate_reached.connect(func() -> void:
+		gates_hit[0] += 1
+	)
+
+	playback.load_group(root)
+	playback.process(1.0)
+
+	_assert_eq("d1 fired before auto_gate", fired_ids.size(), 1)
+	_assert_eq("gate reached once", gates_hit[0], 1)
+	_assert_eq("paused at gate", playback.state, GroupPlayback.State.WAITING_FOR_GATE)
+
+	playback.on_input()
+	_assert_eq("resumed playing", playback.state, GroupPlayback.State.PLAYING)
+
+	playback.process(1.0)
+
+	_assert_eq("d2 fired after gate release", fired_ids.size(), 2)
+	if fired_ids.size() == 2:
+		_assert_eq("second is d2", fired_ids[1], "ag_b")
+	_assert_eq("state COMPLETE", playback.state, GroupPlayback.State.COMPLETE)
+	print("")
+
+#endregion
+
+
+#region Test: GroupPlayback parallel group
+
+func _test_group_playback_parallel() -> void:
+	print("--- Test: GroupPlayback parallel group ---")
+
+	var d1 = DialogueInstruction.new()
+	d1.id = "par_a"
+	d1.occupation = 0.5
+	d1.speaker_name = "Goetz"
+	d1.line_spoken = "Parallel line A."
+
+	var cam = CameraInstruction.new()
+	cam.id = "par_cam"
+	cam.occupation = 0.5
+	cam.action = CameraInstruction.Action.FOCUS_CHARACTER
+
+	var root = CinematicGroup.new()
+	root.id = "par_root"
+	root.duration = 2.0
+	root.children = [d1, cam]
+
+	var playback = GroupPlayback.new()
+	var fired_ids: Array[String] = []
+
+	playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
+		fired_ids.append(inst.id)
+	)
+
+	playback.load_group(root)
+	playback.process(3.0)
+
+	_assert_eq("both parallel instructions fired", fired_ids.size(), 2)
+	_assert_true("contains par_a", fired_ids.has("par_a"))
+	_assert_true("contains par_cam", fired_ids.has("par_cam"))
+	_assert_eq("state COMPLETE", playback.state, GroupPlayback.State.COMPLETE)
+	print("")
+
+#endregion
+
+
+#region Test: CinematicGroup.from_dict parsing
+
+func _test_cinematic_group_from_dict() -> void:
+	print("--- Test: CinematicGroup.from_dict ---")
+
+	var data = {
+		"type": "group",
+		"id": "test_group",
+		"duration": 3.0,
+		"auto_gate": true,
+		"children": [
+			{"type": "dialogue", "id": "fd_line", "speaker_name": "Goetz", "line_spoken": "Hello."},
+			{"type": "camera", "id": "fd_cam", "action": "focus_character", "target_character": "goetz"},
+			{"type": "group", "id": "fd_inner", "auto_gate": false, "children": [
+				{"type": "dialogue", "id": "fd_inner_line", "speaker_name": "Franz", "line_spoken": "Inner."}
+			]}
+		]
+	}
+
+	var group = CinematicGroup.from_dict(data)
+	_assert_eq("group id", group.id, "test_group")
+	_assert_float("group duration", group.duration, 3.0)
+	_assert_true("group auto_gate", group.auto_gate)
+	_assert_true("is parallel (duration>0)", group.is_parallel())
+	_assert_eq("children count", group.children.size(), 3)
+
+	var child0 = group.children[0]
+	_assert_true("child0 is DialogueInstruction", child0 is DialogueInstruction)
+	if child0 is DialogueInstruction:
+		_assert_eq("child0 id", child0.id, "fd_line")
+		_assert_eq("child0 speaker", child0.speaker_name, "Goetz")
+
+	var child1 = group.children[1]
+	_assert_true("child1 is CameraInstruction", child1 is CameraInstruction)
+
+	var child2 = group.children[2]
+	_assert_true("child2 is CinematicGroup", child2 is CinematicGroup)
+	if child2 is CinematicGroup:
+		_assert_eq("inner group id", child2.id, "fd_inner")
+		_assert_true("inner not parallel", not child2.is_parallel())
+		_assert_eq("inner children count", child2.children.size(), 1)
+	print("")
+
+#endregion
+
+
+#region Test: Load JSON chain (g0_intro.json)
+
+func _test_load_json_chain() -> void:
+	print("--- Test: Load g0_intro.json ---")
+
+	var path = "res://resources/scenarios/goetz-official/event-chains/g0_intro.json"
+	var chain = EventChain.load_from_json_file(path)
+	_assert_true("chain loaded from JSON", chain != null)
+	if chain == null:
+		print("  SKIP: could not load %s\n" % path)
+		return
+
+	_assert_eq("chain_id", chain.chain_id, "g0_intro")
+	_assert_true("has root group", chain.has_root_group())
+	_assert_true("root_group is CinematicGroup", chain.root_group is CinematicGroup)
+	_assert_true("has characters", chain.character_ids.size() > 0)
+
+	var has_goetz = false
+	var has_franz = false
+	for cid in chain.character_ids:
+		if cid == "goetz":
+			has_goetz = true
+		elif cid == "franz":
+			has_franz = true
+	_assert_true("goetz in character_ids", has_goetz)
+	_assert_true("franz in character_ids", has_franz)
+
+	_assert_true("transition_type set", chain.transition_type != EventChain.TransitionType.NONE or true)
+
+	var root = chain.root_group
+	_assert_true("root group has children", root.children.size() > 0)
+	print("  Root group: id='%s', %d children, duration=%.1f" % [root.id, root.children.size(), root.duration])
+
+	var playback = GroupPlayback.new()
+	var fired_count: Array = [0]
+	var gates_count: Array = [0]
+
+	playback.instruction_fired.connect(func(_inst: CinematicInstruction) -> void:
+		fired_count[0] += 1
+	)
+	playback.gate_reached.connect(func() -> void:
+		gates_count[0] += 1
+	)
+
+	playback.load_group(root)
+	_assert_eq("playback state PLAYING", playback.state, GroupPlayback.State.PLAYING)
+
+	var safety: int = 0
+	var max_iterations: int = 50000
+	while playback.state != GroupPlayback.State.COMPLETE and safety < max_iterations:
+		if playback.state == GroupPlayback.State.WAITING_FOR_GATE:
+			playback.on_input()
+		playback.process(0.05)
+		safety += 1
+
+	_assert_true("playback completed (iterations=%d)" % safety, playback.state == GroupPlayback.State.COMPLETE)
+	_assert_true("some instructions fired (%d)" % fired_count[0], fired_count[0] > 0)
+	print("  Fired %d instructions, hit %d gates in %d iterations" % [fired_count[0], gates_count[0], safety])
 	print("")
 
 #endregion

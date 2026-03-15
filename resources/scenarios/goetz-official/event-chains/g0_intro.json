@@ -1,0 +1,732 @@
+{
+	"chain_id": "g0_intro",
+	"chain_name": "Goetz von Tutorial — The License",
+	"transition_type": "NONE",
+	"setting": [
+		{"character_id": "franz", "anchor": "OFFSCREEN_LEFT", "face_direction": 1, "visible": false},
+		{"character_id": "goetz", "x": 0, "y": 50, "face_direction": 1},
+		{"character_id": "hilda", "anchor": "OFFSCREEN_LEFT", "face_direction": -1, "visible": false}
+	],
+	"timeline": {
+		"type": "group",
+		"id": "g0_intro_root",
+		"children": [
+			{
+				"type": "group",
+				"id": "opening_pan",
+				"duration": 4.0,
+				"auto_gate": true,
+				"children": [
+					{
+						"type": "camera",
+						"id": "cam_set",
+						"action": "zoom",
+						"move_offset": {"x": -500, "y": 0},
+						"zoom_level": 3.5,
+						"duration": 0.01
+					},
+					{
+						"type": "character",
+						"action": "behavior",
+						"character_id": "goetz",
+						"behavior": "gesturing"
+					},
+					{
+						"type": "camera",
+						"id": "cam_pan_right",
+						"action": "move",
+						"move_offset": {"x": 425, "y": 0},
+						"time": 0.25,
+						"duration": 2.0
+					},
+					{
+						"type": "dialogue",
+						"id": "goetz_phone1",
+						"speaker_name": "Goetz",
+						"line_spoken": "... ja, ja. Exactly. The Emperor is trying to make changes, but his advisors are--.",
+						"time": 2.25
+					},
+					{
+						"type": "character",
+						"action": "show",
+						"character_id": "hilda",
+						"time": 2.5
+					},
+					{
+						"type": "character",
+						"action": "move",
+						"character_id": "hilda",
+						"target_position": {"x": -330, "y": 0},
+						"time": 2.5,
+						"duration": 0.8
+					},
+					{
+						"type": "character",
+						"action": "show",
+						"character_id": "franz",
+						"time": 2.6
+					},
+					{
+						"type": "character",
+						"action": "move",
+						"character_id": "franz",
+						"target_position": {"x": -330, "y": 0},
+						"time": 2.6,
+						"duration": 0.8
+					},
+					{
+						"type": "camera",
+						"id": "cam_include_all",
+						"action": "include_characters",
+						"include_character_ids": ["goetz", "franz", "hilda"],
+						"time": 3.5,
+						"duration": 0.4
+					}
+				]
+			},
+			{
+				"type": "group",
+				"id": "phone_continues",
+				"children": [
+					{
+						"type": "group",
+						"id": "beat_phone2",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 1.8,
+								"duration": 0.4
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_phone2",
+								"speaker_name": "Goetz",
+								"line_spoken": "... nooo, not the Mongols. They couldn't do anything, this time. Also, let's not--"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_squires_enter",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["goetz", "franz", "hilda"],
+								"duration": 0.3
+							},
+							{
+								"type": "character",
+								"action": "face",
+								"character_id": "goetz",
+								"face_direction": -1
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_squires_enter",
+								"speaker_name": "narrator",
+								"line_spoken": "Two squires enter the room — Franz and Hilda. Goetz sees them and gestures for them to wait."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_phone_closing",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "character",
+								"action": "face",
+								"character_id": "goetz",
+								"face_direction": 1
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_phone_closing",
+								"speaker_name": "Goetz",
+								"line_spoken": "Ja. But let's not say too much over the Skyline. All it's left for us is to assert ourselves."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goodbye",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "character",
+								"action": "behavior",
+								"character_id": "goetz",
+								"behavior": "idle"
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_goodbye",
+								"speaker_name": "Goetz",
+								"line_spoken": "... likewise, talk to you later."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_apology",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 1.5,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_apology",
+								"speaker_name": "Franz",
+								"line_spoken": "My Lord, my deepest apologies for interrupting you but --"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_frankfurt",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["goetz", "franz", "hilda"],
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_frankfurt",
+								"speaker_name": "Goetz",
+								"line_spoken": "Yeah yeah, words from Frankfurt?"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_doubling",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "franz",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_doubling",
+								"speaker_name": "Franz",
+								"line_spoken": "They are doubling---"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_doubling_down",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.0,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_doubling_down",
+								"speaker_name": "Goetz",
+								"line_spoken": "DOUBLING DOWN???",
+								"expression_override": "angry"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_nervous_glance",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["franz", "hilda"],
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_nervous_glance",
+								"speaker_name": "narrator",
+								"line_spoken": "Franz stole a glance at Hilda, who gulped and glanced back at Franz."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_stammers",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "franz",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_stammers",
+								"speaker_name": "Franz",
+								"line_spoken": "No... my Lord, they're..."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_license_fee",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "hilda",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "hilda_license_fee",
+								"speaker_name": "Hilda",
+								"line_spoken": "They said you are expressing contempt for the Empire, doubling... doubling the license fee."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_narrator_silence",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.0,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_silence",
+								"speaker_name": "narrator",
+								"line_spoken": "Goetz fell into silence for a few seconds."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_realization",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "dialogue",
+								"id": "goetz_realization",
+								"speaker_name": "Goetz",
+								"line_spoken": "So they are doubling down."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_correction",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "franz",
+								"zoom_level": 1.5,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_correction",
+								"speaker_name": "Franz",
+								"line_spoken": "My Lord, they are doubling the license fee, not doubling do--"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_seal_mouth",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.0,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_seal_mouth",
+								"speaker_name": "Goetz",
+								"line_spoken": "Hilda, seal his mouth."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_seals",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["hilda", "franz"],
+								"duration": 0.3
+							},
+							{
+								"type": "character",
+								"action": "behavior",
+								"character_id": "hilda",
+								"behavior": "gesturing"
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_hilda_seals",
+								"speaker_name": "narrator",
+								"line_spoken": "Hilda does so with a snap of a finger."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_nuremberg",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_nuremberg",
+								"speaker_name": "Goetz",
+								"line_spoken": "What word from Nuremberg?"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_robber_knight",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "hilda",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "hilda_robber_knight",
+								"speaker_name": "Hilda",
+								"line_spoken": "They condemned your disobedience, called you an illegal Robber Knight, my good Lord."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_good_lord",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.5,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_good_lord",
+								"speaker_name": "Goetz",
+								"line_spoken": "Good Lord...",
+								"expression_override": "angry"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_bandits",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "dialogue",
+								"id": "goetz_bandits",
+								"speaker_name": "Goetz",
+								"line_spoken": "When bandits raid the city, they rely on my iron fist; yet profits fill their coffers, they condemn me, a robber knight."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_narrator_franz_hand",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["franz", "hilda"],
+								"duration": 0.4
+							},
+							{
+								"type": "character",
+								"action": "behavior",
+								"character_id": "franz",
+								"behavior": "gesturing"
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_franz_hand",
+								"speaker_name": "narrator",
+								"line_spoken": "Franz raises his hand. The seal breaks."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_compromise",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "franz",
+								"zoom_level": 1.5,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_compromise",
+								"speaker_name": "Franz",
+								"line_spoken": "Hilda didn't say Nuremberg offered you position as the head of the Honourable Guardsmen of Nuremberg. That is a good compromise!"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_hilda",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.0,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_hilda",
+								"speaker_name": "Goetz",
+								"line_spoken": "Hilda."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_seals_again",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["hilda", "franz"],
+								"duration": 0.3
+							},
+							{
+								"type": "character",
+								"action": "behavior",
+								"character_id": "hilda",
+								"behavior": "gesturing"
+							},
+							{
+								"type": "dialogue",
+								"id": "narrator_hilda_seals_again",
+								"speaker_name": "narrator",
+								"line_spoken": "Hilda does so with a snap of a finger."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_encroachment",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.2,
+								"duration": 0.4
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_encroachment",
+								"speaker_name": "Goetz",
+								"line_spoken": "How much more will they slowly encroach upon us... slowly taking a piece every day, until they have complete control over us? Do the vampires think us mindless cattles?"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_economic",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "hilda",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "hilda_economic",
+								"speaker_name": "Hilda",
+								"line_spoken": "My lord, the villagers depend on forestry. If the license fee doubles, the foresters cannot sustain their labour. Our economic independence!"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_reflect",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.0,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_reflect",
+								"speaker_name": "Goetz",
+								"line_spoken": "Economic independence, huh... seems like the only thing that matters nowadays."
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_hilda_what_do",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "hilda",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "hilda_what_do",
+								"speaker_name": "Hilda",
+								"line_spoken": "What should we do, my Lord?"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_robber_knight",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "goetz",
+								"zoom_level": 2.5,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_robber_knight",
+								"speaker_name": "Goetz",
+								"line_spoken": "If they would call me a robber knight, they will get a robber knight.",
+								"expression_override": "determined"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_franz_protest",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "focus_character",
+								"target_character_id": "franz",
+								"zoom_level": 1.8,
+								"duration": 0.3
+							},
+							{
+								"type": "dialogue",
+								"id": "franz_protest",
+								"speaker_name": "Franz",
+								"line_spoken": "Surely sir, you don't mean!"
+							}
+						]
+					},
+					{
+						"type": "group",
+						"id": "beat_goetz_gather_men",
+						"auto_gate": true,
+						"children": [
+							{
+								"type": "camera",
+								"action": "include_characters",
+								"include_character_ids": ["goetz", "franz", "hilda"],
+								"duration": 0.5
+							},
+							{
+								"type": "character",
+								"action": "behavior",
+								"character_id": "goetz",
+								"behavior": "gesturing"
+							},
+							{
+								"type": "dialogue",
+								"id": "goetz_gather_men",
+								"speaker_name": "Goetz",
+								"line_spoken": "Gather the men-at-arms. We will march into Nuremberg to remind them who they are under the protection of."
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}
