@@ -93,8 +93,164 @@ func _setup(config: Dictionary) -> void:
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
 	starting_player_squad.strategic_data.set_location(starting_location_id)
-	
+
+	_setup_economy()
+
 	# triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
+
+
+func _setup_economy() -> void:
+	if world.goods.is_empty():
+		return
+
+	var has_any_inventory := false
+	for loc in world.locations:
+		if loc.inventory != null:
+			has_any_inventory = true
+			break
+	if not has_any_inventory:
+		return
+
+	var thing_map: Dictionary = {}
+	for thing in world.goods:
+		thing_map[thing.thing_id] = thing
+
+	for loc in world.locations:
+		if loc.inventory == null:
+			continue
+		loc.population = _create_population_for(loc)
+		if loc.supply_rules.is_empty():
+			loc.supply_rules = _create_supply_rules_for(loc, thing_map)
+
+	var engine := EconomyEngine.new()
+	engine.world = world
+	engine.bank = CentralBank.new()
+	engine.bank.loan_interest_rate = 0.08
+	engine.bank.print_per_turn = 500.0
+	engine.noble_loan_threshold = 100.0
+	engine.loan_amount = 500.0
+	engine.enable_csharp()
+	world.economy_engine = engine
+	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
+
+
+func _create_population_for(loc: Location) -> Population:
+	var pop := Population.new()
+	var dev := loc.development
+	var scale := dev / 50.0
+
+	match loc.type:
+		StrategyTypes.LocationType.CITY:
+			var farmers := int(20 * scale)
+			var craftsmen := int(15 * scale)
+			var merchants := int(10 * scale)
+			var nobles := int(3 * scale)
+			var laborers := int(10 * scale)
+			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 2.0):
+				pop.add_person(p)
+			for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 10.0):
+				pop.add_person(p)
+			for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 15.0):
+				pop.add_person(p)
+			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
+				pop.add_person(p)
+			for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+				pop.add_person(p)
+
+		StrategyTypes.LocationType.TOWN:
+			var farmers := int(30 * scale)
+			var craftsmen := int(5 * scale)
+			var merchants := int(3 * scale)
+			var nobles := int(1 * scale)
+			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 1.0):
+				pop.add_person(p)
+			for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 5.0):
+				pop.add_person(p)
+			for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 8.0):
+				pop.add_person(p)
+			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 30.0):
+				pop.add_person(p)
+
+		StrategyTypes.LocationType.FORT:
+			var servants := int(5 * scale)
+			var laborers := int(3 * scale)
+			var nobles := int(2 * scale)
+			for p in Population.create_batch(servants, "%s_servant" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 0.0):
+				pop.add_person(p)
+			for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+				pop.add_person(p)
+			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 80.0):
+				pop.add_person(p)
+
+		StrategyTypes.LocationType.VILLAGE:
+			var farmers := int(20 * scale)
+			var nobles := maxi(1, int(0.5 * scale))
+			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.5):
+				pop.add_person(p)
+			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 20.0):
+				pop.add_person(p)
+
+		_:
+			for p in Population.create_batch(5, "%s_person" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+				pop.add_person(p)
+
+	return pop
+
+
+func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[SupplyRule]:
+	var rules: Array[SupplyRule] = []
+	var food: Thing = thing_map.get("food")
+	var cloth: Thing = thing_map.get("cloth")
+	var tools: Thing = thing_map.get("tools")
+	var lid := loc.location_id
+
+	match loc.type:
+		StrategyTypes.LocationType.CITY:
+			if food:
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 15.0))
+			if cloth:
+				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 8.0))
+			if tools:
+				rules.append(SupplyRule.create_craft("%s_tools" % lid, tools, 5.0))
+			if food:
+				for conn_id in _get_connected_ids(loc):
+					var neighbor := world.get_location_by_id(conn_id)
+					if neighbor and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
+						rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 20.0))
+
+		StrategyTypes.LocationType.TOWN:
+			if food:
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 20.0))
+			if cloth:
+				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 3.0))
+			for conn_id in _get_connected_ids(loc):
+				var neighbor := world.get_location_by_id(conn_id)
+				if neighbor and neighbor.type == StrategyTypes.LocationType.CITY:
+					if tools:
+						rules.append(SupplyRule.create_import("%s_tools_from_%s" % [lid, conn_id], tools, conn_id, 5.0))
+
+		StrategyTypes.LocationType.FORT:
+			for conn_id in _get_connected_ids(loc):
+				if food:
+					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 10.0))
+				if cloth:
+					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 3.0))
+
+		StrategyTypes.LocationType.VILLAGE:
+			if food:
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 15.0))
+
+	return rules
+
+
+func _get_connected_ids(loc: Location) -> Array[String]:
+	var ids: Array[String] = []
+	if loc.connections == null:
+		return ids
+	for conn in loc.connections.tt:
+		ids.append(conn.to_location_id)
+	return ids
+
 
 func _load_generic_events() -> Array[GameEvent]:
 	var events: Array[GameEvent] = []

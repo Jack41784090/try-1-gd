@@ -180,6 +180,8 @@ func execute_triggerables_at(when: StrategyTypes.TriggerWhen) -> Array[GenericRe
 
 
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
+	if _IS_AI:
+		return []
 	# Core triggerable execution engine — finds all matching GameEvents and fires them
 	# e.g., context = {squad: Wolves, world: World(turn=5), location: Salzburg, activity: REST}
 	#       when = AFTER_ACTIVITY
