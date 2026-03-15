@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 33.001
 speaker_name = "Goetz"
 line_spoken = "If they would call me a robber knight, they will get a robber knight."
 expression_override = "determined"

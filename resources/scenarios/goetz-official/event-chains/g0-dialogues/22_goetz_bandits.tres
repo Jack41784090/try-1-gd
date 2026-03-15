@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 24.0
 speaker_name = "Goetz"
 line_spoken = "When bandits raid the city, they rely on my iron fist; yet profits fill their coffers, they condemn me, a robber knight."

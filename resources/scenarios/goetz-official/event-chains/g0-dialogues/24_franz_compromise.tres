@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 26.001
 speaker_name = "Franz"
 line_spoken = "Hilda didn't say Nuremberg offered you position as the head of the Honourable Guardsmen of Nuremberg. That is a good compromise!"

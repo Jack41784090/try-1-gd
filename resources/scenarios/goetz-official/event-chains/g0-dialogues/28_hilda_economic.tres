@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 30.001
 speaker_name = "Hilda"
 line_spoken = "My lord, the villagers depend on forestry. If the license fee doubles, the foresters cannot sustain their labour. Our economic independence!"

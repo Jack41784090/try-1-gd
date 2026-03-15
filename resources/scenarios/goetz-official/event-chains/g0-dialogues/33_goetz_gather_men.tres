@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 35.002
 speaker_name = "Goetz"
 line_spoken = "Gather the men-at-arms. We will march into Nuremberg to remind them who they are under the protection of."

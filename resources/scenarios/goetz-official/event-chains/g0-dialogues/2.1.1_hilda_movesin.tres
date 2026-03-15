@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_lly7i")
-character_id = "Hilda"
+character_id = "hilda"
 target_position = Vector2(-330, 0)
 time = 2.5
 metadata/_custom_type_script = "uid://dv3iev4uomqcy"

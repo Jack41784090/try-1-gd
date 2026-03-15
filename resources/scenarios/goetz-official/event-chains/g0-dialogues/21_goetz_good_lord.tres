@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 23.001
 speaker_name = "Goetz"
 line_spoken = "Good Lord..."
 expression_override = "angry"

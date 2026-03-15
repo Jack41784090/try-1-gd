@@ -64,217 +64,252 @@ face_direction = -1
 [sub_resource type="Resource" id="c1"]
 script = ExtResource("s5")
 action = 2
-character_id = "Goetz"
+character_id = "goetz"
 behavior = "gesturing"
 
 [sub_resource type="Resource" id="c2"]
 script = ExtResource("s5")
 action = 1
-character_id = "Goetz"
+character_id = "goetz"
 face_direction = -1
+time = 6.001
 
 [sub_resource type="Resource" id="c3"]
 script = ExtResource("s5")
 action = 1
-character_id = "Goetz"
+character_id = "goetz"
+time = 7.001
 
 [sub_resource type="Resource" id="c4"]
 script = ExtResource("s5")
 action = 2
-character_id = "Goetz"
+character_id = "goetz"
 behavior = "idle"
+time = 8.0
 
 [sub_resource type="Resource" id="c5"]
 script = ExtResource("s5")
 action = 2
-character_id = "Hilda"
+character_id = "hilda"
 behavior = "gesturing"
+time = 20.001
 
 [sub_resource type="Resource" id="c6"]
 script = ExtResource("s5")
 action = 2
-character_id = "Franz"
+character_id = "franz"
 behavior = "gesturing"
+time = 25.001
 
 [sub_resource type="Resource" id="c7"]
 script = ExtResource("s5")
 action = 2
-character_id = "Hilda"
+character_id = "hilda"
 behavior = "gesturing"
+time = 28.001
 
 [sub_resource type="Resource" id="c8"]
 script = ExtResource("s5")
 action = 2
-character_id = "Goetz"
+character_id = "goetz"
 behavior = "gesturing"
+time = 35.001
 
 [sub_resource type="Resource" id="k1"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 5.0
 zoom_level = 1.8
 duration = 0.4
 
 [sub_resource type="Resource" id="k2"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Goetz", "Franz", "Hilda"])
+include_character_ids = Array[String](["goetz", "franz", "hilda"])
 duration = 0.4
+time = 6.0
 
 [sub_resource type="Resource" id="k3"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 7.0
 zoom_level = 1.8
 duration = 0.4
 
 [sub_resource type="Resource" id="k4"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 9.0
 zoom_level = 1.5
 duration = 0.4
 
 [sub_resource type="Resource" id="k5"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 10.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k6"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 11.0
 zoom_level = 1.5
 duration = 0.3
 
 [sub_resource type="Resource" id="k7"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 12.0
 zoom_level = 2.5
 duration = 0.2
 
 [sub_resource type="Resource" id="k8"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Franz", "Hilda"])
+include_character_ids = Array[String](["franz", "hilda"])
 duration = 0.4
+time = 13.0
 
 [sub_resource type="Resource" id="k9"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 14.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k10"]
 script = ExtResource("s7")
-target_character_id = "Hilda"
+target_character_id = "hilda"
+time = 15.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k11"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 16.0
 zoom_level = 2.0
 duration = 0.5
 
 [sub_resource type="Resource" id="k12"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 18.0
 zoom_level = 1.5
 duration = 0.3
 
 [sub_resource type="Resource" id="k13"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 19.0
 zoom_level = 2.0
 duration = 0.3
 
 [sub_resource type="Resource" id="k14"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Hilda", "Franz"])
+include_character_ids = Array[String](["hilda", "franz"])
 duration = 0.3
+time = 20.0
 
 [sub_resource type="Resource" id="k15"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 21.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k16"]
 script = ExtResource("s7")
-target_character_id = "Hilda"
+target_character_id = "hilda"
+time = 22.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k17"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 23.0
 zoom_level = 2.5
 duration = 0.3
 
 [sub_resource type="Resource" id="k18"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Franz", "Hilda"])
+include_character_ids = Array[String](["franz", "hilda"])
 duration = 0.4
+time = 25.0
 
 [sub_resource type="Resource" id="k19"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 26.0
 zoom_level = 1.5
 duration = 0.3
 
 [sub_resource type="Resource" id="k20"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 27.0
 zoom_level = 2.0
 duration = 0.3
 
 [sub_resource type="Resource" id="k21"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Hilda", "Franz"])
+include_character_ids = Array[String](["hilda", "franz"])
 duration = 0.3
+time = 28.0
 
 [sub_resource type="Resource" id="k22"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 29.0
 zoom_level = 2.2
 duration = 0.4
 
 [sub_resource type="Resource" id="k23"]
 script = ExtResource("s7")
-target_character_id = "Hilda"
+target_character_id = "hilda"
+time = 30.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k24"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 31.0
 zoom_level = 2.0
 duration = 0.3
 
 [sub_resource type="Resource" id="k25"]
 script = ExtResource("s7")
-target_character_id = "Hilda"
+target_character_id = "hilda"
+time = 32.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k26"]
 script = ExtResource("s7")
-target_character_id = "Goetz"
+target_character_id = "goetz"
+time = 33.0
 zoom_level = 2.5
 duration = 0.3
 
 [sub_resource type="Resource" id="k27"]
 script = ExtResource("s7")
-target_character_id = "Franz"
+target_character_id = "franz"
+time = 34.0
 zoom_level = 1.8
 duration = 0.3
 
 [sub_resource type="Resource" id="k28"]
 script = ExtResource("s7")
 action = 1
-include_character_ids = Array[String](["Goetz", "Franz", "Hilda"])
+include_character_ids = Array[String](["goetz", "franz", "hilda"])
 duration = 0.5
+time = 35.0
 
 [sub_resource type="Resource" id="g1"]
 script = ExtResource("s3")
@@ -282,96 +317,127 @@ time = 4.0
 
 [sub_resource type="Resource" id="g2"]
 script = ExtResource("s3")
+time = 5.01
 
 [sub_resource type="Resource" id="g3"]
 script = ExtResource("s3")
+time = 6.01
 
 [sub_resource type="Resource" id="g4"]
 script = ExtResource("s3")
+time = 7.01
 
 [sub_resource type="Resource" id="g5"]
 script = ExtResource("s3")
+time = 8.01
 
 [sub_resource type="Resource" id="g6"]
 script = ExtResource("s3")
+time = 9.01
 
 [sub_resource type="Resource" id="g7"]
 script = ExtResource("s3")
+time = 10.01
 
 [sub_resource type="Resource" id="g8"]
 script = ExtResource("s3")
+time = 11.01
 
 [sub_resource type="Resource" id="g9"]
 script = ExtResource("s3")
+time = 12.01
 
 [sub_resource type="Resource" id="g10"]
 script = ExtResource("s3")
+time = 13.01
 
 [sub_resource type="Resource" id="g11"]
 script = ExtResource("s3")
+time = 14.01
 
 [sub_resource type="Resource" id="g12"]
 script = ExtResource("s3")
+time = 15.01
 
 [sub_resource type="Resource" id="g13"]
 script = ExtResource("s3")
+time = 16.01
 
 [sub_resource type="Resource" id="g14"]
 script = ExtResource("s3")
+time = 17.01
 
 [sub_resource type="Resource" id="g15"]
 script = ExtResource("s3")
+time = 18.01
 
 [sub_resource type="Resource" id="g16"]
 script = ExtResource("s3")
+time = 19.01
 
 [sub_resource type="Resource" id="g17"]
 script = ExtResource("s3")
+time = 20.01
 
 [sub_resource type="Resource" id="g18"]
 script = ExtResource("s3")
+time = 21.01
 
 [sub_resource type="Resource" id="g19"]
 script = ExtResource("s3")
+time = 22.01
 
 [sub_resource type="Resource" id="g20"]
 script = ExtResource("s3")
+time = 23.01
 
 [sub_resource type="Resource" id="g21"]
 script = ExtResource("s3")
+time = 24.01
 
 [sub_resource type="Resource" id="g22"]
 script = ExtResource("s3")
+time = 25.01
 
 [sub_resource type="Resource" id="g23"]
 script = ExtResource("s3")
+time = 26.01
 
 [sub_resource type="Resource" id="g24"]
 script = ExtResource("s3")
+time = 27.01
 
 [sub_resource type="Resource" id="g25"]
 script = ExtResource("s3")
+time = 28.01
 
 [sub_resource type="Resource" id="g26"]
 script = ExtResource("s3")
+time = 29.01
 
 [sub_resource type="Resource" id="g27"]
 script = ExtResource("s3")
+time = 30.01
 
 [sub_resource type="Resource" id="g28"]
 script = ExtResource("s3")
+time = 31.01
 
 [sub_resource type="Resource" id="g29"]
 script = ExtResource("s3")
+time = 32.01
 
 [sub_resource type="Resource" id="g30"]
 script = ExtResource("s3")
+time = 33.01
 
 [sub_resource type="Resource" id="g31"]
 script = ExtResource("s3")
+time = 34.01
 
 [sub_resource type="Resource" id="g32"]
 script = ExtResource("s3")
+time = 35.01
 
 [resource]
 script = ExtResource("s1")

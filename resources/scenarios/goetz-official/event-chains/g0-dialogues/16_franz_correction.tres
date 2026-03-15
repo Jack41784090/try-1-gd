@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 18.001
 speaker_name = "Franz"
 line_spoken = "My Lord, they are doubling the license fee, not doubling do--"

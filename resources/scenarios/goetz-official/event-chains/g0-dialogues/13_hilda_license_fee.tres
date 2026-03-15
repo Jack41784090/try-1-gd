@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 15.001
 speaker_name = "Hilda"
 line_spoken = "They said you are expressing contempt for the Empire, doubling... doubling the license fee."

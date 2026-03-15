@@ -8,7 +8,7 @@ extends Node
 ##   VnPresenter = the director (reads timelines, issues commands)
 ##   StagePresenter = the theater (executes visual commands, knows nothing about timelines)
 
-var _DEBUG: bool = true  # If true, skips timeline playback for easier debugging of timelines and stage presentation
+var _DEBUG: bool = false  # If true, skips timeline playback for easier debugging of timelines and stage presentation
 
 var view: VnView
 var stage_presenter: StagePresenter
@@ -197,27 +197,25 @@ func _execute_camera(inst: CameraInstruction) -> void:
 	if not stage_presenter:
 		return
 
+	var ids: Array[String] = inst.include_character_ids.duplicate()
+	if not inst.target_character_id.is_empty() and not ids.has(inst.target_character_id):
+		ids.append(inst.target_character_id)
 
-	if not inst.include_character_ids.is_empty():
-		print("[VnPresenter] Camera → include %s" % [str(inst.include_character_ids)])
-		stage_presenter.set_camera_include(inst.include_character_ids, maxf(inst.duration, 0.4))
+	if not ids.is_empty():
+		Log.info("VnPresenter", "Camera → include %s" % [str(ids)])
+		stage_presenter.set_camera_include(ids, maxf(inst.duration, 0.4))
 
-	if inst.zoom_level != 1.0:
-		print("[VnPresenter] Camera → zoom %.1f over %.1fs" % [inst.zoom_level, inst.duration])
+	if inst.zoom_level != 1.0 and ids.is_empty():
+		Log.info("VnPresenter", "Camera → zoom %.1f over %.1fs" % [inst.zoom_level, inst.duration])
 		stage_presenter.zoom_camera(inst.zoom_level, maxf(inst.duration, 0.01))
 
 	if inst.action == CameraInstruction.Action.RESET:
-		print("[VnPresenter] Camera → reset")
+		Log.info("VnPresenter", "Camera → reset")
 		stage_presenter.return_to_wide()
 
-
-	if inst.move_offset != stage_presenter.view.stage_camera.global_position:
-		print("[VnPresenter] Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
+	if inst.move_offset != Vector2.ZERO:
+		Log.info("VnPresenter", "Camera → move %s over %.1fs" % [str(inst.move_offset), inst.duration])
 		stage_presenter.move_camera(inst.move_offset, maxf(inst.duration, 0.01))
-
-	# CameraInstruction.Action.FOCUS_CHARACTER:
-	# 	print("[VnPresenter] Camera → focus %s (zoom %.1f)" % [inst.target_character_id, inst.zoom_level])
-	# 	stage_presenter.focus_speaker(inst.target_character_id, inst.zoom_level, maxf(inst.duration, 0.4))
 
 func _execute_character(inst: CharacterInstruction) -> void:
 	# Dispatches character movement/behavior commands to the stage presenter

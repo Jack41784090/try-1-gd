@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 7.002
 speaker_name = "Goetz"
 line_spoken = "Ja. But let's not say too much over the Skyline. All it's left for us is to assert ourselves."

@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 5.001
 speaker_name = "Goetz"
 line_spoken = "... nooo, not the Mongols. They couldn't do anything, this time. Also, let's not--"

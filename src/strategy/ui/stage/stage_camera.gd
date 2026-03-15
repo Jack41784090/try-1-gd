@@ -8,12 +8,13 @@ var _include_padding: float = 100.0
 
 
 func _process(_delta: float) -> void:
-	if not _include_targets.is_empty() and _rig_lookup.is_valid():
+	if not _include_targets.is_empty() and _rig_lookup.is_valid() and not tweening():
 		_update_include_framing()
 
 
 func focus_on(target: Vector2, zoom_level: float, duration: float = 0.5) -> void:
-	# _kill_tween()
+	_include_targets.clear()
+	kill_tween()
 	_active_tween = create_tween().set_parallel(true)
 	_active_tween.tween_property(self, "global_position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	_active_tween.tween_property(self, "zoom", Vector2(zoom_level, zoom_level), duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
@@ -36,7 +37,7 @@ func focus_between(targets: Array[Vector2], padding: float, duration: float = 0.
 	var needed = (max_dist + padding) * 2.0
 	var zoom_level = clampf(min_dim / maxf(needed, 1.0), 0.5, 3.0)
 
-	# _kill_tween()
+	kill_tween()
 	_active_tween = create_tween().set_parallel(true)
 	_active_tween.tween_property(self, "global_position", center, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	_active_tween.tween_property(self, "zoom", Vector2(zoom_level, zoom_level), duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
@@ -44,26 +45,28 @@ func focus_between(targets: Array[Vector2], padding: float, duration: float = 0.
 
 func reset_to_wide(duration: float = 0.5) -> void:
 	_include_targets.clear()
-	# _kill_tween()
+	kill_tween()
 	_active_tween = create_tween().set_parallel(true)
 	_active_tween.tween_property(self, "global_position", Vector2.ZERO, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	_active_tween.tween_property(self, "zoom", Vector2.ONE, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 
 
 func move_by(offset: Vector2, duration: float) -> void:
-	# _kill_tween()
+	_include_targets.clear()
+	kill_tween()
 	var target = global_position + offset
 	_active_tween = create_tween()
 	_active_tween.tween_property(self, "global_position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 
 
 func zoom_to(zoom_level: float, duration: float) -> void:
-	# _kill_tween()
+	kill_tween()
 	_active_tween = create_tween()
 	_active_tween.tween_property(self, "zoom", Vector2(zoom_level, zoom_level), duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 
 
 func set_include_targets(ids: Array[String], rig_lookup: Callable, duration: float = 0.4) -> void:
+	kill_tween()
 	_include_targets = ids.duplicate()
 	_rig_lookup = rig_lookup
 	if not _include_targets.is_empty():

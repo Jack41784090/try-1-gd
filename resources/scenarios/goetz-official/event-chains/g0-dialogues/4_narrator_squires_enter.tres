@@ -4,4 +4,5 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 6.002
 line_spoken = "Two squires enter the room — Franz and Hilda. Goetz sees them and gestures for them to wait."

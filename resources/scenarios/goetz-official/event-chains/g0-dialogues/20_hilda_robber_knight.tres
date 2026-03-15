@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 22.001
 speaker_name = "Hilda"
 line_spoken = "They condemned your disobedience, called you an illegal Robber Knight, my good Lord."

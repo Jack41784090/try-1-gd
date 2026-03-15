@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 19.001
 speaker_name = "Goetz"
 line_spoken = "Hilda, seal his mouth."

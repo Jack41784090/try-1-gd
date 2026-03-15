@@ -70,6 +70,7 @@ func set_background(texture: Texture2D) -> void:
 
 func start_march() -> void:
 	_is_marching = true
+	stage_camera.reset_to_wide(0.3)
 	set_all_behavior(AnimTypes.Behavior.WALKING)
 
 
@@ -134,6 +135,8 @@ func dismiss_all_bubbles() -> void:
 
 
 func _update_bubble_positions() -> void:
+	var vp_size = stage_viewport.size if stage_viewport else Vector2(800, 600)
+	var margin := 8.0
 	for bubble in bubbles:
 		if not is_instance_valid(bubble):
 			continue
@@ -142,7 +145,12 @@ func _update_bubble_positions() -> void:
 			continue
 		var head_world = rig.get_head_position()
 		var screen_pos = stage_camera.get_screen_position(head_world)
-		bubble.set_screen_position(screen_pos + Vector2(0, -BUBBLE_OFFSET_Y))
+		var target = screen_pos + Vector2(0, -BUBBLE_OFFSET_Y)
+		var bw = bubble.size.x
+		var bh = bubble.size.y
+		target.x = clampf(target.x, margin + bw * 0.5, vp_size.x - margin - bw * 0.5)
+		target.y = clampf(target.y, margin + bh, vp_size.y - margin)
+		bubble.set_screen_position(target)
 
 #endregion
 

@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 29.001
 speaker_name = "Goetz"
 line_spoken = "How much more will they slowly encroach upon us... slowly taking a piece every day, until they have complete control over us? Do the vampires think us mindless cattles?"

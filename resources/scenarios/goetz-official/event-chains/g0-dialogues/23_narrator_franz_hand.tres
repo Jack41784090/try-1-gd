@@ -4,4 +4,5 @@
 
 [resource]
 script = ExtResource("1_dlg")
+time = 25.002
 line_spoken = "Franz raises his hand. The seal breaks."

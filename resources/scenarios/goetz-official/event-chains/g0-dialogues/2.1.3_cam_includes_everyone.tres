@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_8825b")
-include_character_ids = Array[String](["Goetz", "Franz", "Hilda"])
+include_character_ids = Array[String](["goetz", "franz", "hilda"])
 time = 3.5
 metadata/_custom_type_script = "uid://balbj1g85dkh8"
