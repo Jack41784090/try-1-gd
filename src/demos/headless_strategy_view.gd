@@ -19,6 +19,7 @@ var attack_button: Button
 var manage_squad_button: Button
 var recruit_button: Button
 var shop_button: Button
+var market_button: Button
 var continue_travel_button: Button
 
 var battle_viewport: SubViewport
@@ -105,6 +106,7 @@ func setup_headless():
 	manage_squad_button = Button.new()
 	recruit_button = Button.new()
 	shop_button = Button.new()
+	market_button = Button.new()
 	continue_travel_button = Button.new()
 
 	battle_viewport = SubViewport.new()
@@ -209,5 +211,7 @@ func show_manage_squad(_squad, _actor = null): pass
 func show_shop(_shop, _squad, _location = null): pass
 func show_scouting(_world, _squad): pass
 func show_missions(_factions): pass
+func show_market(_world, _location, _visited_ids): pass
+func hide_market(): pass
 
 #endregion

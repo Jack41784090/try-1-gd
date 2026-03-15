@@ -31,6 +31,7 @@ var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = { }
 var _pending_results: Array[GenericResult] = []
+var visited_locations: Array[String] = []
 
 var current_location:
 	get:
@@ -63,6 +64,8 @@ func bind_view(v) -> void:
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
+	if actor.player_squad.current_location_id not in visited_locations:
+		visited_locations.append(actor.player_squad.current_location_id)
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
 	await _check_missions()
@@ -120,12 +123,7 @@ func _setup_components() -> void:
 
 #region UI Mode State Machine
 
-func set_ui_mode(mode: UIMode) -> void:
-	# State machine that transitions between STRATEGY (activity buttons), VISUAL_NOVEL (timeline playback), and COMBAT_INTERMISSION (fight/flee/negotiate)
-	# Each mode shows/hides relevant UI panels and sets the stage to the appropriate visual mode
-	# e.g., STRATEGY → shows action buttons, stage in MARCH mode (warriors walk)
-	# e.g., VISUAL_NOVEL → hides buttons, stage in VN mode (dialogue scene), transitions via SceneManager
-	# e.g., COMBAT_INTERMISSION → hides stage, shows combat choice panel with flee/negotiate percentages
+func set_ui_mode(mode: UIMode, trans_type: EventChain.TransitionType = EventChain.TransitionType.QUICK) -> void:
 	if ui_mode == mode:
 		return
 	ui_mode = mode
@@ -140,7 +138,7 @@ func set_ui_mode(mode: UIMode) -> void:
 			view.disable_all_activity_buttons()
 			view.action_buttons.visible = false
 			stage_presenter.set_mode(StagePresenter.StageMode.VN)
-			await view.transition_to_vn()
+			await view.transition_to_vn(trans_type)
 		UIMode.COMBAT_INTERMISSION:
 			stage_presenter.set_mode(StagePresenter.StageMode.HIDDEN)
 			view.show_combat_ui()
@@ -244,6 +242,17 @@ func on_missions_closed() -> void:
 	pass
 
 
+func on_market_requested() -> void:
+	var location = actor.current_location
+	if not location.has_economy():
+		return
+	view.show_market(game_scenario.world, location, visited_locations)
+
+
+func on_market_closed() -> void:
+	pass
+
+
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
@@ -337,6 +346,8 @@ func _execute_activity_obj(activity: Activity) -> void:
 	_update_contacts(activity, player_location_before, ai_results)
 
 	await _check_missions()
+	if actor.player_squad.current_location_id not in visited_locations:
+		visited_locations.append(actor.player_squad.current_location_id)
 	actor.advance_turn()
 	is_executing_activity = false
 	_update_ui()
@@ -509,15 +520,12 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 
 
 func _vn_play_next_recurs():
-	# Recursively plays all queued EventChains: dequeue → play → wait for completion → repeat
-	# When queue is empty, transitions back to STRATEGY mode
-	# Chain playback starts AFTER the VN transition completes to prevent
-	# a race condition where chain_completed fires before we await it
 	if not view.has_queued_vn_chains():
 		await _show_pending_results()
 		await set_ui_mode(UIMode.STRATEGY)
 		return
-	await set_ui_mode(UIMode.VISUAL_NOVEL)
+	var trans_type = view.peek_next_vn_transition_type()
+	await set_ui_mode(UIMode.VISUAL_NOVEL, trans_type)
 	view.play_next_queued_chain()
 	await view.get_chain_completed_signal()
 	await _vn_play_next_recurs()
@@ -975,6 +983,14 @@ func _update_activity_buttons() -> void:
 		"Shop",
 		not has_shop,
 		"Browse the local shop" if has_shop else "No shop at this location",
+	)
+
+	var has_economy = location.has_economy()
+	view.update_activity_button(
+		view.market_button,
+		"Market",
+		not has_economy,
+		"View local market prices and economy" if has_economy else "No market at this location",
 	)
 
 

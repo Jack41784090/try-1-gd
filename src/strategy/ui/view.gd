@@ -31,11 +31,13 @@ extends Control
 @onready var shop_view: ShopView = $ShopView
 @onready var scouting_view: ScoutingView = $ScoutingView
 @onready var missions_view: MissionsView = $MissionsView
+@onready var market_view: MarketView = $MarketView
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
 @onready var scout_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ScoutButton
 @onready var missions_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/MissionsButton
+@onready var market_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/MarketButton
 
 @onready var combat_panel: PanelContainer = $CombatIntermission
 @onready var combat_enemy_label: Label = $CombatIntermission/MarginContainer/VBoxContainer/EnemyInfoLabel
@@ -86,7 +88,7 @@ func _register_button_animations() -> void:
 	if continue_travel_button:
 		UIAnimations.register_button(continue_travel_button)
 
-	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button]
+	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button, market_button]
 	for btn in nav_btns:
 		UIAnimations.register_button(btn)
 
@@ -124,6 +126,7 @@ func _connect_signals() -> void:
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
 	scout_button.pressed.connect(func(): presenter.on_scouting_requested())
 	missions_button.pressed.connect(func(): presenter.on_missions_requested())
+	market_button.pressed.connect(func(): presenter.on_market_requested())
 
 	if scouting_view:
 		scouting_view.closed.connect(func(): presenter.on_scouting_closed())
@@ -167,6 +170,9 @@ func _connect_signals() -> void:
 
 	if missions_view:
 		missions_view.presenter.missions_closed.connect(func(): presenter.on_missions_closed())
+
+	if market_view:
+		market_view.closed.connect(func(): presenter.on_market_closed())
 
 	if shop_view:
 		shop_view.presenter.purchase_completed.connect(func(purchases): presenter.on_purchase_completed(purchases))
@@ -259,11 +265,15 @@ func transition_to_strategy() -> void:
 	)
 
 
-func transition_to_vn() -> void:
-	await SceneManager.transition_quick(
-		func():
+func transition_to_vn(trans_type: EventChain.TransitionType = EventChain.TransitionType.QUICK) -> void:
+	match trans_type:
+		EventChain.TransitionType.NONE:
 			vn_view.enter()
-	)
+		_:
+			await SceneManager.transition_quick(
+				func():
+					vn_view.enter()
+			)
 
 #endregion
 
@@ -409,6 +419,10 @@ func play_next_queued_chain() -> bool:
 func get_chain_completed_signal() -> Signal:
 	return vn_view.chain_completed
 
+
+func peek_next_vn_transition_type() -> EventChain.TransitionType:
+	return vn_view.peek_next_transition_type()
+
 #endregion
 
 #region Child GUI Delegation
@@ -491,6 +505,14 @@ func show_missions(factions: Array[Faction]) -> void:
 
 func hide_missions() -> void:
 	missions_view.hide_missions()
+
+
+func show_market(world: World, location: Location, visited_ids: Array[String]) -> void:
+	market_view.show_market(world, location, visited_ids)
+
+
+func hide_market() -> void:
+	market_view.hide_market()
 
 #endregion
 
