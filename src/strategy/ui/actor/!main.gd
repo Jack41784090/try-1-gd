@@ -140,7 +140,6 @@ func _build_context(activity: Activity = null) -> Dictionary:
 		"is_location_changing": is_location_changing,
 		"turn": world.turn_count,
 		"completed_missions": completed_mission_ids,
-		"is_ai": _IS_AI,
 	}
 	if _IS_AI:
 		ctx.merge(ai_decision_context)

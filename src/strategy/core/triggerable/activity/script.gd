@@ -115,9 +115,6 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 	# 4. Process trigger_chains — chained activities that fire after this one
 	# e.g., REST might chain to a "Random Encounter" event with 30% chance
 	var all_triggered_results: Array[ActivityResult] = [activity_result]
-	var is_ai: bool = context.get("is_ai", false)
-	if is_ai:
-		return all_triggered_results
 	for chain in trigger_chains:
 		var chained_trigger = chain.another_trigger
 		var c_chance = chain.chance
