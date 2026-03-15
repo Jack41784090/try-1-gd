@@ -155,12 +155,26 @@ static func _create_world(turn_count: int, end_progression: float, locations: Ar
 	var world = World.new()
 	world.turn_count = turn_count
 	world.end_progression = end_progression
-	
+
 	for location in locations:
 		world.add_location(location)
 	world.build_travel_graph()
 	world.map_scene = load("res://scenes/ui/maps/demo_map.tscn")
 	assert(world.map_scene != null, "Demo map scene not found at res://scenes/ui/maps/demo_map.tscn")
+
+	var food := Thing.create("food", "Provisions", EconomyTypes.ThingType.FOOD, 5.0)
+	var cloth := Thing.create("cloth", "Cloth", EconomyTypes.ThingType.CLOTH, 8.0)
+	var tools := Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 12.0)
+	world.goods.append(food)
+	world.goods.append(cloth)
+	world.goods.append(tools)
+	for location in locations:
+		var inv := LocationInventory.new()
+		var food_amount := 30.0 if location.type == StrategyTypes.LocationType.CITY else 15.0
+		inv.init_thing(food, food_amount)
+		inv.init_thing(cloth, 5.0)
+		location.inventory = inv
+
 	return world
 
 static func _create_warriors() -> Array[CharacterSocialStats]:

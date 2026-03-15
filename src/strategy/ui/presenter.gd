@@ -60,7 +60,8 @@ func bind_view(v) -> void:
 	_setup_components()
 	StrategyEventBus.turn_advanced.connect(_on_turn_advanced)
 	view.update_morale_bar(actor.player_squad.get_morale())
-	game_scenario.initialize(actor.aem._build_context())
+	if not game_scenario._initialized:
+		game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
@@ -719,8 +720,7 @@ func _apply_combat_loot(loot: Dictionary) -> void:
 
 func _tick_economy_and_spawn_caravans() -> void:
 	var economy_engine := game_scenario.world.economy_engine
-	if economy_engine == null:
-		return
+	assert(economy_engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
 	var turn := game_scenario.world.turn_count
 	var tick_result := economy_engine.tick(turn)
 	_reconcile_arrived_caravans(tick_result)

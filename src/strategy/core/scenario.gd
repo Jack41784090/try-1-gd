@@ -100,16 +100,13 @@ func _setup(config: Dictionary) -> void:
 
 
 func _setup_economy() -> void:
-	if world.goods.is_empty():
-		return
-
+	assert(not world.goods.is_empty(), "World requires goods array to be populated for economy")
 	var has_any_inventory := false
 	for loc in world.locations:
 		if loc.inventory != null:
 			has_any_inventory = true
 			break
-	if not has_any_inventory:
-		return
+	assert(has_any_inventory, "World requires at least one location with an inventory for economy")
 
 	var thing_map: Dictionary = {}
 	for thing in world.goods:
