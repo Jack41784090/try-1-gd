@@ -1,0 +1,112 @@
+[gd_resource type="Resource" script_class="Location" load_steps=29 format=3]
+
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/cloth.tres" id="4_cloth"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/food.tres" id="5_food"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/luxury.tres" id="6_luxury"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/tools.tres" id="7_tools"]
+[ext_resource type="Script" path="res://src/economy/stock_entry.gd" id="8_se"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="9_inv"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="10_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="11_thing_script"]
+[ext_resource type="Script" path="res://src/economy/population_config.gd" id="12_popconfig"]
+[ext_resource type="Script" path="res://src/economy/population_group.gd" id="13_popgroup"]
+
+[sub_resource type="Resource" id="conn_nuremberg_to_rothenburg"]
+script = ExtResource("2_conn")
+from_location_id = "nuremberg"
+to_location_id = "rothenburg"
+travel_time = 3
+
+[sub_resource type="Resource" id="conn_nuremberg_to_bamberg"]
+script = ExtResource("2_conn")
+from_location_id = "nuremberg"
+to_location_id = "bamberg"
+travel_time = 2
+
+[sub_resource type="Resource" id="conns_nuremberg"]
+script = ExtResource("3_conns")
+tt = Array[ExtResource("2_conn")]([SubResource("conn_nuremberg_to_rothenburg"), SubResource("conn_nuremberg_to_bamberg")])
+
+[sub_resource type="Resource" id="se_nuremberg_food"]
+script = ExtResource("8_se")
+thing = ExtResource("5_food")
+amount = 15000.0
+
+[sub_resource type="Resource" id="se_nuremberg_cloth"]
+script = ExtResource("8_se")
+thing = ExtResource("4_cloth")
+amount = 800.0
+
+[sub_resource type="Resource" id="se_nuremberg_tools"]
+script = ExtResource("8_se")
+thing = ExtResource("7_tools")
+amount = 400.0
+
+[sub_resource type="Resource" id="se_nuremberg_luxury"]
+script = ExtResource("8_se")
+thing = ExtResource("6_luxury")
+amount = 200.0
+
+[sub_resource type="Resource" id="inv_nuremberg"]
+script = ExtResource("9_inv")
+initial_stocks = Array[ExtResource("8_se")]([SubResource("se_nuremberg_food"), SubResource("se_nuremberg_cloth"), SubResource("se_nuremberg_tools"), SubResource("se_nuremberg_luxury")])
+
+[sub_resource type="Resource" id="shop_nuremberg"]
+script = ExtResource("10_shop")
+shop_name = "Nürnberg Grand Bazaar"
+items = Array[ExtResource("11_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth"), ExtResource("7_tools"), ExtResource("6_luxury")])
+
+[sub_resource type="Resource" id="popgroup_nuremberg_0"]
+script = ExtResource("13_popgroup")
+count = 650
+social_class = 0
+job = 0
+starting_money = 2.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_1"]
+script = ExtResource("13_popgroup")
+count = 550
+social_class = 1
+job = 3
+starting_money = 10.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_2"]
+script = ExtResource("13_popgroup")
+count = 400
+social_class = 1
+job = 1
+starting_money = 15.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_3"]
+script = ExtResource("13_popgroup")
+count = 120
+social_class = 2
+job = 2
+starting_money = 50.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_4"]
+script = ExtResource("13_popgroup")
+count = 780
+social_class = 0
+job = 4
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popconfig_nuremberg"]
+script = ExtResource("12_popconfig")
+groups = Array[ExtResource("13_popgroup")]([SubResource("popgroup_nuremberg_0"), SubResource("popgroup_nuremberg_1"), SubResource("popgroup_nuremberg_2"), SubResource("popgroup_nuremberg_3"), SubResource("popgroup_nuremberg_4")])
+
+[resource]
+script = ExtResource("1_loc")
+location_id = "nuremberg"
+location_name = "Nürnberg"
+type = 0
+development = 85
+stability = 75.0
+connections = SubResource("conns_nuremberg")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 6, 10, 11, 14])
+shop = SubResource("shop_nuremberg")
+inventory = SubResource("inv_nuremberg")
+population_config = SubResource("popconfig_nuremberg")

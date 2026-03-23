@@ -40,6 +40,7 @@ func _ready():
 	_hook_triggerable_logging()
 	_retroactive_detect_game_start_events()
 	_log_squad_state("INIT")
+	_log_economy_state("INIT")
 
 	var acts := _build_test_sequence()
 	Log.info("AIActDemo", "Test sequence: %d acts" % acts.size())
@@ -136,6 +137,7 @@ func _run_acts(acts: Array[AIAct]):
 		await _execute_via_presenter(act)
 		_check_assertions(act, i + 1)
 		_log_squad_state("TURN %d" % (i + 1))
+		_log_economy_state("TURN %d" % (i + 1))
 
 		await get_tree().create_timer(0.1).timeout
 
@@ -254,6 +256,25 @@ func _log_squad_state(tag: String):
 		player_squad.food,
 		player_squad.money,
 	])
+
+
+func _log_economy_state(tag: String):
+	var world = presenter.game_scenario.world
+	if world.economy_engine == null:
+		return
+	Log.info("AIActDemo", "[%s] --- Economy State ---" % tag)
+	for loc in world.get_economy_locations():
+		var pop_count := loc.population.size() if loc.population else 0
+		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
+		var food_stock := 0.0
+		if loc.inventory:
+			for thing in loc.inventory.stocks:
+				if thing.thing_type == EconomyTypes.ThingType.FOOD:
+					food_stock = loc.inventory.stocks[thing]
+					break
+		var fed_ratio := food_stock / maxf(pop_count, 1.0)
+		Log.info("AIActDemo", "  %s: Pop=%d Sat=%.0f Food=%.0f (%.1f turns)" % [
+			loc.location_name, pop_count, avg_sat, food_stock, fed_ratio])
 
 
 func _print_summary():

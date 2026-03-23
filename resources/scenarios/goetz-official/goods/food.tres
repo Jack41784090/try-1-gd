@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Thing" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="1_thing"]
+
+[resource]
+script = ExtResource("1_thing")
+thing_id = "food"
+thing_name = "Provisions"
+thing_type = 0
+base_price = 5.0
+description = "Food and basic supplies for the road."

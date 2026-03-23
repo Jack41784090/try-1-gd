@@ -1,0 +1,106 @@
+[gd_resource type="Resource" script_class="Location" load_steps=26 format=3]
+
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/cloth.tres" id="4_cloth"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/food.tres" id="5_food"]
+[ext_resource type="Script" path="res://src/economy/stock_entry.gd" id="6_se"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="7_inv"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="8_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="9_thing_script"]
+[ext_resource type="Script" path="res://src/economy/population_config.gd" id="10_popconfig"]
+[ext_resource type="Script" path="res://src/economy/population_group.gd" id="11_popgroup"]
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_oehringen"]
+script = ExtResource("2_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "oehringen"
+travel_time = 3
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_heilbronn"]
+script = ExtResource("2_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "heilbronn"
+travel_time = 2
+
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_rothenburg"]
+script = ExtResource("2_conn")
+from_location_id = "schwaebisch_hall"
+to_location_id = "rothenburg"
+travel_time = 3
+
+[sub_resource type="Resource" id="conns_schwaebisch_hall"]
+script = ExtResource("3_conns")
+tt = Array[ExtResource("2_conn")]([SubResource("conn_schwaebisch_hall_to_oehringen"), SubResource("conn_schwaebisch_hall_to_heilbronn"), SubResource("conn_schwaebisch_hall_to_rothenburg")])
+
+[sub_resource type="Resource" id="se_schwaebisch_hall_food"]
+script = ExtResource("6_se")
+thing = ExtResource("5_food")
+amount = 3000.0
+
+[sub_resource type="Resource" id="se_schwaebisch_hall_cloth"]
+script = ExtResource("6_se")
+thing = ExtResource("4_cloth")
+amount = 300.0
+
+[sub_resource type="Resource" id="inv_schwaebisch_hall"]
+script = ExtResource("7_inv")
+initial_stocks = Array[ExtResource("6_se")]([SubResource("se_schwaebisch_hall_food"), SubResource("se_schwaebisch_hall_cloth")])
+
+[sub_resource type="Resource" id="shop_schwaebisch_hall"]
+script = ExtResource("8_shop")
+shop_name = "Schwäbisch Hall Traders"
+items = Array[ExtResource("9_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth")])
+
+[sub_resource type="Resource" id="popgroup_schwaebisch_hall_0"]
+script = ExtResource("11_popgroup")
+count = 480
+social_class = 0
+job = 0
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popgroup_schwaebisch_hall_1"]
+script = ExtResource("11_popgroup")
+count = 120
+social_class = 1
+job = 3
+starting_money = 5.0
+
+[sub_resource type="Resource" id="popgroup_schwaebisch_hall_2"]
+script = ExtResource("11_popgroup")
+count = 80
+social_class = 1
+job = 1
+starting_money = 8.0
+
+[sub_resource type="Resource" id="popgroup_schwaebisch_hall_3"]
+script = ExtResource("11_popgroup")
+count = 40
+social_class = 2
+job = 2
+starting_money = 30.0
+
+[sub_resource type="Resource" id="popgroup_schwaebisch_hall_4"]
+script = ExtResource("11_popgroup")
+count = 80
+social_class = 0
+job = 4
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popconfig_schwaebisch_hall"]
+script = ExtResource("10_popconfig")
+groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_schwaebisch_hall_0"), SubResource("popgroup_schwaebisch_hall_1"), SubResource("popgroup_schwaebisch_hall_2"), SubResource("popgroup_schwaebisch_hall_3"), SubResource("popgroup_schwaebisch_hall_4")])
+
+[resource]
+script = ExtResource("1_loc")
+location_id = "schwaebisch_hall"
+location_name = "Schwäbisch Hall"
+type = 1
+development = 55
+stability = 90.0
+connections = SubResource("conns_schwaebisch_hall")
+available_activity_types = Array[int]([0, 2, 3, 4, 7, 10, 14])
+shop = SubResource("shop_schwaebisch_hall")
+inventory = SubResource("inv_schwaebisch_hall")
+population_config = SubResource("popconfig_schwaebisch_hall")

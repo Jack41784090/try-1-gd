@@ -115,7 +115,10 @@ func _setup_economy() -> void:
 	for loc in world.locations:
 		if loc.inventory == null:
 			continue
-		loc.population = _create_population_for(loc)
+		if loc.population_config != null:
+			loc.population = loc.population_config.build_population(loc.location_id)
+		else:
+			loc.population = _create_population_for(loc)
 		if loc.supply_rules.is_empty():
 			loc.supply_rules = _create_supply_rules_for(loc, thing_map)
 
@@ -199,43 +202,58 @@ func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[Sup
 	var food: Thing = thing_map.get("food")
 	var cloth: Thing = thing_map.get("cloth")
 	var tools: Thing = thing_map.get("tools")
+	var luxury: Thing = thing_map.get("luxury")
 	var lid := loc.location_id
+	var pop_count: int = loc.population.size() if loc.population else 50
+	var ps := maxf(1.0, float(pop_count) / 50.0)
 
 	match loc.type:
 		StrategyTypes.LocationType.CITY:
 			if food:
-				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 15.0))
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 30.0 * ps))
 			if cloth:
-				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 8.0))
+				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 12.0 * ps))
 			if tools:
-				rules.append(SupplyRule.create_craft("%s_tools" % lid, tools, 5.0))
-			if food:
-				for conn_id in _get_connected_ids(loc):
-					var neighbor := world.get_location_by_id(conn_id)
-					if neighbor and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
-						rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 20.0))
+				rules.append(SupplyRule.create_craft("%s_tools" % lid, tools, 8.0 * ps))
+			for conn_id in _get_connected_ids(loc):
+				var neighbor := world.get_location_by_id(conn_id)
+				if neighbor == null:
+					continue
+				if food and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
+					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 10.0 * ps))
+				if food and neighbor.type == StrategyTypes.LocationType.CITY:
+					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 8.0 * ps))
+				if cloth and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
+					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 5.0 * ps))
+				if luxury and neighbor.type == StrategyTypes.LocationType.CITY:
+					rules.append(SupplyRule.create_import("%s_luxury_from_%s" % [lid, conn_id], luxury, conn_id, 3.0 * ps))
 
 		StrategyTypes.LocationType.TOWN:
 			if food:
-				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 20.0))
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 60.0 * ps))
 			if cloth:
-				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 3.0))
+				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 5.0 * ps))
 			for conn_id in _get_connected_ids(loc):
 				var neighbor := world.get_location_by_id(conn_id)
-				if neighbor and neighbor.type == StrategyTypes.LocationType.CITY:
-					if tools:
-						rules.append(SupplyRule.create_import("%s_tools_from_%s" % [lid, conn_id], tools, conn_id, 5.0))
+				if neighbor == null:
+					continue
+				if tools and neighbor.type == StrategyTypes.LocationType.CITY:
+					rules.append(SupplyRule.create_import("%s_tools_from_%s" % [lid, conn_id], tools, conn_id, 5.0 * ps))
+				if cloth and neighbor.type == StrategyTypes.LocationType.CITY:
+					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 3.0 * ps))
 
 		StrategyTypes.LocationType.FORT:
 			for conn_id in _get_connected_ids(loc):
 				if food:
-					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 10.0))
+					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 10.0 * ps))
 				if cloth:
-					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 3.0))
+					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 3.0 * ps))
+				if tools:
+					rules.append(SupplyRule.create_import("%s_tools_from_%s" % [lid, conn_id], tools, conn_id, 3.0 * ps))
 
 		StrategyTypes.LocationType.VILLAGE:
 			if food:
-				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 15.0))
+				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 40.0 * ps))
 
 	return rules
 
