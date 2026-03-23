@@ -132,7 +132,10 @@ func set_ui_mode(mode: UIMode, trans_type: EventChain.TransitionType = EventChai
 			view.hide_combat_panel()
 			stage_presenter.set_mode(StagePresenter.StageMode.MARCH)
 			await view.transition_to_strategy()
-			_update_activity_buttons()
+			if is_executing_activity:
+				view.disable_all_activity_buttons()
+			else:
+				_update_activity_buttons()
 		UIMode.VISUAL_NOVEL:
 			view.hide_combat_panel()
 			view.disable_all_activity_buttons()
