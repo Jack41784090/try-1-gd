@@ -1,11 +1,21 @@
 class_name ScoutingPresenter extends Node
 
 var view: ScoutingView
+var _world: World
+var _player_squad: SquadStrategicData
 
 func _ready() -> void:
 	view = get_parent() as ScoutingView
 
 func refresh(world: World, player_squad: SquadStrategicData) -> void:
+	_world = world
+	_player_squad = player_squad
+
+	if not player_squad.scouting_focus:
+		player_squad.scouting_focus = ScoutingFocus.new()
+
+	view.update_focus_ui(player_squad.scouting_focus, player_squad.get_coordination())
+
 	var tracker = world.contact_tracker
 	var our_contacts = tracker.get_contacts_for(player_squad.squad_id)
 	var contacts_on_us = tracker.get_contacts_on(player_squad.squad_id)
@@ -49,12 +59,17 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 
 func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
 	var state = contact.get_state()
+	var focus = _player_squad.scouting_focus if _player_squad else null
+	var focus_mult = 1.0
+	if _world and _player_squad and focus:
+		focus_mult = _world.contact_tracker.calculate_focus_multiplier(_player_squad, target_squad, focus)
 	var data := {
 		"state": state,
 		"progress": contact.progress,
 		"target_id": contact.target_id,
 		"being_tracked": contact.being_tracked,
 		"is_caravan": target_squad.is_caravan(),
+		"focus_multiplier": focus_mult,
 	}
 	match state:
 		StrategyTypes.ContactState.SUSPECTED:
@@ -122,3 +137,47 @@ func _find_squad(squad_id: String, world: World) -> SquadStrategicData:
 		if squad.squad_id == squad_id:
 			return squad
 	return null
+
+
+func on_role_toggled(role: StrategyTypes.SquadRole) -> void:
+	if not _player_squad:
+		return
+	_player_squad.scouting_focus.toggle_role(role)
+	_refresh_after_focus_change()
+
+
+func on_class_toggled(cls: EntityClasses.Types) -> void:
+	if not _player_squad:
+		return
+	_player_squad.scouting_focus.toggle_class(cls)
+	_refresh_after_focus_change()
+
+
+func on_preset_aggressive() -> void:
+	if not _player_squad:
+		return
+	_player_squad.scouting_focus.set_preset_aggressive()
+	_refresh_after_focus_change()
+
+
+func on_preset_support() -> void:
+	if not _player_squad:
+		return
+	_player_squad.scouting_focus.set_preset_support()
+	_refresh_after_focus_change()
+
+
+func on_clear_focus() -> void:
+	if not _player_squad:
+		return
+	_player_squad.scouting_focus.clear()
+	_refresh_after_focus_change()
+
+
+func _refresh_after_focus_change() -> void:
+	if not _world or not _player_squad:
+		return
+	view.update_focus_ui(_player_squad.scouting_focus, _player_squad.get_coordination())
+	var tracker = _world.contact_tracker
+	var our_contacts = tracker.get_contacts_for(_player_squad.squad_id)
+	_display_contact_cards(our_contacts, _world)

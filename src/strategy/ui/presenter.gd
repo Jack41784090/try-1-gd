@@ -295,6 +295,10 @@ func on_retreat_requested() -> void:
 
 
 func _get_active_battle_presenter():
+	for child in view.combat_overlay.get_children():
+		var bp = child.get_node_or_null("SquadBattlePresenter")
+		if bp:
+			return bp
 	for child in view.battle_viewport.get_children():
 		var bp = child.get_node_or_null("SquadBattlePresenter")
 		if bp:
@@ -447,7 +451,11 @@ func _update_contacts(activity: Activity, player_location_before: String, ai_res
 	for sq in world.roaming_squads:
 		all_squads.append(sq)
 
-	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count)
+	var focus_map: Dictionary = {}
+	if player.scouting_focus and not player.scouting_focus.is_empty():
+		focus_map[player.squad_id] = player.scouting_focus
+
+	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count, focus_map)
 
 	var location = world.get_location_by_id(player.current_location_id)
 	if location:

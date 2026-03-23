@@ -33,6 +33,8 @@ const DECAY_RATE: float = 10.0
 const SAME_LOCATION_PROXIMITY: float = 1.0
 const ADJACENT_PROXIMITY: float = 0.3
 const SAME_EDGE_PROXIMITY: float = 0.7
+const FOCUS_BOOST: float = 1.0
+const FOCUS_PENALTY: float = 0.6
 
 func _make_key(observer_id: String, target_id: String) -> String:
 	return "%s::%s" % [observer_id, target_id]
@@ -63,7 +65,7 @@ func get_contacts_on(squad_id: String) -> Array:
 			result.append(c)
 	return result
 
-func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_turn: int) -> void:
+func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_turn: int, focus_map: Dictionary = {}) -> void:
 	for i in range(all_squads.size()):
 		var observer: SquadStrategicData = all_squads[i]
 		var observer_activity: StrategyTypes.ActivityType = activity_log.get(observer.squad_id, StrategyTypes.ActivityType.REST)
@@ -73,8 +75,9 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 			if i != j:
 				enemies.append(all_squads[j])
 
+		var focus = focus_map.get(observer.squad_id)
 		var capacity = _get_tracking_capacity(observer, observer_activity)
-		var tracked_targets = _select_tracked_targets(observer, enemies, world, edge_log, capacity)
+		var tracked_targets = _select_tracked_targets(observer, enemies, world, edge_log, capacity, focus)
 
 		for enemy in enemies:
 			var contact = get_or_create_contact(observer.squad_id, enemy.squad_id)
@@ -103,9 +106,26 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 			var ratio = eff_scouting / divisor if divisor > 0.0 else 0.5
 
 			var rate = BASE_SPOTTING_RATE * proximity * ratio * size_factor
+
+			if focus and not focus.is_empty():
+				var coordination = observer.get_coordination()
+				if focus.matches(enemy):
+					rate *= (1.0 + coordination * FOCUS_BOOST)
+				else:
+					rate *= (1.0 - coordination * FOCUS_PENALTY)
+
 			contact.apply_delta(rate, current_turn)
 
 	_log_contacts(current_turn)
+
+
+func calculate_focus_multiplier(observer: SquadStrategicData, target: SquadStrategicData, focus) -> float:
+	if not focus or focus.is_empty():
+		return 1.0
+	var coordination = observer.get_coordination()
+	if focus.matches(target):
+		return 1.0 + coordination * FOCUS_BOOST
+	return 1.0 - coordination * FOCUS_PENALTY
 
 func check_engagements(world: World, all_squads: Array) -> Array[Dictionary]:
 	var engagements: Array[Dictionary] = []
@@ -240,7 +260,7 @@ func _get_tracking_capacity(squad: SquadStrategicData, activity_type: StrategyTy
 		base += 1
 	return base
 
-func _select_tracked_targets(observer: SquadStrategicData, enemies: Array[SquadStrategicData], world: World, edge_log: Dictionary, capacity: int) -> Dictionary:
+func _select_tracked_targets(observer: SquadStrategicData, enemies: Array[SquadStrategicData], world: World, edge_log: Dictionary, capacity: int, focus = null) -> Dictionary:
 	if enemies.size() <= capacity:
 		var result: Dictionary = {}
 		for e in enemies:
@@ -260,6 +280,9 @@ func _select_tracked_targets(observer: SquadStrategicData, enemies: Array[SquadS
 		var prox = _determine_proximity(observer, enemy, world, edge_log)
 		score += prox * 100.0
 		score += enemy.get_living_warriors().size() * 5.0
+
+		if focus and not focus.is_empty() and focus.matches(enemy):
+			score += 300.0
 
 		scored.append({"squad_id": enemy.squad_id, "score": score})
 

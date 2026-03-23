@@ -16,6 +16,7 @@ var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
 var cargo_manifest: Dictionary = {}
 var cargo_destination_id: String = ""
 var shipment_id: String = ""
+var scouting_focus = null
 
 var aggregate_morale: float:
 	get:
@@ -220,6 +221,20 @@ func get_aggregate_stealth() -> float:
 	for warrior in living:
 		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH))
 	return total / living.size()
+
+
+func get_aggregate_leadership() -> float:
+	var living = get_living_warriors()
+	if living.is_empty():
+		return 0.0
+	var total := 0.0
+	for warrior in living:
+		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP))
+	return total / living.size()
+
+
+func get_coordination() -> float:
+	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
 
 
 func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[CharacterSocialStats]:

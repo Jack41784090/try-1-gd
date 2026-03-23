@@ -9,9 +9,15 @@ signal closed
 @onready var close_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/CloseButton
 @onready var presenter: ScoutingPresenter = $ScoutingPresenter
 
+var _focus_section: VBoxContainer
+var _coordination_label: Label
+var _role_checkboxes: Dictionary = {}
+var _class_checkboxes: Dictionary = {}
+
 func _ready() -> void:
 	overlay_panel.visible = false
 	close_button.pressed.connect(_on_close)
+	_build_focus_section()
 
 func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
 	visible = true
@@ -46,6 +52,97 @@ func show_no_contacts() -> void:
 
 func hide_no_contacts() -> void:
 	no_contacts_label.visible = false
+
+func update_focus_ui(focus, coordination: float) -> void:
+	_coordination_label.text = "Coordination: %d%% (from Leadership)" % int(coordination * 100.0)
+
+	for role_key in _role_checkboxes:
+		var cb: CheckBox = _role_checkboxes[role_key]
+		cb.set_pressed_no_signal(focus.selected_roles.has(role_key))
+
+	for cls_key in _class_checkboxes:
+		var cb: CheckBox = _class_checkboxes[cls_key]
+		cb.set_pressed_no_signal(focus.selected_classes.has(cls_key))
+
+func _build_focus_section() -> void:
+	var main_vbox = warning_container.get_parent()
+	_focus_section = VBoxContainer.new()
+	_focus_section.add_theme_constant_override("separation", 6)
+	main_vbox.add_child(_focus_section)
+	main_vbox.move_child(_focus_section, warning_container.get_index())
+
+	var title = Label.new()
+	title.text = "── Scouting Focus ──"
+	title.add_theme_font_size_override("font_size", 15)
+	title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_focus_section.add_child(title)
+
+	_coordination_label = Label.new()
+	_coordination_label.text = "Coordination: 0%"
+	_coordination_label.add_theme_font_size_override("font_size", 13)
+	_coordination_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	_focus_section.add_child(_coordination_label)
+
+	var role_label = Label.new()
+	role_label.text = "Squad Type:"
+	role_label.add_theme_font_size_override("font_size", 13)
+	_focus_section.add_child(role_label)
+
+	var role_row = HBoxContainer.new()
+	role_row.add_theme_constant_override("separation", 16)
+	_focus_section.add_child(role_row)
+	for role in [StrategyTypes.SquadRole.COMBAT, StrategyTypes.SquadRole.MERCHANT]:
+		var cb = CheckBox.new()
+		cb.text = StrategyTypes.SquadRole.keys()[role]
+		cb.add_theme_font_size_override("font_size", 13)
+		cb.toggled.connect(func(_pressed): presenter.on_role_toggled(role))
+		role_row.add_child(cb)
+		_role_checkboxes[role] = cb
+
+	var class_label = Label.new()
+	class_label.text = "Unit Classes:"
+	class_label.add_theme_font_size_override("font_size", 13)
+	_focus_section.add_child(class_label)
+
+	var class_grid = GridContainer.new()
+	class_grid.columns = 3
+	class_grid.add_theme_constant_override("h_separation", 12)
+	class_grid.add_theme_constant_override("v_separation", 4)
+	_focus_section.add_child(class_grid)
+	for cls in EntityClasses.Types.values():
+		var cb = CheckBox.new()
+		cb.text = EntityClasses.Types.keys()[cls]
+		cb.add_theme_font_size_override("font_size", 13)
+		cb.toggled.connect(func(_pressed): presenter.on_class_toggled(cls))
+		class_grid.add_child(cb)
+		_class_checkboxes[cls] = cb
+
+	var btn_row = HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 8)
+	_focus_section.add_child(btn_row)
+
+	var btn_aggressive = Button.new()
+	btn_aggressive.text = "All Aggressive"
+	btn_aggressive.add_theme_font_size_override("font_size", 12)
+	btn_aggressive.pressed.connect(func(): presenter.on_preset_aggressive())
+	btn_row.add_child(btn_aggressive)
+
+	var btn_support = Button.new()
+	btn_support.text = "All Support"
+	btn_support.add_theme_font_size_override("font_size", 12)
+	btn_support.pressed.connect(func(): presenter.on_preset_support())
+	btn_row.add_child(btn_support)
+
+	var btn_clear = Button.new()
+	btn_clear.text = "Clear"
+	btn_clear.add_theme_font_size_override("font_size", 12)
+	btn_clear.pressed.connect(func(): presenter.on_clear_focus())
+	btn_row.add_child(btn_clear)
+
+	var sep = HSeparator.new()
+	sep.add_theme_constant_override("separation", 8)
+	_focus_section.add_child(sep)
 
 func _on_close() -> void:
 	hide_scouting()
@@ -142,12 +239,29 @@ func _create_contact_card(data: Dictionary) -> void:
 	progress_bar.modulate = state_color
 	vbox.add_child(progress_bar)
 
+	var progress_row = HBoxContainer.new()
+	progress_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(progress_row)
+
 	var pct_label = Label.new()
 	pct_label.text = "%.0f%%" % progress
 	pct_label.add_theme_font_size_override("font_size", 12)
 	pct_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	pct_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pct_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	vbox.add_child(pct_label)
+	progress_row.add_child(pct_label)
+
+	var focus_mult: float = data.get("focus_multiplier", 1.0)
+	if not is_equal_approx(focus_mult, 1.0):
+		var mult_label = Label.new()
+		mult_label.add_theme_font_size_override("font_size", 12)
+		if focus_mult > 1.0:
+			mult_label.text = "×%.1f Focused" % focus_mult
+			mult_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			mult_label.text = "×%.1f Scattered" % focus_mult
+			mult_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3))
+		progress_row.add_child(mult_label)
 
 	contacts_container.add_child(card)
 
