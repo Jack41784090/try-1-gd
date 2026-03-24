@@ -160,11 +160,20 @@ func _execute_combat() -> CombatResult:
 	print("[CombatController]   Injuries: %s" % [player_apply_result.injuries])
 	print("[CombatController]   Escaped: %s" % [player_apply_result.escaped])
 
+	var enemy_apply_result = combat_bridge.apply_results(current_enemy_squad, all_updates)
+	print("[CombatController] Applied results to enemy squad:")
+	print("[CombatController]   Deaths: %s" % [enemy_apply_result.deaths])
+	print("[CombatController]   Injuries: %s" % [enemy_apply_result.injuries])
+	print("[CombatController]   Escaped: %s" % [enemy_apply_result.escaped])
+
 	for death_id in player_apply_result.deaths:
 		result.player_casualties.append(death_id)
 
 	for escaped_id in player_apply_result.escaped:
 		result.escaped_warriors.append(escaped_id)
+
+	for death_id in enemy_apply_result.deaths:
+		result.enemy_casualties.append(death_id)
 
 	# Calculate morale change based on outcome
 	match outcome:
