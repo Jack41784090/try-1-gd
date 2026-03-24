@@ -26,9 +26,16 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `ai_act_demo.tscn` — AIAct scripted game testing: deterministic action sequences drive the player squad through the full production pipeline headlessly. Verifies travel, foraging, events, mission completions, stat changes via pass/fail assertions. Tracks all events fired (`triggerable_fired` signal) and mission completions (retroactive GAME_START detection + live signal). Tests Goetz tutorial events: `g0_weak_army_tutorial`, `tutorial_first_rest`, `tutorial_first_travel`, `city_toll_event`, and mission chain `g0_license_crisis` → `g1_march_to_nuremberg`. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
   - `economy_demo.tscn` — economy simulation: 3-location supply chain (Farmstead→Market Town→Castle), 130 people across 3 social classes, 20-turn headless simulation with disruption at turn 10. Tests food production, trade dispatch with in-transit tracking, price dynamics, class-based purchasing, satisfaction. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
   - `caravan_demo.tscn` — caravan bridge integration: economy+strategy bridge test. 3-location world (Farmstead→Market Town→Castle) with EconomyEngine supply rules dispatching ShipmentDispatch artifacts → CaravanBridge creates SquadStrategicData caravans with MERCHANT role → CaravanBrain pathfinds to destination → delivery applies goods to LocationInventory. 15-turn headless simulation, assertions on spawn/delivery/role. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
+  - `interactive_demo.tscn` — interactive terminal game: play the full Goetz campaign from a terminal via stdin commands. Uses real StrategyPresenter with HeadlessStrategyView for full production pipeline (karma-sorted turns, AI fleet, contacts, missions, economy, triggerables). Thread-based stdin reader with command queue in `_process()`. Commands: status/look/warriors/travel/rest/forage/drill/patrol/heal/buy/mercenary/mass/attack/contacts/missions/events/economy/map/help/quit. Displays squad state, location details, shop prices, contact intel, mission progress, economy overview, world map. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
 - **Autoload singletons** (configured in `project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
 - **Sound generation**: `python3 tools/sound_designer.py` writes synthesized SFX to `assets/sfx/` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Every time an update has been made to the logic of the code, run the relevant tests within the demo folder.
+- **AI Interactive Play**: AI agents can play the game interactively via `tools/play.sh`. Setup:
+  1. Start the game in background: `echo '' > /tmp/condor_input && tail -f /tmp/condor_input | godot-mono --headless --path . scenes/demos/interactive_demo.tscn 2>&1 | tee /tmp/condor_output &`
+  2. Wait for init: `sleep 20`
+  3. Send commands: `bash tools/play.sh "status"`, `bash tools/play.sh "rest" 6`, `bash tools/play.sh "travel oehringen" 15`
+  4. Use longer waits for travel (15s) and activities (6s). Info commands (status/look/map/contacts/missions) need only 2s.
+  5. The script filters Godot engine noise and shows only game output.
 
 ## Architecture
 
