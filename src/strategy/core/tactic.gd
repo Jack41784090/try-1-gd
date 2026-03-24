@@ -21,8 +21,8 @@ static func create_balanced() -> Tactic:
 	var tactic := Tactic.new()
 	tactic.tactic_id = "balanced"
 	tactic.tactic_name = "Balanced"
-	tactic.action_count = 4
-	tactic.reaction_count = 3
+	tactic.action_count = 10
+	tactic.reaction_count = 8
 	tactic.attack_modifier = 1.0
 	tactic.defense_modifier = 1.0
 	return tactic
