@@ -195,6 +195,14 @@ func _handle_command(input: String):
 			_cmd_economy()
 		"map":
 			_cmd_map()
+		"god_squads", "gs":
+			_cmd_god_squads()
+		"god_contacts", "gc":
+			_cmd_god_contacts()
+		"god_lock", "gl":
+			_cmd_god_lock(arg)
+		"god_economy", "ge":
+			_cmd_god_economy()
 		"quit", "q", "exit":
 			_cmd_quit()
 		_:
@@ -233,6 +241,12 @@ func _cmd_help():
 	_print_line("  MAP               Show world map")
 	_print_line("  HELP    (h/?)     This help text")
 	_print_line("  QUIT    (q)       Exit the game")
+	_print_line("")
+	_print_line("  --- GOD MODE (omniscient) ---")
+	_print_line("  GOD_SQUADS  (gs)  All squads: location, role, ID")
+	_print_line("  GOD_CONTACTS(gc)  Raw contact data with squad IDs")
+	_print_line("  GOD_LOCK (gl)<id> Force-lock contact on a squad")
+	_print_line("  GOD_ECONOMY (ge)  Full economy: stocks, prices, moves")
 	_print_separator()
 
 
@@ -575,6 +589,116 @@ func _print_prompt():
 		world.turn_count,
 		player_squad.squad_name,
 		_get_location_display(player_squad.current_location_id)])
+
+
+func _cmd_god_squads():
+	_print_separator()
+	_print_line("=== GOD: All Squads (omniscient) ===")
+	_print_line("  Player: %s [%s] @ %s" % [
+		player_squad.squad_name, player_squad.squad_id, player_squad.current_location_id])
+	_print_line("")
+	var caravans := 0
+	var combat := 0
+	for sq in world.roaming_squads:
+		var role := "MERCHANT" if sq.is_caravan() else "COMBAT"
+		var extra := ""
+		if sq.is_caravan():
+			caravans += 1
+			extra = " → dest:%s cargo:%s" % [sq.cargo_destination_id, str(sq.cargo_manifest)]
+			if sq.has_reached_destination():
+				extra += " [AT DEST]"
+		else:
+			combat += 1
+		_print_line("  %s [%s] @ %s — %s — %d warriors%s" % [
+			sq.squad_name, sq.squad_id, sq.current_location_id,
+			role, sq.get_living_warriors().size(), extra])
+	_print_line("")
+	_print_line("  Total: %d roaming (%d caravans, %d combat)" % [
+		world.roaming_squads.size(), caravans, combat])
+	_print_separator()
+
+
+func _cmd_god_contacts():
+	_print_separator()
+	_print_line("=== GOD: Raw Contact Data ===")
+	var ct = world.contact_tracker
+	if ct == null:
+		_print_line("  No contact tracker.")
+		_print_separator()
+		return
+	var contacts = ct.get_contacts_for(player_squad.squad_id)
+	if contacts.size() == 0:
+		_print_line("  No contacts at all.")
+		_print_separator()
+		return
+	for contact in contacts:
+		var state_name: String = StrategyTypes.ContactState.keys()[contact.get_state()]
+		var target_sq = _find_squad(contact.target_id)
+		var sq_exists: bool = target_sq != null
+		var sq_loc: String = target_sq.current_location_id if target_sq else "N/A"
+		var sq_role: String = "MERCHANT" if (target_sq and target_sq.is_caravan()) else "COMBAT"
+		var sq_alive: int = target_sq.get_living_warriors().size() if target_sq else -1
+		_print_line("  target_id: %s" % contact.target_id)
+		_print_line("    state: %s | progress: %.1f/100 | exists_in_world: %s" % [
+			state_name, contact.progress, str(sq_exists)])
+		_print_line("    location: %s | role: %s | warriors: %d" % [
+			sq_loc, sq_role, sq_alive])
+		_print_line("    being_tracked: %s | last_updated: %d" % [
+			str(contact.being_tracked), contact.last_updated_turn])
+		_print_line("")
+	_print_separator()
+
+
+func _cmd_god_lock(target_id: String):
+	_print_separator()
+	if target_id.is_empty():
+		_print_line("Usage: god_lock <squad_id>")
+		_print_line("Forces contact progress to 100 (LOCKED) on a target.")
+		_print_line("Use god_squads to see squad IDs.")
+		_print_separator()
+		return
+	var ct = world.contact_tracker
+	if ct == null:
+		_print_line("  No contact tracker.")
+		_print_separator()
+		return
+	var contact = ct.get_or_create_contact(player_squad.squad_id, target_id)
+	contact.progress = 100.0
+	_print_line("GOD: Forced LOCKED contact on '%s'" % target_id)
+	_print_line("You can now: attack %s" % target_id)
+	_print_separator()
+
+
+func _cmd_god_economy():
+	_print_separator()
+	_print_line("=== GOD: Full Economy ===")
+	if world.economy_engine == null:
+		_print_line("  No economy engine.")
+		_print_separator()
+		return
+	var engine = world.economy_engine
+	_print_line("  Turn: %d | Deaths: %d | Births: %d | Promotions: %d" % [
+		world.turn_count, engine.total_deaths, engine.total_births, engine.total_promotions])
+	_print_line("  Active contracts: %d | Completed: %d" % [
+		engine.active_contracts_count, engine.completed_contracts_count])
+	_print_line("")
+	for loc in world.get_economy_locations():
+		var pop_count := loc.population.size() if loc.population else 0
+		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
+		_print_line("  --- %s (pop:%d sat:%.0f) ---" % [loc.location_name, pop_count, avg_sat])
+		if loc.inventory:
+			for thing in loc.inventory.stocks:
+				var amt = loc.inventory.stocks[thing]
+				var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
+				_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
+		if loc.supply_rules and loc.supply_rules.size() > 0:
+			for rule in loc.supply_rules:
+				var action_name = EconomyTypes.RuleAction.keys()[rule.action]
+				var thing_name = rule.thing.thing_name if rule.thing else "?"
+				var source = rule.source_location_id if rule.source_location_id else "local"
+				_print_line("    rule: %s %s from %s (qty:%.1f)" % [
+					action_name, thing_name, source, rule.quantity])
+	_print_separator()
 
 
 func _print_banner():

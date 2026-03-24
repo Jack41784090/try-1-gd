@@ -138,6 +138,7 @@ func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 
 func advance_turn() -> void:
 	turn_count += 1
+	aem.scenario.world.turn_count = turn_count
 	StrategyEventBus.turn_advanced.emit(turn_count)
 
 
