@@ -128,6 +128,8 @@ func _execute_combat() -> CombatResult:
 
 	# Create battle via bridge
 	var battle = combat_bridge.create_battle(current_player_squad, current_enemy_squad, current_tactic)
+	combat_bridge.apply_injury_penalties(current_player_squad)
+	combat_bridge.apply_injury_penalties(current_enemy_squad)
 	print("[CombatController] Battle created with tactic: %s" % current_tactic.tactic_name)
 
 	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)

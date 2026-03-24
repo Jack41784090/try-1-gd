@@ -69,6 +69,23 @@ func create_battle(
 	return current_battle
 
 
+func apply_injury_penalties(strategic_squad: SquadStrategicData) -> void:
+	assert(current_battle != null)
+	for warrior in strategic_squad.get_living_warriors():
+		if not warrior.is_injured:
+			continue
+		var entity_id = warrior_to_entity.get(warrior.id, -1)
+		if entity_id == -1:
+			continue
+		var entity = current_battle.get_entity_by_id(entity_id)
+		if entity == null:
+			continue
+		var max_hp = entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+		var penalty = max_hp * 0.5
+		entity.mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -penalty)
+		Log.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.name, max_hp - penalty, max_hp])
+
+
 func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side: SquadBattleTypes.Side) -> Dictionary:
 	# Converts a strategic squad's warriors into tactical entity configs
 	# Maps each CharacterSocialStats warrior → entity config dict with combat stats
