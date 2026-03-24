@@ -14,6 +14,14 @@ static func create_rig_for_warrior(warrior: CharacterSocialStats) -> WarriorRig:
 
 	return rig
 
+static func create_rig_for_entity(class_id: EntityClasses.Types, entity_id: String) -> WarriorRig:
+	var rig = _instantiate_rig()
+	rig.setup(class_id, entity_id)
+	var config = WarriorRigConfigFactory.get_config(class_id)
+	if config:
+		rig.apply_config(config)
+	return rig
+
 static func create_rig_for_npc(character_id: String) -> WarriorRig:
 	var rig = _instantiate_rig()
 	var hash_val = character_id.hash()

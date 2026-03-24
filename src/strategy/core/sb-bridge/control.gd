@@ -131,7 +131,7 @@ func _execute_combat() -> CombatResult:
 	print("[CombatController] Battle created with tactic: %s" % current_tactic.tactic_name)
 
 	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)
-	battle_viewport.add_child(battle_scene)
+	combat_overlay.add_child(battle_scene)
 	combat_overlay.visible = true
 
 	print("[CombatController] Awaiting battle completion...")

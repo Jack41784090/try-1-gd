@@ -390,15 +390,21 @@ func show_combat_result_overlay(result: CombatController.CombatResult, morale_be
 
 	overlay_container.queue_free()
 
-	for child in battle_viewport.get_children():
-		child.queue_free()
+	_cleanup_battle_children()
 	combat_overlay.visible = false
 
 
 func cleanup_battle_scene() -> void:
+	_cleanup_battle_children()
+	combat_overlay.visible = false
+
+
+func _cleanup_battle_children() -> void:
 	for child in battle_viewport.get_children():
 		child.queue_free()
-	combat_overlay.visible = false
+	for child in combat_overlay.get_children():
+		if child is SquadBattleView2D:
+			child.queue_free()
 
 #endregion
 

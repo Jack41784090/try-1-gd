@@ -16,7 +16,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - `ai_runner_demo.tscn` — strategic AI squad brain decision tests
   - `ai_battle_royale_demo.tscn` — full fleet simulation with headless combat (small 2-location world)
   - `ai_stress_test_demo.tscn` — large-world AI stress test: 13 locations, 8 squads with mixed profiles, 50-turn simulation with forage/heal/buy/mercenary/patrol behaviors
-  - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface
+  - `squad_battle_demo.tscn` — View/Presenter battle with graphical interface (legacy 3D, uses old sb-master.tscn)
+  - `squad_battle_2d_demo.tscn` — 2D WarriorRig-based battle with skeletal animations. Uses sb-master-2d.tscn, BattlefieldView2D, BattleEntityDisplay. Same presenter/model as 3D version
   - `stage_demo.tscn` — warrior stage: animated rigs, march mode, speech bubbles, camera control
   - `dialogue_demo.tscn` — dialogue system: typewriter effect, after_id batch grouping, interrupt detection, SPACE fast-forward, narrator fallback. Headless test mode via `--headless` flag
   - `ranged_combat_demo.tscn` — ranged combat: mixed squads with Crossbowman, Arquebusier, Pikeman, Feldprediger. Headless battle testing ranged targeting, suppression ORG damage, reach weapons, and support skills
@@ -35,10 +36,13 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
 
 1. **Tactical Combat** (`src/squad-battle/`) — Turn-based battle engine, View/Presenter/Model split
    - `SquadBattle` (data.gd) — Model: battle state, round logic, headless execution. `retreating_team: Variant` + `order_retreat(team)` for forced retreat. `_produce_retreat_updates()` generates LOC+1/last-stand/CAPITULATE updates for retreating team. `squad_actions()` skips retreating team's attack phase
-   - `SquadBattleView` (view.gd) — View: entity spawning, animations, visual rendering (Node3D)
-   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View). `request_retreat(team)` delegates to battle model
-   - `SBGraphics` (graphics.gd) — 3D battlefield rendering, row management, attack/movement animations
-   - `SquadBattleMasterFactory` (_factory.gd) — creates configured battle scene instances
+   - `SquadBattleView2D` (view_2d.gd) — **Active view**: 2D WarriorRig-based battle rendering (extends Control). Uses SubViewportContainer pattern matching VN stage. Duck-typed by presenter
+   - `SquadBattleView` (view.gd) — Legacy 3D view (Node3D), preserved but no longer default
+   - `SquadBattlePresenter` (presenter.gd) — Presenter: round loop, victory checks, `battle_completed` signal (Node child of View). `request_retreat(team)` delegates to battle model. Duck-typed `var view` (untyped) accepts both SquadBattleView and SquadBattleView2D
+   - `BattlefieldView2D` (battlefield_view.gd) — 2D battlefield rendering (extends Control): SubViewportContainer→SubViewport→Camera2D with AttackerSide/DefenderSide row containers (Front/Middle/Back). Programmatic layout, lunge/recoil/clink/move animations via tweens
+   - `BattleEntityDisplay` (battle_display.gd) — 2D entity display (extends Node2D): wraps WarriorRig + HP bar (ColorRect green→yellow→red) + ORG icons (golden ColorRects). `play_behavior()` maps to AnimTypes.Behavior, `animation_completed` signal for async await
+   - `SBGraphics` (graphics.gd) — Legacy 3D battlefield rendering, preserved but unused by default
+   - `SquadBattleMasterFactory` (_factory.gd) — creates configured battle scene instances. Loads `sb-master-2d.tscn` (2D), returns Control
    - Flow: `squad_actions() → choose_action() → action() → OneClash.execute() → Array[EntityUpdate]`
    - All state changes produce immutable `EntityUpdate`/`EntityChange` objects
    - External consumers access `battle_scene.presenter.battle_completed` signal
@@ -350,3 +354,4 @@ return updates
 - `scenes/` — `.tscn` scene files; `scenes/demos/` for test scenes
   - `warrior_rig.tscn` — WarriorRig scene (Skeleton2D + Face + AnimPlayer + AnimTree + controller)
   - `speech_bubble.tscn` — SpeechBubble scene (PanelContainer with speaker name + text + tail)
+  - `sb-master-2d.tscn` — 2D battle master scene (Control root: SquadBattleView2D + BattlefieldView2D + SquadBattlePresenter)

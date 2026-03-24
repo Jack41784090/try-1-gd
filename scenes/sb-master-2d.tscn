@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/squad-battle/view_2d.gd" id="1_view2d"]
+[ext_resource type="Script" path="res://src/squad-battle/battlefield_view.gd" id="2_bf2d"]
+[ext_resource type="Script" path="res://src/squad-battle/presenter.gd" id="3_prsnt"]
+
+[node name="SquadBattleView2D" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_view2d")
+
+[node name="BattlefieldView2D" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_bf2d")
+
+[node name="SquadBattlePresenter" type="Node" parent="."]
+script = ExtResource("3_prsnt")
