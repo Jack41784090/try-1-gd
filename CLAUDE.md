@@ -36,6 +36,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   3. Send commands: `bash tools/play.sh "status"`, `bash tools/play.sh "rest" 6`, `bash tools/play.sh "travel oehringen" 15`
   4. Use longer waits for travel (15s) and activities (6s). Info commands (status/look/map/contacts/missions) need only 2s.
   5. The script filters Godot engine noise and shows only game output.
+  6. **GOD commands** for omniscient debugging: `god_squads`/`gs` (all squads with IDs, locations, cargo), `god_contacts`/`gc` (raw contact data with existence checks), `god_lock`/`gl <squad_id>` (force LOCKED contact for testing attack), `god_economy`/`ge` (full economy detail with stocks/prices/rules)
 
 ## Architecture
 
