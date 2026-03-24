@@ -12,6 +12,7 @@ class_name Location
 @export var clues: Array[Clue] = []
 @export var supply_rules: Array[SupplyRule] = []
 @export var inventory: LocationInventory
+@export var population_config: PopulationConfig
 
 var population: Population
 

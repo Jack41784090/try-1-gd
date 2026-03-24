@@ -129,7 +129,7 @@ func _setup_economy() -> void:
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 500.0
-	engine.enable_csharp()
+	engine.enable_csharp()  # asserts on failure — godot-mono required
 	world.economy_engine = engine
 	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
 
@@ -203,6 +203,8 @@ func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[Sup
 	var cloth: Thing = thing_map.get("cloth")
 	var tools: Thing = thing_map.get("tools")
 	var luxury: Thing = thing_map.get("luxury")
+	var wool: Thing = thing_map.get("wool")
+	var iron_ore: Thing = thing_map.get("iron_ore")
 	var lid := loc.location_id
 	var pop_count: int = loc.population.size() if loc.population else 50
 	var ps := maxf(1.0, float(pop_count) / 50.0)
@@ -223,14 +225,20 @@ func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[Sup
 					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 10.0 * ps))
 				if food and neighbor.type == StrategyTypes.LocationType.CITY:
 					rules.append(SupplyRule.create_import("%s_food_from_%s" % [lid, conn_id], food, conn_id, 8.0 * ps))
-				if cloth and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
-					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 5.0 * ps))
+				if wool and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
+					rules.append(SupplyRule.create_import("%s_wool_from_%s" % [lid, conn_id], wool, conn_id, 8.0 * ps))
+				if iron_ore and neighbor.type in [StrategyTypes.LocationType.TOWN, StrategyTypes.LocationType.VILLAGE]:
+					rules.append(SupplyRule.create_import("%s_iron_from_%s" % [lid, conn_id], iron_ore, conn_id, 5.0 * ps))
 				if luxury and neighbor.type == StrategyTypes.LocationType.CITY:
 					rules.append(SupplyRule.create_import("%s_luxury_from_%s" % [lid, conn_id], luxury, conn_id, 3.0 * ps))
 
 		StrategyTypes.LocationType.TOWN:
 			if food:
 				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 60.0 * ps))
+			if wool:
+				rules.append(SupplyRule.create_extract("%s_wool" % lid, wool, 20.0 * ps))
+			if iron_ore:
+				rules.append(SupplyRule.create_extract("%s_iron" % lid, iron_ore, 10.0 * ps))
 			if cloth:
 				rules.append(SupplyRule.create_craft("%s_cloth" % lid, cloth, 5.0 * ps))
 			for conn_id in _get_connected_ids(loc):
@@ -239,8 +247,6 @@ func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[Sup
 					continue
 				if tools and neighbor.type == StrategyTypes.LocationType.CITY:
 					rules.append(SupplyRule.create_import("%s_tools_from_%s" % [lid, conn_id], tools, conn_id, 5.0 * ps))
-				if cloth and neighbor.type == StrategyTypes.LocationType.CITY:
-					rules.append(SupplyRule.create_import("%s_cloth_from_%s" % [lid, conn_id], cloth, conn_id, 3.0 * ps))
 
 		StrategyTypes.LocationType.FORT:
 			for conn_id in _get_connected_ids(loc):
@@ -254,6 +260,10 @@ func _create_supply_rules_for(loc: Location, thing_map: Dictionary) -> Array[Sup
 		StrategyTypes.LocationType.VILLAGE:
 			if food:
 				rules.append(SupplyRule.create_extract("%s_food" % lid, food, 40.0 * ps))
+			if wool:
+				rules.append(SupplyRule.create_extract("%s_wool" % lid, wool, 15.0 * ps))
+			if iron_ore:
+				rules.append(SupplyRule.create_extract("%s_iron" % lid, iron_ore, 8.0 * ps))
 
 	return rules
 

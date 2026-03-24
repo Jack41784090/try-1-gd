@@ -29,11 +29,16 @@ public sealed class CsLocationSnapshot
     public float AvgMoney { get; set; }
     public float[] Stocks { get; set; }
     public float[] Prices { get; set; }
+    public int PeasantCount { get; set; }
+    public int BourgeoisCount { get; set; }
+    public int NobleCount { get; set; }
 }
 
 public sealed class CsEconomyTickResult
 {
     public int Turn { get; set; }
+    public int Deaths { get; set; }
+    public int Births { get; set; }
     public List<CsLocationSnapshot> LocationSnapshots { get; } = new();
     public List<CsEconomyMove> MovesCreated { get; } = new();
     public List<CsEconomyMove> MovesCompleted { get; } = new();

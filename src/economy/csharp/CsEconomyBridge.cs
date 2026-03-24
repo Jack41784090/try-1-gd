@@ -57,6 +57,34 @@ public partial class CsEconomyBridge : Node
             float basePrice = (float)thing.Get("base_price");
             _goods[i] = new ThingDef(i, thingId, thingName, (ThingType)thingType, basePrice);
             _thingIdToIdx[thingId] = i;
+
+            // Mirror elasticity
+            float elasticity = (float)thing.Call("get_elasticity");
+            _goods[i].Elasticity = elasticity;
+        }
+
+        // Second pass: mirror inputs (after all goods are indexed)
+        for (int i = 0; i < gdGoods.Count; i++)
+        {
+            var thing = (Resource)gdGoods[i];
+            var gdInputs = (Godot.Collections.Array)thing.Get("inputs");
+            if (gdInputs != null && gdInputs.Count > 0)
+            {
+                var inputs = new RecipeInput[gdInputs.Count];
+                for (int ii = 0; ii < gdInputs.Count; ii++)
+                {
+                    var gdInput = (Resource)gdInputs[ii];
+                    var inputThing = (Resource)gdInput.Get("thing");
+                    string inputThingId = (string)inputThing.Get("thing_id");
+                    float inputQty = (float)gdInput.Get("quantity");
+                    inputs[ii] = new RecipeInput
+                    {
+                        ThingIdx = _thingIdToIdx[inputThingId],
+                        Quantity = inputQty,
+                    };
+                }
+                _goods[i].Inputs = inputs;
+            }
         }
 
         // Read economy locations
@@ -286,6 +314,11 @@ public partial class CsEconomyBridge : Node
     /// </summary>
     public int GetTotalPromotions() => _engine?.TotalPromotions ?? 0;
 
+    public int GetActiveContractsCount() => _engine?.ActiveContracts.Count ?? 0;
+    public int GetCompletedContractsCount() => _engine?.CompletedContracts.Count ?? 0;
+    public int GetTotalDeaths() => _engine?.TotalDeaths ?? 0;
+    public int GetTotalBirths() => _engine?.TotalBirths ?? 0;
+
     /// <summary>
     /// Get bank info as a Dictionary.
     /// </summary>
@@ -336,6 +369,8 @@ public partial class CsEconomyBridge : Node
         var result = new Godot.Collections.Dictionary
         {
             ["turn"] = csResult.Turn,
+            ["deaths"] = csResult.Deaths,
+            ["births"] = csResult.Births,
         };
 
         // Location snapshots
@@ -349,6 +384,9 @@ public partial class CsEconomyBridge : Node
                 ["population_count"] = snap.PopulationCount,
                 ["avg_satisfaction"] = snap.AvgSatisfaction,
                 ["avg_money"] = snap.AvgMoney,
+                ["peasant_count"] = snap.PeasantCount,
+                ["bourgeois_count"] = snap.BourgeoisCount,
+                ["noble_count"] = snap.NobleCount,
             };
             var stocksDict = new Godot.Collections.Dictionary();
             var pricesDict = new Godot.Collections.Dictionary();

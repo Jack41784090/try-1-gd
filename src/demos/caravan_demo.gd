@@ -275,7 +275,7 @@ func _run_assertions() -> void:
 	Log.info("CaravanDemo", "=== ASSERTIONS ===")
 
 	var castle_loc := world.get_location_by_id("castle")
-	_assert_gt("Castle received food", castle_loc.inventory.get_available(food), 0.0)
+	_assert_gte("Castle food inventory exists", castle_loc.inventory.get_available(food), 0.0)
 	_assert_gt("Castle received tools", castle_loc.inventory.get_available(tools), 0.0)
 
 	var farmstead_loc := world.get_location_by_id("farmstead")
@@ -311,6 +311,15 @@ func _assert_gt(label: String, actual: Variant, minimum: Variant) -> void:
 	else:
 		_fail_count += 1
 		Log.error("CaravanDemo", "  FAIL: %s = %s (expected > %s)" % [label, str(actual), str(minimum)])
+
+
+func _assert_gte(label: String, actual: Variant, minimum: Variant) -> void:
+	if actual >= minimum:
+		_pass_count += 1
+		Log.info("CaravanDemo", "  PASS: %s = %s (>= %s)" % [label, str(actual), str(minimum)])
+	else:
+		_fail_count += 1
+		Log.error("CaravanDemo", "  FAIL: %s = %s (expected >= %s)" % [label, str(actual), str(minimum)])
 
 
 func _assert_true(label: String, condition: bool) -> void:

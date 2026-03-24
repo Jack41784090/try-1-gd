@@ -70,8 +70,8 @@ func _setup_world() -> void:
 	engine.bank.print_per_turn = 4000.0
 	engine.noble_loan_threshold = 150.0
 	engine.loan_amount = 1000.0
-	var cs_ok := engine.enable_csharp()
-	print("  C# engine: %s" % ("ENABLED" if cs_ok else "DISABLED (GDScript fallback)"))
+	engine.enable_csharp()
+	print("  C# engine: ENABLED")
 	world.economy_engine = engine
 
 
@@ -438,8 +438,8 @@ func _print_turn_report(turn: int, ms: float, _result: EconomyTickResult) -> voi
 		engine.bank.active_loans.size(),
 	])
 	print("  Contracts: active=%d  completed=%d" % [
-		engine.active_contracts.size(),
-		engine.completed_contracts.size(),
+		engine.active_contracts_count,
+		engine.completed_contracts_count,
 	])
 
 	var food_line := "  Food prices:"

@@ -69,6 +69,9 @@ public sealed class CsEconomyEngine
     public float LoanAmount { get; set; } = 500f;
     public int TotalPromotions { get; set; }
 
+    public int TotalDeaths { get; set; }
+    public int TotalBirths { get; set; }
+
     private int _shipmentCounter;
     private int _goodsCount;
     private Random _rng = new();
@@ -134,6 +137,8 @@ public sealed class CsEconomyEngine
         PhaseLoanRepayment();
         PhaseGovernmentSpending();
         PhaseSatisfaction();
+        PhaseStarvation(result);
+        PhaseBirth(result);
         PhaseSocialMobility();
 
         // Snapshots
@@ -150,6 +155,9 @@ public sealed class CsEconomyEngine
                 AvgMoney = loc.Population.GetAverageMoney(),
                 Stocks = new float[_goodsCount],
                 Prices = new float[_goodsCount],
+                PeasantCount = loc.Population.GetByClass(SocialClass.Peasant).Count,
+                BourgeoisCount = loc.Population.GetByClass(SocialClass.Bourgeois).Count,
+                NobleCount = loc.Population.GetByClass(SocialClass.Noble).Count,
             };
             Array.Copy(loc.Stocks, snap.Stocks, _goodsCount);
             Array.Copy(loc.Prices, snap.Prices, _goodsCount);
@@ -163,9 +171,10 @@ public sealed class CsEconomyEngine
     {
         for (int li = 0; li < Locations.Length; li++)
         {
-            var people = Locations[li].Population.People;
+            var loc = Locations[li];
+            var people = loc.Population.People;
             for (int pi = 0; pi < people.Count; pi++)
-                people[pi].ComputeWants(Goods);
+                people[pi].ComputeWants(Goods, loc.Prices);
         }
     }
 
@@ -183,13 +192,60 @@ public sealed class CsEconomyEngine
                     if (workerCount == 0) continue;
                     float ratio = MathF.Min((float)workerCount / rule.WorkersPerFullOutput, 1f);
                     float produced = rule.CapacityPerTurn * ratio;
+
+                    // If the output thing has inputs, consume them proportionally
+                    var thingDef = Goods[rule.ThingIdx];
+                    if (thingDef.Inputs.Length > 0)
+                    {
+                        produced = LimitByInputs(loc, thingDef, produced);
+                        if (produced <= 0f) continue;
+                        ConsumeInputs(loc, thingDef, produced);
+                    }
+
                     loc.Add(rule.ThingIdx, produced);
                 }
                 else if (rule.Action == RuleAction.Produce)
                 {
-                    loc.Add(rule.ThingIdx, rule.CapacityPerTurn);
+                    float produced = rule.CapacityPerTurn;
+
+                    var thingDef = Goods[rule.ThingIdx];
+                    if (thingDef.Inputs.Length > 0)
+                    {
+                        produced = LimitByInputs(loc, thingDef, produced);
+                        if (produced <= 0f) continue;
+                        ConsumeInputs(loc, thingDef, produced);
+                    }
+
+                    loc.Add(rule.ThingIdx, produced);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Limit production to what inputs can support.
+    /// Returns the max units that can be produced given available inputs.
+    /// </summary>
+    private float LimitByInputs(CsLocationData loc, ThingDef thingDef, float desiredQty)
+    {
+        float maxProducible = desiredQty;
+        foreach (var input in thingDef.Inputs)
+        {
+            float available = loc.GetAvailable(input.ThingIdx);
+            float neededPerUnit = input.Quantity;
+            if (neededPerUnit <= 0f) continue;
+            float canProduce = available / neededPerUnit;
+            maxProducible = MathF.Min(maxProducible, canProduce);
+        }
+        return MathF.Max(maxProducible, 0f);
+    }
+
+    private void ConsumeInputs(CsLocationData loc, ThingDef thingDef, float producedQty)
+    {
+        foreach (var input in thingDef.Inputs)
+        {
+            float toConsume = input.Quantity * producedQty;
+            loc.Consume(input.ThingIdx, toConsume);
         }
     }
 
@@ -249,6 +305,9 @@ public sealed class CsEconomyEngine
         // consumptionCache[locIdx * goodsCount + thingIdx] = consumption
         var consumptionCache = new Dictionary<int, float>();
 
+        // Build candidate list with scoring
+        var candidates = new List<TradeCandidate>();
+
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
@@ -268,59 +327,106 @@ public sealed class CsEconomyEngine
                 if (consumptionPerTurn <= 0f) continue;
 
                 int travelTime = GetTravelTime(rule.SourceLocationIdx, li);
-                float coverageNeeded = consumptionPerTurn * (travelTime + 1);
+                float coverageNeeded = consumptionPerTurn * (travelTime + 0.5f);
                 float localSupply = loc.GetAvailable(rule.ThingIdx);
                 float inTransit = GetInTransitTo(li, rule.ThingIdx);
-
-                int key = li * _goodsCount + rule.ThingIdx;
-                float alreadyOrdered = orderedThisTick.GetValueOrDefault(key, 0f);
-                float projectedSupply = localSupply + inTransit + alreadyOrdered;
+                float projectedSupply = localSupply + inTransit;
                 if (projectedSupply >= coverageNeeded) continue;
 
                 float shortfall = coverageNeeded - projectedSupply;
-                if (rule.SourceLocationIdx < 0 || rule.SourceLocationIdx >= Locations.Length)
-                    continue;
-                var sourceLoc = Locations[rule.SourceLocationIdx];
-                float rawSource = sourceLoc.GetAvailable(rule.ThingIdx);
-                if (rawSource <= 0f) continue;
 
-                int reserveKey = rule.SourceLocationIdx * _goodsCount + rule.ThingIdx;
-                float sourceReserve;
-                if (sourceReserveCache.TryGetValue(reserveKey, out float cachedReserve))
-                    sourceReserve = cachedReserve;
-                else
+                // Score: urgency (shortfall / coverage) * 0.6 + margin * 0.4
+                float urgency = coverageNeeded > 0f ? shortfall / coverageNeeded : 0f;
+                float destPrice = loc.GetPrice(rule.ThingIdx);
+                float srcPrice = rule.SourceLocationIdx >= 0 && rule.SourceLocationIdx < Locations.Length
+                    ? Locations[rule.SourceLocationIdx].GetPrice(rule.ThingIdx) : Goods[rule.ThingIdx].BasePrice;
+                float transportCost = Goods[rule.ThingIdx].BasePrice * 0.1f * travelTime;
+                float margin = destPrice > 0f ? (destPrice - srcPrice - transportCost) / destPrice : 0f;
+                float score = urgency * 0.6f + MathF.Max(margin, 0f) * 0.4f;
+
+                candidates.Add(new TradeCandidate
                 {
-                    sourceReserve = 0f;
-                    var sp = sourceLoc.Population.People;
-                    for (int pi = 0; pi < sp.Count; pi++)
-                    {
-                        float w = sp[pi].GetWant(rule.ThingIdx);
-                        float h = sp[pi].GetInventory(rule.ThingIdx);
-                        sourceReserve += MathF.Max(w - h, 0f);
-                    }
-                    sourceReserveCache[reserveKey] = sourceReserve;
-                }
-
-                float availableAtSource = MathF.Max(rawSource - sourceReserve, 0f);
-                if (availableAtSource <= 0f) continue;
-
-                float sendQty = MathF.Min(shortfall, MathF.Min(availableAtSource, rule.CapacityPerTurn));
-                sourceLoc.Consume(rule.ThingIdx, sendQty);
-                orderedThisTick[key] = alreadyOrdered + sendQty;
-
-                var move = CsEconomyMove.Create(
-                    rule.ThingIdx, sendQty, rule.SourceLocationIdx, li,
-                    travelTime, $"rule:{rule.RuleId}",
-                    sourceLoc.LocationId, loc.LocationId, Goods[rule.ThingIdx].ThingId);
-                ActiveMoves.Add(move);
-                result.MovesCreated.Add(move);
-
-                _shipmentCounter++;
-                int guardCount = CalculateGuardCount(move);
-                result.ShipmentDispatches.Add(
-                    CsShipmentDispatch.Create($"shipment_{_shipmentCounter}", move, guardCount));
+                    DestIdx = li,
+                    Rule = rule,
+                    Shortfall = shortfall,
+                    TravelTime = travelTime,
+                    Score = score,
+                });
             }
         }
+
+        // Sort by score descending — highest priority dispatched first
+        candidates.Sort((a, b) => b.Score.CompareTo(a.Score));
+
+        foreach (var c in candidates)
+        {
+            var loc = Locations[c.DestIdx];
+            var rule = c.Rule;
+
+            // Recheck projected supply with already-ordered
+            int key = c.DestIdx * _goodsCount + rule.ThingIdx;
+            float alreadyOrdered = orderedThisTick.GetValueOrDefault(key, 0f);
+            float localSupply = loc.GetAvailable(rule.ThingIdx);
+            float inTransit = GetInTransitTo(c.DestIdx, rule.ThingIdx);
+            float projectedSupply = localSupply + inTransit + alreadyOrdered;
+
+            int consKey = c.DestIdx * _goodsCount + rule.ThingIdx;
+            float consumptionPerTurn = consumptionCache[consKey];
+            float coverageNeeded = consumptionPerTurn * (c.TravelTime + 0.5f);
+            if (projectedSupply >= coverageNeeded) continue;
+            float shortfall = coverageNeeded - projectedSupply;
+
+            if (rule.SourceLocationIdx < 0 || rule.SourceLocationIdx >= Locations.Length)
+                continue;
+            var sourceLoc = Locations[rule.SourceLocationIdx];
+            float rawSource = sourceLoc.GetAvailable(rule.ThingIdx);
+            if (rawSource <= 0f) continue;
+
+            int reserveKey = rule.SourceLocationIdx * _goodsCount + rule.ThingIdx;
+            float sourceReserve;
+            if (sourceReserveCache.TryGetValue(reserveKey, out float cachedReserve))
+                sourceReserve = cachedReserve;
+            else
+            {
+                sourceReserve = 0f;
+                var sp = sourceLoc.Population.People;
+                for (int pi = 0; pi < sp.Count; pi++)
+                {
+                    float w = sp[pi].GetWant(rule.ThingIdx);
+                    float h = sp[pi].GetInventory(rule.ThingIdx);
+                    sourceReserve += MathF.Max(w - h, 0f);
+                }
+                sourceReserveCache[reserveKey] = sourceReserve;
+            }
+
+            float availableAtSource = MathF.Max(rawSource - sourceReserve, rawSource * 0.4f);
+            if (availableAtSource <= 0f) continue;
+
+            float sendQty = MathF.Min(shortfall, MathF.Min(availableAtSource, rule.CapacityPerTurn));
+            sourceLoc.Consume(rule.ThingIdx, sendQty);
+            orderedThisTick[key] = alreadyOrdered + sendQty;
+
+            var move = CsEconomyMove.Create(
+                rule.ThingIdx, sendQty, rule.SourceLocationIdx, c.DestIdx,
+                c.TravelTime, $"rule:{rule.RuleId}",
+                sourceLoc.LocationId, loc.LocationId, Goods[rule.ThingIdx].ThingId);
+            ActiveMoves.Add(move);
+            result.MovesCreated.Add(move);
+
+            _shipmentCounter++;
+            int guardCount = CalculateGuardCount(move);
+            result.ShipmentDispatches.Add(
+                CsShipmentDispatch.Create($"shipment_{_shipmentCounter}", move, guardCount));
+        }
+    }
+
+    private struct TradeCandidate
+    {
+        public int DestIdx;
+        public CsSupplyRule Rule;
+        public float Shortfall;
+        public int TravelTime;
+        public float Score;
     }
 
     private void PhasePriceUpdate()
@@ -639,6 +745,7 @@ public sealed class CsEconomyEngine
             for (int pi = 0; pi < people.Count; pi++)
             {
                 var person = people[pi];
+                person.TurnsAlive++;
                 if (person.FedThisTurn)
                     person.Satisfaction = MathF.Min(person.Satisfaction + 5f, 100f);
                 else
@@ -648,6 +755,88 @@ public sealed class CsEconomyEngine
                 person.FedThisTurn = false;
                 person.ComfortThisTurn = 0f;
             }
+        }
+    }
+
+    private void PhaseStarvation(CsEconomyTickResult result)
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var people = loc.Population.People;
+            var toRemove = new List<CsPerson>();
+            for (int pi = 0; pi < people.Count; pi++)
+            {
+                var person = people[pi];
+                if (person.Satisfaction <= 0f && person.StarvationCounter > 0)
+                {
+                    person.StarvationCounter++;
+                    if (person.StarvationCounter >= 3)
+                        toRemove.Add(person);
+                }
+                else if (!person.FedThisTurn && person.Satisfaction < 20f)
+                {
+                    person.StarvationCounter++;
+                    if (person.StarvationCounter >= 3)
+                        toRemove.Add(person);
+                }
+                else
+                {
+                    person.StarvationCounter = 0;
+                }
+            }
+            foreach (var dead in toRemove)
+            {
+                loc.Population.RemovePerson(dead);
+                TotalDeaths++;
+            }
+            if (toRemove.Count > 0)
+                result.Deaths += toRemove.Count;
+        }
+    }
+
+    private void PhaseBirth(CsEconomyTickResult result)
+    {
+        // Growth: ~2% chance per person per turn if satisfaction > 70 and food surplus
+        int foodIdx = -1;
+        for (int i = 0; i < _goodsCount; i++)
+        {
+            if (Goods[i].ThingType == ThingType.Food) { foodIdx = i; break; }
+        }
+        if (foodIdx < 0) return;
+
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            float foodSurplus = loc.GetAvailable(foodIdx);
+            if (foodSurplus < 5f) continue;
+
+            var people = loc.Population.People;
+            int births = 0;
+            int popSize = people.Count;
+            for (int pi = 0; pi < popSize; pi++)
+            {
+                var person = people[pi];
+                if (person.Satisfaction < 70f) continue;
+                if (_rng.NextDouble() > 0.02) continue;
+                births++;
+            }
+
+            for (int b = 0; b < births; b++)
+            {
+                // New person inherits most common class at location
+                var peasants = loc.Population.GetByClass(SocialClass.Peasant);
+                SocialClass newClass = peasants.Count > 0 ? SocialClass.Peasant : SocialClass.Bourgeois;
+                JobType newJob = newClass == SocialClass.Peasant ? JobType.Laborer : JobType.Laborer;
+                var newPerson = CsPerson.Create(
+                    $"{loc.LocationId}_born_{TotalBirths}",
+                    newClass, newJob, 0f, _goodsCount);
+                newPerson.Satisfaction = 50f;
+                loc.Population.AddPerson(newPerson);
+                TotalBirths++;
+            }
+            if (births > 0)
+                result.Births += births;
         }
     }
 

@@ -18,6 +18,16 @@ public sealed class CsPopulation
         _sortedDirty = true;
     }
 
+    public void RemovePerson(CsPerson person)
+    {
+        People.Remove(person);
+        if (_byClass.TryGetValue(person.SocialClass, out var classList))
+            classList.Remove(person);
+        if (_byJob.TryGetValue(person.Job, out var jobList))
+            jobList.Remove(person);
+        _sortedDirty = true;
+    }
+
     private void IndexPerson(CsPerson person)
     {
         if (!_byClass.TryGetValue(person.SocialClass, out var classList))

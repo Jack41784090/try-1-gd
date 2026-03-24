@@ -3,6 +3,8 @@ extends Node
 var world: World
 var engine: EconomyEngine
 var food: Thing
+var wool: Thing
+var iron_ore: Thing
 var cloth: Thing
 var tools: Thing
 var luxury: Thing
@@ -21,10 +23,12 @@ func _setup_world() -> void:
 	world = World.new()
 
 	food = Thing.create("food", "Food", EconomyTypes.ThingType.FOOD, 1.0)
-	cloth = Thing.create("cloth", "Cloth", EconomyTypes.ThingType.CLOTH, 3.0)
-	tools = Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 5.0)
-	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0)
-	world.goods = [food, cloth, tools, luxury]
+	wool = Thing.create("wool", "Wool", EconomyTypes.ThingType.CLOTH, 1.5)
+	iron_ore = Thing.create("iron_ore", "Iron Ore", EconomyTypes.ThingType.TOOLS, 2.0)
+	cloth = Thing.create("cloth", "Cloth", EconomyTypes.ThingType.CLOTH, 3.0, "", [ThingInput.create(wool, 2.0)])
+	tools = Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 5.0, "", [ThingInput.create(iron_ore, 1.5)])
+	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0, "", [ThingInput.create(cloth, 0.5), ThingInput.create(tools, 0.3)])
+	world.goods = [food, wool, iron_ore, cloth, tools, luxury]
 
 	_setup_farmstead()
 	_setup_market_town()
@@ -83,14 +87,16 @@ func _setup_farmstead() -> void:
 
 	loc.inventory = LocationInventory.new()
 	loc.inventory.init_thing(food, 60.0)
-	loc.inventory.init_thing(cloth, 10.0)
+	loc.inventory.init_thing(wool, 20.0)
+	loc.inventory.init_thing(iron_ore, 10.0)
 
 	loc.supply_rules = [
 		SupplyRule.create_extract("farmstead_harvest", food, 250.0),
-		SupplyRule.create_extract("farmstead_spinning", cloth, 50.0),
+		SupplyRule.create_extract("farmstead_shearing", wool, 80.0),
+		SupplyRule.create_extract("farmstead_mining", iron_ore, 40.0),
 	]
 
-	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires) - food+cloth" % loc.population.size())
+	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires) - food+wool+iron" % loc.population.size())
 
 
 func _setup_market_town() -> void:
@@ -108,19 +114,22 @@ func _setup_market_town() -> void:
 
 	loc.inventory = LocationInventory.new()
 	loc.inventory.init_thing(food, 60.0)
+	loc.inventory.init_thing(wool, 10.0)
+	loc.inventory.init_thing(iron_ore, 5.0)
 	loc.inventory.init_thing(cloth, 5.0)
 	loc.inventory.init_thing(tools, 5.0)
 	loc.inventory.init_thing(luxury, 2.0)
 
 	loc.supply_rules = [
 		SupplyRule.create_import("town_import_food", food, "farmstead", 100.0),
-		SupplyRule.create_import("town_import_cloth", cloth, "farmstead", 50.0),
+		SupplyRule.create_import("town_import_wool", wool, "farmstead", 60.0),
+		SupplyRule.create_import("town_import_iron", iron_ore, "farmstead", 30.0),
 		SupplyRule.create_craft("town_weaving", cloth, 15.0),
 		SupplyRule.create_craft("town_toolsmith", tools, 25.0),
 		SupplyRule.create_craft("town_luxuries", luxury, 20.0),
 	]
 
-	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - tools+luxuries" % loc.population.size())
+	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - crafts" % loc.population.size())
 
 
 func _setup_castle() -> void:
@@ -172,15 +181,18 @@ func _run_simulation() -> void:
 
 
 func _print_detailed_snapshot(turn: int) -> void:
+	engine.sync_full()
 	Log.info("EconDemo", "--- Detailed Snapshot (Turn %d) ---" % turn)
 	for loc in world.get_economy_locations():
 		var peasants := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT)
 		var bourgeois := loc.population.get_by_class(EconomyTypes.SocialClass.BOURGEOIS)
 		var nobles := loc.population.get_by_class(EconomyTypes.SocialClass.NOBLE)
 
-		Log.info("EconDemo", "  [%s] Food=%.0f@%.2f Cloth=%.0f@%.2f Tools=%.0f@%.2f Lux=%.0f@%.2f" % [
+		Log.info("EconDemo", "  [%s] Food=%.0f@%.2f Wool=%.0f@%.2f Iron=%.0f@%.2f Cloth=%.0f@%.2f Tools=%.0f@%.2f Lux=%.0f@%.2f" % [
 			loc.location_name,
 			loc.inventory.get_available(food), loc.inventory.get_price(food),
+			loc.inventory.get_available(wool), loc.inventory.get_price(wool),
+			loc.inventory.get_available(iron_ore), loc.inventory.get_price(iron_ore),
 			loc.inventory.get_available(cloth), loc.inventory.get_price(cloth),
 			loc.inventory.get_available(tools), loc.inventory.get_price(tools),
 			loc.inventory.get_available(luxury), loc.inventory.get_price(luxury),
@@ -205,14 +217,15 @@ func _print_detailed_snapshot(turn: int) -> void:
 		engine.bank.total_interest_collected,
 	])
 	Log.info("EconDemo", "  Contracts: active=%d completed=%d" % [
-		engine.active_contracts.size(),
-		engine.completed_contracts.size(),
+		engine.active_contracts_count,
+		engine.completed_contracts_count,
 	])
 	var total_money := _calc_total_money()
 	Log.info("EconDemo", "  Total Scrip in circulation: %.0f" % total_money)
 
 
 func _print_final_summary() -> void:
+	engine.sync_full()
 	Log.info("EconDemo", "=== FINAL SUMMARY ===")
 	for loc in world.get_economy_locations():
 		Log.info("EconDemo", "[%s] pop=%d avg_sat=%.0f avg_money=%.1f" % [
@@ -221,8 +234,9 @@ func _print_final_summary() -> void:
 			loc.population.get_average_satisfaction(),
 			loc.population.get_average_money(),
 		])
-		Log.info("EconDemo", "  Goods: Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
-			loc.inventory.get_available(food), loc.inventory.get_available(cloth),
+		Log.info("EconDemo", "  Goods: Food=%.0f Wool=%.0f Iron=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
+			loc.inventory.get_available(food), loc.inventory.get_available(wool),
+			loc.inventory.get_available(iron_ore), loc.inventory.get_available(cloth),
 			loc.inventory.get_available(tools), loc.inventory.get_available(luxury),
 		])
 		var peasant_count := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT).size()
@@ -238,7 +252,9 @@ func _print_final_summary() -> void:
 	Log.info("EconDemo", "Outstanding debt: %.0f" % engine.bank.get_total_outstanding())
 	Log.info("EconDemo", "Interest collected: %.0f" % engine.bank.total_interest_collected)
 	Log.info("EconDemo", "Active loans: %d" % engine.bank.active_loans.size())
-	Log.info("EconDemo", "Contracts completed: %d" % engine.completed_contracts.size())
+	Log.info("EconDemo", "Contracts completed: %d" % engine.completed_contracts_count)
+	Log.info("EconDemo", "Total deaths: %d" % engine.total_deaths)
+	Log.info("EconDemo", "Total births: %d" % engine.total_births)
 	Log.info("EconDemo", "Peasants promoted to Bourgeois: %d" % engine.total_promotions)
 
 	var noble_money := 0.0

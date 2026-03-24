@@ -2,6 +2,8 @@ extends RefCounted
 class_name EconomyTickResult
 
 var turn: int = 0
+var deaths: int = 0
+var births: int = 0
 var location_snapshots: Array[LocationSnapshot] = []
 var moves_created: Array[EconomyMove] = []
 var moves_completed: Array[EconomyMove] = []
@@ -32,6 +34,9 @@ class LocationSnapshot:
 	var produced: Dictionary = {}
 	var consumed: Dictionary = {}
 	var revenue: float = 0.0
+	var peasant_count: int = 0
+	var bourgeois_count: int = 0
+	var noble_count: int = 0
 
 	func _to_string() -> String:
 		var stock_parts: Array[String] = []

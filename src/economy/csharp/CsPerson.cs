@@ -17,6 +17,8 @@ public sealed class CsPerson
     public string EmployerId { get; set; } = "";
     public bool FedThisTurn { get; set; }
     public float ComfortThisTurn { get; set; }
+    public int StarvationCounter { get; set; }
+    public int TurnsAlive { get; set; }
 
     // Inventory: indexed by ThingDef.Id
     private readonly float[] _inventory;
@@ -41,19 +43,32 @@ public sealed class CsPerson
 
     public void ComputeWants(ThingDef[] goods)
     {
+        ComputeWants(goods, null);
+    }
+
+    public void ComputeWants(ThingDef[] goods, float[] locationPrices)
+    {
         for (int i = 0; i < _goodsCount; i++)
             _wants[i] = 0f;
+
+        float classElasticityMod = SocialClass switch
+        {
+            SocialClass.Noble => 0.5f,
+            SocialClass.Peasant => 1.5f,
+            _ => 1.0f,
+        };
 
         for (int i = 0; i < goods.Length; i++)
         {
             var thing = goods[i];
+            float baseWant = 0f;
             switch (thing.ThingType)
             {
                 case ThingType.Food:
-                    _wants[i] = 1.0f;
+                    baseWant = 1.0f;
                     break;
                 case ThingType.Cloth:
-                    _wants[i] = SocialClass switch
+                    baseWant = SocialClass switch
                     {
                         SocialClass.Peasant => 0.3f,
                         SocialClass.Bourgeois => 0.5f,
@@ -62,7 +77,7 @@ public sealed class CsPerson
                     };
                     break;
                 case ThingType.Tools:
-                    _wants[i] = SocialClass switch
+                    baseWant = SocialClass switch
                     {
                         SocialClass.Peasant => 0.1f,
                         SocialClass.Bourgeois => 0.3f,
@@ -71,7 +86,7 @@ public sealed class CsPerson
                     };
                     break;
                 case ThingType.Luxury:
-                    _wants[i] = SocialClass switch
+                    baseWant = SocialClass switch
                     {
                         SocialClass.Noble => 0.5f,
                         SocialClass.Bourgeois => 0.2f,
@@ -79,6 +94,21 @@ public sealed class CsPerson
                     };
                     break;
             }
+
+            // Apply price elasticity if prices are available
+            if (locationPrices != null && baseWant > 0f && thing.BasePrice > 0f)
+            {
+                float currentPrice = locationPrices[i];
+                if (currentPrice > 0f)
+                {
+                    float elasticity = thing.Elasticity * classElasticityMod;
+                    float priceRatio = thing.BasePrice / currentPrice;
+                    float modifier = MathF.Pow(priceRatio, elasticity);
+                    baseWant *= Math.Clamp(modifier, 0.2f, 3.0f);
+                }
+            }
+
+            _wants[i] = baseWant;
         }
     }
 

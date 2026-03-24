@@ -1,5 +1,11 @@
 namespace Condor.Economy;
 
+public struct RecipeInput
+{
+    public int ThingIdx;
+    public float Quantity;
+}
+
 /// <summary>
 /// Lightweight value-type identifier for a goods type.
 /// The C# engine uses int IDs internally; mapping to GDScript Thing Resources
@@ -12,6 +18,8 @@ public sealed class ThingDef
     public string ThingName { get; }
     public ThingType ThingType { get; }
     public float BasePrice { get; }
+    public RecipeInput[] Inputs { get; set; } = System.Array.Empty<RecipeInput>();
+    public float Elasticity { get; set; }
 
     public ThingDef(int id, string thingId, string thingName, ThingType thingType, float basePrice)
     {
@@ -20,7 +28,17 @@ public sealed class ThingDef
         ThingName = thingName;
         ThingType = thingType;
         BasePrice = basePrice;
+        Elasticity = DefaultElasticity(thingType);
     }
+
+    public static float DefaultElasticity(ThingType type) => type switch
+    {
+        ThingType.Food => 0.1f,
+        ThingType.Cloth => 0.4f,
+        ThingType.Tools => 0.3f,
+        ThingType.Luxury => 0.8f,
+        _ => 0.3f,
+    };
 
     public override string ToString() => ThingName;
 }
