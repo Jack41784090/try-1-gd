@@ -15,6 +15,7 @@ var _rows: Dictionary = {}
 var _all_slots: Array = []
 var _main_vbox: VBoxContainer
 var _hint_label: Label
+var _selected_slot = null
 
 
 func _ready() -> void:
@@ -30,7 +31,7 @@ func _ready() -> void:
 	scroll.add_child(outer_vbox)
 
 	var title := Label.new()
-	title.text = "Drag warriors between rows to change formation"
+	title.text = "Click or drag warriors between rows to change formation"
 	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65, 1.0))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -95,6 +96,7 @@ func _build_rows() -> void:
 			var slot = _slot_script.new()
 			slot.setup(pos_val, i)
 			slot.warrior_dropped.connect(_on_warrior_dropped)
+			slot.slot_clicked.connect(_on_slot_clicked)
 			slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			slots_hbox.add_child(slot)
 			row_slots.append(slot)
@@ -105,6 +107,7 @@ func _build_rows() -> void:
 
 
 func refresh(squad: SquadStrategicData) -> void:
+	_clear_selection()
 	for slot in _all_slots:
 		slot.clear_warrior()
 
@@ -125,4 +128,37 @@ func refresh(squad: SquadStrategicData) -> void:
 
 
 func _on_warrior_dropped(warrior: CharacterSocialStats, slot) -> void:
+	_clear_selection()
 	formation_changed.emit(warrior, slot.row_position)
+
+
+func _on_slot_clicked(slot) -> void:
+	if _selected_slot == null:
+		if slot.warrior == null:
+			return
+		_selected_slot = slot
+		slot.set_selected(true)
+		return
+
+	if slot == _selected_slot:
+		_clear_selection()
+		return
+
+	var source_warrior: CharacterSocialStats = _selected_slot.warrior
+	var target_warrior: CharacterSocialStats = slot.warrior
+	var source_slot = _selected_slot
+
+	source_slot.set_warrior(target_warrior)
+	slot.set_warrior(source_warrior)
+
+	formation_changed.emit(source_warrior, slot.row_position)
+	if target_warrior:
+		formation_changed.emit(target_warrior, source_slot.row_position)
+
+	_clear_selection()
+
+
+func _clear_selection() -> void:
+	if _selected_slot:
+		_selected_slot.set_selected(false)
+		_selected_slot = null

@@ -2,6 +2,7 @@ class_name FormationSlot
 extends PanelContainer
 
 signal warrior_dropped(warrior: CharacterSocialStats, slot: Variant)
+signal slot_clicked(slot: Variant)
 
 var warrior: CharacterSocialStats = null
 var row_position: SquadBattleTypes.SquadEntityInSquadLocation
@@ -13,7 +14,9 @@ var _hp_label: Label
 var _style_empty: StyleBoxFlat
 var _style_filled: StyleBoxFlat
 var _style_hover: StyleBoxFlat
+var _style_selected: StyleBoxFlat
 var _is_hovered: bool = false
+var _is_selected: bool = false
 
 
 func _init() -> void:
@@ -55,6 +58,18 @@ func _init() -> void:
 	_style_hover.corner_radius_bottom_left = 4
 	_style_hover.corner_radius_bottom_right = 4
 
+	_style_selected = StyleBoxFlat.new()
+	_style_selected.bg_color = Color(0.25, 0.28, 0.12, 0.95)
+	_style_selected.border_width_left = 3
+	_style_selected.border_width_top = 3
+	_style_selected.border_width_right = 3
+	_style_selected.border_width_bottom = 3
+	_style_selected.border_color = Color(1.0, 0.85, 0.3, 1.0)
+	_style_selected.corner_radius_top_left = 4
+	_style_selected.corner_radius_top_right = 4
+	_style_selected.corner_radius_bottom_left = 4
+	_style_selected.corner_radius_bottom_right = 4
+
 
 func _ready() -> void:
 	var margin := MarginContainer.new()
@@ -85,6 +100,12 @@ func _ready() -> void:
 	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_hp_label)
 
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_class_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	_refresh_display()
 
 
@@ -107,6 +128,11 @@ func is_empty() -> bool:
 	return warrior == null
 
 
+func set_selected(selected: bool) -> void:
+	_is_selected = selected
+	_refresh_display()
+
+
 func _refresh_display() -> void:
 	if not is_node_ready():
 		return
@@ -123,12 +149,14 @@ func _refresh_display() -> void:
 		else:
 			_hp_label.text = "Healthy"
 			_hp_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4, 1.0))
-		add_theme_stylebox_override("panel", _style_hover if _is_hovered else _style_filled)
+		var style := _style_selected if _is_selected else (_style_hover if _is_hovered else _style_filled)
+		add_theme_stylebox_override("panel", style)
 	else:
 		_name_label.text = "(empty)"
 		_class_label.text = ""
 		_hp_label.text = ""
-		add_theme_stylebox_override("panel", _style_hover if _is_hovered else _style_empty)
+		var style := _style_selected if _is_selected else (_style_hover if _is_hovered else _style_empty)
+		add_theme_stylebox_override("panel", style)
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
@@ -197,19 +225,18 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_DRAG_BEGIN:
 			_is_hovered = false
+			_is_selected = false
+			_refresh_display()
 		NOTIFICATION_DRAG_END:
 			_is_hovered = false
 			_refresh_display()
 
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
-		if is_drag_successful():
-			return
-		var is_over := get_global_rect().has_point(event.global_position)
-		if is_over != _is_hovered:
-			_is_hovered = is_over
-			_refresh_display()
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			slot_clicked.emit(self)
+			accept_event()
 
 
 func _mouse_enter() -> void:
