@@ -844,15 +844,52 @@ func _tick_economy_and_spawn_caravans() -> void:
 	assert(economy_engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
 	var turn := game_scenario.world.turn_count
 	var tick_result := economy_engine.tick(turn)
-	_reconcile_arrived_caravans(tick_result)
-	_spawn_caravans_from_dispatches(tick_result)
 
-
-func _spawn_caravans_from_dispatches(tick_result: EconomyTickResult) -> void:
 	var Bridge = load("res://src/economy/caravan_bridge.gd")
+	var idle_caravans: Array[SquadStrategicData] = []
+	_deliver_arrived_caravans(Bridge, idle_caravans)
+
+	var pending_dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
 	for dispatch in tick_result.shipment_dispatches:
 		if _active_shipments.has(dispatch.shipment_id):
 			continue
+		pending_dispatches.append(dispatch)
+
+	_reassign_idle_caravans(Bridge, idle_caravans, pending_dispatches)
+	_spawn_new_caravans(Bridge, pending_dispatches)
+	_despawn_excess_caravans(idle_caravans)
+
+
+func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadStrategicData]) -> void:
+	for squad in game_scenario.world.roaming_squads:
+		if not squad.is_caravan():
+			continue
+		if not squad.has_reached_destination():
+			continue
+		var dest_loc := game_scenario.world.get_location_by_id(squad.cargo_destination_id)
+		if dest_loc and dest_loc.has_economy():
+			Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
+		for shipment_id in _active_shipments:
+			if _active_shipments[shipment_id] == squad.squad_id:
+				_active_shipments.erase(shipment_id)
+				break
+		turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo_destination_id])
+		Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo_destination_id])
+		idle_caravans.append(squad)
+
+
+func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadStrategicData], pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
+	while not idle_caravans.is_empty() and not pending_dispatches.is_empty():
+		var squad: SquadStrategicData = idle_caravans.pop_back()
+		var dispatch: EconomyTickResult.ShipmentDispatch = pending_dispatches.pop_front()
+		Bridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
+		_active_shipments[dispatch.shipment_id] = squad.squad_id
+		turn_log.append("CARAVAN reassigned %s at %s → %s" % [
+			squad.squad_name, squad.current_location_id, squad.cargo_destination_id])
+
+
+func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
+	for dispatch in pending_dispatches:
 		var squad: SquadStrategicData = Bridge.create_caravan_squad(
 			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
 		)
@@ -862,34 +899,17 @@ func _spawn_caravans_from_dispatches(tick_result: EconomyTickResult) -> void:
 		turn_log.append("CARAVAN spawned %s at %s → %s" % [
 			squad.squad_name, squad.current_location_id, squad.cargo_destination_id])
 		Log.info("Presenter", "Spawned caravan: %s at %s → %s (%d guards)" % [
-			squad.squad_name,
-			squad.current_location_id,
-			squad.cargo_destination_id,
-			dispatch.guard_count,
+			squad.squad_name, squad.current_location_id,
+			squad.cargo_destination_id, dispatch.guard_count,
 		])
 
 
-func _reconcile_arrived_caravans(_tick_result: EconomyTickResult) -> void:
-	var Bridge = load("res://src/economy/caravan_bridge.gd")
-	var to_remove: Array[String] = []
-	for squad in game_scenario.world.roaming_squads:
-		if not squad.is_caravan():
-			continue
-		if squad.has_reached_destination():
-			var dest_loc := game_scenario.world.get_location_by_id(squad.cargo_destination_id)
-			if dest_loc and dest_loc.has_economy():
-				Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
-			to_remove.append(squad.squad_id)
-			turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo_destination_id])
-			Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo_destination_id])
-
-	for squad_id in to_remove:
-		game_scenario.world.remove_roaming_squad(squad_id)
-		ai_fleet.unregister_caravan(squad_id)
-		for shipment_id in _active_shipments:
-			if _active_shipments[shipment_id] == squad_id:
-				_active_shipments.erase(shipment_id)
-				break
+func _despawn_excess_caravans(idle_caravans: Array[SquadStrategicData]) -> void:
+	for squad in idle_caravans:
+		turn_log.append("CARAVAN retired %s" % squad.squad_name)
+		Log.info("Presenter", "Retiring idle caravan: %s" % squad.squad_name)
+		game_scenario.world.remove_roaming_squad(squad.squad_id)
+		ai_fleet.unregister_caravan(squad.squad_id)
 
 
 func handle_caravan_defeated(caravan: SquadStrategicData, attacker: SquadStrategicData) -> Dictionary:

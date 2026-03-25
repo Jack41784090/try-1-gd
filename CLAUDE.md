@@ -98,7 +98,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Layer 5 — **WarriorAnimController** (warrior_anim_controller.gd): Node that translates high-level `play_behavior()`/`set_expression()`/`play_action()` into AnimationTree parameter changes
   - `WarriorRig` (warrior_rig.gd) — Node2D scene with Skeleton2D, Face (Eyes+Mouth sprites), AnimPlayer, AnimTree, controller. Generates **placeholder Polygon2D body parts** at runtime via `_build_placeholder_body()`: top-level Polygon2D children synced to bone transforms each frame in `_process()`. Class-based palettes (Landsknecht=red, Healer=blue). Visuals tracked per bone name in `_limb_nodes` — `_replace_limb(bone_name, texture)` swaps placeholder polygons for a Sprite2D on a single bone. `apply_config()` does per-bone replacement (only bones with textures are replaced; others keep placeholders)
   - `WarriorRigConfig` (rig_config.gd) — Resource with per-bone-segment textures (Head, Torso, Hips, LeftArm/Forearm/Hand, RightArm/Forearm/Hand, LeftLeg/Shin/Foot, RightLeg/Shin/Foot) + face spritesheets. `get_bone_textures()` returns bone_name→Texture2D dictionary for only the populated fields
-  - `WarriorRigConfigFactory` (rig_config_factory.gd) — Static loader + cache (same pattern as `AIProfileFactory`)
+  - `WarriorRigConfigFactory` (rig_config_factory.gd) — Static loader + cache (same pattern as `AIProfileFactory`). Maps all 7 entity classes to config .tres files
   - `WarriorRigFactory` (rig_factory.gd) — Creates rigs from warriors or NPC character IDs (NPC appearance seeded from ID hash)
   - `AnimTypes` (types.gd) — `Behavior` enum
   - Adding expressions/actions = create `.tres` files, no code changes
@@ -217,11 +217,12 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5** and **
   - Key price dynamics: production locations have low prices (0.50), importing locations adjust based on supply/demand ratio (0.77-1.25), end-of-chain locations (castles) have higher prices
   - Supply chain patterns: raw material extraction (wool, iron_ore) → crafted goods (cloth, tools, luxury) via input chains, hub-and-spoke (via market towns), dual sourcing (multiple import rules per location)
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): Economy→Strategy integration that materializes trade dispatches as trackable strategy squads
-  - `CaravanBridge` — static utility class (via `class_name`). `create_caravan_squad(move, shipment_id, guard_count)` creates `SquadStrategicData` with `squad_role=MERCHANT`, cargo manifest (keyed by `thing_id: String`), guards (via `WarriorFactory`). `apply_delivery(squad, inventory, goods)` transfers cargo to `LocationInventory`. `apply_loot(caravan, attacker)` transfers cargo to attacking squad on defeat
+  - `CaravanBridge` — static utility class (via `class_name`). `create_caravan_squad(move, shipment_id, guard_count)` creates `SquadStrategicData` with `squad_role=MERCHANT`, cargo manifest (keyed by `thing_id: String`), guards (via `WarriorFactory`). Names generated via `ConvoyNames.next_name()` (adjective + goods name + "Convoy"). `reassign_caravan(squad, move, shipment_id)` reuses an existing arrived caravan for a new dispatch (updates cargo, destination, food). `apply_delivery(squad, inventory, goods)` transfers cargo to `LocationInventory`. `apply_loot(caravan, attacker)` transfers cargo to attacking squad on defeat
+  - `ConvoyNames` (`src/economy/convoy_names.gd`) — deterministic convoy naming pool for economy shipments. ~730 unique adjectives cycled sequentially via `_next_index`. `next_name(goods_name)` returns "{Adjective} {Goods} Convoy"
   - `CaravanBrain` (`src/strategy/ai/caravan_brain.gd`) — Simple AI: always TRAVEL toward `cargo_destination_id` via `TravelGraph.find_path()` next-hop. REST if already at destination or no path
   - `EconomyTickResult.ShipmentDispatch` — inner class emitted by `EconomyEngine._phase_trade_dispatch()` containing `EconomyMove`, `shipment_id`, `guard_count` (based on cargo value)
-  - **Presenter integration**: `StrategyPresenter._tick_economy_and_spawn_caravans()` called in `_execute_activity_obj()` after `prepare_ai_turns()`. Ticks economy engine, reconciles arrived caravans (delivery), spawns new caravans from dispatches. Caravans registered with `AIFleetManager.register_caravan()` for brain/executor management
-  - **Lifecycle**: Economy dispatch → CaravanBridge creates squad → AIFleetManager registers brain → CaravanBrain pathfinds each turn → arrival triggers delivery → squad removed + unregistered
+  - **Presenter integration**: `StrategyPresenter._tick_economy_and_spawn_caravans()` called in `_execute_activity_obj()` after `prepare_ai_turns()`. Ticks economy engine, then runs caravan lifecycle: `_deliver_arrived_caravans()` delivers goods and collects idle caravans → `_reassign_idle_caravans()` reuses idle caravans for new dispatches via `CaravanBridge.reassign_caravan()` → `_spawn_new_caravans()` creates new squads only for remaining unmatched dispatches → `_despawn_excess_caravans()` removes idle caravans with no new assignment
+  - **Lifecycle**: Economy dispatch → idle caravan reassigned OR new squad created → AIFleetManager registers brain → CaravanBrain pathfinds each turn → arrival triggers delivery → caravan becomes idle → reassigned to next dispatch or despawned if no demand
   - `StrategyTypes.SquadRole` — COMBAT (default), MERCHANT (caravans). `SquadStrategicData.is_caravan()`, `has_reached_destination()`, `cargo_manifest` (keyed by `thing_id: String`), `cargo_destination_id`, `shipment_id`
   - `EconomyTypes.MoveState` — expanded: PENDING, IN_TRANSIT, COMPLETED, CANCELLED, CAPTURED
   - **Dynamic shop pricing**: `ShopPresenter` accepts optional `Location` for economy-driven prices via `Location.inventory.prices`
@@ -356,7 +357,8 @@ return updates
 - `resources/animation/` — animation data files
   - `expressions/` — iExpression .tres (eye + mouth clip pairs)
   - `actions/` — AnimAction .tres (body clip + expression pairs)
-  - `configs/` — WarriorRigConfig .tres (per-class textures)
+  - `configs/` — WarriorRigConfig .tres per class (landsknecht, healer, crossbowman, arquebusier, pikeman, feldprediger, gelehrter). References geometric textures from `assets/rig_textures/`
+- `assets/rig_textures/` — Per-class geometric placeholder textures (15 bone PNGs per class, 7 classes). Generated by `tools/generate_rig_textures.py`. Each class has distinct colors/patterns: Landsknecht (red/striped), Healer (blue/cross), Crossbowman (green/diamond), Arquebusier (brown/hatched), Pikeman (silver/scale-mail), Feldprediger (purple/chevron), Gelehrter (magenta/arcane-circles)
 - `src/character/` — character data classes
 - `src/economy/` — Odoo-inspired economy engine: types, thing, person, population, location inventory, economy move, supply rule, tick result, engine
 - `src/singletons/` — autoloaded event buses

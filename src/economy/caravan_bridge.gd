@@ -12,7 +12,7 @@ static func create_caravan_squad(
 ) -> SquadStrategicData:
 	var squad := SquadStrategicData.new()
 	squad.squad_id = "caravan_%s" % shipment_id
-	squad.squad_name = "%s Caravan" % move.thing.thing_name.capitalize()
+	squad.squad_name = _next_convoy_name(move.thing.thing_name)
 	squad.starting_location_id = move.source_location_id
 	squad.current_location_id = move.source_location_id
 	squad.squad_role = StrategyTypes.SquadRole.MERCHANT
@@ -95,8 +95,33 @@ static func apply_loot(
 	return looted
 
 
+static func reassign_caravan(
+	squad: SquadStrategicData,
+	move: EconomyMove,
+	shipment_id: String,
+) -> void:
+	squad.cargo_manifest.clear()
+	squad.cargo_manifest[move.thing.thing_id] = move.quantity
+	squad.cargo_destination_id = move.dest_location_id
+	squad.shipment_id = shipment_id
+	squad.money = move.quantity * move.thing.base_price
+	squad.food = maxi(squad.get_living_warriors().size() * move.turns_remaining, 3)
+	Log.info("Caravan", "Reassigned %s: %s → %s (%.1f %s)" % [
+		squad.squad_name, squad.current_location_id,
+		move.dest_location_id, move.quantity, move.thing.thing_name,
+	])
+
+
 static func _find_thing(thing_id: String, goods: Array[Thing]) -> Thing:
 	for thing in goods:
 		if thing.thing_id == thing_id:
 			return thing
 	return null
+
+
+static var _Names = null
+
+static func _next_convoy_name(goods_name: String) -> String:
+	if _Names == null:
+		_Names = load("res://src/economy/convoy_names.gd")
+	return _Names.next_name(goods_name)
