@@ -213,5 +213,14 @@ func show_scouting(_world, _squad): pass
 func show_missions(_factions): pass
 func show_market(_world, _location, _visited_ids): pass
 func hide_market(): pass
+var last_notifications: Array = []
+
+func show_notifications(_notifications):
+	last_notifications.clear()
+	for n in _notifications:
+		last_notifications.append(n)
+
+func clear_notifications():
+	last_notifications.clear()
 
 #endregion

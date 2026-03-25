@@ -32,7 +32,7 @@ if [ -z "$CMD" ]; then
     echo ""
     echo "Commands: status, look, warriors, travel <id>, rest, forage, drill,"
     echo "  patrol, heal, buy, mercenary, mass, attack <id>, contacts,"
-    echo "  missions, events, economy, map, help, quit"
+    echo "  missions, events, notifications, economy, map, help, quit"
     exit 1
 fi
 

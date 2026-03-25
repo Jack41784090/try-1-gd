@@ -12,7 +12,7 @@ func get_notifications() -> Array[NotificationData]:
 	return _notifications.duplicate()
 
 
-func collect_contact_notifications(before_states: Dictionary, after_states: Dictionary, world, player_squad_id: String, turn: int) -> void:
+func collect_contact_notifications(before_states: Dictionary, after_states: Dictionary, world, player_squad_id: String, turn: int, squad_names: Dictionary = {}) -> void:
 	for key in after_states:
 		var after_state: int = after_states[key]
 		var before_state: int = before_states.get(key, StrategyTypes.ContactState.NONE)
@@ -26,7 +26,7 @@ func collect_contact_notifications(before_states: Dictionary, after_states: Dict
 		if observer_id != player_squad_id:
 			continue
 
-		var target_name := _get_squad_name(world, target_id)
+		var target_name := _get_squad_name(world, target_id, squad_names)
 
 		if before_state == StrategyTypes.ContactState.NONE and after_state >= StrategyTypes.ContactState.SUSPECTED:
 			_notifications.append(NotificationData.create(
@@ -36,12 +36,11 @@ func collect_contact_notifications(before_states: Dictionary, after_states: Dict
 				turn,
 			))
 
-		elif before_state < after_state and before_state > StrategyTypes.ContactState.NONE:
-			var state_name: String = StrategyTypes.ContactState.keys()[after_state]
+		elif before_state > after_state and after_state > StrategyTypes.ContactState.NONE:
 			_notifications.append(NotificationData.create(
-				NotificationData.NotificationType.CONTACT_STATE_CHANGED,
-				"Contact %s" % state_name.capitalize(),
-				"%s is now %s" % [target_name, state_name],
+				NotificationData.NotificationType.CONTACT_DECAYING,
+				"Contact Stalling",
+				"%s may have moved — contact fading" % target_name,
 				turn,
 			))
 
@@ -57,7 +56,7 @@ func collect_contact_notifications(before_states: Dictionary, after_states: Dict
 			if observer_id != player_squad_id:
 				continue
 			var target_id: String = parts[1]
-			var target_name := _get_squad_name(world, target_id)
+			var target_name := _get_squad_name(world, target_id, squad_names)
 			_notifications.append(NotificationData.create(
 				NotificationData.NotificationType.CONTACT_LOST,
 				"Contact Lost",
@@ -93,17 +92,19 @@ func collect_mission_notifications(completed_missions: Array, turn: int) -> void
 		))
 
 
-func collect_caravan_arrival_notifications(arrived_names: Array[String], turn: int) -> void:
-	for name in arrived_names:
+func collect_mission_unlocked_notifications(unlocked_names: Array[String], turn: int) -> void:
+	for mission_name in unlocked_names:
 		_notifications.append(NotificationData.create(
-			NotificationData.NotificationType.CARAVAN_ARRIVED,
-			"Caravan Arrived",
-			"%s delivered goods" % name,
+			NotificationData.NotificationType.MISSION_UNLOCKED,
+			"New Mission",
+			"%s" % mission_name,
 			turn,
 		))
 
 
-func _get_squad_name(world, squad_id: String) -> String:
+func _get_squad_name(world, squad_id: String, squad_names: Dictionary = {}) -> String:
+	if squad_names.has(squad_id):
+		return squad_names[squad_id]
 	for sq in world.roaming_squads:
 		if sq.squad_id == squad_id:
 			return sq.squad_name

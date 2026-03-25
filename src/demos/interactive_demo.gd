@@ -24,6 +24,7 @@ extends Node
 ##   contacts      — Show contact intel on all known squads
 ##   missions      — Show active and completed missions
 ##   events        — Show events that have fired
+##   notifications — Active notifications (contacts, resources, missions)
 ##   economy       — Show economy state per location
 ##   map           — Show all locations and connections
 ##   help          — Show available commands
@@ -191,6 +192,8 @@ func _handle_command(input: String):
 			_cmd_missions()
 		"events":
 			_cmd_events()
+		"notifications", "notif", "n":
+			_cmd_notifications()
 		"economy", "econ", "e":
 			_cmd_economy()
 		"map":
@@ -237,6 +240,7 @@ func _cmd_help():
 	_print_line("  CONTACTS (c)      Show contact intel")
 	_print_line("  MISSIONS (m)      Show missions")
 	_print_line("  EVENTS            Show fired events")
+	_print_line("  NOTIF   (n)       Active notifications")
 	_print_line("  ECONOMY (e)       Economy overview")
 	_print_line("  MAP               Show world map")
 	_print_line("  HELP    (h/?)     This help text")
@@ -466,6 +470,22 @@ func _cmd_events():
 	else:
 		for mid in _missions_completed:
 			_print_line("  - %s" % mid)
+	_print_separator()
+
+
+func _cmd_notifications():
+	var view = presenter.view
+	var notifs: Array = view.last_notifications if "last_notifications" in view else []
+	_print_separator()
+	_print_line("=== Active Notifications ===")
+	if notifs.is_empty():
+		_print_line("  No active notifications.")
+	else:
+		for n in notifs:
+			var type_name: String = NotificationData.NotificationType.keys()[n.type]
+			_print_line("  [%s] %s" % [type_name, n.title])
+			if n.description != "":
+				_print_line("    %s" % n.description)
 	_print_separator()
 
 

@@ -32,6 +32,9 @@ var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = { }
 var _pending_results: Array[GenericResult] = []
 var visited_locations: Array[String] = []
+var _notification_collector := NotificationCollector.new()
+var _last_mission_results: Array = []
+var _last_unlocked_missions: Array[String] = []
 
 var current_location:
 	get:
@@ -326,6 +329,8 @@ func _execute_activity_obj(activity: Activity) -> void:
 	var player_location_before = actor.player_squad.current_location_id
 
 	var ai_results = ai_fleet.prepare_ai_turns()
+	var contact_before_states := _snapshot_contact_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	var squad_names_cache := _cache_squad_names()
 	_tick_economy_and_spawn_caravans()
 	var turn_entries = _build_karma_sorted_entries(ai_results)
 
@@ -350,9 +355,10 @@ func _execute_activity_obj(activity: Activity) -> void:
 		is_executing_activity = false
 		return
 
-	_update_contacts(activity, player_location_before, ai_results)
+	_update_contacts(activity, player_location_before, ai_results, contact_before_states, squad_names_cache)
 
 	await _check_missions()
+	_collect_and_show_notifications()
 	if actor.player_squad.current_location_id not in visited_locations:
 		visited_locations.append(actor.player_squad.current_location_id)
 	actor.advance_turn()
@@ -416,7 +422,7 @@ func _exec_play_animchanges_loop(activity, state):
 		await _animate_stat_changes()
 
 
-func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
+func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary, pre_economy_states: Dictionary = {}, squad_names: Dictionary = {}) -> void:
 	# Updates the contact/detection system after a turn:
 	# 1. Builds activity logs (who did what) and edge logs (who moved where)
 	# 2. Runs contact_tracker.update_all_contacts() to advance detection progress for all squads
@@ -455,7 +461,10 @@ func _update_contacts(activity: Activity, player_location_before: String, ai_res
 	if player.scouting_focus and not player.scouting_focus.is_empty():
 		focus_map[player.squad_id] = player.scouting_focus
 
+	var before_states: Dictionary = pre_economy_states if not pre_economy_states.is_empty() else _snapshot_contact_states(tracker, player.squad_id)
 	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count, focus_map)
+	var after_states := _snapshot_contact_states(tracker, player.squad_id)
+	_notification_collector.collect_contact_notifications(before_states, after_states, world, player.squad_id, world.turn_count, squad_names)
 
 	var location = world.get_location_by_id(player.current_location_id)
 	if location:
@@ -511,6 +520,55 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 		)
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
+
+
+func _snapshot_contact_states(tracker, player_squad_id: String) -> Dictionary:
+	var states := {}
+	var contacts = tracker.get_contacts_for(player_squad_id)
+	for contact in contacts:
+		var key := "%s::%s" % [contact.observer_id, contact.target_id]
+		states[key] = contact.get_state()
+	return states
+
+
+func _cache_squad_names() -> Dictionary:
+	var names := {}
+	for sq in game_scenario.world.roaming_squads:
+		names[sq.squad_id] = sq.squad_name
+	return names
+
+
+func _collect_and_show_notifications() -> void:
+	var turn := game_scenario.world.turn_count
+
+	_notification_collector.collect_resource_notifications(actor.player_squad, turn)
+
+	if not _last_mission_results.is_empty():
+		_notification_collector.collect_mission_notifications(_last_mission_results, turn)
+		_last_mission_results.clear()
+
+	if not _last_unlocked_missions.is_empty():
+		_notification_collector.collect_mission_unlocked_notifications(_last_unlocked_missions, turn)
+		_last_unlocked_missions.clear()
+
+	var notifications := _notification_collector.get_notifications()
+	if notifications.size() > 0:
+		for n in notifications:
+			if n.type == NotificationData.NotificationType.CONTACT_DETECTED or n.type == NotificationData.NotificationType.CONTACT_DECAYING or n.type == NotificationData.NotificationType.CONTACT_LOST:
+				n.action = on_scouting_requested
+				n.action_label = "Open Scouting"
+			elif n.type == NotificationData.NotificationType.MISSION_UNLOCKED or n.type == NotificationData.NotificationType.MISSION_COMPLETED:
+				n.action = on_missions_requested
+				n.action_label = "Open Missions"
+			elif n.type == NotificationData.NotificationType.LOW_FOOD:
+				var loc = actor.current_location
+				if loc and loc.has_shop():
+					n.action = on_shop_requested
+					n.action_label = "Open Shop"
+		view.show_notifications(notifications)
+	else:
+		view.clear_notifications()
+	_notification_collector.clear()
 
 
 func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[GenericResult]) -> bool:
@@ -595,6 +653,12 @@ func _check_missions() -> void:
 			all_results.append(r)
 	if all_results.is_empty():
 		return
+	_last_mission_results = all_results
+	for r in all_results:
+		for unlocked_id in r.unlocked_missions:
+			var unlocked_mission := _find_mission_by_id(unlocked_id)
+			if unlocked_mission:
+				_last_unlocked_missions.append(unlocked_mission.mission_name)
 	for r in all_results:
 		var mission = _find_mission_by_id(r.mission_id)
 		if mission:
