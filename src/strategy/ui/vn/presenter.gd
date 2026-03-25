@@ -44,7 +44,7 @@ func queue_event_chain(chain_path: String) -> void:
 	# Adds an EventChain resource path to the play queue (played FIFO by play_next_queued_chain)
 	# e.g., queue_event_chain("res://resources/event_chains/camp_fire.tres") → queue=["camp_fire.tres"]
 	event_chain_queue.append(chain_path)
-	print("[VnPresenter] Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
+	Log.debug("VnPresenter", "Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
 
 
 func play_next_queued_chain() -> bool:

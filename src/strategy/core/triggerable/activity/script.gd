@@ -122,18 +122,18 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 		var c_chance = chain.chance
 		# 4.1 Check if chained trigger's conditions pass the current context
 		if chained_trigger.can_trigger(context):
-			# 4.2 Roll for chance (or auto-pass if chance == 1.0)
 			if c_chance == 1.0 or (c_chance < 1.0 and RandomNumberGenerator.new().randf() <= c_chance):
-				print("[Activity] Executing chained activity: ", chained_trigger.trigger_name)
+				Log.debug("Activity", "Executing chained activity: %s" % chained_trigger.trigger_name)
 				var chained_results = chained_trigger.execute(context)
 				if chained_results is Array:
 					for cr in chained_results:
 						if cr is ActivityResult:
 							all_triggered_results.append(cr)
-				elif chained_results is ActivityResult:
-					all_triggered_results.append(chained_results)
+				else:
+					if chained_results is ActivityResult:
+						all_triggered_results.append(chained_results)
 			else:
-				print("[Activity] Skipped chained activity (c_chance failed): ", chained_trigger.trigger_name)
+				Log.debug("Activity", "Skipped chained activity (chance failed): %s" % chained_trigger.trigger_name)
 
 	# 5. Return array of all results — primary + any chained
 	return all_triggered_results

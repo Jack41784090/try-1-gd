@@ -35,6 +35,7 @@ var visited_locations: Array[String] = []
 var _notification_collector := NotificationCollector.new()
 var _last_mission_results: Array = []
 var _last_unlocked_missions: Array[String] = []
+var turn_log: Array[String] = []
 
 var current_location:
 	get:
@@ -325,10 +326,25 @@ func _execute_activity_obj(activity: Activity) -> void:
 		return
 	is_executing_activity = true
 	view.disable_all_activity_buttons()
+	turn_log.clear()
 
 	var player_location_before = actor.player_squad.current_location_id
+	var activity_name: String = StrategyTypes.ActivityType.keys()[activity.activity_type]
+	turn_log.append("PLAYER %s at %s" % [activity_name, player_location_before])
 
 	var ai_results = ai_fleet.prepare_ai_turns()
+	var decisions = ai_results["decisions_this_turn"]
+	for squad_id in decisions:
+		var d = decisions[squad_id]
+		var sq_name: String = d["squad"].squad_name
+		var at_name: String = StrategyTypes.ActivityType.keys()[d["activity_type"]]
+		var sq_loc: String = d.get("location_at_decision", "")
+		var dest: String = d["context"].get("travel_destination", "")
+		if not dest.is_empty():
+			turn_log.append("AI %s %s at %s → %s" % [sq_name, at_name, sq_loc, dest])
+		else:
+			turn_log.append("AI %s %s at %s" % [sq_name, at_name, sq_loc])
+
 	var contact_before_states := _snapshot_contact_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
 	var squad_names_cache := _cache_squad_names()
 	_tick_economy_and_spawn_caravans()
@@ -350,12 +366,26 @@ func _execute_activity_obj(activity: Activity) -> void:
 				_resolve_ai_combat_from_results(results, entry["squad_id"])
 
 	ai_fleet.cleanup_defeated_squads()
+	turn_log.append_array(ai_fleet.combat_log)
+	ai_fleet.combat_log.clear()
 
 	if _check_game_over():
 		is_executing_activity = false
 		return
 
+	var contact_before_for_log := contact_before_states.duplicate()
 	_update_contacts(activity, player_location_before, ai_results, contact_before_states, squad_names_cache)
+	var contact_after_states := _snapshot_contact_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	for key in contact_after_states:
+		var after_state: int = contact_after_states[key]
+		var before_state: int = contact_before_for_log.get(key, StrategyTypes.ContactState.NONE)
+		if after_state != before_state:
+			var parts: PackedStringArray = key.split("::")
+			var target_id: String = parts[1] if parts.size() > 1 else key
+			var target_name: String = squad_names_cache.get(target_id, target_id)
+			var before_name: String = StrategyTypes.ContactState.keys()[before_state]
+			var after_name: String = StrategyTypes.ContactState.keys()[after_state]
+			turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
 
 	await _check_missions()
 	_collect_and_show_notifications()
@@ -730,6 +760,9 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	is_in_combat_encounter = false
 
 	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
+	var outcome_str := "VICTORY" if result.victory else ("FLED" if result.fled else ("NEGOTIATED" if result.negotiated else "DEFEAT"))
+	turn_log.append("COMBAT %s — casualties:%d escaped:%d" % [
+		outcome_str, result.player_casualties.size(), result.escaped_warriors.size()])
 
 	var morale_before = actor.player_squad.get_morale()
 
@@ -740,11 +773,13 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	for casualty_id in result.player_casualties:
 		var warrior = actor.player_squad.get_warrior_by_id(casualty_id)
 		if warrior:
+			turn_log.append("CASUALTY %s" % warrior.name)
 			Log.info("Presenter", "Casualty: %s" % warrior.name)
 
 	for escaped_id in result.escaped_warriors:
 		var warrior = actor.player_squad.get_warrior_by_id(escaped_id)
 		if warrior:
+			turn_log.append("ESCAPED %s (injured)" % warrior.name)
 			Log.info("Presenter", "Escaped (injured): %s" % warrior.name)
 
 	if result.loot:
@@ -824,6 +859,8 @@ func _spawn_caravans_from_dispatches(tick_result: EconomyTickResult) -> void:
 		game_scenario.world.add_roaming_squad(squad)
 		ai_fleet.register_caravan(squad)
 		_active_shipments[dispatch.shipment_id] = squad.squad_id
+		turn_log.append("CARAVAN spawned %s at %s → %s" % [
+			squad.squad_name, squad.current_location_id, squad.cargo_destination_id])
 		Log.info("Presenter", "Spawned caravan: %s at %s → %s (%d guards)" % [
 			squad.squad_name,
 			squad.current_location_id,
@@ -843,6 +880,7 @@ func _reconcile_arrived_caravans(_tick_result: EconomyTickResult) -> void:
 			if dest_loc and dest_loc.has_economy():
 				Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
 			to_remove.append(squad.squad_id)
+			turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo_destination_id])
 			Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo_destination_id])
 
 	for squad_id in to_remove:

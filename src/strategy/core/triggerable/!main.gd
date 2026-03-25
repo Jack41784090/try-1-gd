@@ -32,14 +32,15 @@ func check_conditions(context: Dictionary) -> bool: # Evaluates all conditions a
 	# ALL conditions must pass (AND logic) for the triggerable to fire
 	# e.g., conditions: [LOCATION="salzburg", ACTIVITY_TYPE=FORAGE]
 	#   → context={location: "salzburg", activity: FORAGE} → both pass → true
-	#   → context={location: "vienna", activity: FORAGE} → LOCATION fails → false	print("		Checking conditions for Triggerable: %s" % trigger_name)
+	#   → context={location: "vienna", activity: FORAGE} → LOCATION fails → false
+	Log.trace("Triggerable", "Checking conditions for: %s" % trigger_name)
 	for condition in conditions:
 		var e = condition.evaluate(context)
 		if not e:
-			print("		❎: %s" % condition._to_string())
+			Log.trace("Triggerable", "  ❎ %s" % condition._to_string())
 			return false
 		else:
-			print("		✅: %s" % condition._to_string())
+			Log.trace("Triggerable", "  ✅ %s" % condition._to_string())
 	return true
 
 func can_trigger(context: Dictionary) -> bool:

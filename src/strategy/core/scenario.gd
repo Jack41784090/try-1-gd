@@ -15,23 +15,22 @@ var ending_triggered: Ending = null
 var _initialized: bool = false
 
 func _init(config: Dictionary = {}) -> void:
-	print(" --- new scenario init --- ")
+	Log.debug("Scenario", "init (config empty=%s)" % str(config.is_empty()))
 
 	if config.is_empty():
-		print(" Should follow a \"Manual INIT func call\" ")
+		pass
 	else:
-		print(" --- Config is not empty, setting up now using premade configs --- ")
 		_setup(config)
 		_initialized = true
 
 func initialize(_config = {}) -> void:
-	print(" --- Manual INIT func called --- ")
+	Log.debug("Scenario", "Manual initialize called")
 	assert(not _initialized, "scenario->initialize must not be called when it has already initialised through other means.")
 	_setup(_config)
 	_initialized = true
 
 func _setup(config: Dictionary) -> void:
-	# Core setup that loads all game data: world, squads, factions, triggerables (events, activities, missions, endings)
+	Log.debug("Scenario", "Setup with config keys: %s" % str(config.keys()))
 	# Uses exported @export properties if already set (from .tres resource files), falls back to config dict
 	# Registration order: factions→missions → endings → events → activities → set location
 	# e.g., world has 5 locations, 2 factions with 3 missions each, 10 generic events, 8 activities
@@ -285,7 +284,7 @@ func _load_generic_events() -> Array[GameEvent]:
 func _collect_event_resources(base_path: String, target: Array) -> void:
 	var dir := DirAccess.open(base_path)
 	if dir == null:
-		push_warning("GameScenario: Missing event directory: %s" % base_path)
+		Log.warn("Scenario", "Missing event directory: %s" % base_path)
 		return
 	dir.list_dir_begin()
 	var entry = dir.get_next()
@@ -299,7 +298,7 @@ func _collect_event_resources(base_path: String, target: Array) -> void:
 			if resource and resource is GameEvent:
 				target.append(resource)
 			else:
-				push_warning("GameScenario: Skipping non-GameEvent resource: %s" % rp)
+				Log.warn("Scenario", "Skipping non-GameEvent resource: %s" % rp)
 		entry = dir.get_next()
 	dir.list_dir_end()
 
@@ -312,7 +311,7 @@ func _load_generic_activities() -> Array[Activity]:
 func _collect_activity_resources(base_path: String, target: Array) -> void:
 	var dir := DirAccess.open(base_path)
 	if dir == null:
-		push_warning("TrainingScreen: Missing activity directory: %s" % base_path)
+		Log.warn("Scenario", "Missing activity directory: %s" % base_path)
 		return
 	dir.list_dir_begin()
 	var entry = dir.get_next()
@@ -326,6 +325,6 @@ func _collect_activity_resources(base_path: String, target: Array) -> void:
 			if resource and resource is Activity:
 				target.append(resource)
 			else:
-				push_warning("GameScenario: Skipping non-Activity resource: %s" % rp)
+				Log.warn("Scenario", "Skipping non-Activity resource: %s" % rp)
 		entry = dir.get_next()
 	dir.list_dir_end()

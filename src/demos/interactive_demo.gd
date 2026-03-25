@@ -361,22 +361,25 @@ func _cmd_travel(destination: String):
 		return
 
 	_print_line("Setting out for %s..." % to_loc.location_name)
+	var snap := _snapshot_state()
 	await presenter.on_travel_confirmed(destination)
 
 	while presenter.actor.walking_towards["location"] != null:
-		_print_line("  ... still traveling toward %s (turn %d)" % [to_loc.location_name, world.turn_count])
+		_print_turn_report(snap)
+		snap = _snapshot_state()
 		await presenter.on_continue_travel()
 
 	_print_line("Arrived at %s!" % to_loc.location_name)
-	_cmd_status()
+	_print_turn_report(snap)
 
 
 func _cmd_activity(type: StrategyTypes.ActivityType, description: String):
 	_print_line(description)
+	var snap := _snapshot_state()
 	presenter.on_activity_requested(type)
 	while presenter.is_executing_activity:
 		await get_tree().create_timer(0.05).timeout
-	_cmd_status()
+	_print_turn_report(snap)
 
 
 func _cmd_attack(target_id: String):
@@ -401,10 +404,11 @@ func _cmd_attack(target_id: String):
 		return
 
 	_print_line("Attacking %s!" % target_id)
+	var snap := _snapshot_state()
 	presenter.on_activity_requested(StrategyTypes.ActivityType.ATTACK)
 	while presenter.is_executing_activity:
 		await get_tree().create_timer(0.05).timeout
-	_cmd_status()
+	_print_turn_report(snap)
 
 
 func _cmd_contacts():
@@ -555,6 +559,166 @@ func _cmd_quit():
 	_should_quit = true
 	await get_tree().create_timer(0.2).timeout
 	get_tree().quit()
+
+#endregion
+
+
+#region Turn Report
+
+func _snapshot_state() -> Dictionary:
+	var contacts_snap := {}
+	var ct = world.contact_tracker
+	if ct:
+		for contact in ct.get_contacts_for(player_squad.squad_id):
+			contacts_snap[contact.target_id] = {
+				"progress": contact.progress,
+				"state": contact.get_state(),
+			}
+
+	var squad_positions := {}
+	for sq in world.roaming_squads:
+		squad_positions[sq.squad_id] = {
+			"location": sq.current_location_id,
+			"warriors": sq.get_living_warriors().size(),
+			"name": sq.squad_name,
+		}
+
+	return {
+		"turn": world.turn_count,
+		"location": player_squad.current_location_id,
+		"warriors": player_squad.get_living_warriors().size(),
+		"injured": player_squad.get_living_warriors().filter(func(w): return w.is_injured).size(),
+		"morale": player_squad.get_morale(),
+		"food": player_squad.food,
+		"gold": player_squad.money,
+		"tools": player_squad.travel_tools,
+		"karma": player_squad.karma,
+		"events_count": _events_fired.size(),
+		"missions_count": _missions_completed.size(),
+		"contacts": contacts_snap,
+		"squads": squad_positions,
+	}
+
+
+func _print_turn_report(before: Dictionary):
+	var after := _snapshot_state()
+	_print_separator()
+	_print_line("── Turn %d → %d Report ──" % [before["turn"], world.turn_count])
+
+	if presenter.turn_log.size() > 0:
+		_print_line("")
+		_print_line("  Pipeline:")
+		for entry in presenter.turn_log:
+			_print_line("    %s" % entry)
+
+	var new_events := _events_fired.slice(before["events_count"])
+	var new_missions := _missions_completed.slice(before["missions_count"])
+	if new_events.size() > 0 or new_missions.size() > 0:
+		_print_line("")
+		_print_line("  Triggers:")
+		for eid in new_events:
+			_print_line("    ★ EVENT %s" % eid)
+		for mid in new_missions:
+			_print_line("    ★ MISSION %s" % mid)
+
+	_print_line("")
+	_print_line("  Squad Delta:")
+	var loc_before: String = before["location"]
+	var loc_after: String = after["location"]
+	if loc_before != loc_after:
+		_print_line("    Location: %s → %s" % [
+			_get_location_display(loc_before), _get_location_display(loc_after)])
+
+	_print_stat_delta("    Morale", before["morale"], after["morale"], "%.0f")
+	_print_stat_delta("    Food", before["food"], after["food"], "%d")
+	_print_stat_delta("    Gold", before["gold"], after["gold"], "%.0f")
+	_print_stat_delta("    Tools", before["tools"], after["tools"], "%d")
+
+	var w_before: int = before["warriors"]
+	var w_after: int = after["warriors"]
+	var inj_before: int = before["injured"]
+	var inj_after: int = after["injured"]
+	if w_before != w_after or inj_before != inj_after:
+		_print_line("    Warriors: %d → %d (injured: %d → %d)" % [
+			w_before, w_after, inj_before, inj_after])
+
+	var contacts_before: Dictionary = before["contacts"]
+	var contacts_after := {}
+	var ct = world.contact_tracker
+	if ct:
+		for contact in ct.get_contacts_for(player_squad.squad_id):
+			contacts_after[contact.target_id] = {
+				"progress": contact.progress,
+				"state": contact.get_state(),
+			}
+
+	var contact_changes := false
+	for tid in contacts_after:
+		var a_state: int = contacts_after[tid]["state"]
+		var a_progress: float = contacts_after[tid]["progress"]
+		if a_state == StrategyTypes.ContactState.NONE:
+			continue
+		var b_progress: float = contacts_before.get(tid, {}).get("progress", 0.0)
+		if abs(a_progress - b_progress) > 0.5 or not contacts_before.has(tid):
+			if not contact_changes:
+				_print_line("")
+				_print_line("  Contacts:")
+				contact_changes = true
+			var state_name: String = StrategyTypes.ContactState.keys()[a_state]
+			var target_name: String = tid
+			var sq := _find_squad(tid)
+			if sq:
+				target_name = sq.squad_name
+			_print_line("    %s [%s] %.0f → %.0f" % [target_name, state_name, b_progress, a_progress])
+
+	var squads_before: Dictionary = before["squads"]
+	var squad_changes := false
+	for sq in world.roaming_squads:
+		var sid := sq.squad_id
+		if squads_before.has(sid):
+			var sb = squads_before[sid]
+			if sb["location"] != sq.current_location_id or sb["warriors"] != sq.get_living_warriors().size():
+				if not squad_changes:
+					_print_line("")
+					_print_line("  World:")
+					squad_changes = true
+				var details := "%s: %s→%s %dw" % [
+					sq.squad_name, sb["location"], sq.current_location_id,
+					sq.get_living_warriors().size()]
+				if sb["warriors"] != sq.get_living_warriors().size():
+					details += " (was %d)" % sb["warriors"]
+				_print_line("    %s" % details)
+		else:
+			if not squad_changes:
+				_print_line("")
+				_print_line("  World:")
+				squad_changes = true
+			var role := "Caravan" if sq.is_caravan() else "Squad"
+			_print_line("    NEW %s: %s at %s (%dw)" % [
+				role, sq.squad_name, sq.current_location_id, sq.get_living_warriors().size()])
+
+	for sid in squads_before:
+		if not _find_squad(sid):
+			if not squad_changes:
+				_print_line("")
+				_print_line("  World:")
+				squad_changes = true
+			_print_line("    REMOVED: %s" % squads_before[sid]["name"])
+
+	_print_separator()
+	_cmd_status()
+
+
+func _print_stat_delta(label: String, before_val, after_val, fmt: String):
+	if typeof(before_val) == TYPE_FLOAT and typeof(after_val) == TYPE_FLOAT:
+		if abs(before_val - after_val) < 0.01:
+			return
+	elif before_val == after_val:
+		return
+	var delta = after_val - before_val
+	var sign := "+" if delta > 0 else ""
+	_print_line("%s: %s → %s (%s%s)" % [
+		label, fmt % before_val, fmt % after_val, sign, fmt % delta])
 
 #endregion
 

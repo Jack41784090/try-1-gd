@@ -31,13 +31,13 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 
 			# 2.2 Sometimes triggerables have chain triggers, add them to the list if chained_trigger can also be triggered (with chance rolls)
 			for chain in triggerable.trigger_chains:
-				print("[TriggerableManager] Processing chain for trigger: ", triggerable.trigger_name)
+				Log.debug("TriggerableManager", "Processing chain for trigger: %s" % triggerable.trigger_name)
 				var chained_trigger = chain.another_trigger
 				var chance = chain.chance
 				if chained_trigger.can_trigger(context) and (chance == 1.0 or (chance < 1.0 and RandomNumberGenerator.new().randf() <= chance)):
-					print("[TriggerableManager]     Added chained trigger: ", chained_trigger.trigger_name)
+					Log.debug("TriggerableManager", "  Added chained trigger: %s" % chained_trigger.trigger_name)
 					triggered.append(chained_trigger)
 				else:
-					print("[TriggerableManager]     Skipped chained trigger (chance failed): ", chained_trigger.trigger_name)
+					Log.debug("TriggerableManager", "  Skipped chained trigger (chance failed): %s" % chained_trigger.trigger_name)
 
 	return triggered

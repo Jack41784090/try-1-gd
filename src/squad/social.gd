@@ -31,7 +31,6 @@ func _init() -> void:
 	pass
 	if current_tactic == null:
 		current_tactic = Tactic.create_balanced()
-	print(" \\=> SquadStrategicData _init complete")
 
 
 func _to_string() -> String:

@@ -8,6 +8,7 @@ var squad_executors: Dictionary = { }
 var faction_brain: FactionBrain = FactionBrain.new()
 
 var decisions_this_turn: Dictionary = { }
+var combat_log: Array[String] = []
 
 
 func setup(_scenario: GameScenario) -> void:
@@ -193,6 +194,8 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		loser.get_morale(),
 		loser.get_living_warriors().size(),
 	])
+	combat_log.append("AI_COMBAT %s defeated %s (%d killed)" % [
+		winner.squad_name, loser.squad_name, casualties])
 
 	if loser.is_caravan() and loser.has_cargo():
 		var Bridge = load("res://src/economy/caravan_bridge.gd")
@@ -251,6 +254,8 @@ func cleanup_defeated_squads() -> void:
 		squad_executors.erase(squad_id)
 
 	if to_remove.size() > 0:
+		for sid in to_remove:
+			combat_log.append("ELIMINATED squad removed from world")
 		Log.info("Fleet", "%d squads eliminated. Remaining: %d" % [to_remove.size(), squad_brains.size()])
 
 
