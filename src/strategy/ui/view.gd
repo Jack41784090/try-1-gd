@@ -59,6 +59,7 @@ extends Control
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
+var notification_bar: NotificationBar
 #endregion
 
 #region Lifecycle
@@ -69,6 +70,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	print(" --- Main gui is ready --- ")
+	_setup_notification_bar()
 	_connect_signals()
 	_register_button_animations()
 	presenter.bind_view(self)
@@ -623,6 +625,29 @@ func show_stage() -> void:
 
 func hide_stage() -> void:
 	stage_view.visible = false
+
+#endregion
+
+#region Notification Bar
+
+func _setup_notification_bar() -> void:
+	notification_bar = NotificationBar.new()
+	notification_bar.name = "NotificationBar"
+	notification_bar.custom_minimum_size = Vector2(0, 36)
+	notification_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var main_vbox = $PanelContainer/MainVBox
+	var status_area = $PanelContainer/MainVBox/StatusArea
+	var status_idx := status_area.get_index()
+	main_vbox.add_child(notification_bar)
+	main_vbox.move_child(notification_bar, status_idx)
+
+
+func show_notifications(notifications: Array[NotificationData]) -> void:
+	notification_bar.show_notifications(notifications)
+
+
+func clear_notifications() -> void:
+	notification_bar.clear()
 
 #endregion
 
