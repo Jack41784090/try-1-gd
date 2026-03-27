@@ -17,7 +17,7 @@ var cargo_manifest: Dictionary = {}
 var cargo_destination_id: String = ""
 var shipment_id: String = ""
 var scouting_focus = null
-var inventory: SquadInventory = SquadInventory.new()
+var inventory = load("res://src/strategy/core/inventory.gd").new()
 
 var aggregate_morale: float:
 	get:

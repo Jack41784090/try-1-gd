@@ -21,7 +21,7 @@ static func collect_equipment_loot(enemy_squad: SquadStrategicData, enemy_casual
 	}
 
 
-static func apply_equipment_loot(inventory: SquadInventory, loot: Dictionary) -> void:
+static func apply_equipment_loot(inventory, loot: Dictionary) -> void:
 	var weapons: Array = loot.get("weapons", [])
 	var armors: Array = loot.get("armors", [])
 
