@@ -14,8 +14,6 @@
 [ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_vmu77"]
 [ext_resource type="Texture2D" uid="uid://by5hoqack8b3u" path="res://assets/hoi4_icons/supply_texticon.png" id="9_jx64g"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
-[ext_resource type="Script" uid="uid://5butxfh0x5wh" path="res://src/strategy/ui/manage_squad/view.gd" id="12_manage_squad"]
-[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="13_vn_view"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
@@ -30,8 +28,9 @@
 [ext_resource type="StyleBox" uid="uid://dbylsrhw4yggk" path="res://assets/box_styles/simple_black.tres" id="26_x4082"]
 [ext_resource type="Script" uid="uid://cv2mrqw3dow5w" path="res://src/strategy/ui/missions/view.gd" id="28_tnmqu"]
 [ext_resource type="Script" uid="uid://df5h6gkt4bgwn" path="res://src/strategy/ui/missions/presenter.gd" id="29_ayhb7"]
-[ext_resource type="Script" path="res://src/strategy/ui/market/view.gd" id="31_market_view"]
-[ext_resource type="Script" path="res://src/strategy/ui/market/presenter.gd" id="32_market_presenter"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
+[ext_resource type="Script" uid="uid://cuccq7kt7mb7l" path="res://src/strategy/ui/market/view.gd" id="31_market_view"]
+[ext_resource type="Script" uid="uid://bj75xe1yaiqny" path="res://src/strategy/ui/market/presenter.gd" id="32_market_presenter"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -733,7 +732,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_nav_btn_hover")
 text = "Missions"
 
-[node name="MarketButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent"]
+[node name="MarketButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=383170631]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 tooltip_text = "View local market prices and economy"
@@ -991,8 +990,7 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="ManageSquadPage" parent="." instance=ExtResource("30_manage_page")]
-layout_mode = 1
+[node name="ManageSquadPage" parent="." unique_id=148327654 instance=ExtResource("30_manage_page")]
 
 [node name="ShopView" type="Control" parent="." unique_id=1931131453]
 visible = false
@@ -1275,7 +1273,7 @@ theme_override_constants/separation = 8
 [node name="MissionsPresenter" type="Node" parent="MissionsView" unique_id=1199599868]
 script = ExtResource("29_ayhb7")
 
-[node name="MarketView" type="Control" parent="."]
+[node name="MarketView" type="Control" parent="." unique_id=220318999]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1286,7 +1284,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("31_market_view")
 
-[node name="OverlayPanel" type="PanelContainer" parent="MarketView"]
+[node name="OverlayPanel" type="PanelContainer" parent="MarketView" unique_id=904453735]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -1301,7 +1299,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="MarketPresenter" type="Node" parent="MarketView"]
+[node name="MarketPresenter" type="Node" parent="MarketView" unique_id=1049757488]
 script = ExtResource("32_market_presenter")
 
 [node name="CombatIntermission" type="PanelContainer" parent="." unique_id=770181322]
