@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/animation/rig_config.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/head.png" id="1_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/torso.png" id="2_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/hips.png" id="3_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/leftarm.png" id="4_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/leftforearm.png" id="5_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/lefthand.png" id="6_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/rightarm.png" id="7_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/rightforearm.png" id="8_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/righthand.png" id="9_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/leftleg.png" id="10_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/leftshin.png" id="11_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/leftfoot.png" id="12_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/rightleg.png" id="13_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/rightshin.png" id="14_pikeman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/pikeman/rightfoot.png" id="15_pikeman"]
+
+[resource]
+script = ExtResource("script")
+class_id = 4
+head_texture = ExtResource("1_pikeman")
+torso_texture = ExtResource("2_pikeman")
+hips_texture = ExtResource("3_pikeman")
+left_arm_texture = ExtResource("4_pikeman")
+left_forearm_texture = ExtResource("5_pikeman")
+left_hand_texture = ExtResource("6_pikeman")
+right_arm_texture = ExtResource("7_pikeman")
+right_forearm_texture = ExtResource("8_pikeman")
+right_hand_texture = ExtResource("9_pikeman")
+left_leg_texture = ExtResource("10_pikeman")
+left_shin_texture = ExtResource("11_pikeman")
+left_foot_texture = ExtResource("12_pikeman")
+right_leg_texture = ExtResource("13_pikeman")
+right_shin_texture = ExtResource("14_pikeman")
+right_foot_texture = ExtResource("15_pikeman")

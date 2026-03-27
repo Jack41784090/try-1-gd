@@ -6,6 +6,24 @@ const EYE_PUPIL := Color(0.15, 0.12, 0.1)
 const MOUTH_COLOR := Color(0.65, 0.32, 0.32)
 const HAIR_COLOR := Color(0.25, 0.18, 0.12)
 
+const BONE_DISPLAY_SIZES: Dictionary = {
+	"Head": Vector2(22, 26),
+	"Torso": Vector2(48, 44),
+	"Hips": Vector2(40, 12),
+	"LeftArm": Vector2(14, 36),
+	"LeftForearm": Vector2(12, 26),
+	"LeftHand": Vector2(10, 10),
+	"RightArm": Vector2(14, 36),
+	"RightForearm": Vector2(12, 26),
+	"RightHand": Vector2(10, 10),
+	"LeftLeg": Vector2(16, 48),
+	"LeftShin": Vector2(14, 36),
+	"LeftFoot": Vector2(24, 12),
+	"RightLeg": Vector2(16, 48),
+	"RightShin": Vector2(14, 36),
+	"RightFoot": Vector2(24, 12),
+}
+
 var class_id: EntityClasses.Types
 var character_id: String = ""
 var facing: int = 1
@@ -34,6 +52,8 @@ func _process(_delta: float) -> void:
 		var node: Node2D = part.node
 		if is_instance_valid(bone) and is_instance_valid(node):
 			node.global_transform = bone.global_transform
+			if part.has("display_scale"):
+				node.scale = part.display_scale
 
 func setup(p_class_id: EntityClasses.Types, p_character_id: String, p_facing: int = 1) -> void:
 	class_id = p_class_id
@@ -99,9 +119,15 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 	var sprite := Sprite2D.new()
 	sprite.texture = texture
 	sprite.top_level = true
+	var display_scale := Vector2.ONE
+	if BONE_DISPLAY_SIZES.has(bone_name):
+		var target_size: Vector2 = BONE_DISPLAY_SIZES[bone_name]
+		var tex_size := Vector2(texture.get_width(), texture.get_height())
+		display_scale = Vector2(target_size.x / tex_size.x, target_size.y / tex_size.y)
+		sprite.scale = display_scale
 	add_child(sprite)
 	_limb_nodes[bone_name] = [sprite]
-	_synced_parts.append({"node": sprite, "bone": bone})
+	_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
 
 #region Placeholder Body Generation
 
@@ -158,6 +184,51 @@ func _get_class_palette() -> Dictionary:
 				"hips": Color(0.32, 0.32, 0.52),
 				"legs": Color(0.20, 0.28, 0.52),
 				"boots": Color(0.28, 0.20, 0.16),
+			}
+		EntityClasses.Types.Crossbowman:
+			return {
+				"torso": Color(0.24, 0.39, 0.22),
+				"torso_accent": Color(0.18, 0.31, 0.16),
+				"arms": Color(0.27, 0.37, 0.25),
+				"hips": Color(0.47, 0.33, 0.20),
+				"legs": Color(0.39, 0.28, 0.18),
+				"boots": Color(0.31, 0.23, 0.15),
+			}
+		EntityClasses.Types.Arquebusier:
+			return {
+				"torso": Color(0.31, 0.25, 0.22),
+				"torso_accent": Color(0.24, 0.19, 0.16),
+				"arms": Color(0.35, 0.29, 0.24),
+				"hips": Color(0.39, 0.27, 0.18),
+				"legs": Color(0.35, 0.25, 0.17),
+				"boots": Color(0.22, 0.16, 0.12),
+			}
+		EntityClasses.Types.Pikeman:
+			return {
+				"torso": Color(0.63, 0.63, 0.67),
+				"torso_accent": Color(0.51, 0.51, 0.56),
+				"arms": Color(0.55, 0.55, 0.60),
+				"hips": Color(0.55, 0.55, 0.60),
+				"legs": Color(0.50, 0.50, 0.55),
+				"boots": Color(0.27, 0.22, 0.15),
+			}
+		EntityClasses.Types.Feldprediger:
+			return {
+				"torso": Color(0.20, 0.16, 0.25),
+				"torso_accent": Color(0.27, 0.23, 0.35),
+				"arms": Color(0.35, 0.29, 0.47),
+				"hips": Color(0.35, 0.29, 0.47),
+				"legs": Color(0.30, 0.25, 0.40),
+				"boots": Color(0.24, 0.18, 0.13),
+			}
+		EntityClasses.Types.Gelehrter:
+			return {
+				"torso": Color(0.47, 0.12, 0.31),
+				"torso_accent": Color(0.35, 0.09, 0.24),
+				"arms": Color(0.55, 0.20, 0.39),
+				"hips": Color(0.27, 0.22, 0.22),
+				"legs": Color(0.24, 0.18, 0.18),
+				"boots": Color(0.22, 0.15, 0.15),
 			}
 		_:
 			return {

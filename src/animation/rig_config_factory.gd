@@ -26,5 +26,15 @@ static func _class_id_to_filename(class_id: EntityClasses.Types) -> String:
 			return "landsknecht.tres"
 		EntityClasses.Types.Healer:
 			return "healer.tres"
+		EntityClasses.Types.Crossbowman:
+			return "crossbowman.tres"
+		EntityClasses.Types.Arquebusier:
+			return "arquebusier.tres"
+		EntityClasses.Types.Pikeman:
+			return "pikeman.tres"
+		EntityClasses.Types.Feldprediger:
+			return "feldprediger.tres"
+		EntityClasses.Types.Gelehrter:
+			return "gelehrter.tres"
 		_:
 			return "landsknecht.tres"

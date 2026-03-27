@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/animation/rig_config.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/head.png" id="1_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/torso.png" id="2_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/hips.png" id="3_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftarm.png" id="4_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftforearm.png" id="5_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/lefthand.png" id="6_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightarm.png" id="7_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightforearm.png" id="8_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/righthand.png" id="9_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftleg.png" id="10_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftshin.png" id="11_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftfoot.png" id="12_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightleg.png" id="13_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightshin.png" id="14_landsknecht"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightfoot.png" id="15_landsknecht"]
+
+[resource]
+script = ExtResource("script")
+class_id = 0
+head_texture = ExtResource("1_landsknecht")
+torso_texture = ExtResource("2_landsknecht")
+hips_texture = ExtResource("3_landsknecht")
+left_arm_texture = ExtResource("4_landsknecht")
+left_forearm_texture = ExtResource("5_landsknecht")
+left_hand_texture = ExtResource("6_landsknecht")
+right_arm_texture = ExtResource("7_landsknecht")
+right_forearm_texture = ExtResource("8_landsknecht")
+right_hand_texture = ExtResource("9_landsknecht")
+left_leg_texture = ExtResource("10_landsknecht")
+left_shin_texture = ExtResource("11_landsknecht")
+left_foot_texture = ExtResource("12_landsknecht")
+right_leg_texture = ExtResource("13_landsknecht")
+right_shin_texture = ExtResource("14_landsknecht")
+right_foot_texture = ExtResource("15_landsknecht")
