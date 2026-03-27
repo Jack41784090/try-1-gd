@@ -14,11 +14,11 @@
 [ext_resource type="Script" path="res://src/economy/population_config.gd" id="12_popconfig"]
 [ext_resource type="Script" path="res://src/economy/population_group.gd" id="13_popgroup"]
 
-[sub_resource type="Resource" id="conn_nuremberg_to_rothenburg"]
+[sub_resource type="Resource" id="conn_nuremberg_to_altdorf"]
 script = ExtResource("2_conn")
 from_location_id = "nuremberg"
-to_location_id = "rothenburg"
-travel_time = 3
+to_location_id = "altdorf"
+travel_time = 2
 
 [sub_resource type="Resource" id="conn_nuremberg_to_bamberg"]
 script = ExtResource("2_conn")
@@ -28,7 +28,7 @@ travel_time = 2
 
 [sub_resource type="Resource" id="conns_nuremberg"]
 script = ExtResource("3_conns")
-tt = Array[ExtResource("2_conn")]([SubResource("conn_nuremberg_to_rothenburg"), SubResource("conn_nuremberg_to_bamberg")])
+tt = Array[ExtResource("2_conn")]([SubResource("conn_nuremberg_to_altdorf"), SubResource("conn_nuremberg_to_bamberg")])
 
 [sub_resource type="Resource" id="se_nuremberg_food"]
 script = ExtResource("8_se")

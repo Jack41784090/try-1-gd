@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="Location" load_steps=14 format=3]
+
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/food.tres" id="5_food"]
+[ext_resource type="Script" path="res://src/economy/stock_entry.gd" id="7_se"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="8_inv"]
+[ext_resource type="Script" path="res://src/economy/population_config.gd" id="10_popconfig"]
+[ext_resource type="Script" path="res://src/economy/population_group.gd" id="11_popgroup"]
+
+[sub_resource type="Resource" id="conn_frankenhoehe_to_schwaebisch_hall"]
+script = ExtResource("2_conn")
+from_location_id = "frankenhoehe"
+to_location_id = "schwaebisch_hall"
+travel_time = 2
+
+[sub_resource type="Resource" id="conn_frankenhoehe_to_rothenburg"]
+script = ExtResource("2_conn")
+from_location_id = "frankenhoehe"
+to_location_id = "rothenburg"
+travel_time = 2
+
+[sub_resource type="Resource" id="conns_frankenhoehe"]
+script = ExtResource("3_conns")
+tt = Array[ExtResource("2_conn")]([SubResource("conn_frankenhoehe_to_schwaebisch_hall"), SubResource("conn_frankenhoehe_to_rothenburg")])
+
+[sub_resource type="Resource" id="se_frankenhoehe_food"]
+script = ExtResource("7_se")
+thing = ExtResource("5_food")
+amount = 600.0
+
+[sub_resource type="Resource" id="inv_frankenhoehe"]
+script = ExtResource("8_inv")
+initial_stocks = Array[ExtResource("7_se")]([SubResource("se_frankenhoehe_food")])
+
+[sub_resource type="Resource" id="popgroup_frankenhoehe_0"]
+script = ExtResource("11_popgroup")
+count = 45
+social_class = 0
+job = 0
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popgroup_frankenhoehe_1"]
+script = ExtResource("11_popgroup")
+count = 10
+social_class = 2
+job = 2
+starting_money = 20.0
+
+[sub_resource type="Resource" id="popconfig_frankenhoehe"]
+script = ExtResource("10_popconfig")
+groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_frankenhoehe_0"), SubResource("popgroup_frankenhoehe_1")])
+
+[resource]
+script = ExtResource("1_loc")
+location_id = "frankenhoehe"
+location_name = "Frankenhöhe"
+type = 2
+development = 25
+stability = 80.0
+connections = SubResource("conns_frankenhoehe")
+available_activity_types = Array[int]([0, 3, 7])
+inventory = SubResource("inv_frankenhoehe")
+population_config = SubResource("popconfig_frankenhoehe")

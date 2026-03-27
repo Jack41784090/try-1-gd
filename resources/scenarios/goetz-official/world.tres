@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="World" load_steps=16 format=3 uid="uid://d2nqlnrp74a5h"]
+[gd_resource type="Resource" script_class="World" load_steps=19 format=3 uid="uid://d2nqlnrp74a5h"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_location"]
 [ext_resource type="PackedScene" uid="uid://dbyqyxsk02a1r" path="res://resources/scenarios/goetz-official/map.tscn" id="2_map"]
@@ -15,10 +15,13 @@
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/rothenburg.tres" id="loc_rothenburg"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/nuremberg.tres" id="loc_nuremberg"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/bamberg.tres" id="loc_bamberg"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/neckartal.tres" id="loc_neckartal"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/frankenhoehe.tres" id="loc_frankenhoehe"]
+[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/locations/altdorf.tres" id="loc_altdorf"]
 
 [resource]
 script = ExtResource("3_world")
-locations = Array[ExtResource("1_location")]([ExtResource("loc_hornberg_castle"), ExtResource("loc_oehringen"), ExtResource("loc_heilbronn"), ExtResource("loc_schwaebisch_hall"), ExtResource("loc_rothenburg"), ExtResource("loc_nuremberg"), ExtResource("loc_bamberg")])
+locations = Array[ExtResource("1_location")]([ExtResource("loc_hornberg_castle"), ExtResource("loc_neckartal"), ExtResource("loc_oehringen"), ExtResource("loc_heilbronn"), ExtResource("loc_schwaebisch_hall"), ExtResource("loc_frankenhoehe"), ExtResource("loc_rothenburg"), ExtResource("loc_altdorf"), ExtResource("loc_nuremberg"), ExtResource("loc_bamberg")])
 map_scene = ExtResource("2_map")
 goods = Array[ExtResource("4_thing")]([ExtResource("good_food"), ExtResource("good_cloth"), ExtResource("good_tools"), ExtResource("good_luxury")])
 metadata/_custom_type_script = "uid://c7nmmrwqy6hlh"

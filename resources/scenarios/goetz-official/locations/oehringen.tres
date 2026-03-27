@@ -12,11 +12,11 @@
 [ext_resource type="Script" path="res://src/economy/population_config.gd" id="10_popconfig"]
 [ext_resource type="Script" path="res://src/economy/population_group.gd" id="11_popgroup"]
 
-[sub_resource type="Resource" id="conn_oehringen_to_hornberg_castle"]
+[sub_resource type="Resource" id="conn_oehringen_to_neckartal"]
 script = ExtResource("2_conn")
 from_location_id = "oehringen"
-to_location_id = "hornberg_castle"
-travel_time = 3
+to_location_id = "neckartal"
+travel_time = 2
 
 [sub_resource type="Resource" id="conn_oehringen_to_heilbronn"]
 script = ExtResource("2_conn")
@@ -32,7 +32,7 @@ travel_time = 3
 
 [sub_resource type="Resource" id="conns_oehringen"]
 script = ExtResource("3_conns")
-tt = Array[ExtResource("2_conn")]([SubResource("conn_oehringen_to_hornberg_castle"), SubResource("conn_oehringen_to_heilbronn"), SubResource("conn_oehringen_to_schwaebisch_hall")])
+tt = Array[ExtResource("2_conn")]([SubResource("conn_oehringen_to_neckartal"), SubResource("conn_oehringen_to_heilbronn"), SubResource("conn_oehringen_to_schwaebisch_hall")])
 
 [sub_resource type="Resource" id="se_oehringen_food"]
 script = ExtResource("6_se")

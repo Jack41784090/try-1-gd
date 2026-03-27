@@ -24,15 +24,15 @@ from_location_id = "schwaebisch_hall"
 to_location_id = "heilbronn"
 travel_time = 2
 
-[sub_resource type="Resource" id="conn_schwaebisch_hall_to_rothenburg"]
+[sub_resource type="Resource" id="conn_schwaebisch_hall_to_frankenhoehe"]
 script = ExtResource("2_conn")
 from_location_id = "schwaebisch_hall"
-to_location_id = "rothenburg"
-travel_time = 3
+to_location_id = "frankenhoehe"
+travel_time = 2
 
 [sub_resource type="Resource" id="conns_schwaebisch_hall"]
 script = ExtResource("3_conns")
-tt = Array[ExtResource("2_conn")]([SubResource("conn_schwaebisch_hall_to_oehringen"), SubResource("conn_schwaebisch_hall_to_heilbronn"), SubResource("conn_schwaebisch_hall_to_rothenburg")])
+tt = Array[ExtResource("2_conn")]([SubResource("conn_schwaebisch_hall_to_oehringen"), SubResource("conn_schwaebisch_hall_to_heilbronn"), SubResource("conn_schwaebisch_hall_to_frankenhoehe")])
 
 [sub_resource type="Resource" id="se_schwaebisch_hall_food"]
 script = ExtResource("6_se")
