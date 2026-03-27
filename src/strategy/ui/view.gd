@@ -377,6 +377,9 @@ func show_combat_result_overlay(result: CombatController.CombatResult, morale_be
 	if abs(result.morale_change) >= 0.1:
 		_spawn_morale_delta_label_on_overlay(result.morale_change, overlay_container)
 
+	if not result.equipment_loot.is_empty():
+		_spawn_equipment_loot_display(result.equipment_loot, overlay_container)
+
 	await get_tree().create_timer(1.2).timeout
 
 	overlay_container.remove_child(morale_panel)
@@ -772,5 +775,61 @@ func _spawn_morale_delta_label_on_overlay(delta_value: float, parent: Control) -
 	tween.tween_property(delta_label, "anchor_top", 0.16, 1.2).set_ease(Tween.EASE_OUT)
 	tween.tween_property(delta_label, "anchor_bottom", 0.20, 1.2).set_ease(Tween.EASE_OUT)
 	tween.tween_property(delta_label, "modulate:a", 0.0, 0.8).set_delay(0.4)
+
+
+func _spawn_equipment_loot_display(equipment_loot: Dictionary, parent: Control) -> void:
+	var weapons: Array = equipment_loot.get("weapons", [])
+	var armors: Array = equipment_loot.get("armors", [])
+	if weapons.is_empty() and armors.is_empty():
+		return
+
+	var loot_container := VBoxContainer.new()
+	loot_container.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	loot_container.anchor_top = 0.65
+	loot_container.anchor_bottom = 0.92
+	loot_container.anchor_left = 0.3
+	loot_container.anchor_right = 0.7
+	loot_container.offset_top = 0
+	loot_container.offset_bottom = 0
+	loot_container.add_theme_constant_override("separation", 4)
+	parent.add_child(loot_container)
+
+	var header := Label.new()
+	header.text = "Equipment Looted"
+	header.add_theme_font_size_override("font_size", 20)
+	header.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	header.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	header.add_theme_constant_override("shadow_offset_x", 2)
+	header.add_theme_constant_override("shadow_offset_y", 2)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loot_container.add_child(header)
+
+	for w in weapons:
+		if w is WeaponConfig:
+			var label := Label.new()
+			label.text = "+ %s" % w.weapon_name
+			label.add_theme_font_size_override("font_size", 16)
+			label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+			label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+			label.add_theme_constant_override("shadow_offset_x", 1)
+			label.add_theme_constant_override("shadow_offset_y", 1)
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			loot_container.add_child(label)
+
+	for a in armors:
+		if a is ArmorConfig:
+			var label := Label.new()
+			label.text = "+ %s" % a.armor_name
+			label.add_theme_font_size_override("font_size", 16)
+			label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55))
+			label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+			label.add_theme_constant_override("shadow_offset_x", 1)
+			label.add_theme_constant_override("shadow_offset_y", 1)
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			loot_container.add_child(label)
+
+	loot_container.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(loot_container, "modulate:a", 1.0, 0.5)
 
 #endregion

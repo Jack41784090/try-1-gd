@@ -4,7 +4,7 @@ extends Node
 signal closed
 signal recruitment_completed(warrior: CharacterSocialStats)
 
-enum Tab { TACTICS, UNITS, FORMATION, RECRUITMENT }
+enum Tab { TACTICS, UNITS, FORMATION, RECRUITMENT, INVENTORY }
 
 var view
 var squad: SquadStrategicData
@@ -50,6 +50,8 @@ func _refresh_tab() -> void:
 			view.formation_tab.refresh(squad)
 		Tab.RECRUITMENT:
 			view.recruitment_tab.refresh(squad, actor)
+		Tab.INVENTORY:
+			view.inventory_tab.refresh(squad)
 
 
 func on_tactic_selected(tactic: Tactic) -> void:
@@ -101,3 +103,29 @@ func on_recruit(class_enum: EntityClasses.Types, cost: float) -> void:
 	Log.info("ManageSquadPage", "Recruited %s for %.0f gold" % [new_warrior.name, cost])
 	recruitment_completed.emit(new_warrior)
 	view.recruitment_tab.refresh(squad, actor)
+
+
+func on_equip_weapon(warrior: CharacterSocialStats, weapon: WeaponConfig) -> void:
+	squad.inventory.equip_weapon(warrior, weapon)
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, weapon.weapon_name])
+	_refresh_tab()
+
+
+func on_equip_armor(warrior: CharacterSocialStats, armor: ArmorConfig) -> void:
+	squad.inventory.equip_armor(warrior, armor)
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, armor.armor_name])
+	_refresh_tab()
+
+
+func on_unequip_weapon(warrior: CharacterSocialStats) -> void:
+	var weapon_name := warrior.equipment_weapon.weapon_name if warrior.equipment_weapon else "nothing"
+	squad.inventory.unequip_weapon(warrior)
+	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.name])
+	_refresh_tab()
+
+
+func on_unequip_armor(warrior: CharacterSocialStats) -> void:
+	var armor_name := warrior.equipment_armor.armor_name if warrior.equipment_armor else "nothing"
+	squad.inventory.unequip_armor(warrior)
+	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.name])
+	_refresh_tab()

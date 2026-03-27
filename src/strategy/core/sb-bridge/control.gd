@@ -30,6 +30,7 @@ class CombatResult extends RefCounted:
 	var escaped_warriors: Array[String] = []
 	var morale_change: float = 0.0
 	var loot: Dictionary = { }
+	var equipment_loot: Dictionary = { }
 	var clues_dropped: Array[Clue] = []
 	var turns_elapsed: int = 0
 
@@ -191,6 +192,9 @@ func _execute_combat() -> CombatResult:
 
 	# generate clues for the current location
 	result.clues_dropped = _generate_enemy_clues(current_enemy_squad)
+
+	if result.victory:
+		result.equipment_loot = LootCollector.collect_equipment_loot(current_enemy_squad, result.enemy_casualties)
 
 	return result
 

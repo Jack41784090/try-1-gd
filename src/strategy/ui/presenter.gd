@@ -786,6 +786,9 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 		Log.debug("Presenter", "Loot collected: %s" % [result.loot])
 		_apply_combat_loot(result.loot)
 
+	if not result.equipment_loot.is_empty():
+		LootCollector.apply_equipment_loot(actor.player_squad.inventory, result.equipment_loot)
+
 	if result.clues_dropped.size() > 0:
 		var loc = actor.current_location
 		for clue in result.clues_dropped:

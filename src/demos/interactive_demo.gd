@@ -164,6 +164,8 @@ func _handle_command(input: String):
 			_cmd_look()
 		"warriors", "w":
 			_cmd_warriors()
+		"inventory", "inv":
+			_cmd_inventory()
 		"travel", "t":
 			await _cmd_travel(arg)
 		"rest":
@@ -226,6 +228,7 @@ func _cmd_help():
 	_print_line("  STATUS  (s)       Full squad status")
 	_print_line("  LOOK    (l)       Describe current location")
 	_print_line("  WARRIORS (w)      List all warriors")
+	_print_line("  INVENTORY (inv)   Squad equipment inventory")
 	_print_line("  TRAVEL  (t) <id>  Travel to location")
 	_print_line("  REST              Rest to recover morale")
 	_print_line("  FORAGE  (f)       Forage for food")
@@ -341,6 +344,34 @@ func _cmd_warriors():
 			status = " [DEAD]"
 		_print_line("  %d. %s — %s | Position: %s | Morale: %.0f%s" % [
 			i + 1, w.name, EntityClasses.Types.keys()[w.class_id], pos_name, w.morale, status])
+	_print_separator()
+
+
+func _cmd_inventory():
+	_print_separator()
+	_print_line("=== Squad Inventory ===")
+	var inv = player_squad.inventory
+	if inv.is_empty():
+		_print_line("  (empty)")
+	else:
+		if not inv.weapons.is_empty():
+			_print_line("  Weapons:")
+			for w in inv.weapons:
+				_print_line("    - %s" % w.weapon_name)
+		if not inv.armors.is_empty():
+			_print_line("  Armors:")
+			for a in inv.armors:
+				_print_line("    - %s" % a.armor_name)
+	_print_line("")
+	_print_line("=== Warrior Equipment ===")
+	for w in player_squad.get_living_warriors():
+		var weapon_name := "None"
+		var armor_name := "None"
+		if w.equipment_weapon:
+			weapon_name = w.equipment_weapon.weapon_name
+		if w.equipment_armor:
+			armor_name = w.equipment_armor.armor_name
+		_print_line("  %s — W: %s | A: %s" % [w.name, weapon_name, armor_name])
 	_print_separator()
 
 
