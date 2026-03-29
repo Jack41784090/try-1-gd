@@ -23,7 +23,6 @@ extends Control
 @onready var manage_squad_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ManageSquadButton
 @onready var recruit_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/RecruitButton
 @onready var shop_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ShopButton
-@onready var continue_travel_button: Button = $PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid/ContinueTravelButton
 @onready var travel_view: TravelView = $TravelView
 @onready var investigation_view: InvestigationView = $InvestigationView
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
@@ -60,6 +59,10 @@ var combat_overlay: CanvasLayer:
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
 var notification_bar: NotificationBar
+var _travel_arrow_bar: PanelContainer
+var _go_back_btn: Button
+var _continue_btn: Button
+var _travel_arrow_label: Label
 #endregion
 
 #region Lifecycle
@@ -73,6 +76,7 @@ func _ready() -> void:
 	combat_ui = CombatUI.create(self, combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
 	_setup_notification_bar()
 	_setup_contact_bars()
+	_setup_travel_arrows()
 	_connect_signals()
 	_register_button_animations()
 	presenter.bind_view(self)
@@ -89,8 +93,6 @@ func _register_button_animations() -> void:
 	]
 	for btn in action_btns:
 		UIAnimations.register_button(btn)
-	if continue_travel_button:
-		UIAnimations.register_button(continue_travel_button)
 
 	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button, market_button]
 	for btn in nav_btns:
@@ -113,13 +115,6 @@ func _connect_signals() -> void:
 	manage_squad_button.pressed.connect(func(): presenter.on_manage_squad_requested())
 	recruit_button.pressed.connect(func(): presenter.on_recruit_requested())
 	shop_button.pressed.connect(func(): presenter.on_shop_requested())
-
-	if continue_travel_button:
-		continue_travel_button.pressed.connect(func():
-			_play_sfx("play_ui_confirm")
-			presenter.on_continue_travel()
-		)
-		continue_travel_button.visible = false
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
@@ -231,8 +226,7 @@ func disable_all_activity_buttons() -> void:
 	attack_button.disabled = true
 	manage_squad_button.disabled = true
 	shop_button.disabled = true
-	if continue_travel_button:
-		continue_travel_button.visible = false
+	hide_travel_arrows()
 
 
 func _get_activity_button(key: String) -> Button:
@@ -364,15 +358,39 @@ func set_travel_mode_autopilot() -> void:
 	travel_view.set_mode_autopilot()
 
 
+func show_travel_arrows(dest_name: String, from_name: String) -> void:
+	if not _travel_arrow_bar:
+		return
+	_travel_arrow_label.text = dest_name
+	_go_back_btn.text = "← %s" % from_name
+	_continue_btn.text = "%s →" % dest_name
+	if not _travel_arrow_bar.visible:
+		_travel_arrow_bar.visible = true
+		_travel_arrow_bar.modulate = Color(1, 1, 1, 0)
+		_travel_arrow_bar.position.y = 30
+		var tw = create_tween().set_parallel(true)
+		tw.tween_property(_travel_arrow_bar, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tw.tween_property(_travel_arrow_bar, "position:y", 0.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
 func show_continue_travel_button(dest_name: String) -> void:
-	if continue_travel_button:
-		continue_travel_button.text = "▶ Continue to %s" % dest_name
-		continue_travel_button.visible = true
+	show_travel_arrows(dest_name, "")
+
+
+func hide_travel_arrows() -> void:
+	if not _travel_arrow_bar or not _travel_arrow_bar.visible:
+		return
+	var tw = create_tween().set_parallel(true)
+	tw.tween_property(_travel_arrow_bar, "modulate:a", 0.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(_travel_arrow_bar, "position:y", 30.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	tw.chain().tween_callback(func():
+		_travel_arrow_bar.visible = false
+		_travel_arrow_bar.position.y = 0.0
+	)
 
 
 func hide_continue_travel_button() -> void:
-	if continue_travel_button:
-		continue_travel_button.visible = false
+	hide_travel_arrows()
 
 
 func show_investigation_menu() -> void:
@@ -550,6 +568,115 @@ func _setup_notification_bar() -> void:
 	main_vbox.move_child(notification_bar, status_idx)
 
 
+func _setup_travel_arrows() -> void:
+	var main_vbox = $PanelContainer/MainVBox
+	var action_idx := action_buttons.get_index()
+
+	_travel_arrow_bar = PanelContainer.new()
+	_travel_arrow_bar.name = "TravelArrowBar"
+	_travel_arrow_bar.visible = false
+	_travel_arrow_bar.custom_minimum_size = Vector2(0, 56)
+	var bar_style = StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.12, 0.14, 0.18, 0.95)
+	bar_style.border_width_top = 1
+	bar_style.border_width_bottom = 1
+	bar_style.border_color = Color(0.35, 0.55, 0.4, 0.6)
+	bar_style.content_margin_left = 20
+	bar_style.content_margin_right = 20
+	bar_style.content_margin_top = 6
+	bar_style.content_margin_bottom = 6
+	_travel_arrow_bar.add_theme_stylebox_override("panel", bar_style)
+
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 20)
+	_travel_arrow_bar.add_child(hbox)
+
+	_go_back_btn = Button.new()
+	_go_back_btn.name = "GoBackBtn"
+	_go_back_btn.text = "← Go Back"
+	_go_back_btn.custom_minimum_size = Vector2(160, 40)
+	_go_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var back_normal = StyleBoxFlat.new()
+	back_normal.bg_color = Color(0.25, 0.18, 0.12, 0.9)
+	back_normal.corner_radius_top_left = 6
+	back_normal.corner_radius_top_right = 6
+	back_normal.corner_radius_bottom_right = 6
+	back_normal.corner_radius_bottom_left = 6
+	back_normal.border_width_left = 1
+	back_normal.border_width_top = 1
+	back_normal.border_width_right = 1
+	back_normal.border_width_bottom = 1
+	back_normal.border_color = Color(0.6, 0.45, 0.3, 0.5)
+	_go_back_btn.add_theme_stylebox_override("normal", back_normal)
+	var back_hover = back_normal.duplicate()
+	back_hover.bg_color = Color(0.35, 0.25, 0.18, 0.95)
+	back_hover.border_color = Color(0.8, 0.6, 0.4, 0.7)
+	_go_back_btn.add_theme_stylebox_override("hover", back_hover)
+	var back_pressed = back_normal.duplicate()
+	back_pressed.bg_color = Color(0.18, 0.12, 0.08, 0.9)
+	_go_back_btn.add_theme_stylebox_override("pressed", back_pressed)
+	_go_back_btn.add_theme_color_override("font_color", Color(0.9, 0.75, 0.55))
+	_go_back_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.9, 0.7))
+	_go_back_btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.55, 0.4))
+	_go_back_btn.add_theme_font_size_override("font_size", 16)
+	hbox.add_child(_go_back_btn)
+
+	_travel_arrow_label = Label.new()
+	_travel_arrow_label.name = "TravelLabel"
+	_travel_arrow_label.text = ""
+	_travel_arrow_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_travel_arrow_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_travel_arrow_label.add_theme_font_size_override("font_size", 15)
+	_travel_arrow_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75, 0.8))
+	hbox.add_child(_travel_arrow_label)
+
+	_continue_btn = Button.new()
+	_continue_btn.name = "ContinueBtn"
+	_continue_btn.text = "Continue →"
+	_continue_btn.custom_minimum_size = Vector2(160, 40)
+	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	var cont_normal = StyleBoxFlat.new()
+	cont_normal.bg_color = Color(0.12, 0.22, 0.15, 0.9)
+	cont_normal.corner_radius_top_left = 6
+	cont_normal.corner_radius_top_right = 6
+	cont_normal.corner_radius_bottom_right = 6
+	cont_normal.corner_radius_bottom_left = 6
+	cont_normal.border_width_left = 1
+	cont_normal.border_width_top = 1
+	cont_normal.border_width_right = 1
+	cont_normal.border_width_bottom = 1
+	cont_normal.border_color = Color(0.3, 0.6, 0.4, 0.5)
+	_continue_btn.add_theme_stylebox_override("normal", cont_normal)
+	var cont_hover = cont_normal.duplicate()
+	cont_hover.bg_color = Color(0.18, 0.32, 0.22, 0.95)
+	cont_hover.border_color = Color(0.4, 0.85, 0.5, 0.7)
+	_continue_btn.add_theme_stylebox_override("hover", cont_hover)
+	var cont_pressed = cont_normal.duplicate()
+	cont_pressed.bg_color = Color(0.08, 0.15, 0.1, 0.9)
+	_continue_btn.add_theme_stylebox_override("pressed", cont_pressed)
+	_continue_btn.add_theme_color_override("font_color", Color(0.5, 0.9, 0.6))
+	_continue_btn.add_theme_color_override("font_hover_color", Color(0.6, 1.0, 0.7))
+	_continue_btn.add_theme_color_override("font_pressed_color", Color(0.4, 0.7, 0.5))
+	_continue_btn.add_theme_font_size_override("font_size", 16)
+	hbox.add_child(_continue_btn)
+
+	UIAnimations.register_button(_go_back_btn)
+	UIAnimations.register_button(_continue_btn)
+
+	_go_back_btn.pressed.connect(func():
+		_play_sfx("play_ui_cancel")
+		presenter.on_go_back_travel()
+	)
+	_continue_btn.pressed.connect(func():
+		_play_sfx("play_ui_confirm")
+		presenter.on_continue_travel()
+	)
+
+	main_vbox.add_child(_travel_arrow_bar)
+	main_vbox.move_child(_travel_arrow_bar, action_idx + 1)
+
+
 func _setup_contact_bars() -> void:
 	var screen_area = $PanelContainer/MainVBox/MainScreenArea
 
@@ -572,7 +699,7 @@ func _setup_contact_bars() -> void:
 	panel_style.shadow_color = Color(0, 0, 0, 0.4)
 	panel_style.shadow_size = 3
 	panel_style.shadow_offset = Vector2(1, 1)
-	_contact_bars_panel.add_theme_style_override("panel", panel_style)
+	_contact_bars_panel.add_theme_stylebox_override("panel", panel_style)
 	screen_area.add_child(_contact_bars_panel)
 
 	var margin = MarginContainer.new()
@@ -646,7 +773,7 @@ func _create_contact_mini_bar(data: Dictionary) -> void:
 	bar_style.border_width_right = 1
 	bar_style.border_width_bottom = 1
 	bar_style.border_color = Color(0.25, 0.25, 0.3)
-	bar_bg.add_theme_style_override("panel", bar_style)
+	bar_bg.add_theme_stylebox_override("panel", bar_style)
 	row.add_child(bar_bg)
 
 	var bar_fill = ColorRect.new()

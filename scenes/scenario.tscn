@@ -658,22 +658,6 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
 text = "Shop"
 
-[node name="ContinueTravelButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=293131387]
-visible = false
-custom_minimum_size = Vector2(180, 60)
-layout_mode = 2
-tooltip_text = "Continue travelling towards your destination"
-theme_override_colors/font_color = Color(0.3, 0.85, 0.5, 1)
-theme_override_colors/font_pressed_color = Color(0.2, 0.65, 0.4, 1)
-theme_override_colors/font_hover_color = Color(0.4, 1, 0.6, 1)
-theme_override_colors/font_disabled_color = Color(0.2, 0.45, 0.3, 0.6)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_action_btn_disabled")
-text = "▶ Continue Travel"
-
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=570966560]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2

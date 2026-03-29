@@ -9,7 +9,6 @@ var ai_fleet: AIFleetManager
 var vn_view
 
 var action_buttons: Control
-var continue_travel_button: Button
 
 var battle_viewport: SubViewport
 var combat_overlay: CanvasLayer
@@ -85,7 +84,6 @@ func setup_headless():
 	add_child(_stage_mock)
 
 	action_buttons = Control.new()
-	continue_travel_button = Button.new()
 
 	battle_viewport = SubViewport.new()
 	battle_viewport.name = "BattleViewport"
@@ -181,6 +179,8 @@ func hide_travel_menu(): pass
 func set_travel_mode_autopilot(): pass
 func show_continue_travel_button(_dest_name: String): pass
 func hide_continue_travel_button(): pass
+func show_travel_arrows(_dest_name: String, _from_name: String): pass
+func hide_travel_arrows(): pass
 func show_investigation_menu(): pass
 func hide_investigation_menu(): pass
 func show_recruitment_menu(): pass

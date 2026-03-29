@@ -202,6 +202,14 @@ func on_continue_travel() -> void:
 		view.set_travel_mode_autopilot()
 
 
+func on_go_back_travel() -> void:
+	var from_location = actor.current_location
+	assert(from_location != null, "Go back called but no current location")
+	Log.info("Presenter", "Cancelling travel, staying at %s" % from_location.location_name)
+	actor.walking_towards = null
+	_update_ui()
+
+
 func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
@@ -817,9 +825,10 @@ func _update_ui() -> void:
 
 	walking = actor.walking_towards
 	if walking != null and walking["location"] != null:
-		view.show_continue_travel_button(walking["location"].location_name)
+		var from_name: String = location.location_name if location else "Unknown"
+		view.show_travel_arrows(walking["location"].location_name, from_name)
 	else:
-		view.hide_continue_travel_button()
+		view.hide_travel_arrows()
 
 	_update_activity_buttons()
 
