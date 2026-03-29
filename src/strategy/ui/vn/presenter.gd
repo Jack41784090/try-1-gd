@@ -121,7 +121,7 @@ func load_chain(chain: EventChain) -> bool:
 	# 1. Stores chain reference and extracts character IDs
 	# 2. Ensures NPC rigs exist in the stage for all characters
 	# 3. Applies initial setting (character positions/facing)
-	# 4. Loads the timeline into TimelinePlayback which starts advancing the time cursor
+	# 4. Loads the timeline into GroupPlayback which starts advancing the time cursor
 	# e.g., chain "camp_fire" with setting=[{Hans, pos(100,50), face_right}, {Fritz, pos(300,50), face_left}]
 	#   → spawns rigs → places characters → loads 5 instructions into playback → state=PLAYING
 	if not chain:
@@ -160,7 +160,7 @@ func load_chain(chain: EventChain) -> bool:
 
 func _on_instruction_fired(instruction: CinematicInstruction) -> void:
 	# Dispatches a single CinematicInstruction to the appropriate handler
-	# Called by TimelinePlayback when the time cursor reaches an instruction's timestamp
+	# Called by GroupPlayback when the time cursor reaches an instruction's timestamp
 	# e.g., DialogueInstruction(time=2.0, speaker="Hans", line="Let's camp here")
 	#   → _execute_dialogue() → shows speech bubble + typewriter on Hans's rig
 	# e.g., CameraInstruction(time=2.0, action=FOCUS_CHARACTER, target="Hans", zoom=1.8)

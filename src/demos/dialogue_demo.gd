@@ -11,7 +11,7 @@ extends Control
 @onready var status_label: Label = $StatusLabel
 
 var _presenter: VnPresenter
-var _playback: TimelinePlayback
+var _playback: GroupPlayback
 var _demo_warriors: Array[CharacterSocialStats] = []
 var _is_headless: bool = false
 
@@ -61,7 +61,7 @@ func _restart() -> void:
 
 func _on_gate_reached() -> void:
 	_update_status("Gate — SPACE to advance")
-	print("[Demo] Gate reached at t=%.2f" % _playback.time_cursor)
+	print("[Demo] Gate reached")
 
 
 func _on_chain_completed() -> void:
@@ -323,37 +323,37 @@ func _run_headless_test() -> void:
 	print("\n=== HEADLESS TEST START ===")
 
 	assert(
-		_playback.state == TimelinePlayback.State.PLAYING or _playback.state == TimelinePlayback.State.WAITING_FOR_GATE,
+		_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
 		"T1: should be PLAYING or at first GATE after load",
 	)
 	print("[TEST 1] PASS: Timeline started (state=%d)" % _playback.state)
 
-	await _wait_for_state(TimelinePlayback.State.WAITING_FOR_GATE, 5.0)
+	await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
 	assert(
-		_playback.state == TimelinePlayback.State.WAITING_FOR_GATE,
+		_playback.state == GroupPlayback.State.WAITING_FOR_GATE,
 		"T2: should be WAITING_FOR_GATE after narrator",
 	)
 	print("[TEST 2] PASS: First gate reached (narrator intro)")
 
 	_playback.on_input()
 	assert(
-		_playback.state == TimelinePlayback.State.PLAYING or _playback.state == TimelinePlayback.State.WAITING_FOR_GATE,
+		_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
 		"T3: should resume PLAYING or hit next gate instantly",
 	)
 	print("[TEST 3] PASS: Gate advanced")
 
 	for i in 3:
-		await _wait_for_state(TimelinePlayback.State.WAITING_FOR_GATE, 5.0)
+		await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
 		_playback.on_input()
 	print("[TEST 4] PASS: Clicked through gated dialogues")
 
-	await _wait_for_state_any([TimelinePlayback.State.PLAYING, TimelinePlayback.State.FAST_FORWARDING, TimelinePlayback.State.WAITING_FOR_GATE], 2.0)
+	await _wait_for_state_any([GroupPlayback.State.PLAYING, GroupPlayback.State.FAST_FORWARDING, GroupPlayback.State.WAITING_FOR_GATE], 2.0)
 	print("[TEST 5] PASS: Cinematic section (state=%d)" % _playback.state)
 
-	if _playback.state == TimelinePlayback.State.PLAYING:
+	if _playback.state == GroupPlayback.State.PLAYING:
 		_playback.on_input()
 		assert(
-			_playback.state == TimelinePlayback.State.FAST_FORWARDING or _playback.state == TimelinePlayback.State.WAITING_FOR_GATE,
+			_playback.state == GroupPlayback.State.FAST_FORWARDING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
 			"T6: should be FAST_FORWARDING or at gate after space",
 		)
 		print("[TEST 6] PASS: Speed-up engaged (state=%d)" % _playback.state)
@@ -361,19 +361,19 @@ func _run_headless_test() -> void:
 		print("[TEST 6] SKIP: Already at gate")
 
 	for i in 10:
-		if _playback.state == TimelinePlayback.State.COMPLETE:
+		if _playback.state == GroupPlayback.State.COMPLETE:
 			break
-		if _playback.state == TimelinePlayback.State.WAITING_FOR_GATE:
+		if _playback.state == GroupPlayback.State.WAITING_FOR_GATE:
 			_playback.on_input()
-		await _wait_for_state_any([TimelinePlayback.State.WAITING_FOR_GATE, TimelinePlayback.State.COMPLETE], 8.0)
+		await _wait_for_state_any([GroupPlayback.State.WAITING_FOR_GATE, GroupPlayback.State.COMPLETE], 8.0)
 
-	assert(_playback.state == TimelinePlayback.State.COMPLETE, "T7: should be COMPLETE (got %d)" % _playback.state)
+	assert(_playback.state == GroupPlayback.State.COMPLETE, "T7: should be COMPLETE (got %d)" % _playback.state)
 	print("[TEST 7] PASS: Timeline complete")
 
 	print("\n=== HEADLESS TEST: ALL PASSED ===")
 
 
-func _wait_for_state(target: TimelinePlayback.State, timeout_sec: float) -> void:
+func _wait_for_state(target: GroupPlayback.State, timeout_sec: float) -> void:
 	var elapsed = 0.0
 	while _playback.state != target and elapsed < timeout_sec:
 		await get_tree().process_frame

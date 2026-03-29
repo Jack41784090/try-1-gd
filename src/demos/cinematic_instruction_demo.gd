@@ -1,5 +1,5 @@
 extends Node
-## Headless test for CinematicInstruction, TimelinePlayback, and GroupPlayback.
+## Headless test for CinematicInstruction and GroupPlayback.
 ## Run: godot --headless --path . scenes/demos/cinematic_instruction_demo.tscn 2>&1
 
 var _pass_count: int = 0
@@ -201,10 +201,10 @@ func _test_circular_detection() -> void:
 #endregion
 
 
-#region Test: TimelinePlayback firing order
+#region Test: GroupPlayback firing order
 
 func _test_timeline_playback_firing_order() -> void:
-	print("--- Test: TimelinePlayback firing order ---")
+	print("--- Test: GroupPlayback firing order ---")
 
 	# Build a chain with after_id, resolve it, then feed to playback
 	var chain = EventChain.new()
@@ -239,7 +239,7 @@ func _test_timeline_playback_firing_order() -> void:
 	_assert_float("d2 resolved for playback", d2.time, 0.9)
 
 	# Now test playback: drive process() manually with large deltas (no gates)
-	var playback = TimelinePlayback.new()
+	var playback = GroupPlayback.new()
 	var fired_ids: Array[String] = []
 
 	playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
@@ -258,7 +258,7 @@ func _test_timeline_playback_firing_order() -> void:
 	)
 
 	playback.load_timeline(chain.timeline)
-	_assert_eq("playback state PLAYING", playback.state, TimelinePlayback.State.PLAYING)
+	_assert_eq("playback state PLAYING", playback.state, GroupPlayback.State.PLAYING)
 
 	# Advance past all instructions (no gates, so should complete)
 	playback.process(2.0)
@@ -270,16 +270,16 @@ func _test_timeline_playback_firing_order() -> void:
 		_assert_eq("third fired is d2", fired_ids[2], "pb_b")
 
 	_assert_true("timeline completed", flags[0])
-	_assert_eq("playback state COMPLETE", playback.state, TimelinePlayback.State.COMPLETE)
+	_assert_eq("playback state COMPLETE", playback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
 #endregion
 
 
-#region Test: TimelinePlayback gate pausing
+#region Test: GroupPlayback gate pausing
 
 func _test_timeline_playback_gate_pausing() -> void:
-	print("--- Test: TimelinePlayback gate pausing ---")
+	print("--- Test: GroupPlayback gate pausing ---")
 
 	var d1 = DialogueInstruction.new()
 	d1.id = "gate_d1"
@@ -299,7 +299,7 @@ func _test_timeline_playback_gate_pausing() -> void:
 
 	var timeline: Array[CinematicInstruction] = [d1, gate, d2]
 
-	var playback = TimelinePlayback.new()
+	var playback = GroupPlayback.new()
 	var fired_ids: Array[String] = []
 	var counters: Array = [0]  # Array wrapper for lambda capture
 
@@ -317,11 +317,11 @@ func _test_timeline_playback_gate_pausing() -> void:
 
 	_assert_eq("d1 fired before gate", fired_ids.size(), 1)
 	_assert_eq("gate reached", counters[0], 1)
-	_assert_eq("paused at gate", playback.state, TimelinePlayback.State.WAITING_FOR_GATE)
+	_assert_eq("paused at gate", playback.state, GroupPlayback.State.WAITING_FOR_GATE)
 
 	# Simulate player input to advance past gate
 	playback.on_input()
-	_assert_eq("resumed playing", playback.state, TimelinePlayback.State.PLAYING)
+	_assert_eq("resumed playing", playback.state, GroupPlayback.State.PLAYING)
 
 	# Continue advancing
 	playback.process(1.0)
@@ -329,7 +329,7 @@ func _test_timeline_playback_gate_pausing() -> void:
 	_assert_eq("d2 fired after gate", fired_ids.size(), 2)
 	if fired_ids.size() == 2:
 		_assert_eq("second is d2", fired_ids[1], "gate_d2")
-	_assert_eq("playback completed", playback.state, TimelinePlayback.State.COMPLETE)
+	_assert_eq("playback completed", playback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
 #endregion
@@ -434,9 +434,9 @@ func _test_load_chain(label: String, path: String, expected_dialogues: int, expe
 
 	print("  Summary: %d dialogue, %d gates, %d camera, %d character" % [dialogue_count, gate_count, camera_count, character_count])
 
-	# Test playback simulation: feed to TimelinePlayback, auto-advance through gates
+	# Test playback simulation: feed to GroupPlayback, auto-advance through gates
 	print("  Simulating playback...")
-	var playback = TimelinePlayback.new()
+	var playback = GroupPlayback.new()
 	var fired_instructions: Array[CinematicInstruction] = []
 	var gates_hit: int = 0
 
@@ -452,13 +452,13 @@ func _test_load_chain(label: String, path: String, expected_dialogues: int, expe
 	# Drive the playback: advance in small steps, auto-releasing gates
 	var safety: int = 0
 	var max_iterations: int = 10000
-	while playback.state != TimelinePlayback.State.COMPLETE and safety < max_iterations:
-		if playback.state == TimelinePlayback.State.WAITING_FOR_GATE:
+	while playback.state != GroupPlayback.State.COMPLETE and safety < max_iterations:
+		if playback.state == GroupPlayback.State.WAITING_FOR_GATE:
 			playback.on_input()
 		playback.process(0.05)
 		safety += 1
 
-	_assert_true("playback completed (iterations=%d)" % safety, playback.state == TimelinePlayback.State.COMPLETE)
+	_assert_true("playback completed (iterations=%d)" % safety, playback.state == GroupPlayback.State.COMPLETE)
 	_assert_eq("all non-gate instructions fired", fired_instructions.size(), chain.timeline.size() - gate_count)
 	print("  Playback: fired %d instructions, hit %d gates, %d iterations" % [fired_instructions.size(), gates_hit, safety])
 
