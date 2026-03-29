@@ -68,6 +68,7 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 	var data := {
 		"state": state,
 		"progress": contact.progress,
+		"progress_delta": contact.last_delta,
 		"target_id": contact.target_id,
 		"being_tracked": contact.being_tracked,
 		"is_caravan": target_squad.is_caravan(),
@@ -76,7 +77,7 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 	match state:
 		StrategyTypes.ContactState.SUSPECTED:
 			if target_squad.is_caravan():
-				data["title"] = "Trade Caravan"
+				data["title"] = target_squad.squad_name
 				data["size_hint"] = _get_size_hint(target_squad)
 			else:
 				data["title"] = "Unknown Force"

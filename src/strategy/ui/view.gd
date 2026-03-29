@@ -42,6 +42,9 @@ extends Control
 @onready var combat_intermission_node: PanelContainer = $CombatIntermission
 @onready var combat_overlay_node: CanvasLayer = $CombatOverlay
 var combat_ui: CombatUI
+var _contact_bars_panel: PanelContainer
+var _contact_bars_container: VBoxContainer
+var _contact_rows: Dictionary = {}
 
 var battle_viewport: SubViewport:
 	get: return combat_ui.viewport if combat_ui else null
@@ -69,6 +72,7 @@ func _ready() -> void:
 	print(" --- Main gui is ready --- ")
 	combat_ui = CombatUI.create(self, combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
 	_setup_notification_bar()
+	_setup_contact_bars()
 	_connect_signals()
 	_register_button_animations()
 	presenter.bind_view(self)
@@ -177,6 +181,29 @@ func update_morale_bar(value: float) -> void:
 
 func update_condition(text: String) -> void:
 	condition_label.text = text
+
+
+func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
+	var new_ids: Dictionary = {}
+	for data in contacts_data:
+		new_ids[data["target_id"]] = data
+
+	var removed: Array[String] = []
+	for tid in _contact_rows:
+		if not new_ids.has(tid):
+			removed.append(tid)
+	for tid in removed:
+		_animate_contact_remove(tid)
+
+	for data in contacts_data:
+		var tid: String = data["target_id"]
+		if _contact_rows.has(tid):
+			_update_existing_contact_row(tid, data)
+		else:
+			_create_contact_mini_bar(data)
+			_animate_contact_appear(tid)
+
+	_contact_bars_panel.visible = not _contact_rows.is_empty()
 
 
 func update_stats(money: float, food: int, karma: float, stability: float, development: int) -> void:
@@ -521,6 +548,258 @@ func _setup_notification_bar() -> void:
 	var status_idx := status_area.get_index()
 	main_vbox.add_child(notification_bar)
 	main_vbox.move_child(notification_bar, status_idx)
+
+
+func _setup_contact_bars() -> void:
+	var screen_area = $PanelContainer/MainVBox/MainScreenArea
+
+	_contact_bars_panel = PanelContainer.new()
+	_contact_bars_panel.name = "ContactBarsPanel"
+	_contact_bars_panel.visible = false
+	_contact_bars_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_contact_bars_panel.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	_contact_bars_panel.anchor_right = 0.5
+	_contact_bars_panel.anchor_bottom = 1.0
+	_contact_bars_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.08, 0.08, 0.12, 0.9)
+	panel_style.border_width_left = 0
+	panel_style.border_width_top = 0
+	panel_style.border_width_right = 2
+	panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0.6, 0.5, 0.3, 0.6)
+	panel_style.corner_radius_bottom_right = 8
+	panel_style.shadow_color = Color(0, 0, 0, 0.4)
+	panel_style.shadow_size = 3
+	panel_style.shadow_offset = Vector2(1, 1)
+	_contact_bars_panel.add_theme_style_override("panel", panel_style)
+	screen_area.add_child(_contact_bars_panel)
+
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	_contact_bars_panel.add_child(margin)
+
+	_contact_bars_container = VBoxContainer.new()
+	_contact_bars_container.name = "ContactBars"
+	_contact_bars_container.add_theme_constant_override("separation", 4)
+	margin.add_child(_contact_bars_container)
+
+
+
+func _create_contact_mini_bar(data: Dictionary) -> void:
+	var state: StrategyTypes.ContactState = data["state"]
+	var progress: float = data["progress"]
+	var delta: float = data.get("progress_delta", 0.0)
+	var title: String = data.get("title", "Unknown")
+	var target_id: String = data.get("target_id", "")
+
+	var state_color := _get_contact_state_color(state)
+
+	var row = HBoxContainer.new()
+	row.name = "Contact_" + target_id
+	row.add_theme_constant_override("separation", 6)
+	row.custom_minimum_size = Vector2(0, 22)
+	row.clip_contents = true
+	_contact_bars_container.add_child(row)
+
+	var symbol = Label.new()
+	symbol.name = "Symbol"
+	symbol.add_theme_font_size_override("font_size", 11)
+	symbol.custom_minimum_size = Vector2(14, 0)
+	if not is_zero_approx(delta):
+		if delta > 0.0:
+			symbol.text = "▲"
+			symbol.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			symbol.text = "▼"
+			symbol.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	else:
+		symbol.text = "●"
+		symbol.add_theme_color_override("font_color", state_color * Color(1, 1, 1, 0.5))
+	row.add_child(symbol)
+
+	var name_label = Label.new()
+	name_label.name = "NameLabel"
+	name_label.text = title
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.add_theme_color_override("font_color", state_color)
+	name_label.custom_minimum_size = Vector2(90, 0)
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(name_label)
+
+	var bar_bg = PanelContainer.new()
+	bar_bg.name = "BarBg"
+	bar_bg.custom_minimum_size = Vector2(100, 8)
+	bar_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar_bg.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var bar_style = StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.12, 0.12, 0.16)
+	bar_style.corner_radius_top_left = 3
+	bar_style.corner_radius_top_right = 3
+	bar_style.corner_radius_bottom_right = 3
+	bar_style.corner_radius_bottom_left = 3
+	bar_style.border_width_left = 1
+	bar_style.border_width_top = 1
+	bar_style.border_width_right = 1
+	bar_style.border_width_bottom = 1
+	bar_style.border_color = Color(0.25, 0.25, 0.3)
+	bar_bg.add_theme_style_override("panel", bar_style)
+	row.add_child(bar_bg)
+
+	var bar_fill = ColorRect.new()
+	bar_fill.name = "Fill"
+	var fill_fraction := clampf(progress / 100.0, 0.0, 1.0)
+	bar_fill.color = state_color * Color(1, 1, 1, 0.8)
+	bar_fill.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	bar_fill.anchor_right = fill_fraction
+	bar_bg.add_child(bar_fill)
+
+	if not is_zero_approx(delta):
+		var prev_progress := clampf(progress - delta, 0.0, 100.0)
+		var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
+		var delta_mark = ColorRect.new()
+		delta_mark.name = "DeltaMark"
+		if delta > 0.0:
+			delta_mark.color = Color(0.4, 1.0, 0.4, 0.35)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = prev_fraction
+			delta_mark.anchor_right = fill_fraction
+		else:
+			delta_mark.color = Color(1.0, 0.4, 0.4, 0.35)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = fill_fraction
+			delta_mark.anchor_right = prev_fraction
+		bar_bg.add_child(delta_mark)
+
+	var pct_label = Label.new()
+	pct_label.name = "PctLabel"
+	pct_label.text = "%.0f%%" % progress
+	pct_label.add_theme_font_size_override("font_size", 11)
+	pct_label.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+	row.add_child(pct_label)
+
+	if not is_zero_approx(delta):
+		var delta_label = Label.new()
+		delta_label.name = "DeltaLabel"
+		delta_label.add_theme_font_size_override("font_size", 10)
+		if delta > 0.0:
+			delta_label.text = "+%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			delta_label.text = "%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		row.add_child(delta_label)
+
+	_contact_rows[target_id] = row
+
+
+func _update_existing_contact_row(target_id: String, data: Dictionary) -> void:
+	var row: HBoxContainer = _contact_rows[target_id]
+	var state: StrategyTypes.ContactState = data["state"]
+	var progress: float = data["progress"]
+	var delta: float = data.get("progress_delta", 0.0)
+	var title: String = data.get("title", "Unknown")
+	var state_color := _get_contact_state_color(state)
+
+	var symbol: Label = row.get_node("Symbol")
+	if not is_zero_approx(delta):
+		if delta > 0.0:
+			symbol.text = "▲"
+			symbol.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			symbol.text = "▼"
+			symbol.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	else:
+		symbol.text = "●"
+		symbol.add_theme_color_override("font_color", state_color * Color(1, 1, 1, 0.5))
+
+	var name_label: Label = row.get_node("NameLabel")
+	name_label.text = title
+	name_label.add_theme_color_override("font_color", state_color)
+
+	var bar_bg: PanelContainer = row.get_node("BarBg")
+	var bar_fill: ColorRect = bar_bg.get_node("Fill")
+	var new_fraction := clampf(progress / 100.0, 0.0, 1.0)
+	var old_fraction := bar_fill.anchor_right
+
+	bar_fill.color = state_color * Color(1, 1, 1, 0.8)
+	var tween = create_tween()
+	tween.tween_property(bar_fill, "anchor_right", new_fraction, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+	var old_delta_mark = bar_bg.get_node_or_null("DeltaMark")
+	if old_delta_mark:
+		old_delta_mark.queue_free()
+	if not is_zero_approx(delta):
+		var delta_mark = ColorRect.new()
+		delta_mark.name = "DeltaMark"
+		if delta > 0.0:
+			delta_mark.color = Color(0.4, 1.0, 0.4, 0.35)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = old_fraction
+			delta_mark.anchor_right = new_fraction
+		else:
+			delta_mark.color = Color(1.0, 0.4, 0.4, 0.35)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = new_fraction
+			delta_mark.anchor_right = old_fraction
+		bar_bg.add_child(delta_mark)
+		tween.parallel().tween_property(delta_mark, "modulate:a", 0.0, 1.5).set_delay(0.5)
+
+	var pct_label: Label = row.get_node("PctLabel")
+	pct_label.text = "%.0f%%" % progress
+
+	var old_delta_label = row.get_node_or_null("DeltaLabel")
+	if old_delta_label:
+		old_delta_label.queue_free()
+	if not is_zero_approx(delta):
+		var delta_label = Label.new()
+		delta_label.name = "DeltaLabel"
+		delta_label.add_theme_font_size_override("font_size", 10)
+		if delta > 0.0:
+			delta_label.text = "+%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			delta_label.text = "%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		row.add_child(delta_label)
+
+
+func _animate_contact_appear(target_id: String) -> void:
+	var row: HBoxContainer = _contact_rows.get(target_id)
+	if not row:
+		return
+	row.modulate.a = 0.0
+	row.position.y = 30.0
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(row, "modulate:a", 1.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(row, "position:y", 0.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
+func _animate_contact_remove(target_id: String) -> void:
+	var row: HBoxContainer = _contact_rows.get(target_id)
+	if not row:
+		_contact_rows.erase(target_id)
+		return
+	_contact_rows.erase(target_id)
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(row, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(row, "position:y", 40.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+	tween.chain().tween_callback(row.queue_free)
+
+
+func _get_contact_state_color(state: StrategyTypes.ContactState) -> Color:
+	match state:
+		StrategyTypes.ContactState.SUSPECTED:
+			return Color(0.6, 0.6, 0.6)
+		StrategyTypes.ContactState.TRACKED:
+			return Color(1.0, 0.9, 0.4)
+		StrategyTypes.ContactState.LOCKED:
+			return Color(0.4, 1.0, 0.4)
+		_:
+			return Color(0.5, 0.5, 0.5)
 
 
 func show_notifications(notifications: Array[NotificationData]) -> void:

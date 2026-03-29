@@ -108,6 +108,7 @@ func update_turn(_turn: int): pass
 func update_location(_text: String): pass
 func update_morale_bar(_value: float): pass
 func update_condition(_text: String): pass
+func update_contact_bars(_contacts_data): pass
 
 func update_stats(_money, _food, _karma, _stability, _development): pass
 

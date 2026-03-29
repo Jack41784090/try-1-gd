@@ -4,6 +4,7 @@ var being_tracked: bool = false
 var observer_id: String
 var target_id: String
 var progress: float = 0.0
+var last_delta: float = 0.0
 var last_updated_turn: int = 0
 
 static func create(p_observer: String, p_target: String):
@@ -26,5 +27,6 @@ func apply_delta(delta: float, current_turn: int) -> void:
 	if delta <= 0.0: being_tracked = false
 	else: being_tracked = true
 
+	last_delta = delta
 	progress = clampf(progress + delta, 0.0, 100.0)
 	last_updated_turn = current_turn

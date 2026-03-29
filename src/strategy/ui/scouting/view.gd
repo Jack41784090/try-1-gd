@@ -226,38 +226,7 @@ func _create_contact_card(data: Dictionary) -> void:
 					w_label.add_theme_color_override("font_color", w_color)
 					vbox.add_child(w_label)
 
-	var progress_bar = ProgressBar.new()
-	progress_bar.min_value = 0.0
-	progress_bar.max_value = 100.0
-	progress_bar.value = progress
-	progress_bar.custom_minimum_size = Vector2(0, 16)
-	progress_bar.show_percentage = false
-	progress_bar.modulate = state_color
-	vbox.add_child(progress_bar)
-
-	var progress_row = HBoxContainer.new()
-	progress_row.add_theme_constant_override("separation", 8)
-	vbox.add_child(progress_row)
-
-	var pct_label = Label.new()
-	pct_label.text = "%.0f%%" % progress
-	pct_label.add_theme_font_size_override("font_size", 12)
-	pct_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	pct_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pct_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	progress_row.add_child(pct_label)
-
-	var focus_mult: float = data.get("focus_multiplier", 1.0)
-	if not is_equal_approx(focus_mult, 1.0):
-		var mult_label = Label.new()
-		mult_label.add_theme_font_size_override("font_size", 12)
-		if focus_mult > 1.0:
-			mult_label.text = "×%.1f Focused" % focus_mult
-			mult_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
-		else:
-			mult_label.text = "×%.1f Scattered" % focus_mult
-			mult_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3))
-		progress_row.add_child(mult_label)
+	_add_scout_report_bar(vbox, progress, data.get("progress_delta", 0.0), state_color)
 
 	contacts_container.add_child(card)
 
@@ -267,6 +236,69 @@ func _add_detail(parent: VBoxContainer, text: String) -> void:
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	parent.add_child(label)
+
+
+func _add_scout_report_bar(parent: VBoxContainer, progress: float, delta: float, state_color: Color) -> void:
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	parent.add_child(row)
+
+	if not is_zero_approx(delta):
+		var symbol = Label.new()
+		symbol.add_theme_font_size_override("font_size", 14)
+		if delta > 0.0:
+			symbol.text = "▲"
+			symbol.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			symbol.text = "▼"
+			symbol.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		row.add_child(symbol)
+
+	var bar_bg = ColorRect.new()
+	bar_bg.custom_minimum_size = Vector2(200, 12)
+	bar_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar_bg.color = Color(0.15, 0.15, 0.15)
+	row.add_child(bar_bg)
+
+	var bar_fill = ColorRect.new()
+	var fill_fraction := clampf(progress / 100.0, 0.0, 1.0)
+	bar_fill.color = state_color
+	bar_fill.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	bar_fill.anchor_right = fill_fraction
+	bar_bg.add_child(bar_fill)
+
+	if not is_zero_approx(delta):
+		var prev_progress := clampf(progress - delta, 0.0, 100.0)
+		var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
+		var delta_mark = ColorRect.new()
+		if delta > 0.0:
+			delta_mark.color = Color(0.4, 1.0, 0.4, 0.5)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = prev_fraction
+			delta_mark.anchor_right = fill_fraction
+		else:
+			delta_mark.color = Color(1.0, 0.4, 0.4, 0.5)
+			delta_mark.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+			delta_mark.anchor_left = fill_fraction
+			delta_mark.anchor_right = prev_fraction
+		bar_bg.add_child(delta_mark)
+
+	var pct_label = Label.new()
+	pct_label.text = "%.0f%%" % progress
+	pct_label.add_theme_font_size_override("font_size", 12)
+	pct_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	row.add_child(pct_label)
+
+	if not is_zero_approx(delta):
+		var delta_label = Label.new()
+		delta_label.add_theme_font_size_override("font_size", 11)
+		if delta > 0.0:
+			delta_label.text = "+%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		else:
+			delta_label.text = "%.1f" % delta
+			delta_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		row.add_child(delta_label)
 
 
 func _add_destination_intel(parent: VBoxContainer, data: Dictionary, show_distance: bool) -> void:

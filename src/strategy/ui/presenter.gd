@@ -501,6 +501,7 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 
 
 func _collect_and_show_notifications() -> void:
+	return  # Notifications disabled temporarily
 	var turn := game_scenario.world.turn_count
 
 	_notification_collector.collect_resource_notifications(actor.player_squad, turn)
@@ -804,6 +805,7 @@ func _update_ui() -> void:
 
 	view.update_condition(_get_morale_condition(squad.get_morale()))
 	view.update_morale_bar(squad.get_morale())
+	_update_contact_bars(world, squad)
 
 	view.update_stats(
 		squad.money,
@@ -820,6 +822,39 @@ func _update_ui() -> void:
 		view.hide_continue_travel_button()
 
 	_update_activity_buttons()
+
+
+func _update_contact_bars(world: World, squad: SquadData) -> void:
+	if not world.contact_tracker:
+		view.update_contact_bars([])
+		return
+	var our_contacts = world.contact_tracker.get_contacts_for(squad.squad_id)
+	var bars: Array[Dictionary] = []
+	for contact in our_contacts:
+		if contact.progress <= 0.0:
+			continue
+		var target_squad: SquadData = null
+		for s in world.roaming_squads:
+			if s.squad_id == contact.target_id:
+				target_squad = s
+				break
+		if not target_squad:
+			continue
+		var state = contact.get_state()
+		var title: String
+		match state:
+			StrategyTypes.ContactState.SUSPECTED:
+				title = target_squad.squad_name if target_squad.is_caravan() else "Unknown Force"
+			_:
+				title = target_squad.squad_name
+		bars.append({
+			"state": state,
+			"progress": contact.progress,
+			"progress_delta": contact.last_delta,
+			"title": title,
+		})
+	bars.sort_custom(func(a, b): return a["progress"] > b["progress"])
+	view.update_contact_bars(bars)
 
 
 func _update_activity_buttons() -> void:
