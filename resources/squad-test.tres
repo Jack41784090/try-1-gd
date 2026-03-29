@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="SquadData" load_steps=2 format=3 uid="uid://cn640bxufihkb"]
-
-[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="1_social"]
-
-[resource]
-script = ExtResource("1_social")
-metadata/_custom_type_script = "uid://cjilk34mc47ja"
