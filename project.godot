@@ -32,10 +32,6 @@ SFX="*res://src/singletons/sfx.gd"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
-[gui]
-
-theme/custom="res://resources/theme/condor_theme.tres"
-
 [dotnet]
 
 project/assembly_name="try1"
@@ -43,3 +39,7 @@ project/assembly_name="try1"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/GDQuest_GDScript_formatter/plugin.cfg", "res://addons/script-ide/addons/script-ide/plugin.cfg")
+
+[gui]
+
+theme/custom="res://resources/theme/condor_theme.tres"
