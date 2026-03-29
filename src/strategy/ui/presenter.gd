@@ -17,8 +17,9 @@ var actor: ActivityRunner
 var ai_fleet: AIFleetManager
 var vn_view
 var stage_presenter
-var combat_controller: CombatController
-var _active_shipments: Dictionary = {}
+var combat_orch: CombatOrchestrator
+var economy_orch: EconomyOrchestrator
+var contact_orch: ContactOrchestrator
 
 var game_scenario: GameScenario:
 	get:
@@ -27,7 +28,6 @@ var game_scenario: GameScenario:
 var ui_mode: UIMode = UIMode.STRATEGY
 var is_executing_activity: bool = false
 var stat_snapshot: Dictionary = { }
-var is_in_combat_encounter: bool = false
 var encounter_timeout_timer: float = 0.0
 var combat_options: Dictionary = { }
 var _pending_results: Array[GenericResult] = []
@@ -76,7 +76,7 @@ func bind_view(v) -> void:
 
 
 func _process(delta: float) -> void:
-	if is_in_combat_encounter and encounter_timeout_timer > 0:
+	if combat_orch and combat_orch.is_in_encounter and encounter_timeout_timer > 0:
 		encounter_timeout_timer -= delta
 		view.update_combat_timer(encounter_timeout_timer, combat_options.get("timeout_seconds", 30.0))
 		if encounter_timeout_timer <= 0:
@@ -112,15 +112,14 @@ func _initialize_scenario() -> void:
 
 
 func _setup_components() -> void:
-	# Initializes combat controller, child GUIs (travel/investigation/recruitment menus), and AI fleet
-	# Also links VnPresenter to StagePresenter so VN timelines can control the 2D stage characters
-	# e.g., CombatController gets contact_tracker so it can determine engagement types (AMBUSH vs SET_PIECE)
-	combat_controller = CombatController.new()
-	combat_controller.set_contact_tracker(game_scenario.world.contact_tracker)
+	combat_orch = CombatOrchestrator.new()
+	combat_orch.setup(game_scenario.world.contact_tracker)
+	economy_orch = EconomyOrchestrator.new()
+	contact_orch = ContactOrchestrator.new()
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	vn_view.presenter.set_stage_presenter(stage_presenter)
-	Log.info("Presenter", "CombatController initialized")
+	Log.info("Presenter", "Orchestrators initialized")
 	Log.info("Presenter", "AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
 #endregion
@@ -345,9 +344,9 @@ func _execute_activity_obj(activity: Activity) -> void:
 		else:
 			turn_log.append("AI %s %s at %s" % [sq_name, at_name, sq_loc])
 
-	var contact_before_states := _snapshot_contact_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
-	var squad_names_cache := _cache_squad_names()
-	_tick_economy_and_spawn_caravans()
+	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
+	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
 	var turn_entries = _build_karma_sorted_entries(ai_results)
 
 	for entry in turn_entries:
@@ -374,8 +373,12 @@ func _execute_activity_obj(activity: Activity) -> void:
 		return
 
 	var contact_before_for_log := contact_before_states.duplicate()
-	_update_contacts(activity, player_location_before, ai_results, contact_before_states, squad_names_cache)
-	var contact_after_states := _snapshot_contact_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	var contact_result = contact_orch.update(
+		game_scenario.world, actor.player_squad, actor.walking_towards,
+		ai_fleet, activity, player_location_before, contact_before_states,
+		_notification_collector, squad_names_cache,
+	)
+	var contact_after_states: Dictionary = contact_result["contact_after"]
 	for key in contact_after_states:
 		var after_state: int = contact_after_states[key]
 		var before_state: int = contact_before_for_log.get(key, StrategyTypes.ContactState.NONE)
@@ -386,6 +389,14 @@ func _execute_activity_obj(activity: Activity) -> void:
 			var before_name: String = StrategyTypes.ContactState.keys()[before_state]
 			var after_name: String = StrategyTypes.ContactState.keys()[after_state]
 			turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
+
+	var player_engagements: Array[Dictionary] = contact_result["engagements"]
+	for engagement in player_engagements:
+		await _handle_player_engagement(engagement)
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
 
 	await _check_missions()
 	_collect_and_show_notifications()
@@ -452,71 +463,7 @@ func _exec_play_animchanges_loop(activity, state):
 		await _animate_stat_changes()
 
 
-func _update_contacts(activity: Activity, player_location_before: String, ai_results: Dictionary, pre_economy_states: Dictionary = {}, squad_names: Dictionary = {}) -> void:
-	# Updates the contact/detection system after a turn:
-	# 1. Builds activity logs (who did what) and edge logs (who moved where)
-	# 2. Runs contact_tracker.update_all_contacts() to advance detection progress for all squads
-	# 3. Checks location clues for bonus contact on enemies
-	# 4. Checks for engagement triggers (contact LOCKED → combat)
-	#
-	# e.g., player did TRAVEL from "salzburg" to "linz", AI squad "Raiders" did PATROL at "linz"
-	#   → activity_log = {player: TRAVEL, raiders: PATROL}
-	#   → edge_log = {player: {from: salzburg, to: linz}}
-	#   → contacts updated: player↔Raiders both gain detection progress (same location now)
-	#   → clue at linz from Raiders → bonus contact
-	#   → engagement check: player has LOCKED on Raiders → _handle_player_engagement()
-	var world = game_scenario.world
-	var tracker = world.contact_tracker
-	var player = actor.player_squad
-
-	var activity_log: Dictionary = { }
-	var edge_log: Dictionary = { }
-
-	activity_log[player.squad_id] = activity.activity_type
-
-	var player_location_after = player.current_location_id
-	if player_location_before != player_location_after:
-		edge_log[player.squad_id] = { "from": player_location_before, "to": player_location_after }
-	elif actor.walking_towards and actor.walking_towards is Dictionary and actor.walking_towards.get("location") != null:
-		var dest_loc: Location = actor.walking_towards["location"]
-		edge_log[player.squad_id] = { "from": player_location_after, "to": dest_loc.location_id }
-
-	ai_fleet.fill_activity_log(activity_log, edge_log)
-
-	var all_squads: Array = [player]
-	for sq in world.roaming_squads:
-		all_squads.append(sq)
-
-	var focus_map: Dictionary = {}
-	if player.scouting_focus and not player.scouting_focus.is_empty():
-		focus_map[player.squad_id] = player.scouting_focus
-
-	var before_states: Dictionary = pre_economy_states if not pre_economy_states.is_empty() else _snapshot_contact_states(tracker, player.squad_id)
-	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count, focus_map)
-	var after_states := _snapshot_contact_states(tracker, player.squad_id)
-	_notification_collector.collect_contact_notifications(before_states, after_states, world, player.squad_id, world.turn_count, squad_names)
-
-	var location = world.get_location_by_id(player.current_location_id)
-	if location:
-		var active_clues = location.get_active_clues(world.turn_count)
-		for clue in active_clues:
-			for enemy in world.roaming_squads:
-				if clue.left_by_squad_id == enemy.squad_id:
-					tracker.apply_clue_bonus(clue, enemy, player)
-
-	var engagements = tracker.check_engagements(world, all_squads)
-	for engagement in engagements:
-		var involves_player = engagement["attacker_id"] == player.squad_id or engagement["defender_id"] == player.squad_id
-		if involves_player:
-			await _handle_player_engagement(engagement)
-
-
 func _handle_player_engagement(engagement: Dictionary) -> void:
-	# Handles a detected engagement where the player is involved
-	# Determines which squad is the enemy, then starts the combat encounter
-	# Currently auto-engages regardless of stance (both ALWAYS_ENGAGE and player-decides call start_encounter)
-	# e.g., engagement={attacker_id: "player", defender_id: "raiders", type: AMBUSH}
-	#   → enemy = "raiders" → start_encounter(raiders, {}, AMBUSH) → awaits combat resolution
 	var engagement_type: StrategyTypes.EngagementType = engagement["type"]
 	var player = actor.player_squad
 
@@ -550,22 +497,6 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 		)
 		start_encounter(enemy_squad, { }, engagement_type)
 		await encounter_resolved
-
-
-func _snapshot_contact_states(tracker, player_squad_id: String) -> Dictionary:
-	var states := {}
-	var contacts = tracker.get_contacts_for(player_squad_id)
-	for contact in contacts:
-		var key := "%s::%s" % [contact.observer_id, contact.target_id]
-		states[key] = contact.get_state()
-	return states
-
-
-func _cache_squad_names() -> Dictionary:
-	var names := {}
-	for sq in game_scenario.world.roaming_squads:
-		names[sq.squad_id] = sq.squad_name
-	return names
 
 
 func _collect_and_show_notifications() -> void:
@@ -715,8 +646,7 @@ func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagem
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 
-	is_in_combat_encounter = true
-	combat_options = combat_controller.inject_context(
+	combat_options = combat_orch.inject_context(
 		actor.player_squad,
 		enemy_squad,
 		view.battle_viewport,
@@ -729,14 +659,10 @@ func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagem
 
 
 func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> void:
-	# Processes the player's combat intermission choice (FIGHT/FLEE/NEGOTIATE)
-	# Disables buttons to prevent double-input, delegates to CombatController, then handles result
-	# e.g., FIGHT → _execute_combat() → CombatResult{victory, casualties=[w2]} → _handle_encounter_result()
-	# e.g., FLEE(roll fails) → forced combat → CombatResult{victory=false} → _handle_encounter_result()
 	view.disable_combat_buttons()
 	encounter_timeout_timer = 0
 
-	var encounter_result: CombatController.CombatResult = await combat_controller.process_intermission_choice(choice)
+	var encounter_result: CombatController.CombatResult = await combat_orch.execute_choice(choice)
 	view.hide_combat_panel()
 
 	Log.info("Presenter", "Combat result received: %s" % [encounter_result.to_string() if encounter_result else "null"])
@@ -752,177 +678,28 @@ func _on_combat_timeout() -> void:
 
 
 func _handle_encounter_result(result: CombatController.CombatResult) -> void:
-	# Applies combat outcome to the game state: morale changes, casualty tracking, loot, clues
-	# Then shows the combat result overlay (VICTORY/DEFEAT/FLED/NEGOTIATED with morale animation)
-	# e.g., result={victory:true, morale_change:+10, loot:{money:50, food:3}, clues:[Clue("linz")]}
-	#   → apply morale +10, add 50 money, add 3 food, add clue to current location
-	#   → show overlay with "VICTORY!" label and morale bar animation 60→70
-	is_in_combat_encounter = false
-
 	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
-	var outcome_str := "VICTORY" if result.victory else ("FLED" if result.fled else ("NEGOTIATED" if result.negotiated else "DEFEAT"))
-	turn_log.append("COMBAT %s — casualties:%d escaped:%d" % [
-		outcome_str, result.player_casualties.size(), result.escaped_warriors.size()])
 
-	var morale_before = actor.player_squad.get_morale()
+	var outcome = combat_orch.apply_result(result, actor.player_squad, actor.current_location, game_scenario.world, turn_log)
+	await view.show_combat_result_overlay(result, outcome["morale_before"], outcome["morale_after"])
 
-	if result.morale_change != 0:
-		actor.player_squad.modify_aggregate_morale(result.morale_change)
-		Log.debug("Presenter", "Applied morale change: %.1f" % result.morale_change)
-
-	for casualty_id in result.player_casualties:
-		var warrior = actor.player_squad.get_warrior_by_id(casualty_id)
-		if warrior:
-			turn_log.append("CASUALTY %s" % warrior.name)
-			Log.info("Presenter", "Casualty: %s" % warrior.name)
-
-	for escaped_id in result.escaped_warriors:
-		var warrior = actor.player_squad.get_warrior_by_id(escaped_id)
-		if warrior:
-			turn_log.append("ESCAPED %s (injured)" % warrior.name)
-			Log.info("Presenter", "Escaped (injured): %s" % warrior.name)
-
-	if result.loot:
-		Log.debug("Presenter", "Loot collected: %s" % [result.loot])
-		_apply_combat_loot(result.loot)
-
-	if not result.equipment_loot.is_empty():
-		LootCollector.apply_equipment_loot(actor.player_squad.inventory, result.equipment_loot)
-
-	if result.clues_dropped.size() > 0:
-		var loc = actor.current_location
-		for clue in result.clues_dropped:
-			loc.add_clue(clue)
-			Log.debug("Presenter", "Clue dropped: %s" % clue.clue_name)
-
-	var morale_after = actor.player_squad.get_morale()
-	await view.show_combat_result_overlay(result, morale_before, morale_after)
-
-	if not result.victory and not result.fled and not result.negotiated:
-		if not actor.player_squad.get_living_warriors().is_empty():
-			var nearest = game_scenario.world.find_nearest_location(actor.player_squad.current_location_id)
-			if nearest != "":
-				Log.info("Presenter", "Defeated squad teleporting to nearest location: %s" % nearest)
-				actor.player_squad.set_location(nearest)
-
-	if _check_game_over():
+	if outcome["game_over"]:
+		StrategyEventBus.game_ended.emit("Squad Annihilated")
+		view.show_game_over("DEFEAT", "Your entire squad has perished.")
 		return
 
 	encounter_resolved.emit(result)
 
 
 func _check_game_over() -> bool:
-	if actor.player_squad.get_living_warriors().is_empty():
+	if CombatOrchestrator.check_game_over(actor.player_squad):
 		StrategyEventBus.game_ended.emit("Squad Annihilated")
 		view.show_game_over("DEFEAT", "Your entire squad has perished.")
 		return true
 	return false
 
 
-func _apply_combat_loot(loot: Dictionary) -> void:
-	var squad = actor.player_squad
-	if loot.has("money"):
-		squad.money += loot.money
-		Log.debug("Presenter", "Gained money: %.0f" % loot.money)
-	if loot.has("food"):
-		squad.food += int(loot.food)
-		Log.debug("Presenter", "Gained food: %d" % int(loot.food))
-	if loot.has("caravan_cargo"):
-		var cargo: Dictionary = loot["caravan_cargo"]
-		for thing_id in cargo:
-			var qty: float = cargo[thing_id]
-			if thing_id == "food":
-				squad.food += int(qty)
-				Log.debug("Presenter", "Looted caravan food: %d" % int(qty))
-			else:
-				squad.gain_money(qty * 2.0)
-				Log.debug("Presenter", "Looted caravan goods worth: %.0f" % (qty * 2.0))
-
 #endregion
-
-#region Economy & Caravans
-
-func _tick_economy_and_spawn_caravans() -> void:
-	var economy_engine := game_scenario.world.economy_engine
-	assert(economy_engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
-	var turn := game_scenario.world.turn_count
-	var tick_result := economy_engine.tick(turn)
-
-	var Bridge = load("res://src/economy/caravan_bridge.gd")
-	var idle_caravans: Array[SquadData] = []
-	_deliver_arrived_caravans(Bridge, idle_caravans)
-
-	var pending_dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
-	for dispatch in tick_result.shipment_dispatches:
-		if _active_shipments.has(dispatch.shipment_id):
-			continue
-		pending_dispatches.append(dispatch)
-
-	_reassign_idle_caravans(Bridge, idle_caravans, pending_dispatches)
-	_spawn_new_caravans(Bridge, pending_dispatches)
-	_despawn_excess_caravans(idle_caravans)
-
-
-func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadData]) -> void:
-	for squad in game_scenario.world.roaming_squads:
-		if not squad.is_caravan():
-			continue
-		if not squad.has_reached_destination():
-			continue
-		var dest_loc := game_scenario.world.get_location_by_id(squad.cargo.destination_id)
-		if dest_loc and dest_loc.has_economy():
-			Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
-		for shipment_id in _active_shipments:
-			if _active_shipments[shipment_id] == squad.squad_id:
-				_active_shipments.erase(shipment_id)
-				break
-		turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo.destination_id])
-		Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo.destination_id])
-		idle_caravans.append(squad)
-
-
-func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadData], pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
-	while not idle_caravans.is_empty() and not pending_dispatches.is_empty():
-		var squad: SquadData = idle_caravans.pop_back()
-		var dispatch: EconomyTickResult.ShipmentDispatch = pending_dispatches.pop_front()
-		Bridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
-		_active_shipments[dispatch.shipment_id] = squad.squad_id
-		turn_log.append("CARAVAN reassigned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
-
-
-func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
-	for dispatch in pending_dispatches:
-		var squad: SquadData = Bridge.create_caravan_squad(
-			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
-		)
-		game_scenario.world.add_roaming_squad(squad)
-		ai_fleet.register_caravan(squad)
-		_active_shipments[dispatch.shipment_id] = squad.squad_id
-		turn_log.append("CARAVAN spawned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
-		Log.info("Presenter", "Spawned caravan: %s at %s → %s (%d guards)" % [
-			squad.squad_name, squad.current_location_id,
-			squad.cargo.destination_id, dispatch.guard_count,
-		])
-
-
-func _despawn_excess_caravans(idle_caravans: Array[SquadData]) -> void:
-	for squad in idle_caravans:
-		turn_log.append("CARAVAN retired %s" % squad.squad_name)
-		Log.info("Presenter", "Retiring idle caravan: %s" % squad.squad_name)
-		game_scenario.world.remove_roaming_squad(squad.squad_id)
-		ai_fleet.unregister_caravan(squad.squad_id)
-
-
-func handle_caravan_defeated(caravan: SquadData, attacker: SquadData) -> Dictionary:
-	var Bridge = load("res://src/economy/caravan_bridge.gd")
-	var looted: Dictionary = Bridge.apply_loot(caravan, attacker)
-	for shipment_id in _active_shipments:
-		if _active_shipments[shipment_id] == caravan.squad_id:
-			_active_shipments.erase(shipment_id)
-			break
-	return looted
 
 #endregion
 
