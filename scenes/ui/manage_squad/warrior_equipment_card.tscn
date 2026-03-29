@@ -52,14 +52,14 @@ theme_override_font_sizes/font_size = 13
 visible = false
 custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallButton"
 text = "Equip"
 
 [node name="UnequipBtn" type="Button" parent="VBox/WeaponRow"]
 visible = false
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallButton"
 text = "Unequip"
 
 [node name="ArmorRow" type="HBoxContainer" parent="VBox"]
@@ -82,12 +82,12 @@ theme_override_font_sizes/font_size = 13
 visible = false
 custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallButton"
 text = "Equip"
 
 [node name="UnequipBtn" type="Button" parent="VBox/ArmorRow"]
 visible = false
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallButton"
 text = "Unequip"

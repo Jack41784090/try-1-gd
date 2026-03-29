@@ -28,13 +28,12 @@ mouse_filter = 2
 
 [node name="ClassLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 mouse_filter = 2
 
 [node name="HPLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 mouse_filter = 2

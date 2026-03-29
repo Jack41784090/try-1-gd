@@ -1,0 +1,106 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ui/market/view.gd" id="1_view"]
+[ext_resource type="Script" path="res://src/strategy/ui/market/presenter.gd" id="2_pres"]
+
+[node name="MarketView" type="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_view")
+
+[node name="OverlayPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"OverlayPanel"
+
+[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="OverlayPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Market Board"
+horizontal_alignment = 1
+
+[node name="ContentScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_horizontal = 3
+
+[node name="ContentVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="GoodsHeader" type="Label" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_type_variation = &"SectionLabel"
+text = "Goods & Prices"
+
+[node name="GoodsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ProductionHeader" type="Label" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_type_variation = &"SectionLabel"
+text = "Local Industry"
+
+[node name="ProductionLabel" type="Label" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+autowrap_mode = 3
+
+[node name="PopulationHeader" type="Label" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_type_variation = &"SectionLabel"
+text = "Townsfolk"
+
+[node name="PopulationVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RumorsHeader" type="Label" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_type_variation = &"SectionLabel"
+text = "Market Rumors"
+
+[node name="RumorsVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CloseButton" type="Button" parent="OverlayPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_type_variation = &"CloseButton"
+text = "Close"
+
+[node name="MarketPresenter" type="Node" parent="."]
+script = ExtResource("2_pres")

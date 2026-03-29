@@ -58,6 +58,18 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_panel"]
+bg_color = Color(0.12, 0.12, 0.16, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.35, 0.25, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_contact_panel"]
 bg_color = Color(0.08, 0.08, 0.12, 0.9)
 border_width_right = 2
@@ -257,10 +269,10 @@ bg_color = Color(0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_travel_arrow_bar"]
 content_margin_left = 20.0
-content_margin_top = 6.0
+content_margin_top = 60.0
 content_margin_right = 20.0
-content_margin_bottom = 6.0
-bg_color = Color(0.12, 0.14, 0.18, 0.95)
+content_margin_bottom = 60.0
+bg_color = Color(0.12156863, 0.14117648, 0.18039216, 0.49019608)
 border_width_top = 1
 border_width_bottom = 1
 border_color = Color(0.35, 0.55, 0.4, 0.6)
@@ -283,6 +295,9 @@ Button/styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 Button/styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
 Button/styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+CardPanel/base_type = &"PanelContainer"
+CardPanel/styles/panel = SubResource("StyleBoxFlat_card_panel")
+CheckBox/font_sizes/font_size = 14
 CloseButton/base_type = &"Button"
 CloseButton/colors/font_color = Color(0.8, 0.4, 0.4, 1)
 CloseButton/colors/font_hover_color = Color(1, 0.5, 0.5, 1)
@@ -429,6 +444,10 @@ SectionLabel/constants/shadow_offset_x = 2
 SectionLabel/constants/shadow_offset_y = 2
 SectionLabel/font_sizes/font_size = 20
 SectionLabel/fonts/font = SubResource("FontVariation_bold")
+SmallButton/base_type = &"Button"
+SmallButton/font_sizes/font_size = 11
+SmallCheckBox/base_type = &"CheckBox"
+SmallCheckBox/font_sizes/font_size = 11
 SmallLabel/base_type = &"Label"
 SmallLabel/colors/font_color = Color(0.7, 0.7, 0.7, 1)
 SmallLabel/font_sizes/font_size = 11

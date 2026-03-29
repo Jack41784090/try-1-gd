@@ -1,0 +1,173 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ui/scouting/view.gd" id="1_view"]
+[ext_resource type="Script" path="res://src/strategy/ui/scouting/presenter.gd" id="2_pres"]
+
+[node name="ScoutingView" type="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_view")
+
+[node name="OverlayPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"OverlayPanel"
+
+[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Scouting Report"
+horizontal_alignment = 1
+
+[node name="FocusSection" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HeaderRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FocusTitle" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"MoneyLabel"
+text = "Scouting Focus"
+
+[node name="CoordinationLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"MetaLabel"
+text = "(0%)"
+
+[node name="Spacer" type="Control" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AggrButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Aggr"
+
+[node name="SuppButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Supp"
+
+[node name="ClearButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Clear"
+
+[node name="FilterRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CombatCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "COMBAT"
+
+[node name="MerchantCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "MERCHANT"
+
+[node name="ClassGrid" type="GridContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 1
+
+[node name="LandsknechCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Landsknecht"
+
+[node name="HealerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Healer"
+
+[node name="CrossbowmanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Crossbowman"
+
+[node name="ArquebusierCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Arquebusier"
+
+[node name="PikemanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Pikeman"
+
+[node name="FeldpredigerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Feldprediger"
+
+[node name="GelehrterCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+layout_mode = 2
+theme_type_variation = &"SmallCheckBox"
+text = "Gelehrter"
+
+[node name="FocusSeparator" type="HSeparator" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="WarningContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="NoContactsLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "No contacts detected"
+horizontal_alignment = 1
+
+[node name="ContactsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContactsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CloseButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"CloseButton"
+text = "Close"
+
+[node name="ScoutingPresenter" type="Node" parent="."]
+script = ExtResource("2_pres")

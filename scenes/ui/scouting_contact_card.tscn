@@ -1,0 +1,76 @@
+[gd_scene format=3]
+
+[node name="ContactCard" type="PanelContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+
+[node name="CardMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="CardVBox" type="VBoxContainer" parent="CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="CardMargin/CardVBox"]
+layout_mode = 2
+theme_type_variation = &"SubsectionLabel"
+
+[node name="TrackedBanner" type="HBoxContainer" parent="CardMargin/CardVBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TrackedIcon" type="TextureRect" parent="CardMargin/CardVBox/TrackedBanner"]
+layout_mode = 2
+custom_minimum_size = Vector2(20, 20)
+stretch_mode = 6
+
+[node name="TrackedLabel" type="Label" parent="CardMargin/CardVBox/TrackedBanner"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 15
+text = "Tracked"
+
+[node name="DetailsContainer" type="VBoxContainer" parent="CardMargin/CardVBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ProgressRow" type="HBoxContainer" parent="CardMargin/CardVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DeltaSymbol" type="Label" parent="CardMargin/CardVBox/ProgressRow"]
+visible = false
+layout_mode = 2
+
+[node name="BarBackground" type="ColorRect" parent="CardMargin/CardVBox/ProgressRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 12)
+size_flags_horizontal = 3
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="BarFill" type="ColorRect" parent="CardMargin/CardVBox/ProgressRow/BarBackground"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+
+[node name="DeltaMark" type="ColorRect" parent="CardMargin/CardVBox/ProgressRow/BarBackground"]
+visible = false
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+
+[node name="PercentLabel" type="Label" parent="CardMargin/CardVBox/ProgressRow"]
+layout_mode = 2
+theme_type_variation = &"MetaLabel"
+
+[node name="DeltaLabel" type="Label" parent="CardMargin/CardVBox/ProgressRow"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"SmallLabel"

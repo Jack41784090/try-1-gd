@@ -359,9 +359,6 @@ text = "Excellent"
 [node name="EndButton" type="Button" parent="PanelContainer/MainVBox/StatusArea" unique_id=466440131]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 16
 text = "End Game"
 
 [node name="NotificationBar" type="HBoxContainer" parent="PanelContainer/MainVBox" unique_id=1918925065]
@@ -601,7 +598,6 @@ theme_override_constants/separation = 10
 [node name="SelectedLocationLabel" type="Label" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=2102626628]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 14
 horizontal_alignment = 1
 
 [node name="TravelProgressBar" type="ProgressBar" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=326836442]
@@ -613,7 +609,6 @@ size_flags_vertical = 4
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 13
 text = "Switch to Manual"
 
@@ -629,17 +624,12 @@ theme_override_constants/separation = 8
 [node name="ConfirmButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1741461616]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 16
 text = "Confirm Travel"
 
 [node name="CancelButton" type="Button" parent="TravelView/OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1400642847]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 16
 text = "Cancel"
 
 [node name="TravelPresenter" type="Node" parent="TravelView" unique_id=1992869680]
@@ -706,9 +696,7 @@ theme_override_constants/separation = 10
 [node name="ConfirmButton" type="Button" parent="InvestigationView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=1796061277]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"GoldButton"
 text = "Close"
 
 [node name="RecruitmentView" type="Control" parent="." unique_id=519349744]
@@ -772,9 +760,7 @@ theme_override_constants/separation = 10
 [node name="CloseButton" type="Button" parent="RecruitmentView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=61146897]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"GoldButton"
 text = "Close"
 
 [node name="ManageSquadPage" parent="." unique_id=148327654 instance=ExtResource("30_manage_page")]
@@ -854,8 +840,6 @@ text = "Confirm Purchase"
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 16
 text = "Close"
 
 [node name="ConfirmationPanel" type="PanelContainer" parent="ShopView/OverlayPanel/MarginContainer" unique_id=1339580906]
@@ -911,7 +895,6 @@ text = "Pay"
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Back"
 
@@ -1034,7 +1017,7 @@ offset_top = 20.0
 offset_right = -20.0
 offset_bottom = 70.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"GoldButton"
 text = "Retreat"
 
 [node name="ActivityExecuteManager" type="Control" parent="." unique_id=926143068]
@@ -1105,7 +1088,6 @@ size_flags_horizontal = 4
 text = "Continue"
 
 [node name="TravelArrowBar" type="PanelContainer" parent="." unique_id=2129960287]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.15

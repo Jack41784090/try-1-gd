@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[node name="GoodsCard" type="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 0)
+theme_override_font_sizes/font_size = 15
+
+[node name="StockLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+horizontal_alignment = 2
+
+[node name="PriceLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+horizontal_alignment = 2
+
+[node name="AbundanceBar" type="ProgressBar" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 16)
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+
+[node name="AbundanceLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+theme_override_font_sizes/font_size = 13
