@@ -3,13 +3,15 @@ class_name ScoutingPresenter extends Node
 var view: ScoutingView
 var _world: World
 var _player_squad: SquadData
+var _ai_decisions: Dictionary = {}
 
 func _ready() -> void:
 	view = get_parent() as ScoutingView
 
-func refresh(world: World, player_squad: SquadData) -> void:
+func refresh(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
 	_world = world
 	_player_squad = player_squad
+	_ai_decisions = ai_decisions
 
 	if not player_squad.scouting_focus:
 		player_squad.scouting_focus = ScoutingFocus.new()
@@ -88,6 +90,9 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 			if target_squad.is_caravan():
 				data["cargo_hint"] = "Carrying goods"
 				data["destination_hint"] = target_squad.cargo.destination_id
+			var tracked_dest = _get_destination_intel(contact, target_squad)
+			if not tracked_dest.is_empty():
+				data["destination_intel"] = tracked_dest
 		StrategyTypes.ContactState.LOCKED:
 			data["title"] = target_squad.squad_name
 			data["warrior_count"] = target_squad.get_living_warriors().size()
@@ -98,6 +103,9 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 			if target_squad.is_caravan():
 				data["cargo_value"] = target_squad.get_cargo_value()
 				data["cargo_destination"] = target_squad.cargo.destination_id
+			var locked_dest = _get_destination_intel(contact, target_squad)
+			if not locked_dest.is_empty():
+				data["destination_intel"] = locked_dest
 	return data
 
 func _get_size_hint(squad: SquadData) -> String:
@@ -137,6 +145,71 @@ func _find_squad(squad_id: String, world: World) -> SquadData:
 		if squad.squad_id == squad_id:
 			return squad
 	return null
+
+
+func _get_destination_intel(contact, target_squad: SquadData) -> Dictionary:
+	var actual_dest := _resolve_squad_destination(target_squad)
+	if actual_dest.is_empty():
+		return {}
+
+	var progress: float = contact.progress
+	var is_locked := progress >= 100.0
+
+	var displayed_dest := actual_dest
+	if not is_locked and progress < 60.0:
+		var wrong_chance := clampf((1.0 - (progress - 30.0) / 30.0) * 0.8, 0.0, 0.8)
+		var seed_val := hash(contact.observer_id + contact.target_id + str(_world.turn_count))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_val
+		if rng.randf() < wrong_chance:
+			displayed_dest = _pick_wrong_destination(target_squad.current_location_id, actual_dest)
+
+	var result := {"destination": displayed_dest}
+
+	if is_locked and _world and _world.travel_graph:
+		var travel_time := _world.travel_graph.calculate_travel_time_between(
+			target_squad.current_location_id, actual_dest)
+		if travel_time >= 0:
+			result["turns_remaining"] = travel_time
+
+	var loc := _world.get_location_by_id(displayed_dest) if _world else null
+	result["destination_name"] = loc.location_name if loc else displayed_dest
+
+	return result
+
+
+func _resolve_squad_destination(target_squad: SquadData) -> String:
+	if target_squad.is_caravan() and not target_squad.cargo.destination_id.is_empty():
+		return target_squad.cargo.destination_id
+
+	if _ai_decisions.has(target_squad.squad_id):
+		var decision: Dictionary = _ai_decisions[target_squad.squad_id]
+		var at = decision.get("activity_type", -1)
+		if at == StrategyTypes.ActivityType.TRAVEL or at == StrategyTypes.ActivityType.FORCE_MARCH:
+			var ctx: Dictionary = decision.get("context", {})
+			var ultimate := ctx.get("ultimate_destination", "") as String
+			if not ultimate.is_empty():
+				return ultimate
+			var next_hop := ctx.get("travel_destination", "") as String
+			if not next_hop.is_empty():
+				return next_hop
+
+	return ""
+
+
+func _pick_wrong_destination(current_loc_id: String, actual_dest: String) -> String:
+	if not _world or not _world.travel_graph:
+		return actual_dest
+	var loc := _world.travel_graph.get_location(current_loc_id)
+	if not loc or not loc.connections:
+		return actual_dest
+	var candidates: Array[String] = []
+	for conn in loc.connections.tt:
+		if conn.to_location_id != actual_dest:
+			candidates.append(conn.to_location_id)
+	if candidates.is_empty():
+		return actual_dest
+	return candidates[hash(current_loc_id + actual_dest) % candidates.size()]
 
 
 func on_role_toggled(role: StrategyTypes.SquadRole) -> void:

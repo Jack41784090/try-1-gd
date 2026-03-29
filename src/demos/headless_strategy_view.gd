@@ -186,7 +186,7 @@ func show_recruitment_menu(): pass
 func hide_recruitment_menu(): pass
 func show_manage_squad(_squad, _actor = null): pass
 func show_shop(_shop, _squad, _location = null): pass
-func show_scouting(_world, _squad): pass
+func show_scouting(_world, _squad, _ai_decisions = {}): pass
 func show_missions(_factions): pass
 func show_market(_world, _location, _visited_ids): pass
 func hide_market(): pass

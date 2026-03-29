@@ -376,8 +376,8 @@ func hide_shop() -> void:
 	shop_view.presenter._on_closed()
 
 
-func show_scouting(world: World, player_squad: SquadData) -> void:
-	scouting_view.show_scouting(world, player_squad)
+func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
+	scouting_view.show_scouting(world, player_squad, ai_decisions)
 
 
 func hide_scouting() -> void:

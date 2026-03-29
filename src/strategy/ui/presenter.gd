@@ -231,7 +231,8 @@ func on_shop_closed() -> void:
 
 
 func on_scouting_requested() -> void:
-	view.show_scouting(game_scenario.world, actor.player_squad)
+	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else {}
+	view.show_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
 
 func on_scouting_closed() -> void:
