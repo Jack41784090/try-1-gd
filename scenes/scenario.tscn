@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://dmbcxxfr6jwmu"]
+[gd_scene format=3 uid="uid://dmbcxxfr6jwmu"]
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/view.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
@@ -20,18 +20,14 @@
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
 [ext_resource type="Script" uid="uid://csup7m2lekbsp" path="res://src/strategy/ui/shop/view.gd" id="20_shop_view"]
 [ext_resource type="Script" uid="uid://bkdkhwvv23ehq" path="res://src/strategy/ui/shop/presenter.gd" id="21_shop_presenter"]
-[ext_resource type="Script" uid="uid://drx2deebk8hc5" path="res://src/strategy/ui/scouting/view.gd" id="22_scouting_view"]
-[ext_resource type="Script" uid="uid://dr5yremilx6n" path="res://src/strategy/ui/scouting/presenter.gd" id="23_scouting_presenter"]
+[ext_resource type="PackedScene" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
 [ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
 [ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="25_stage_presenter"]
 [ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="26_stage_camera"]
-[ext_resource type="StyleBox" uid="uid://dbylsrhw4yggk" path="res://assets/box_styles/simple_black.tres" id="26_x4082"]
-[ext_resource type="Script" uid="uid://cv2mrqw3dow5w" path="res://src/strategy/ui/missions/view.gd" id="28_tnmqu"]
-[ext_resource type="Script" uid="uid://df5h6gkt4bgwn" path="res://src/strategy/ui/missions/presenter.gd" id="29_ayhb7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/missions_view.tscn" id="28_missions_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
-[ext_resource type="Script" uid="uid://cuccq7kt7mb7l" path="res://src/strategy/ui/market/view.gd" id="31_market_view"]
-[ext_resource type="Script" uid="uid://bj75xe1yaiqny" path="res://src/strategy/ui/market/presenter.gd" id="32_market_presenter"]
-[ext_resource type="Script" path="res://src/strategy/ui/notification/notification_bar.gd" id="33_notification_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/market_view.tscn" id="31_market_scene"]
+[ext_resource type="Script" uid="uid://6elmxh7hf8q6" path="res://src/strategy/ui/notification/notification_bar.gd" id="33_notification_bar"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_money"]
 texture = ExtResource("4_s06fx")
@@ -317,12 +313,6 @@ layout_mode = 2
 theme_type_variation = &"StatLabel"
 text = "0"
 
-[node name="NotificationBar" type="HBoxContainer" parent="PanelContainer/MainVBox"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-script = ExtResource("33_notification_bar")
-
 [node name="StatusArea" type="HBoxContainer" parent="PanelContainer/MainVBox" unique_id=524252797]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
@@ -374,6 +364,12 @@ theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 16
 text = "End Game"
 
+[node name="NotificationBar" type="HBoxContainer" parent="PanelContainer/MainVBox" unique_id=1918925065]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("33_notification_bar")
+
 [node name="MainScreenArea" type="TextureRect" parent="PanelContainer/MainVBox" unique_id=1796413241]
 layout_mode = 2
 size_flags_vertical = 3
@@ -382,26 +378,26 @@ expand_mode = 1
 [node name="VnView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=2087439437 instance=ExtResource("13_vn_view")]
 layout_mode = 1
 
-[node name="ContactBarsPanel" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea"]
+[node name="ContactBarsPanel" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1378260196]
 visible = false
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = -1
 anchor_right = 0.5
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 size_flags_vertical = 0
+mouse_filter = 2
 theme_type_variation = &"ContactPanel"
 
-[node name="ContactMargin" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel"]
+[node name="ContactMargin" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel" unique_id=2026102496]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="ContactBars" type="VBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin"]
+[node name="ContactBars" type="VBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin" unique_id=1428873884]
 layout_mode = 2
 theme_override_constants/separation = 4
 
@@ -426,99 +422,99 @@ columns = 3
 [node name="TrainingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=373873347]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Make camp and recover morale"
+theme_type_variation = &"GoldButton"
 text = "🏕️ Rest"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=137027879]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Train to improve combat skills"
+theme_type_variation = &"GoldButton"
 text = "⚔️ Drill"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1705380255]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Patrol the area and maintain order"
+theme_type_variation = &"GoldButton"
 text = "🛡️ Patrol"
 
 [node name="NurseButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1624518233]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Gather information and seek opportunities"
+theme_type_variation = &"GoldButton"
 text = "🔍 Investigate"
 
 [node name="OutingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1548672974]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Lead religious observance"
+theme_type_variation = &"GoldButton"
 text = "✝️ Hold Mass"
 
 [node name="RaceButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=2139180012]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Move to another location"
+theme_type_variation = &"GoldButton"
 text = "🗺️ Travel"
 
 [node name="AttackButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1883398150]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Attack enemies at this location"
+theme_type_variation = &"GoldButton"
 text = "⚔️ Attack"
 
 [node name="ManageSquadButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1457764343]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "View and manage your warriors"
+theme_type_variation = &"GoldButton"
 text = "👥 Manage Squad"
 
 [node name="RecruitButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=2061278943]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "View and manage your warriors"
+theme_type_variation = &"GoldButton"
 text = "👥 Recruit"
 
 [node name="ShopButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=945831779]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
-theme_type_variation = &"GoldButton"
 tooltip_text = "Browse the local shop"
+theme_type_variation = &"GoldButton"
 text = "Shop"
 
-[node name="TravelArrowBar" type="PanelContainer" parent="PanelContainer/MainVBox"]
+[node name="TravelArrowBar" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=2129960287]
 visible = false
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_type_variation = &"TravelArrowBar"
 
-[node name="TravelArrowHBox" type="HBoxContainer" parent="PanelContainer/MainVBox/TravelArrowBar"]
+[node name="TravelArrowHBox" type="HBoxContainer" parent="PanelContainer/MainVBox/TravelArrowBar" unique_id=880799231]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 20
+alignment = 1
 
-[node name="GoBackBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox"]
+[node name="GoBackBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=2111811969]
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"GoBackButton"
 text = "← Go Back"
 
-[node name="TravelLabel" type="Label" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox"]
+[node name="TravelLabel" type="Label" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=923392913]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 0.8)
 theme_override_font_sizes/font_size = 15
 horizontal_alignment = 1
 
-[node name="ContinueBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox"]
+[node name="ContinueBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=1788876918]
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -556,22 +552,22 @@ text = "📋 Summary"
 [node name="ScoutButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=618072185]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-theme_type_variation = &"NavButton"
 tooltip_text = "View scouting intelligence on enemy squads"
+theme_type_variation = &"NavButton"
 text = "Scout Report"
 
 [node name="MissionsButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=1303347349]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-theme_type_variation = &"NavButton"
 tooltip_text = "View active and completed missions"
+theme_type_variation = &"NavButton"
 text = "Missions"
 
 [node name="MarketButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=383170631]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-theme_type_variation = &"NavButton"
 tooltip_text = "View local market prices and economy"
+theme_type_variation = &"NavButton"
 text = "Market"
 
 [node name="Spacer" type="Control" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=756093235]
@@ -954,7 +950,7 @@ text = "Back"
 [node name="ShopPresenter" type="Node" parent="ShopView" unique_id=54959995]
 script = ExtResource("21_shop_presenter")
 
-[node name="ScoutingView" type="Control" parent="." unique_id=1428153029]
+[node name="ScoutingView" parent="." unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -963,73 +959,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("22_scouting_view")
 
-[node name="OverlayPanel" type="PanelContainer" parent="ScoutingView" unique_id=4819401]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = ExtResource("26_x4082")
-
-[node name="MarginContainer" type="MarginContainer" parent="ScoutingView/OverlayPanel" unique_id=865671239]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ScoutingView/OverlayPanel/MarginContainer" unique_id=340240419]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="TitleLabel" type="Label" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=1105782894]
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-text = "Scouting Report"
-horizontal_alignment = 1
-
-[node name="WarningContainer" type="VBoxContainer" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=474391837]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="NoContactsLabel" type="Label" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=2020757783]
-visible = false
-layout_mode = 2
-theme_type_variation = &"MetaLabel"
-text = "No contacts detected"
-horizontal_alignment = 1
-
-[node name="ContactsScroll" type="ScrollContainer" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=2030333240]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ContactsContainer" type="VBoxContainer" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll" unique_id=74853169]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="CloseButton" type="Button" parent="ScoutingView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=1741806311]
-custom_minimum_size = Vector2(0, 45)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-theme_override_font_sizes/font_size = 16
-text = "Close"
-
-[node name="ScoutingPresenter" type="Node" parent="ScoutingView" unique_id=2141503453]
-script = ExtResource("23_scouting_presenter")
-
-[node name="MissionsView" type="Control" parent="." unique_id=38974266]
+[node name="MissionsView" parent="." unique_id=38974266 instance=ExtResource("28_missions_scene")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1037,53 +968,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("28_tnmqu")
 
-[node name="OverlayPanel" type="PanelContainer" parent="MissionsView" unique_id=304224435]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -450.0
-offset_top = -280.0
-offset_right = 450.0
-offset_bottom = 280.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"GamePanel"
-
-[node name="MarginContainer" type="MarginContainer" parent="MissionsView/OverlayPanel" unique_id=1817611498]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MissionsView/OverlayPanel/MarginContainer" unique_id=1106602267]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="TitleLabel" type="Label" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=1591069939]
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-text = "Missions"
-horizontal_alignment = 1
-
-[node name="ContactsScroll" type="ScrollContainer" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer" unique_id=239249196]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ContactsContainer" type="VBoxContainer" parent="MissionsView/OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll" unique_id=1276375514]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="MissionsPresenter" type="Node" parent="MissionsView" unique_id=1199599868]
-script = ExtResource("29_ayhb7")
-
-[node name="MarketView" type="Control" parent="." unique_id=220318999]
+[node name="MarketView" parent="." unique_id=220318999 instance=ExtResource("31_market_scene")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1092,25 +978,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("31_market_view")
-
-[node name="OverlayPanel" type="PanelContainer" parent="MarketView" unique_id=904453735]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"GamePanel"
-
-[node name="MarketPresenter" type="Node" parent="MarketView" unique_id=1049757488]
-script = ExtResource("32_market_presenter")
 
 [node name="CombatIntermission" type="PanelContainer" parent="." unique_id=770181322]
 visible = false
@@ -1239,7 +1106,7 @@ script = ExtResource("19_presenter")
 scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
 is_demo_scenario = false
 
-[node name="ResultSummaryOverlay" type="ColorRect" parent="."]
+[node name="ResultSummaryOverlay" type="ColorRect" parent="." unique_id=1220054624]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1250,47 +1117,48 @@ grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 0.6)
 
-[node name="ResultPanel" type="PanelContainer" parent="ResultSummaryOverlay"]
+[node name="ResultPanel" type="PanelContainer" parent="ResultSummaryOverlay" unique_id=562493822]
 layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.3
 anchor_top = 0.25
 anchor_right = 0.7
 anchor_bottom = 0.75
 
-[node name="ResultMargin" type="MarginContainer" parent="ResultSummaryOverlay/ResultPanel"]
+[node name="ResultMargin" type="MarginContainer" parent="ResultSummaryOverlay/ResultPanel" unique_id=1541486929]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="ResultVBox" type="VBoxContainer" parent="ResultSummaryOverlay/ResultPanel/ResultMargin"]
+[node name="ResultVBox" type="VBoxContainer" parent="ResultSummaryOverlay/ResultPanel/ResultMargin" unique_id=450417627]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox"]
+[node name="TitleLabel" type="Label" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox" unique_id=547303770]
 layout_mode = 2
 theme_type_variation = &"MoraleDeltaLabel"
 text = "Results"
 horizontal_alignment = 1
 
-[node name="Separator" type="HSeparator" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox"]
+[node name="Separator" type="HSeparator" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox" unique_id=354850486]
 layout_mode = 2
 
-[node name="StatsContainer" type="VBoxContainer" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox"]
+[node name="StatsContainer" type="VBoxContainer" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox" unique_id=711451338]
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox"]
+[node name="Spacer" type="Control" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox" unique_id=1852727785]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="ContinueButton" type="Button" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox"]
+[node name="ContinueButton" type="Button" parent="ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox" unique_id=1824866388]
 custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Continue"
 
-[node name="GameOverOverlay" type="ColorRect" parent="."]
+[node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1301,30 +1169,31 @@ grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 0.85)
 
-[node name="GameOverVBox" type="VBoxContainer" parent="GameOverOverlay"]
+[node name="GameOverVBox" type="VBoxContainer" parent="GameOverOverlay" unique_id=5018230]
 layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.2
 anchor_top = 0.3
 anchor_right = 0.8
 anchor_bottom = 0.7
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="GameOverOverlay/GameOverVBox"]
+[node name="TitleLabel" type="Label" parent="GameOverOverlay/GameOverVBox" unique_id=477518408]
 layout_mode = 2
 theme_type_variation = &"DefeatLabel"
 text = "DEFEAT"
 horizontal_alignment = 1
 
-[node name="DescLabel" type="Label" parent="GameOverOverlay/GameOverVBox"]
+[node name="DescLabel" type="Label" parent="GameOverOverlay/GameOverVBox" unique_id=962203016]
 layout_mode = 2
 theme_type_variation = &"SectionLabel"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="GameOverOverlay/GameOverVBox"]
+[node name="Spacer" type="Control" parent="GameOverOverlay/GameOverVBox" unique_id=657045785]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 
-[node name="RestartButton" type="Button" parent="GameOverOverlay/GameOverVBox"]
+[node name="RestartButton" type="Button" parent="GameOverOverlay/GameOverVBox" unique_id=1982492397]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
