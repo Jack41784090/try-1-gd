@@ -13,9 +13,7 @@ extends Resource
 
 var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
 var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
-var cargo_manifest: Dictionary = {}
-var cargo_destination_id: String = ""
-var shipment_id: String = ""
+var cargo: CargoManifest = CargoManifest.new()
 var scouting_focus = null
 var inventory = load("res://src/strategy/core/inventory.gd").new()
 
@@ -272,91 +270,16 @@ func is_caravan() -> bool:
 
 
 func has_cargo() -> bool:
-	for item_type in cargo_manifest:
-		if cargo_manifest[item_type] > 0.0:
-			return true
-	return false
+	return cargo.is_empty()
 
 
 func get_cargo_value() -> float:
-	var total := 0.0
-	for item_type in cargo_manifest:
-		total += cargo_manifest[item_type]
-	return total
+	return cargo.get_total_value()
 
 
 func has_reached_destination() -> bool:
-	return is_caravan() and not cargo_destination_id.is_empty() and current_location_id == cargo_destination_id
+	return is_caravan() and cargo.has_reached(current_location_id)
 
 
 func get_location_id() -> String:
 	return current_location_id
-
-
-func to_combat_squad(team: String = "player") -> CombatSquad:
-	push_warning("SquadData.to_combat_squad() - Combat bridge not yet fully implemented")
-
-	var entity_configs: Array = []
-	var living_warriors = get_living_warriors()
-
-	for i in range(living_warriors.size()):
-		var warrior = living_warriors[i]
-		var starting_loc = formation[i] if i < formation.size() else SquadBattleTypes.SquadEntityInSquadLocation.Front
-
-		var entity_config = {
-			"player_id": i,
-			"name": warrior.name,
-			"team": team,
-			"stats": warrior.combat_stats,
-			"weapon": warrior.equipment_weapon,
-			"armour": warrior.equipment_armour,
-			"starting_location": starting_loc,
-			"logic_type": warrior.logic_type,
-		}
-		entity_configs.append(entity_config)
-
-	return CombatSquad.new(
-		{
-			"entities": entity_configs,
-			# "name": squad_name,
-			"team": team,
-		},
-	)
-
-
-func from_combat_results(updates: Array[EntityUpdate]) -> void:
-	push_warning("SquadData.from_combat_results() - Combat bridge not yet fully implemented")
-
-	for update in updates:
-		if update.target_id >= 0 and update.target_id < warriors.size():
-			warriors[update.target_id].from_combat_result(update)
-
-	# update_aggregate_morale()
-	remove_dead_warriors()
-
-
-func save_state() -> Dictionary:
-	var warrior_data: Array = []
-	for warrior in warriors:
-		warrior_data.append(
-			{
-				"id": warrior.id,
-				"name": warrior.name,
-				"morale": warrior.morale,
-				"religion": warrior.religion,
-				"attributes": warrior.attributes,
-				"is_dead": warrior.is_dead,
-				"is_injured": warrior.is_injured,
-			},
-		)
-
-	return {
-		"money": money,
-		"karma": karma,
-		"food": food,
-		"travel_tools": travel_tools,
-		"formation": formation,
-		"aggregate_morale": aggregate_morale,
-		"current_location_id": current_location_id,
-		"warriors": warrior_data,
-	}

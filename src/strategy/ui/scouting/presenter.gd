@@ -87,7 +87,7 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 			data["morale_hint"] = _get_morale_category(target_squad.get_morale())
 			if target_squad.is_caravan():
 				data["cargo_hint"] = "Carrying goods"
-				data["destination_hint"] = target_squad.cargo_destination_id
+				data["destination_hint"] = target_squad.cargo.destination_id
 		StrategyTypes.ContactState.LOCKED:
 			data["title"] = target_squad.squad_name
 			data["warrior_count"] = target_squad.get_living_warriors().size()
@@ -97,7 +97,7 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 			data["stance"] = target_squad.engagement_stance
 			if target_squad.is_caravan():
 				data["cargo_value"] = target_squad.get_cargo_value()
-				data["cargo_destination"] = target_squad.cargo_destination_id
+				data["cargo_destination"] = target_squad.cargo.destination_id
 	return data
 
 func _get_size_hint(squad: SquadData) -> String:

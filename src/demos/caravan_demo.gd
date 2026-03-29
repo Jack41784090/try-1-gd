@@ -232,7 +232,7 @@ func _print_turn_summary(turn: int) -> void:
 			Log.debug("CaravanDemo", "    Caravan: %s @ %s → %s (role=%s)" % [
 				squad.squad_name,
 				squad.current_location_id,
-				squad.cargo_destination_id,
+				squad.cargo.destination_id,
 				StrategyTypes.SquadRole.keys()[squad.squad_role],
 			])
 	Log.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
@@ -266,7 +266,7 @@ func _print_final_summary() -> void:
 	for squad in world.roaming_squads:
 		if squad.is_caravan():
 			Log.info("CaravanDemo", "  In-transit: %s @ %s → %s" % [
-				squad.squad_name, squad.current_location_id, squad.cargo_destination_id,
+				squad.squad_name, squad.current_location_id, squad.cargo.destination_id,
 			])
 
 
@@ -289,7 +289,7 @@ func _run_assertions() -> void:
 			)
 			_assert_true(
 				"Caravan %s has destination" % squad.squad_name,
-				not squad.cargo_destination_id.is_empty(),
+				not squad.cargo.destination_id.is_empty(),
 			)
 			_assert_true(
 				"Caravan %s has warriors" % squad.squad_name,

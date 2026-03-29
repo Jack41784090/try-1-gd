@@ -819,7 +819,7 @@ func _cmd_god_squads():
 		var extra := ""
 		if sq.is_caravan():
 			caravans += 1
-			extra = " → dest:%s cargo:%s" % [sq.cargo_destination_id, str(sq.cargo_manifest)]
+			extra = " → dest:%s cargo:%s" % [sq.cargo.destination_id, str(sq.cargo.manifest)]
 			if sq.has_reached_destination():
 				extra += " [AT DEST]"
 		else:

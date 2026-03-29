@@ -19,10 +19,10 @@ static func create_caravan_squad(
 	squad.money = move.quantity * move.thing.base_price
 	squad.food = maxi(guard_count * move.turns_remaining, 3)
 	squad.karma = -50.0
-	squad.shipment_id = shipment_id
+	squad.cargo.shipment_id = shipment_id
 
-	squad.cargo_manifest[move.thing.thing_id] = move.quantity
-	squad.cargo_destination_id = move.dest_location_id
+	squad.cargo.manifest[move.thing.thing_id] = move.quantity
+	squad.cargo.destination_id = move.dest_location_id
 
 	for i in range(guard_count):
 		var warrior := _create_caravan_guard(squad.squad_id, i)
@@ -61,17 +61,17 @@ static func apply_delivery(
 	dest_inventory: LocationInventory,
 	goods_registry: Array[Thing],
 ) -> void:
-	for thing_id in squad.cargo_manifest:
-		var qty: float = squad.cargo_manifest[thing_id]
+	for thing_id in squad.cargo.manifest:
+		var qty: float = squad.cargo.manifest[thing_id]
 		if qty <= 0.0:
 			continue
 		var thing := _find_thing(thing_id, goods_registry)
 		if thing:
 			dest_inventory.add(thing, qty)
 			Log.info("Caravan", "Delivered %.1f %s to %s" % [
-				qty, thing.thing_name, squad.cargo_destination_id,
+				qty, thing.thing_name, squad.cargo.destination_id,
 			])
-	squad.cargo_manifest.clear()
+	squad.cargo.manifest.clear()
 
 
 static func apply_loot(
@@ -79,8 +79,8 @@ static func apply_loot(
 	attacker: SquadData,
 ) -> Dictionary:
 	var looted: Dictionary = {}
-	for thing_id in caravan.cargo_manifest:
-		var qty: float = caravan.cargo_manifest[thing_id]
+	for thing_id in caravan.cargo.manifest:
+		var qty: float = caravan.cargo.manifest[thing_id]
 		if qty <= 0.0:
 			continue
 		if thing_id == "food":
@@ -91,7 +91,7 @@ static func apply_loot(
 		Log.info("Caravan", "Looted %.1f %s from %s" % [
 			qty, thing_id, caravan.squad_name,
 		])
-	caravan.cargo_manifest.clear()
+	caravan.cargo.manifest.clear()
 	return looted
 
 
@@ -100,10 +100,10 @@ static func reassign_caravan(
 	move: EconomyMove,
 	shipment_id: String,
 ) -> void:
-	squad.cargo_manifest.clear()
-	squad.cargo_manifest[move.thing.thing_id] = move.quantity
-	squad.cargo_destination_id = move.dest_location_id
-	squad.shipment_id = shipment_id
+	squad.cargo.manifest.clear()
+	squad.cargo.manifest[move.thing.thing_id] = move.quantity
+	squad.cargo.destination_id = move.dest_location_id
+	squad.cargo.shipment_id = shipment_id
 	squad.money = move.quantity * move.thing.base_price
 	squad.food = maxi(squad.get_living_warriors().size() * move.turns_remaining, 3)
 	Log.info("Caravan", "Reassigned %s: %s → %s (%.1f %s)" % [

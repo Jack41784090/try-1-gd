@@ -869,15 +869,15 @@ func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadData]) -> void:
 			continue
 		if not squad.has_reached_destination():
 			continue
-		var dest_loc := game_scenario.world.get_location_by_id(squad.cargo_destination_id)
+		var dest_loc := game_scenario.world.get_location_by_id(squad.cargo.destination_id)
 		if dest_loc and dest_loc.has_economy():
 			Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
 		for shipment_id in _active_shipments:
 			if _active_shipments[shipment_id] == squad.squad_id:
 				_active_shipments.erase(shipment_id)
 				break
-		turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo_destination_id])
-		Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo_destination_id])
+		turn_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo.destination_id])
+		Log.info("Presenter", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo.destination_id])
 		idle_caravans.append(squad)
 
 
@@ -888,7 +888,7 @@ func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadData], pending_di
 		Bridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
 		_active_shipments[dispatch.shipment_id] = squad.squad_id
 		turn_log.append("CARAVAN reassigned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo_destination_id])
+			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
 
 
 func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
@@ -900,10 +900,10 @@ func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.Shi
 		ai_fleet.register_caravan(squad)
 		_active_shipments[dispatch.shipment_id] = squad.squad_id
 		turn_log.append("CARAVAN spawned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo_destination_id])
+			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
 		Log.info("Presenter", "Spawned caravan: %s at %s → %s (%d guards)" % [
 			squad.squad_name, squad.current_location_id,
-			squad.cargo_destination_id, dispatch.guard_count,
+			squad.cargo.destination_id, dispatch.guard_count,
 		])
 
 
