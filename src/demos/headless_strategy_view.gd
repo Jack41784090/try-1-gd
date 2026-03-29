@@ -9,17 +9,6 @@ var ai_fleet: AIFleetManager
 var vn_view
 
 var action_buttons: Control
-var rest_button: Button
-var drill_button: Button
-var patrol_button: Button
-var investigate_button: Button
-var hold_mass_button: Button
-var travel_button: Button
-var attack_button: Button
-var manage_squad_button: Button
-var recruit_button: Button
-var shop_button: Button
-var market_button: Button
 var continue_travel_button: Button
 
 var battle_viewport: SubViewport
@@ -96,17 +85,6 @@ func setup_headless():
 	add_child(_stage_mock)
 
 	action_buttons = Control.new()
-	rest_button = Button.new()
-	drill_button = Button.new()
-	patrol_button = Button.new()
-	investigate_button = Button.new()
-	hold_mass_button = Button.new()
-	travel_button = Button.new()
-	attack_button = Button.new()
-	manage_squad_button = Button.new()
-	recruit_button = Button.new()
-	shop_button = Button.new()
-	market_button = Button.new()
 	continue_travel_button = Button.new()
 
 	battle_viewport = SubViewport.new()
@@ -133,9 +111,8 @@ func update_condition(_text: String): pass
 
 func update_stats(_money, _food, _karma, _stability, _development): pass
 
-func update_activity_button(button, _text, disabled, _tooltip):
-	if button is Button:
-		button.disabled = disabled
+func update_activity_button(_key, _text, _disabled, _tooltip):
+	pass
 
 func disable_all_activity_buttons(): pass
 

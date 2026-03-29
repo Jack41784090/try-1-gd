@@ -832,42 +832,42 @@ func _update_activity_buttons() -> void:
 	var location = actor.current_location
 
 	view.update_activity_button(
-		view.rest_button,
+		"rest",
 		"Rest",
 		not location.has_activity_type(StrategyTypes.ActivityType.REST),
 		_get_activity_tooltip(StrategyTypes.ActivityType.REST),
 	)
 
 	view.update_activity_button(
-		view.drill_button,
+		"drill",
 		"Drill",
 		not location.has_activity_type(StrategyTypes.ActivityType.DRILL),
 		_get_activity_tooltip(StrategyTypes.ActivityType.DRILL),
 	)
 
 	view.update_activity_button(
-		view.patrol_button,
+		"patrol",
 		"Patrol",
 		not location.has_activity_type(StrategyTypes.ActivityType.PATROL),
 		_get_activity_tooltip(StrategyTypes.ActivityType.PATROL),
 	)
 
 	view.update_activity_button(
-		view.investigate_button,
+		"investigate",
 		"Investigate",
 		not location.has_activity_type(StrategyTypes.ActivityType.INVESTIGATE),
 		_get_activity_tooltip(StrategyTypes.ActivityType.INVESTIGATE),
 	)
 
 	view.update_activity_button(
-		view.hold_mass_button,
+		"hold_mass",
 		"Hold Mass",
 		not location.has_activity_type(StrategyTypes.ActivityType.HOLD_MASS),
 		_get_activity_tooltip(StrategyTypes.ActivityType.HOLD_MASS),
 	)
 
 	view.update_activity_button(
-		view.travel_button,
+		"travel",
 		"Travel",
 		false,
 		"Travel to another location",
@@ -898,14 +898,14 @@ func _update_activity_buttons() -> void:
 			attack_disabled = false
 			attack_tooltip = "Engage enemy forces:\n" + "\n".join(tooltip_lines)
 	view.update_activity_button(
-		view.attack_button,
+		"attack",
 		"Attack",
 		attack_disabled,
 		attack_tooltip,
 	)
 
 	view.update_activity_button(
-		view.manage_squad_button,
+		"manage_squad",
 		"Manage CombatSquad",
 		false,
 		"View and manage your warriors",
@@ -913,7 +913,7 @@ func _update_activity_buttons() -> void:
 
 	var has_shop = location.has_shop()
 	view.update_activity_button(
-		view.shop_button,
+		"shop",
 		"Shop",
 		not has_shop,
 		"Browse the local shop" if has_shop else "No shop at this location",
@@ -921,7 +921,7 @@ func _update_activity_buttons() -> void:
 
 	var has_economy = location.has_economy()
 	view.update_activity_button(
-		view.market_button,
+		"market",
 		"Market",
 		not has_economy,
 		"View local market prices and economy" if has_economy else "No market at this location",
