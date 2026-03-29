@@ -109,7 +109,7 @@ func _build_background() -> void:
 
 
 func add_unit_to_row(row_node: Node2D, unit_index: int,
-		unit_name: String, entity: CharacterCombatStats) -> Node2D:
+		unit_name: String, entity: CombatEntity) -> Node2D:
 	var display = BattleEntityDisplay.new()
 	display.name = "%s_%d" % [unit_name, unit_index]
 	row_node.add_child(display)

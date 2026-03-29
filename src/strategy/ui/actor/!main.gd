@@ -100,7 +100,7 @@ func _apply_result(result: GenericResult) -> void:
 		_apply_stats_changes_result(result)
 
 	# 3. Add new recruits into player squad — from RECRUIT activity
-	# e.g., new_recruits = [CharacterSocialStats(name="Recruit_3")] → appended to squad.warriors
+	# e.g., new_recruits = [Warrior(name="Recruit_3")] → appended to squad.warriors
 	if result.new_recruits.size() > 0:
 		Log.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
 		for recruit in result.new_recruits:

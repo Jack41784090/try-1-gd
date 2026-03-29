@@ -1,6 +1,6 @@
 class_name BattleContext extends RefCounted
 
-var entity: CharacterCombatStats
+var entity: CombatEntity
 var our_squad: Dictionary
 var enemy_squad: Dictionary
 

@@ -1,7 +1,7 @@
 class_name SquadCombatData
 extends Resource
 
-var entities: Array[CharacterCombatStats] = []
+var entities: Array[CombatEntity] = []
 var squad_name: String = ""
 var last_round_received_attack: int = -1
 
@@ -12,15 +12,15 @@ func _init(config: Dictionary = { }):
 	var next_player_id = randi() % 1000 + 1
 
 	for entity_config in entity_configs:
-		var entity: CharacterCombatStats
+		var entity: CombatEntity
 		if entity_config is EntityClasses.Types:
 			entity = EntityFactory.get_entity(entity_config)
 			entity.init_from_resource()
 			entity.set_player_id(next_player_id)
 			next_player_id += 1
 		elif entity_config is EntityConfig:
-			entity = CharacterCombatStats.new(entity_config)
-		elif entity_config is CharacterCombatStats:
+			entity = CombatEntity.new(entity_config)
+		elif entity_config is CombatEntity:
 			entity = entity_config
 			entity.set_player_id(next_player_id)
 			next_player_id += 1

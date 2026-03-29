@@ -582,20 +582,20 @@ func test_squad_get_warrior_by_id() -> void:
 	var squad = SquadStrategicData.new()
 	squad.warriors.clear()
 	
-	var warrior1 = CharacterSocialStats.new()
+	var warrior1 = Warrior.new()
 	warrior1.id = "w1"
-	warrior1.name = "CharacterSocialStats One"
+	warrior1.name = "Warrior One"
 	
-	var warrior2 = CharacterSocialStats.new()
+	var warrior2 = Warrior.new()
 	warrior2.id = "w2"
-	warrior2.name = "CharacterSocialStats Two"
+	warrior2.name = "Warrior Two"
 	
 	squad.warriors.append(warrior1)
 	squad.warriors.append(warrior2)
 	
 	var found = squad.get_warrior_by_id("w1")
 	assert_not_null(found, "warrior found")
-	assert_equal(found.name, "CharacterSocialStats One", "correct warrior returned")
+	assert_equal(found.name, "Warrior One", "correct warrior returned")
 	
 	var not_found = squad.get_warrior_by_id("nonexistent")
 	assert_true(not_found == null, "null for nonexistent id")
@@ -735,15 +735,15 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_squad.squad_name = "Enemy SquadCombatData"
 	
 	# Create warriors with combat stats
-	var warrior = CharacterSocialStats.new()
+	var warrior = Warrior.new()
 	warrior.id = "w1"
-	warrior.name = "Test CharacterSocialStats"
+	warrior.name = "Test Warrior"
 	warrior.combat_stats = EntityBaseStats.new()
 	player_squad.warriors.append(warrior)
 	
-	var enemy_warrior = CharacterSocialStats.new()
+	var enemy_warrior = Warrior.new()
 	enemy_warrior.id = "e1"
-	enemy_warrior.name = "Enemy CharacterSocialStats"
+	enemy_warrior.name = "Enemy Warrior"
 	enemy_warrior.combat_stats = EntityBaseStats.new()
 	enemy_squad.warriors.append(enemy_warrior)
 	

@@ -3,7 +3,7 @@ extends Resource
 
 @export var squad_id: String = ""
 @export var squad_name: String = ""
-@export var warriors: Array[CharacterSocialStats] = []
+@export var warriors: Array[Warrior] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0
 @export var food: int = 0
@@ -147,18 +147,18 @@ func get_morale() -> float:
 	return aggregate_morale
 
 
-func add_warrior(warrior: CharacterSocialStats) -> void:
+func add_warrior(warrior: Warrior) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	# update_aggregate_morale()
 
 
-func remove_dead_warriors() -> Array[CharacterSocialStats]:
+func remove_dead_warriors() -> Array[Warrior]:
 	# Removes dead warriors from the squad and their formation slots, returns the dead ones
 	# e.g., warriors=[Hans(alive), Fritz(dead), Karl(alive)], formation=[Front, Middle, Back]
 	#   → new warriors=[Hans, Karl], new formation=[Front, Back], returns [Fritz]
-	var dead_warriors: Array[CharacterSocialStats] = []
-	var new_warriors: Array[CharacterSocialStats] = []
+	var dead_warriors: Array[Warrior] = []
+	var new_warriors: Array[Warrior] = []
 	var new_formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
 
 	for i in range(warriors.size()):
@@ -178,15 +178,15 @@ func remove_dead_warriors() -> Array[CharacterSocialStats]:
 	return dead_warriors
 
 
-func get_living_warriors() -> Array[CharacterSocialStats]:
-	var living: Array[CharacterSocialStats] = []
+func get_living_warriors() -> Array[Warrior]:
+	var living: Array[Warrior] = []
 	for warrior in warriors:
 		if not warrior.is_dead:
 			living.append(warrior)
 	return living
 
 
-func get_warrior_by_id(warrior_id: String) -> CharacterSocialStats:
+func get_warrior_by_id(warrior_id: String) -> Warrior:
 	for warrior in warriors:
 		if warrior.id == warrior_id:
 			return warrior
@@ -237,12 +237,12 @@ func get_coordination() -> float:
 	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
 
 
-func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[CharacterSocialStats]:
+func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[Warrior]:
 	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
 	# Used when traveling to determine if enemies can track this squad's movement
 	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
 	# e.g., warrior stealth=80, roll=50 → 50 < 80 → PASSED, no clue left
-	var clues_left: Array[CharacterSocialStats] = []
+	var clues_left: Array[Warrior] = []
 
 	for warrior in get_living_warriors():
 		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
@@ -255,8 +255,8 @@ func attempt_stealth_return_failed(location: Location, destination_id: String, c
 	return clues_left
 
 
-func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[CharacterSocialStats]:
-	var matching: Array[CharacterSocialStats] = []
+func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Warrior]:
+	var matching: Array[Warrior] = []
 	for warrior in warriors:
 		if warrior.check_religion(religion_type):
 			matching.append(warrior)

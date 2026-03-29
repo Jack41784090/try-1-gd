@@ -1,7 +1,7 @@
 class_name FormationTab
 extends Control
 
-signal formation_changed(warrior: CharacterSocialStats, new_position: SquadBattleTypes.SquadEntityInSquadLocation)
+signal formation_changed(warrior: Warrior, new_position: SquadBattleTypes.SquadEntityInSquadLocation)
 
 const MAX_SLOTS_PER_ROW := 5
 const ROW_LABELS := { 1: "FRONT LINE", 2: "MIDDLE LINE", 3: "BACK LINE" }
@@ -127,7 +127,7 @@ func refresh(squad: SquadStrategicData) -> void:
 	_hint_label.text = "%d / %d warriors placed" % [living, squad.warriors.size()]
 
 
-func _on_warrior_dropped(warrior: CharacterSocialStats, slot) -> void:
+func _on_warrior_dropped(warrior: Warrior, slot) -> void:
 	_clear_selection()
 	formation_changed.emit(warrior, slot.row_position)
 
@@ -144,8 +144,8 @@ func _on_slot_clicked(slot) -> void:
 		_clear_selection()
 		return
 
-	var source_warrior: CharacterSocialStats = _selected_slot.warrior
-	var target_warrior: CharacterSocialStats = slot.warrior
+	var source_warrior: Warrior = _selected_slot.warrior
+	var target_warrior: Warrior = slot.warrior
 	var source_slot = _selected_slot
 
 	source_slot.set_warrior(target_warrior)

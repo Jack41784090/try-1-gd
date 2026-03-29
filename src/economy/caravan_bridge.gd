@@ -31,7 +31,7 @@ static func create_caravan_squad(
 	return squad
 
 
-static func _create_caravan_guard(squad_id: String, index: int) -> CharacterSocialStats:
+static func _create_caravan_guard(squad_id: String, index: int) -> Warrior:
 	var guard := WarriorFactory.create_warrior(
 		EntityClasses.Types.Landsknecht,
 		"%s_guard_%d" % [squad_id, index],

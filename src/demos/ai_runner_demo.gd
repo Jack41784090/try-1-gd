@@ -223,7 +223,7 @@ func create_test_squad(id: String, p_name: String, location: String) -> SquadStr
 	squad.set_location(location)
 
 	for i in range(3):
-		var warrior = CharacterSocialStats.new()
+		var warrior = Warrior.new()
 		warrior.id = "%s_warrior_%d" % [id, i]
 		warrior.name = "Warrior %d" % i
 		warrior.morale = 50.0

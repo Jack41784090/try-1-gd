@@ -12,8 +12,8 @@ class_name Skill extends Resource
 @export var affected_consideration: Consideration;
 @export var roll_for_damage: bool = true
 
-var caster: CharacterCombatStats;
-var target: CharacterCombatStats;
+var caster: CombatEntity;
+var target: CombatEntity;
 var situation: Situation;
 var context: Dictionary;
 
@@ -42,9 +42,9 @@ func inject_context_for_clash(_caster, _situation, _context):
 	context = _context
 	target = return_who_to_cast_at()
 
-func return_who_to_cast_at() -> CharacterCombatStats:
+func return_who_to_cast_at() -> CombatEntity:
 	var r = targeting_consideration.score_then_return(caster, situation, context)
-	assert(r is CharacterCombatStats)
+	assert(r is CombatEntity)
 	for e in effects:
 		e.set_attacker_and_target(caster, r)
 	return r;

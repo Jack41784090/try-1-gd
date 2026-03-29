@@ -3,17 +3,17 @@ extends Resource
 
 var updates: Array[EntityUpdate] = []
 
-@export var affecteds: Array[CharacterCombatStats] = []
-@export var attacker: CharacterCombatStats
-@export var targeted: CharacterCombatStats
+@export var affecteds: Array[CombatEntity] = []
+@export var attacker: CombatEntity
+@export var targeted: CombatEntity
 @export var skill: Skill
 var situation: Situation
 var context: Dictionary
 
 
 func _init(
-		_attacker: CharacterCombatStats = null,
-		_targeted: CharacterCombatStats = null,
+		_attacker: CombatEntity = null,
+		_targeted: CombatEntity = null,
 		_skill: Skill = null,
 		_situation: Situation = null,
 		_context: Dictionary = { },

@@ -2,7 +2,7 @@ extends Control
 
 @onready var stage_view: StageView = $StageView
 
-var _demo_warriors: Array[CharacterSocialStats] = []
+var _demo_warriors: Array[Warrior] = []
 
 func _ready() -> void:
 	_create_demo_warriors()
@@ -47,7 +47,7 @@ func _create_demo_warriors() -> void:
 	var names = ["Faust", "Heinrich", "Elara", "Konrad"]
 	var classes = [EntityClasses.Types.Landsknecht, EntityClasses.Types.Healer, EntityClasses.Types.Landsknecht, EntityClasses.Types.Healer]
 	for i in names.size():
-		var warrior = CharacterSocialStats.new()
+		var warrior = Warrior.new()
 		warrior.id = names[i].to_lower()
 		warrior.name = names[i]
 		warrior.class_id = classes[i]

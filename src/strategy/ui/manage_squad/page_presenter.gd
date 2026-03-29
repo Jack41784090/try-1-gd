@@ -2,7 +2,7 @@ class_name ManageSquadPagePresenter
 extends Node
 
 signal closed
-signal recruitment_completed(warrior: CharacterSocialStats)
+signal recruitment_completed(warrior: Warrior)
 
 enum Tab { TACTICS, UNITS, FORMATION, RECRUITMENT, INVENTORY }
 
@@ -59,7 +59,7 @@ func on_tactic_selected(tactic: Tactic) -> void:
 	view.tactics_tab.refresh(squad)
 
 
-func on_formation_changed(warrior: CharacterSocialStats, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
+func on_formation_changed(warrior: Warrior, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
 	warrior.location_prebattle = new_pos
 
 
@@ -105,26 +105,26 @@ func on_recruit(class_enum: EntityClasses.Types, cost: float) -> void:
 	view.recruitment_tab.refresh(squad, actor)
 
 
-func on_equip_weapon(warrior: CharacterSocialStats, weapon: WeaponConfig) -> void:
+func on_equip_weapon(warrior: Warrior, weapon: WeaponConfig) -> void:
 	squad.inventory.equip_weapon(warrior, weapon)
 	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, weapon.weapon_name])
 	_refresh_tab()
 
 
-func on_equip_armor(warrior: CharacterSocialStats, armor: ArmorConfig) -> void:
+func on_equip_armor(warrior: Warrior, armor: ArmorConfig) -> void:
 	squad.inventory.equip_armor(warrior, armor)
 	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, armor.armor_name])
 	_refresh_tab()
 
 
-func on_unequip_weapon(warrior: CharacterSocialStats) -> void:
+func on_unequip_weapon(warrior: Warrior) -> void:
 	var weapon_name := warrior.equipment_weapon.weapon_name if warrior.equipment_weapon else "nothing"
 	squad.inventory.unequip_weapon(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.name])
 	_refresh_tab()
 
 
-func on_unequip_armor(warrior: CharacterSocialStats) -> void:
+func on_unequip_armor(warrior: Warrior) -> void:
 	var armor_name := warrior.equipment_armor.armor_name if warrior.equipment_armor else "nothing"
 	squad.inventory.unequip_armor(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.name])

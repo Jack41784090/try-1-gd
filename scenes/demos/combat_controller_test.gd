@@ -87,8 +87,8 @@ func end_test() -> void:
 
 #region Test Data Creation
 
-func create_test_warrior(id: String, warrior_name: String) -> CharacterSocialStats:
-	var warrior = CharacterSocialStats.new()
+func create_test_warrior(id: String, warrior_name: String) -> Warrior:
+	var warrior = Warrior.new()
 	warrior.id = id
 	warrior.name = warrior_name
 	warrior.morale = 50.0

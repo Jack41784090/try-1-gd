@@ -11,14 +11,14 @@ var _debug_id: String = ""
 
 @export var name: String
 @export var stacks: int = 0
-var source: CharacterCombatStats
-var affected: CharacterCombatStats;
+var source: CombatEntity
+var affected: CombatEntity;
 @export var triggers: Array[StatusEffectEventBus.Signals]
 
 var battle_context: BattleContext = null
 var updates_collector = null
 
-func set_attacker_and_target(attacker: CharacterCombatStats, target: CharacterCombatStats, _context: BattleContext = null) -> void:
+func set_attacker_and_target(attacker: CombatEntity, target: CombatEntity, _context: BattleContext = null) -> void:
 	source = attacker
 	affected = target
 	battle_context = _context

@@ -282,9 +282,9 @@ const WARRIOR_NAMES := [
 ]
 
 func _ensure_unique_warriors(squad: SquadStrategicData) -> void:
-	var unique_warriors: Array[CharacterSocialStats] = []
+	var unique_warriors: Array[Warrior] = []
 	for i in range(squad.warriors.size()):
-		var copy: CharacterSocialStats = squad.warriors[i].duplicate(true)
+		var copy: Warrior = squad.warriors[i].duplicate(true)
 		copy.id = "%s_w%d" % [squad.squad_id, i]
 		copy.name = WARRIOR_NAMES[(squad.squad_id.hash() + i) % WARRIOR_NAMES.size()]
 		unique_warriors.append(copy)

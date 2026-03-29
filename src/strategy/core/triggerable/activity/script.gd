@@ -458,7 +458,7 @@ func _execute_mercenary_work(context: Dictionary) -> ActivityResult:
 		else:
 			casualties += 1
 
-	var casualty_warriors: Array[CharacterSocialStats] = []
+	var casualty_warriors: Array[Warrior] = []
 	if casualties > 0:
 		var living = squad.get_living_warriors()
 		for i in range(mini(casualties, living.size())):

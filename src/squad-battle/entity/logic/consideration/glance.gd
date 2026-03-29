@@ -72,7 +72,7 @@ func _to_string() -> String:
 	]
 
 
-func _get_glanceable_value(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
+func _get_glanceable_value(entity: CombatEntity, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
 		var value = entity.get_changeable_stat_num(_glanceable_translate(glanceable))
 		if inverse:
@@ -90,7 +90,7 @@ func _get_glanceable_value(entity: CharacterCombatStats, glanceable: Glanceable)
 	return 0.0
 
 
-func _get_glanceable_value_max(entity: CharacterCombatStats, glanceable: Glanceable) -> float:
+func _get_glanceable_value_max(entity: CombatEntity, glanceable: Glanceable) -> float:
 	if glanceable in changeables:
 		return entity.get_ceiling_changeable_stat(_glanceable_translate(glanceable))
 	elif glanceable in realities:
@@ -102,7 +102,7 @@ func _get_glanceable_value_max(entity: CharacterCombatStats, glanceable: Glancea
 	return 0.0
 
 
-func evaluate(entity: CharacterCombatStats) -> float:
+func evaluate(entity: CombatEntity) -> float:
 	# Reads a single combat stat from an entity, processes it (normalize, inverse, chain, gate)
 	# Pipeline: raw_value → normalize_as_percentage → chain additional_glance → comparison gate
 	# e.g., Glance(property=HP, normalize=true, inverse=true)

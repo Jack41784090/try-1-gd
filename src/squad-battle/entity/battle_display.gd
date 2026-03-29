@@ -3,7 +3,7 @@ class_name BattleEntityDisplay
 
 signal animation_completed
 
-var squad_entity: CharacterCombatStats
+var squad_entity: CombatEntity
 var rig: WarriorRig
 
 const HP_BAR_WIDTH: float = 60.0
@@ -21,7 +21,7 @@ var _current_org_display: int = 0
 var _debug_id: String = ""
 
 
-func setup(entity: CharacterCombatStats) -> void:
+func setup(entity: CombatEntity) -> void:
 	squad_entity = entity
 	_debug_id = "[BattleDisplay:%s[%d]]" % [entity.entity_name, entity.player_id]
 

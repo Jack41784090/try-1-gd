@@ -1,10 +1,10 @@
 class_name FormationSlot
 extends PanelContainer
 
-signal warrior_dropped(warrior: CharacterSocialStats, slot: Variant)
+signal warrior_dropped(warrior: Warrior, slot: Variant)
 signal slot_clicked(slot: Variant)
 
-var warrior: CharacterSocialStats = null
+var warrior: Warrior = null
 var row_position: SquadBattleTypes.SquadEntityInSquadLocation
 var slot_index: int = 0
 
@@ -114,7 +114,7 @@ func setup(pos: SquadBattleTypes.SquadEntityInSquadLocation, idx: int) -> void:
 	slot_index = idx
 
 
-func set_warrior(w: CharacterSocialStats) -> void:
+func set_warrior(w: Warrior) -> void:
 	warrior = w
 	_refresh_display()
 
@@ -206,7 +206,7 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if not data is Dictionary:
 		return
-	var dropped_warrior: CharacterSocialStats = data["warrior"]
+	var dropped_warrior: Warrior = data["warrior"]
 	var source_slot = data["source_slot"]
 
 	if source_slot == self:

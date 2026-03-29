@@ -1,10 +1,10 @@
 class_name InventoryTab
 extends Control
 
-signal equip_weapon_requested(warrior: CharacterSocialStats, weapon: WeaponConfig)
-signal equip_armor_requested(warrior: CharacterSocialStats, armor: ArmorConfig)
-signal unequip_weapon_requested(warrior: CharacterSocialStats)
-signal unequip_armor_requested(warrior: CharacterSocialStats)
+signal equip_weapon_requested(warrior: Warrior, weapon: WeaponConfig)
+signal equip_armor_requested(warrior: Warrior, armor: ArmorConfig)
+signal unequip_weapon_requested(warrior: Warrior)
+signal unequip_armor_requested(warrior: Warrior)
 
 var _title_label: Label
 var _inventory_container: VBoxContainer
@@ -182,7 +182,7 @@ func _create_item_row(item_name: String, item_type: String, color: Color) -> HBo
 	return row
 
 
-func _create_warrior_card(warrior: CharacterSocialStats) -> PanelContainer:
+func _create_warrior_card(warrior: Warrior) -> PanelContainer:
 	var card := PanelContainer.new()
 	var card_style := StyleBoxFlat.new()
 	card_style.bg_color = Color(0.12, 0.12, 0.16, 0.9)

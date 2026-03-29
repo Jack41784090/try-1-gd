@@ -1,6 +1,6 @@
 class_name RecruitmentView extends Control
 
-signal recruitment_completed(warrior: CharacterSocialStats)
+signal recruitment_completed(warrior: Warrior)
 signal closed
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel

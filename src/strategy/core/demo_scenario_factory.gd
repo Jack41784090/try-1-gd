@@ -177,8 +177,8 @@ static func _create_world(turn_count: int, end_progression: float, locations: Ar
 
 	return world
 
-static func _create_warriors() -> Array[CharacterSocialStats]:
-	var warriors: Array[CharacterSocialStats] = []
+static func _create_warriors() -> Array[Warrior]:
+	var warriors: Array[Warrior] = []
 	var names = ["Marcus", "Giovanni", "Alessandro", "Francesco", "Lorenzo"]
 	var religions = [
 		StrategyTypes.Religion.CATHOLIC,
@@ -189,7 +189,7 @@ static func _create_warriors() -> Array[CharacterSocialStats]:
 	]
 	
 	for i in range(5):
-		var warrior = CharacterSocialStats.new()
+		var warrior = Warrior.new()
 		warrior.id = "warrior_%d" % i
 		warrior.name = names[i]
 		warrior.morale = randf_range(70.0, 100.0)

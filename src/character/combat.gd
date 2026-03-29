@@ -1,4 +1,4 @@
-class_name CharacterCombatStats extends Resource
+class_name CombatEntity extends Resource
 
 var _debug_id = "Entity_script_unknown";
 
@@ -40,7 +40,7 @@ var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
 
 static func quick_dummy():
-	return CharacterCombatStats.new(EntityConfig.new(
+	return CombatEntity.new(EntityConfig.new(
 		EntityClasses.Types.Landsknecht,
 		0,
 		"Dummy",
@@ -92,7 +92,7 @@ func _to_string() -> String:
 	else:
 		status_effects_str = "NULL"
 	
-	return "CharacterCombatStats(PlayerID:%s Team:%s %s%s | HP:%.1f/%.1f ORG:%.1f/%.1f STA:%.1f POS:%.1f MAG:%.1f LOC:%d | Weapon:%s Armor:%s Icon:%s | Skills:[%s] Status:[%s])" % [
+	return "CombatEntity(PlayerID:%s Team:%s %s%s | HP:%.1f/%.1f ORG:%.1f/%.1f STA:%.1f POS:%.1f MAG:%.1f LOC:%d | Weapon:%s Armor:%s Icon:%s | Skills:[%s] Status:[%s])" % [
 		player_id, team, status_str, retreat_str,
 		hp, hp_max, org, org_max, sta, pos, mag, loc,
 		weapon_str, armor_str, icon_str, skills_str, status_effects_str

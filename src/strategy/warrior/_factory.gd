@@ -20,8 +20,8 @@ static var _class_armor_map: Dictionary = {
 	EntityClasses.Types.Gelehrter: "",
 }
 
-static func create_warrior(class_id: EntityClasses.Types, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats) -> CharacterSocialStats:
-	var warrior = CharacterSocialStats.new()
+static func create_warrior(class_id: EntityClasses.Types, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats) -> Warrior:
+	var warrior = Warrior.new()
 	warrior.class_id = class_id
 	warrior.id = id
 	warrior.name = name
@@ -39,7 +39,7 @@ static func create_warrior(class_id: EntityClasses.Types, id: String, name: Stri
 	return warrior
 
 
-static func _assign_default_equipment(warrior: CharacterSocialStats) -> void:
+static func _assign_default_equipment(warrior: Warrior) -> void:
 	if warrior.equipment_weapon != null and warrior.equipment_armor != null:
 		return
 	var weapon_path: String = _class_weapon_map.get(warrior.class_id, "")

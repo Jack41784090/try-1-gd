@@ -5,8 +5,8 @@ class_name SkillEffectFlat extends SkillEffect
 
 # func _init(
 # 	_name: String = '',
-# 	_source: CharacterCombatStats = null,
-# 	_affected: CharacterCombatStats = null,
+# 	_source: CombatEntity = null,
+# 	_affected: CombatEntity = null,
 # 	# _targeting: Targeting = Targeting.SENTINEL,
 # 	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect,
 # 	_triggers: Array[StatusEffectEventBus.Signals] = [],

@@ -20,7 +20,7 @@ func create_battle(
 		enemy_squad: SquadStrategicData,
 		tactic: Tactic,
 ) -> SquadBattle:
-	# Creates a tactical SquadBattle from two strategic squads, translating CharacterSocialStats → CharacterCombatStats entities
+	# Creates a tactical SquadBattle from two strategic squads, translating Warrior → CombatEntity entities
 	# e.g., player squad "Wolves" (3 warriors) vs enemy "Raiders" (4 warriors)
 	#   → builds entity configs for each warrior, assigns entity IDs, creates SquadBattle
 	#
@@ -48,7 +48,7 @@ func create_battle(
 	var enemy_tactic = Tactic.create_balanced()
 
 	# 4. Construct the actual SquadBattle with both teams' configs and tactics
-	# The SquadBattle._init() will create SquadCombatData + CharacterCombatStats entities from these configs
+	# The SquadBattle._init() will create SquadCombatData + CombatEntity entities from these configs
 	current_battle = SquadBattle.new(
 		{
 			"teams": {
@@ -88,7 +88,7 @@ func apply_injury_penalties(strategic_squad: SquadStrategicData) -> void:
 
 func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side: SquadBattleTypes.Side) -> Dictionary:
 	# Converts a strategic squad's warriors into tactical entity configs
-	# Maps each CharacterSocialStats warrior → entity config dict with combat stats
+	# Maps each Warrior warrior → entity config dict with combat stats
 	# Also builds the bi-directional ID mapping: warrior_id ↔ entity_id
 	# e.g., Warrior(id="w1", name="Hans", str=8) → {entity_id: 1, team: "player", base_stats: {FOR: 8, ...}}
 	var entity_configs: Array = []
@@ -96,7 +96,7 @@ func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side
 	var formation = strategic_squad.formation
 
 	for i in range(living_warriors.size()):
-		var warrior: CharacterSocialStats = living_warriors[i]
+		var warrior: Warrior = living_warriors[i]
 		var entity_id = _next_entity_id
 		_next_entity_id += 1
 
@@ -111,7 +111,7 @@ func _build_squad_config(strategic_squad: SquadStrategicData, team: String, side
 		if i < formation.size():
 			starting_loc = formation[i] as SquadBattleTypes.SquadEntityInSquadLocation
 
-		# Convert the CharacterSocialStats warrior into a tactical entity config dict
+		# Convert the Warrior warrior into a tactical entity config dict
 		# This uses warrior.convert_to_entity() which maps social stats → combat stats
 		var entity_config = warrior.convert_to_entity(entity_id, team, starting_loc)
 		entity_configs.append(entity_config)

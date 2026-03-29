@@ -78,7 +78,7 @@ func _score_with_glances(entity, situation, _context) -> float:
 	return result
 
 
-func _get_weapon_range_entities(entity: CharacterCombatStats, situation: Situation) -> Array:
+func _get_weapon_range_entities(entity: CombatEntity, situation: Situation) -> Array:
 	var countable_entities: Array = []
 	match entity_limiter:
 		"allies":
@@ -96,7 +96,7 @@ func _get_weapon_range_entities(entity: CharacterCombatStats, situation: Situati
 	var targetable_locs = entity.weapon.get_range_at_location(situation.my_location())
 	var weapon_range_entities = targetable_locs.reduce(
 		func(acc: Array, loc: SquadBattleTypes.SquadEntityInSquadLocation):
-			for e in countable_entities.filter(func(e: CharacterCombatStats): return e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) == loc):
+			for e in countable_entities.filter(func(e: CombatEntity): return e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC) == loc):
 				acc.append(e)
 			return acc,
 		[],
@@ -105,7 +105,7 @@ func _get_weapon_range_entities(entity: CharacterCombatStats, situation: Situati
 	return weapon_range_entities
 
 
-func _get_entities_to_evaluate(entity: CharacterCombatStats, situation: Situation) -> Array:
+func _get_entities_to_evaluate(entity: CombatEntity, situation: Situation) -> Array:
 	# Returns the set of entities that this consideration should evaluate
 	# Filtered by entity_limiter ("self", "allies", "enemies", "all") AND weapon range
 	# e.g., entity_limiter="enemies", entity at LOC=1 with sword(range=[1,2])

@@ -207,7 +207,7 @@ func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
 
-func on_recruitment_completed(warrior: CharacterSocialStats) -> void:
+func on_recruitment_completed(warrior: Warrior) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
 	_update_ui()
 	stage_presenter.refresh_warriors(actor.player_squad)
@@ -638,7 +638,7 @@ func _show_pending_results() -> void:
 		return
 
 	var aggregated_stats: Dictionary = {}
-	var recruits: Array[CharacterSocialStats] = []
+	var recruits: Array[Warrior] = []
 
 	for result in _pending_results:
 		for stat_key in result.squad_stat_changes:

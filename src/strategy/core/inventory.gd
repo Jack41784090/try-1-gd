@@ -31,7 +31,7 @@ func remove_armor(armor: ArmorConfig) -> bool:
 	return true
 
 
-func equip_weapon(warrior: CharacterSocialStats, weapon: WeaponConfig) -> void:
+func equip_weapon(warrior: Warrior, weapon: WeaponConfig) -> void:
 	assert(warrior != null, "Cannot equip to null warrior")
 	assert(weapon != null, "Cannot equip null weapon")
 	assert(weapons.has(weapon), "Weapon not in inventory")
@@ -41,7 +41,7 @@ func equip_weapon(warrior: CharacterSocialStats, weapon: WeaponConfig) -> void:
 	warrior.equipment_weapon = weapon
 
 
-func equip_armor(warrior: CharacterSocialStats, armor: ArmorConfig) -> void:
+func equip_armor(warrior: Warrior, armor: ArmorConfig) -> void:
 	assert(warrior != null, "Cannot equip to null warrior")
 	assert(armor != null, "Cannot equip null armor")
 	assert(armors.has(armor), "Armor not in inventory")
@@ -51,7 +51,7 @@ func equip_armor(warrior: CharacterSocialStats, armor: ArmorConfig) -> void:
 	warrior.equipment_armor = armor
 
 
-func unequip_weapon(warrior: CharacterSocialStats) -> void:
+func unequip_weapon(warrior: Warrior) -> void:
 	assert(warrior != null, "Cannot unequip from null warrior")
 	if warrior.equipment_weapon == null:
 		return
@@ -59,7 +59,7 @@ func unequip_weapon(warrior: CharacterSocialStats) -> void:
 	warrior.equipment_weapon = null
 
 
-func unequip_armor(warrior: CharacterSocialStats) -> void:
+func unequip_armor(warrior: Warrior) -> void:
 	assert(warrior != null, "Cannot unequip from null warrior")
 	if warrior.equipment_armor == null:
 		return

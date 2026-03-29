@@ -536,7 +536,7 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 
 #region Result Summary
 
-func show_result_summary(stat_changes: Dictionary, recruits: Array[CharacterSocialStats]) -> void:
+func show_result_summary(stat_changes: Dictionary, recruits: Array[Warrior]) -> void:
 	var overlay = ColorRect.new()
 	overlay.name = "ResultSummaryOverlay"
 	overlay.color = Color(0, 0, 0, 0.6)

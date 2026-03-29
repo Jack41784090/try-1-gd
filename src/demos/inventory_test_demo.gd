@@ -48,7 +48,7 @@ func _check(condition: bool, test_name: String) -> void:
 		_fail_count += 1
 		_print("  FAIL: %s" % test_name)
 
-func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> CharacterSocialStats:
+func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> Warrior:
 	return WarriorFactory.create_warrior(
 		class_id, warrior_name.to_lower(), warrior_name,
 		StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
@@ -96,7 +96,7 @@ func _test_inventory_equip_weapon() -> void:
 	_print("")
 	_print("--- SquadInventory: equip weapon ---")
 	var inv = _InventoryScript.new()
-	var warrior := CharacterSocialStats.new()
+	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 	warrior.equipment_weapon = null
 
@@ -113,7 +113,7 @@ func _test_inventory_equip_armor_swap() -> void:
 	_print("")
 	_print("--- SquadInventory: equip armor with swap ---")
 	var inv = _InventoryScript.new()
-	var warrior := CharacterSocialStats.new()
+	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 
 	var old_armor := _make_armor("Old Leather")
@@ -132,7 +132,7 @@ func _test_inventory_unequip() -> void:
 	_print("")
 	_print("--- SquadInventory: unequip ---")
 	var inv = _InventoryScript.new()
-	var warrior := CharacterSocialStats.new()
+	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 
 	var sword := _make_weapon("Iron Sword")

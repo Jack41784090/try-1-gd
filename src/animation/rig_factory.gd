@@ -4,7 +4,7 @@ const WARRIOR_RIG_SCENE_PATH = "res://scenes/warrior_rig.tscn"
 
 static var _scene_cache: PackedScene
 
-static func create_rig_for_warrior(warrior: CharacterSocialStats) -> WarriorRig:
+static func create_rig_for_warrior(warrior: Warrior) -> WarriorRig:
 	var rig = _instantiate_rig()
 	rig.setup(warrior.class_id, warrior.id)
 
