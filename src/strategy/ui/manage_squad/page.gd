@@ -17,7 +17,7 @@ extends Control
 @onready var units_tab = $OverlayPanel/MainMargin/MainVBox/TabContainer/UnitsTab
 @onready var formation_tab = $OverlayPanel/MainMargin/MainVBox/TabContainer/FormationTab
 @onready var recruitment_tab = $OverlayPanel/MainMargin/MainVBox/TabContainer/RecruitmentTab
-@onready var inventory_tab = $OverlayPanel/MainMargin/MainVBox/TabContainer/InventoryTab
+@onready var inventory_tab: InventoryTab = $OverlayPanel/MainMargin/MainVBox/TabContainer/InventoryTab
 
 var _nav_buttons: Array[Button] = []
 

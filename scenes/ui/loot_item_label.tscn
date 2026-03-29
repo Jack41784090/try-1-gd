@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[node name="LootItemLabel" type="Label"]
+layout_mode = 2
+horizontal_alignment = 1
+theme_type_variation = &"LootItemLabel"

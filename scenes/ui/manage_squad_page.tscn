@@ -1,27 +1,12 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/strategy/ui/manage_squad/page.gd" id="1_page"]
 [ext_resource type="Script" path="res://src/strategy/ui/manage_squad/page_presenter.gd" id="2_presenter"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/tactics_tab.gd" id="3_tactics"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/units_tab.gd" id="4_units"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/formation_tab.gd" id="5_formation"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/recruitment_tab.gd" id="6_recruitment"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/inventory_tab.gd" id="7_inventory"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
-bg_color = Color(0.08, 0.08, 0.12, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.5, 0.3, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(2, 2)
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/tactics_tab.tscn" id="3_tactics"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/units_tab.tscn" id="4_units"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/formation_tab.tscn" id="5_formation"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/recruitment_tab.tscn" id="6_recruitment"]
+[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/inventory_tab.tscn" id="7_inventory"]
 
 [node name="ManageSquadPage" type="Control"]
 visible = false
@@ -45,7 +30,7 @@ offset_right = -40.0
 offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+theme_type_variation = &"OverlayPanel"
 
 [node name="MainMargin" type="MarginContainer" parent="OverlayPanel"]
 layout_mode = 2
@@ -65,31 +50,26 @@ theme_override_constants/separation = 6
 [node name="TacticsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "Tactics"
 
 [node name="UnitsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "Units"
 
 [node name="FormationBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "Formation"
 
 [node name="RecruitmentBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "Recruitment"
 
 [node name="InventoryBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "Inventory"
 
 [node name="Spacer" type="Control" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
@@ -99,63 +79,31 @@ size_flags_horizontal = 3
 [node name="CloseBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
 custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.4, 0.4, 1)
-theme_override_colors/font_hover_color = Color(1, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"CloseButton"
 text = "Close"
 
 [node name="TabContainer" type="Control" parent="OverlayPanel/MainMargin/MainVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TacticsTab" type="Control" parent="OverlayPanel/MainMargin/MainVBox/TabContainer"]
+[node name="TacticsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("3_tactics")]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("3_tactics")
 
-[node name="UnitsTab" type="Control" parent="OverlayPanel/MainMargin/MainVBox/TabContainer"]
+[node name="UnitsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("4_units")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("4_units")
 
-[node name="FormationTab" type="Control" parent="OverlayPanel/MainMargin/MainVBox/TabContainer"]
+[node name="FormationTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("5_formation")]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("5_formation")
 
-[node name="RecruitmentTab" type="Control" parent="OverlayPanel/MainMargin/MainVBox/TabContainer"]
+[node name="RecruitmentTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("6_recruitment")]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("6_recruitment")
 
-[node name="InventoryTab" type="Control" parent="OverlayPanel/MainMargin/MainVBox/TabContainer"]
+[node name="InventoryTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("7_inventory")]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("7_inventory")
 
 [node name="ManageSquadPagePresenter" type="Node" parent="."]
 script = ExtResource("2_presenter")

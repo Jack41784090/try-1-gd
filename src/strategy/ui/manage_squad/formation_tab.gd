@@ -10,50 +10,21 @@ const ROW_COLORS := {
 	2: Color(0.7, 0.6, 0.3, 0.1),
 	3: Color(0.3, 0.5, 0.7, 0.1),
 }
+const SLOT_SCENE = preload("res://scenes/ui/manage_squad/formation_slot.tscn")
 
 var _rows: Dictionary = {}
 var _all_slots: Array = []
-var _main_vbox: VBoxContainer
-var _hint_label: Label
 var _selected_slot = null
+
+@onready var _main_vbox: VBoxContainer = $ScrollContainer/OuterVBox/MainVBox
+@onready var _hint_label: Label = $ScrollContainer/OuterVBox/HintLabel
 
 
 func _ready() -> void:
-	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(scroll)
-
-	var outer_vbox := VBoxContainer.new()
-	outer_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	outer_vbox.add_theme_constant_override("separation", 4)
-	scroll.add_child(outer_vbox)
-
-	var title := Label.new()
-	title.text = "Click or drag warriors between rows to change formation"
-	title.add_theme_font_size_override("font_size", 14)
-	title.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65, 1.0))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	outer_vbox.add_child(title)
-
-	_hint_label = Label.new()
-	_hint_label.add_theme_font_size_override("font_size", 12)
-	_hint_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
-	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	outer_vbox.add_child(_hint_label)
-
-	_main_vbox = VBoxContainer.new()
-	_main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_main_vbox.add_theme_constant_override("separation", 12)
-	outer_vbox.add_child(_main_vbox)
-
 	_build_rows()
 
 
 func _build_rows() -> void:
-	var _slot_script = load("res://src/strategy/ui/manage_squad/formation_slot.gd")
-
 	for pos_val in [SquadBattleTypes.SquadEntityInSquadLocation.Front,
 					SquadBattleTypes.SquadEntityInSquadLocation.Middle,
 					SquadBattleTypes.SquadEntityInSquadLocation.Back]:
@@ -93,7 +64,7 @@ func _build_rows() -> void:
 
 		var row_slots: Array = []
 		for i in MAX_SLOTS_PER_ROW:
-			var slot = _slot_script.new()
+			var slot: FormationSlot = SLOT_SCENE.instantiate()
 			slot.setup(pos_val, i)
 			slot.warrior_dropped.connect(_on_warrior_dropped)
 			slot.slot_clicked.connect(_on_slot_clicked)

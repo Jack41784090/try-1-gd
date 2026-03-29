@@ -1,19 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://0urax67nr5wm"]
+[gd_scene load_steps=3 format=3 uid="uid://0urax67nr5wm"]
 
 [ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/view.gd" id="1_view"]
 [ext_resource type="Script" uid="uid://dhgjoxu2jsets" path="res://src/strategy/ui/vn/presenter.gd" id="2_presenter"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]
-bg_color = Color(0.1, 0.1, 0.15, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.5, 0.3, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
 
 [node name="VnView" type="Control"]
 layout_mode = 3
@@ -54,7 +42,7 @@ offset_right = 500.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
+theme_type_variation = &"DialoguePanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="DialogueBox"]
 layout_mode = 2
@@ -70,28 +58,18 @@ theme_override_constants/separation = 10
 [node name="SpeakerLabel" type="Label" parent="DialogueBox/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"VnSpeakerLabel"
 text = "Speaker"
 
 [node name="DialogueLabel" type="Label" parent="DialogueBox/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/line_spacing = 3
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"DialogueLabel"
 autowrap_mode = 2
 
 [node name="AdvancePrompt" type="Label" parent="DialogueBox"]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.75, 0.6, 0.8)
-theme_override_font_sizes/font_size = 14
+theme_type_variation = &"AdvancePromptLabel"
 text = "Click to continue"
 horizontal_alignment = 2
 vertical_alignment = 2

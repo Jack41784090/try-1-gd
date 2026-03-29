@@ -32,6 +32,10 @@ SFX="*res://src/singletons/sfx.gd"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
+[gui]
+
+theme/custom="res://resources/theme/condor_theme.tres"
+
 [dotnet]
 
 project/assembly_name="try1"

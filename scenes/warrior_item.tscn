@@ -1,36 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://7wiqx3r6htjw"]
+[gd_scene load_steps=2 format=3 uid="uid://7wiqx3r6htjw"]
 
 [ext_resource type="Script" uid="uid://cdrf2o4xvkcgu" path="res://src/strategy/ui/manage_squad/warrior_item.gd" id="1_warrior_item"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.15, 0.15, 0.2, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.6, 0.5, 0.3, 0.8)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
-bg_color = Color(0.2, 0.2, 0.2, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
-bg_color = Color(0.8, 0.2, 0.2, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
 [node name="WarriorItem" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 80)
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_type_variation = &"ItemPanel"
 script = ExtResource("1_warrior_item")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -57,8 +31,7 @@ theme_override_constants/separation = 4
 
 [node name="NameLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"SubsectionLabel"
 text = "Warrior Name"
 
 [node name="StatsHBox" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox"]
@@ -72,15 +45,12 @@ theme_override_constants/separation = 5
 [node name="HPLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/HPContainer"]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 12
+theme_type_variation = &"SmallLabel"
 text = "HP:"
 
 [node name="HPBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/HPContainer"]
 custom_minimum_size = Vector2(100, 16)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 
 [node name="MoraleContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox"]
 layout_mode = 2
@@ -88,13 +58,11 @@ theme_override_constants/separation = 5
 
 [node name="MoraleLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/MoraleContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 12
+theme_type_variation = &"SmallLabel"
 text = "Morale:"
 
 [node name="MoraleValueLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox/MoraleContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 text = "100"
 
 [node name="LocationContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/InfoVBox/StatsHBox"]

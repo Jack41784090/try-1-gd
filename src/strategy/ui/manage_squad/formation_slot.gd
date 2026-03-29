@@ -8,9 +8,10 @@ var warrior: Warrior = null
 var row_position: SquadBattleTypes.SquadEntityInSquadLocation
 var slot_index: int = 0
 
-var _name_label: Label
-var _class_label: Label
-var _hp_label: Label
+@onready var _name_label: Label = $Margin/VBox/NameLabel
+@onready var _class_label: Label = $Margin/VBox/ClassLabel
+@onready var _hp_label: Label = $Margin/VBox/HPLabel
+
 var _style_empty: StyleBoxFlat
 var _style_filled: StyleBoxFlat
 var _style_hover: StyleBoxFlat
@@ -20,8 +21,6 @@ var _is_selected: bool = false
 
 
 func _init() -> void:
-	custom_minimum_size = Vector2(120, 80)
-
 	_style_empty = StyleBoxFlat.new()
 	_style_empty.bg_color = Color(0.1, 0.1, 0.14, 0.6)
 	_style_empty.border_width_left = 1
@@ -72,40 +71,6 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_bottom", 6)
-	add_child(margin)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	margin.add_child(vbox)
-
-	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 14)
-	_name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1.0))
-	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(_name_label)
-
-	_class_label = Label.new()
-	_class_label.add_theme_font_size_override("font_size", 11)
-	_class_label.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65, 1.0))
-	_class_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(_class_label)
-
-	_hp_label = Label.new()
-	_hp_label.add_theme_font_size_override("font_size", 11)
-	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(_hp_label)
-
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_class_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 	_refresh_display()
 
 
