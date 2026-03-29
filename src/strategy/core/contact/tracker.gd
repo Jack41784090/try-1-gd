@@ -67,10 +67,10 @@ func get_contacts_on(squad_id: String) -> Array:
 
 func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_turn: int, focus_map: Dictionary = {}) -> void:
 	for i in range(all_squads.size()):
-		var observer: SquadStrategicData = all_squads[i]
+		var observer: SquadData = all_squads[i]
 		var observer_activity: StrategyTypes.ActivityType = activity_log.get(observer.squad_id, StrategyTypes.ActivityType.REST)
 
-		var enemies: Array[SquadStrategicData] = []
+		var enemies: Array[SquadData] = []
 		for j in range(all_squads.size()):
 			if i != j:
 				enemies.append(all_squads[j])
@@ -119,7 +119,7 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 	_log_contacts(current_turn)
 
 
-func calculate_focus_multiplier(observer: SquadStrategicData, target: SquadStrategicData, focus) -> float:
+func calculate_focus_multiplier(observer: SquadData, target: SquadData, focus) -> float:
 	if not focus or focus.is_empty():
 		return 1.0
 	var coordination = observer.get_coordination()
@@ -132,12 +132,12 @@ func check_engagements(world: World, all_squads: Array) -> Array[Dictionary]:
 	var processed: Dictionary = {}
 
 	for i in range(all_squads.size()):
-		var squad_a: SquadStrategicData = all_squads[i]
+		var squad_a: SquadData = all_squads[i]
 		if processed.has(squad_a.squad_id):
 			continue
 
 		for j in range(i + 1, all_squads.size()):
-			var squad_b: SquadStrategicData = all_squads[j]
+			var squad_b: SquadData = all_squads[j]
 			if processed.has(squad_b.squad_id):
 				continue
 
@@ -182,7 +182,7 @@ func check_engagements(world: World, all_squads: Array) -> Array[Dictionary]:
 
 	return engagements
 
-func apply_clue_bonus(clue: Clue, target_squad: SquadStrategicData, observer_squad: SquadStrategicData) -> void:
+func apply_clue_bonus(clue: Clue, target_squad: SquadData, observer_squad: SquadData) -> void:
 	if clue.destination_id == target_squad.current_location_id:
 		var bonus = remap(clue.detail_level, 0.0, 10.0, 10.0, 20.0)
 		var contact = get_or_create_contact(observer_squad.squad_id, target_squad.squad_id)
@@ -218,7 +218,7 @@ func classify_engagement(attacker_id: String, defender_id: String) -> StrategyTy
 
 #region Proximity
 
-func _determine_proximity(observer: SquadStrategicData, target: SquadStrategicData, world: World, edge_log: Dictionary) -> float:
+func _determine_proximity(observer: SquadData, target: SquadData, world: World, edge_log: Dictionary) -> float:
 	if observer.current_location_id == target.current_location_id:
 		return SAME_LOCATION_PROXIMITY
 
@@ -254,13 +254,13 @@ func _determine_proximity(observer: SquadStrategicData, target: SquadStrategicDa
 
 #region Tracking Capacity
 
-func _get_tracking_capacity(squad: SquadStrategicData, activity_type: StrategyTypes.ActivityType) -> int:
+func _get_tracking_capacity(squad: SquadData, activity_type: StrategyTypes.ActivityType) -> int:
 	var base = 1 + int(squad.get_aggregate_scouting() / 30.0)
 	if activity_type == StrategyTypes.ActivityType.PATROL:
 		base += 1
 	return base
 
-func _select_tracked_targets(observer: SquadStrategicData, enemies: Array[SquadStrategicData], world: World, edge_log: Dictionary, capacity: int, focus = null) -> Dictionary:
+func _select_tracked_targets(observer: SquadData, enemies: Array[SquadData], world: World, edge_log: Dictionary, capacity: int, focus = null) -> Dictionary:
 	if enemies.size() <= capacity:
 		var result: Dictionary = {}
 		for e in enemies:

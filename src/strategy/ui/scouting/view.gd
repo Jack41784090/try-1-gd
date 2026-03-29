@@ -19,7 +19,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close)
 	_build_focus_section()
 
-func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
+func show_scouting(world: World, player_squad: SquadData) -> void:
 	visible = true
 	overlay_panel.visible = true
 	presenter.refresh(world, player_squad)

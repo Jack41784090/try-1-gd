@@ -5,7 +5,7 @@ signal shop_closed
 
 var view: ShopView
 var current_shop: Shop
-var squad: SquadStrategicData
+var squad: SquadData
 var cart: Dictionary = {}
 var _location: Location = null
 
@@ -17,7 +17,7 @@ func bind_view(v: ShopView) -> void:
 	view.back_pressed.connect(_on_back_pressed)
 	view.closed.connect(_on_closed)
 
-func open(shop: Shop, _squad: SquadStrategicData, location: Location = null) -> void:
+func open(shop: Shop, _squad: SquadData, location: Location = null) -> void:
 	assert(shop != null)
 	assert(_squad != null)
 	current_shop = shop

@@ -1,6 +1,6 @@
 extends Node
 
-## Sanity tests for SquadStrategicData integrity after setup.
+## Sanity tests for SquadData integrity after setup.
 ## Verifies that warriors survive duplicate(true), morale is non-zero,
 ## and manage-squad data is correct.
 ## Run headless: godot --headless --path . -s scenes/demos/squad_data_sanity_test.gd
@@ -17,7 +17,7 @@ func _ready() -> void:
 
 	_test_squad_strategic_data_warriors_survive_duplicate()
 	_test_squad_morale_is_nonzero_after_duplicate()
-	_test_ensure_initialized_populates_warriors()
+	_test_squad_resource_has_warriors()
 	_test_demo_scenario_player_squad_warriors()
 	_test_demo_scenario_player_squad_morale()
 	_test_warrior_item_hp_percent_logic()
@@ -43,14 +43,14 @@ func _assert(condition: bool, msg: String) -> void:
 
 func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 	print("\n[1] Warriors survive duplicate(true)")
-	var squad := SquadStrategicData.new()
+	var squad := SquadData.new()
 	for i in range(3):
 		var w := Warrior.new()
 		w.name = "Warrior %d" % i
 		w.morale = 80.0
 		squad.add_warrior(w)
 
-	var duped: SquadStrategicData = squad.duplicate(true)
+	var duped: SquadData = squad.duplicate(true)
 	_assert(duped.warriors.size() == 3,
 		"duplicate(true) preserves warrior count (expected 3, got %d)" % duped.warriors.size())
 	if duped.warriors.size() > 0:
@@ -59,40 +59,32 @@ func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 
 func _test_squad_morale_is_nonzero_after_duplicate() -> void:
 	print("\n[2] Morale is non-zero after duplicate(true)")
-	var squad := SquadStrategicData.new()
+	var squad := SquadData.new()
 	for i in range(3):
 		var w := Warrior.new()
 		w.morale = 80.0
 		squad.add_warrior(w)
 
-	var duped: SquadStrategicData = squad.duplicate(true)
+	var duped: SquadData = squad.duplicate(true)
 	var morale := duped.get_morale()
 	_assert(morale > 0.0,
 		"get_morale() > 0 after duplicate (got %.1f)" % morale)
 	_assert(abs(morale - 80.0) < 1.0,
 		"get_morale() approx 80.0 (got %.1f)" % morale)
 
-func _test_ensure_initialized_populates_warriors() -> void:
-	print("\n[3] Squad.ensure_initialized() populates warriors from base_data")
+func _test_squad_resource_has_warriors() -> void:
+	print("\n[3] SquadData .tres has warriors directly")
 	if not ResourceLoader.exists(FULL_SQUAD_PATH):
 		print("  SKIP: %s not found" % FULL_SQUAD_PATH)
 		return
 
-	var full_squad: Squad = ResourceLoader.load(FULL_SQUAD_PATH)
-	_assert(full_squad != null, "Loaded full squad resource")
-	if full_squad == null:
+	var squad: SquadData = ResourceLoader.load(FULL_SQUAD_PATH)
+	_assert(squad != null, "Loaded squad resource")
+	if squad == null:
 		return
 
-	full_squad._initialized = false
-	if full_squad.base_data != null and not full_squad.base_data.characters.is_empty():
-		full_squad.strategic_data.warriors.clear()
-		full_squad.ensure_initialized()
-		_assert(full_squad.strategic_data.warriors.size() > 0,
-			"ensure_initialized() populates warriors (got %d)" % full_squad.strategic_data.warriors.size())
-	else:
-		print("  INFO: base_data has no characters, testing strategic_data.warriors directly")
-		_assert(full_squad.strategic_data.warriors.size() > 0,
-			"strategic_data.warriors already populated from .tres (got %d)" % full_squad.strategic_data.warriors.size())
+	_assert(squad.warriors.size() > 0,
+		"warriors populated from .tres (got %d)" % squad.warriors.size())
 
 func _test_demo_scenario_player_squad_warriors() -> void:
 	print("\n[4] DemoScenarioFactory: player_squad.warriors not empty")

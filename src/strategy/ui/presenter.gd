@@ -273,7 +273,7 @@ func on_skip_pressed() -> void:
 
 func on_summary_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
-	_summary_text += "SquadCombatData: %s\n" % actor.player_squad.squad_name
+	_summary_text += "CombatSquad: %s\n" % actor.player_squad.squad_name
 	_summary_text += "Turn: %d\n" % game_scenario.world.turn_count
 	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
 		actor.current_location.location_name,
@@ -711,7 +711,7 @@ func _find_mission_by_id(mission_id: String) -> Mission:
 
 #region Combat System
 
-func start_encounter(enemy_squad: SquadStrategicData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
+func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 
@@ -849,7 +849,7 @@ func _tick_economy_and_spawn_caravans() -> void:
 	var tick_result := economy_engine.tick(turn)
 
 	var Bridge = load("res://src/economy/caravan_bridge.gd")
-	var idle_caravans: Array[SquadStrategicData] = []
+	var idle_caravans: Array[SquadData] = []
 	_deliver_arrived_caravans(Bridge, idle_caravans)
 
 	var pending_dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
@@ -863,7 +863,7 @@ func _tick_economy_and_spawn_caravans() -> void:
 	_despawn_excess_caravans(idle_caravans)
 
 
-func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadStrategicData]) -> void:
+func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadData]) -> void:
 	for squad in game_scenario.world.roaming_squads:
 		if not squad.is_caravan():
 			continue
@@ -881,9 +881,9 @@ func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadStrategicData])
 		idle_caravans.append(squad)
 
 
-func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadStrategicData], pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
+func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadData], pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
 	while not idle_caravans.is_empty() and not pending_dispatches.is_empty():
-		var squad: SquadStrategicData = idle_caravans.pop_back()
+		var squad: SquadData = idle_caravans.pop_back()
 		var dispatch: EconomyTickResult.ShipmentDispatch = pending_dispatches.pop_front()
 		Bridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
 		_active_shipments[dispatch.shipment_id] = squad.squad_id
@@ -893,7 +893,7 @@ func _reassign_idle_caravans(Bridge, idle_caravans: Array[SquadStrategicData], p
 
 func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.ShipmentDispatch]) -> void:
 	for dispatch in pending_dispatches:
-		var squad: SquadStrategicData = Bridge.create_caravan_squad(
+		var squad: SquadData = Bridge.create_caravan_squad(
 			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
 		)
 		game_scenario.world.add_roaming_squad(squad)
@@ -907,7 +907,7 @@ func _spawn_new_caravans(Bridge, pending_dispatches: Array[EconomyTickResult.Shi
 		])
 
 
-func _despawn_excess_caravans(idle_caravans: Array[SquadStrategicData]) -> void:
+func _despawn_excess_caravans(idle_caravans: Array[SquadData]) -> void:
 	for squad in idle_caravans:
 		turn_log.append("CARAVAN retired %s" % squad.squad_name)
 		Log.info("Presenter", "Retiring idle caravan: %s" % squad.squad_name)
@@ -915,7 +915,7 @@ func _despawn_excess_caravans(idle_caravans: Array[SquadStrategicData]) -> void:
 		ai_fleet.unregister_caravan(squad.squad_id)
 
 
-func handle_caravan_defeated(caravan: SquadStrategicData, attacker: SquadStrategicData) -> Dictionary:
+func handle_caravan_defeated(caravan: SquadData, attacker: SquadData) -> Dictionary:
 	var Bridge = load("res://src/economy/caravan_bridge.gd")
 	var looted: Dictionary = Bridge.apply_loot(caravan, attacker)
 	for shipment_id in _active_shipments:
@@ -1104,7 +1104,7 @@ func _update_activity_buttons() -> void:
 	else:
 		var tracker = game_scenario.world.contact_tracker
 		var player_id = actor.player_squad.squad_id
-		var attackable: Array[SquadStrategicData] = []
+		var attackable: Array[SquadData] = []
 		var tooltip_lines: Array[String] = []
 		for enemy in enemies_here:
 			var contact = tracker.get_contact(player_id, enemy.squad_id)
@@ -1129,7 +1129,7 @@ func _update_activity_buttons() -> void:
 
 	view.update_activity_button(
 		view.manage_squad_button,
-		"Manage SquadCombatData",
+		"Manage CombatSquad",
 		false,
 		"View and manage your warriors",
 	)

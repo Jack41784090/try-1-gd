@@ -54,7 +54,7 @@ func _ready() -> void:
 	scroll.add_child(_cards_container)
 
 
-func refresh(squad: SquadStrategicData) -> void:
+func refresh(squad: SquadData) -> void:
 	_current_tactic_id = squad.current_tactic.tactic_id if squad.current_tactic else "balanced"
 	_rebuild_cards()
 

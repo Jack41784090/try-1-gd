@@ -63,7 +63,7 @@ func _check_location_type(context: Dictionary) -> bool:
 	return location.type == required_type
 
 func _check_warrior_status(context: Dictionary) -> bool:
-	var squad: SquadStrategicData = context.get("squad")
+	var squad: SquadData = context.get("squad")
 	if not squad:
 		return false
 	
@@ -84,7 +84,7 @@ func _check_warrior_status(context: Dictionary) -> bool:
 	return true
 
 func _check_squad_status(context: Dictionary) -> bool:
-	var squad: SquadStrategicData = context.get("squad")
+	var squad: SquadData = context.get("squad")
 	if not squad:
 		return false
 	

@@ -2,12 +2,12 @@ class_name ScoutingPresenter extends Node
 
 var view: ScoutingView
 var _world: World
-var _player_squad: SquadStrategicData
+var _player_squad: SquadData
 
 func _ready() -> void:
 	view = get_parent() as ScoutingView
 
-func refresh(world: World, player_squad: SquadStrategicData) -> void:
+func refresh(world: World, player_squad: SquadData) -> void:
 	_world = world
 	_player_squad = player_squad
 
@@ -57,7 +57,7 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 
 	view.display_contacts(active)
 
-func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
+func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 	var state = contact.get_state()
 	var focus = _player_squad.scouting_focus if _player_squad else null
 	var focus_mult = 1.0
@@ -100,7 +100,7 @@ func _build_card_data(contact, target_squad: SquadStrategicData) -> Dictionary:
 				data["cargo_destination"] = target_squad.cargo_destination_id
 	return data
 
-func _get_size_hint(squad: SquadStrategicData) -> String:
+func _get_size_hint(squad: SquadData) -> String:
 	var count = squad.get_living_warriors().size()
 	if count <= 2:
 		return "Small (1-2 warriors)"
@@ -121,7 +121,7 @@ func _get_morale_category(morale: float) -> String:
 	else:
 		return "Critical"
 
-func _get_warrior_details(squad: SquadStrategicData) -> Array[Dictionary]:
+func _get_warrior_details(squad: SquadData) -> Array[Dictionary]:
 	var details: Array[Dictionary] = []
 	for warrior in squad.warriors:
 		var status := "Healthy"
@@ -132,7 +132,7 @@ func _get_warrior_details(squad: SquadStrategicData) -> Array[Dictionary]:
 		details.append({"name": warrior.name, "status": status})
 	return details
 
-func _find_squad(squad_id: String, world: World) -> SquadStrategicData:
+func _find_squad(squad_id: String, world: World) -> SquadData:
 	for squad in world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad

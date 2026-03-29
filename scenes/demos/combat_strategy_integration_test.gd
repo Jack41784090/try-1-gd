@@ -259,12 +259,12 @@ func test_clue_random_name() -> void:
 	end_test()
 
 # ============================================================================
-# TEST SUITE 3: World SquadCombatData Management
+# TEST SUITE 3: World CombatSquad Management
 # ============================================================================
 
 func test_world_squad_management() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 3: World SquadCombatData Management")
+	print("TEST SUITE 3: World CombatSquad Management")
 	print("-".repeat(80) + "\n")
 	
 	test_world_add_roaming_squad()
@@ -302,8 +302,8 @@ func create_test_world() -> World:
 	
 	return world
 
-func create_test_strategic_squad(id: String, squad_name: String, location: String) -> SquadStrategicData:
-	var squad = SquadStrategicData.new()
+func create_test_strategic_squad(id: String, squad_name: String, location: String) -> SquadData:
+	var squad = SquadData.new()
 	squad.squad_id = id
 	squad.squad_name = squad_name
 	squad.current_location_id = location
@@ -542,12 +542,12 @@ func test_location_investigate_clues() -> void:
 	end_test()
 
 # ============================================================================
-# TEST SUITE 6: SquadStrategicData Tactic Integration
+# TEST SUITE 6: SquadData Tactic Integration
 # ============================================================================
 
 func test_strategic_squad_tactic() -> void:
 	print("\n" + "-".repeat(80))
-	print("TEST SUITE 6: SquadStrategicData Tactic Integration")
+	print("TEST SUITE 6: SquadData Tactic Integration")
 	print("-".repeat(80) + "\n")
 	
 	test_squad_default_tactic()
@@ -555,9 +555,9 @@ func test_strategic_squad_tactic() -> void:
 	test_squad_get_warrior_by_id()
 
 func test_squad_default_tactic() -> void:
-	start_test("SquadStrategicData: default tactic")
+	start_test("SquadData: default tactic")
 	
-	var squad = SquadStrategicData.new()
+	var squad = SquadData.new()
 	var tactic = squad.get_tactic()
 	
 	assert_not_null(tactic, "default tactic exists")
@@ -565,9 +565,9 @@ func test_squad_default_tactic() -> void:
 	end_test()
 
 func test_squad_set_tactic() -> void:
-	start_test("SquadStrategicData: set_tactic()")
+	start_test("SquadData: set_tactic()")
 	
-	var squad = SquadStrategicData.new()
+	var squad = SquadData.new()
 	var aggressive = Tactic.create_aggressive_charge()
 	
 	squad.set_tactic(aggressive)
@@ -577,9 +577,9 @@ func test_squad_set_tactic() -> void:
 	end_test()
 
 func test_squad_get_warrior_by_id() -> void:
-	start_test("SquadStrategicData: get_warrior_by_id()")
+	start_test("SquadData: get_warrior_by_id()")
 	
-	var squad = SquadStrategicData.new()
+	var squad = SquadData.new()
 	squad.warriors.clear()
 	
 	var warrior1 = Warrior.new()
@@ -726,13 +726,13 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	var bridge = CombatBridge.new()
 	
 	# Create minimal strategic squads for testing
-	var player_squad = SquadStrategicData.new()
+	var player_squad = SquadData.new()
 	player_squad.squad_id = "player"
-	player_squad.squad_name = "Player SquadCombatData"
+	player_squad.squad_name = "Player CombatSquad"
 	
-	var enemy_squad = SquadStrategicData.new()
+	var enemy_squad = SquadData.new()
 	enemy_squad.squad_id = "enemy"
-	enemy_squad.squad_name = "Enemy SquadCombatData"
+	enemy_squad.squad_name = "Enemy CombatSquad"
 	
 	# Create warriors with combat stats
 	var warrior = Warrior.new()

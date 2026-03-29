@@ -9,8 +9,8 @@ static func create_caravan_squad(
 	move: EconomyMove,
 	shipment_id: String,
 	guard_count: int = 2,
-) -> SquadStrategicData:
-	var squad := SquadStrategicData.new()
+) -> SquadData:
+	var squad := SquadData.new()
 	squad.squad_id = "caravan_%s" % shipment_id
 	squad.squad_name = _next_convoy_name(move.thing.thing_name)
 	squad.starting_location_id = move.source_location_id
@@ -57,7 +57,7 @@ static func calculate_guard_count(move: EconomyMove) -> int:
 
 
 static func apply_delivery(
-	squad: SquadStrategicData,
+	squad: SquadData,
 	dest_inventory: LocationInventory,
 	goods_registry: Array[Thing],
 ) -> void:
@@ -75,8 +75,8 @@ static func apply_delivery(
 
 
 static func apply_loot(
-	caravan: SquadStrategicData,
-	attacker: SquadStrategicData,
+	caravan: SquadData,
+	attacker: SquadData,
 ) -> Dictionary:
 	var looted: Dictionary = {}
 	for thing_id in caravan.cargo_manifest:
@@ -96,7 +96,7 @@ static func apply_loot(
 
 
 static func reassign_caravan(
-	squad: SquadStrategicData,
+	squad: SquadData,
 	move: EconomyMove,
 	shipment_id: String,
 ) -> void:

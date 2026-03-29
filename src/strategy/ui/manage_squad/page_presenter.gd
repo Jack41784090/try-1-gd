@@ -7,7 +7,7 @@ signal recruitment_completed(warrior: Warrior)
 enum Tab { TACTICS, UNITS, FORMATION, RECRUITMENT, INVENTORY }
 
 var view
-var squad: SquadStrategicData
+var squad: SquadData
 var actor: ActivityRunner
 var active_tab: Tab = Tab.UNITS
 
@@ -16,7 +16,7 @@ func bind_view(v) -> void:
 	view = v
 
 
-func open(p_squad: SquadStrategicData, p_actor: ActivityRunner) -> void:
+func open(p_squad: SquadData, p_actor: ActivityRunner) -> void:
 	squad = p_squad
 	actor = p_actor
 	active_tab = Tab.UNITS

@@ -51,7 +51,7 @@ func spawn_all_entities(p_battle: SquadBattle) -> void:
 		var is_attacker = (team_name == SquadBattleTypes.Side.ATTACKER)
 		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 
-		for squad: SquadCombatData in squads:
+		for squad: CombatSquad in squads:
 			for entity: CombatEntity in squad.entities:
 				var location = entity.get_changeable_stat_num(
 					SquadBattleTypes.EntityChangeable.LOC

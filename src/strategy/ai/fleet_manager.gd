@@ -97,13 +97,13 @@ func prepare_ai_turns() -> Dictionary:
 	}
 
 
-func _find_squad_by_id(squad_id: String) -> SquadStrategicData:
+func _find_squad_by_id(squad_id: String) -> SquadData:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
 
-	if scenario.starting_player_squad and scenario.starting_player_squad.strategic_data.squad_id == squad_id:
-		return scenario.starting_player_squad.strategic_data
+	if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:
+		return scenario.starting_player_squad
 
 	return null
 
@@ -166,8 +166,8 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		def_strength,
 	])
 
-	var winner: SquadStrategicData
-	var loser: SquadStrategicData
+	var winner: SquadData
+	var loser: SquadData
 	if atk_strength >= def_strength:
 		winner = attacker
 		loser = defender
@@ -214,7 +214,7 @@ func cleanup_defeated_squads() -> void:
 
 	for squad_id in squad_brains:
 		var brain = squad_brains[squad_id]
-		var squad: SquadStrategicData = brain.squad
+		var squad: SquadData = brain.squad
 
 		var living_count = 0
 		var total_count = squad.warriors.size()
@@ -281,7 +281,7 @@ const WARRIOR_NAMES := [
 	"Volker", "Wilhelm", "Xaver", "Yannick", "Zacharias",
 ]
 
-func _ensure_unique_warriors(squad: SquadStrategicData) -> void:
+func _ensure_unique_warriors(squad: SquadData) -> void:
 	var unique_warriors: Array[Warrior] = []
 	for i in range(squad.warriors.size()):
 		var copy: Warrior = squad.warriors[i].duplicate(true)
@@ -291,7 +291,7 @@ func _ensure_unique_warriors(squad: SquadStrategicData) -> void:
 	squad.warriors = unique_warriors
 
 
-func register_caravan(squad: SquadStrategicData) -> void:
+func register_caravan(squad: SquadData) -> void:
 	assert(squad.is_caravan(), "register_caravan requires a merchant squad")
 	_ensure_unique_warriors(squad)
 	var profile = AIProfileFactory.get_default_squad_profile()

@@ -5,7 +5,7 @@ signal recruit_requested(class_enum: EntityClasses.Types, cost: float)
 
 var _money_label: Label
 var _classes_container: VBoxContainer
-var _current_squad: SquadStrategicData
+var _current_squad: SquadData
 
 const RECRUITMENT_COSTS: Dictionary = {
 	EntityClasses.Types.Landsknecht: 100.0,
@@ -41,7 +41,7 @@ func _ready() -> void:
 	vbox.add_child(_classes_container)
 
 
-func refresh(squad: SquadStrategicData, _actor: ActivityRunner) -> void:
+func refresh(squad: SquadData, _actor: ActivityRunner) -> void:
 	_current_squad = squad
 	_money_label.text = "Available Gold: %.0f" % squad.money
 

@@ -20,7 +20,7 @@ var retreating_team: Variant = null
 func _init(config: Dictionary):
 	# Initializes a squad battle from a config dict containing teams and tactics
 	# e.g., config = { teams: {ATTACKER: [squad_config], DEFENDER: [squad_config]}, attacker_tactic: Aggressive, ... }
-	#   → creates SquadCombatData for each squad, stores in teams_and_squads["player"] and ["enemy"]
+	#   → creates CombatSquad for each squad, stores in teams_and_squads["player"] and ["enemy"]
 	#   → max_rounds = attacker_tactic.action_count (e.g., Aggressive → 4 rounds)
 	var teams = config.get("teams", { })
 
@@ -36,7 +36,7 @@ func _init(config: Dictionary):
 		teams_and_squads[team_name] = []
 
 		for squad_config in squad_configs:
-			var squad = SquadCombatData.new(squad_config)
+			var squad = CombatSquad.new(squad_config)
 			teams_and_squads[team_name].append(squad)
 
 		team_names.append(team_name)

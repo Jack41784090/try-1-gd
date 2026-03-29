@@ -34,7 +34,7 @@ const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
-var player_squad: SquadStrategicData
+var player_squad: SquadData
 var world: World
 
 var _events_fired: Array[String] = []
@@ -756,7 +756,7 @@ func _print_stat_delta(label: String, before_val, after_val, fmt: String):
 
 #region Helpers
 
-func _find_squad(squad_id: String) -> SquadStrategicData:
+func _find_squad(squad_id: String) -> SquadData:
 	for sq in world.roaming_squads:
 		if sq.squad_id == squad_id:
 			return sq

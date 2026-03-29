@@ -26,7 +26,7 @@ func start(p_battle: SquadBattle, config: Dictionary) -> void:
 	view.spawn_all_entities(battle)
 	is_running = true
 
-	SBLog.section("SquadCombatData Battle Started!", 0, 2, 1)
+	SBLog.section("CombatSquad Battle Started!", 0, 2, 1)
 	await view.get_tree().create_timer(1.0).timeout
 	_process_round()
 

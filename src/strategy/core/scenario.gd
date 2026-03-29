@@ -2,7 +2,7 @@ class_name GameScenario extends Resource
 
 var triggerable_manager: TriggerableManager
 
-@export var starting_player_squad: Squad
+@export var starting_player_squad: SquadData
 @export var starting_location_id: String
 @export var world: World
 @export var factions: Array[Faction] = []
@@ -46,7 +46,6 @@ func _setup(config: Dictionary) -> void:
 	if starting_player_squad == null:
 		starting_player_squad = config.get("starting_player_squad")
 		assert(starting_player_squad != null, "GameScenario requires starting_player_squad to be set")
-	starting_player_squad.ensure_initialized()
 	
 	# Register factions (either from exported array or config)
 	var config_factions = config.get("factions", [])
@@ -91,7 +90,7 @@ func _setup(config: Dictionary) -> void:
 	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
-	starting_player_squad.strategic_data.set_location(starting_location_id)
+	starting_player_squad.set_location(starting_location_id)
 
 	_setup_economy()
 

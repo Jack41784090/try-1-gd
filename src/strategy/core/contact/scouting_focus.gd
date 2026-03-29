@@ -8,7 +8,7 @@ func is_empty() -> bool:
 	return selected_roles.is_empty() and selected_classes.is_empty()
 
 
-func matches(squad: SquadStrategicData) -> bool:
+func matches(squad: SquadData) -> bool:
 	if is_empty():
 		return false
 

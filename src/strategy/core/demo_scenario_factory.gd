@@ -97,7 +97,7 @@ static func _create_demo_locations(demo_values: Dictionary) -> Array[Location]:
 
 	return locations
 
-static func _create_demo_squad(demo_values: Dictionary) -> SquadStrategicData:
+static func _create_demo_squad(demo_values: Dictionary) -> SquadData:
 	var squad_values = demo_values["squad"]
 	return _create_squad(
 		squad_values["squad_id"],
@@ -207,8 +207,8 @@ static func _create_warriors() -> Array[Warrior]:
 		warriors.append(warrior)
 	return warriors
 
-static func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> SquadStrategicData:
-	var squad = SquadStrategicData.new()
+static func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> SquadData:
+	var squad = SquadData.new()
 	squad.squad_id = squad_id
 	squad.squad_name = squad_name
 	squad.money = money
@@ -225,12 +225,10 @@ static func _create_squad(squad_id: String, squad_name: String, money: float, fo
 	
 	return squad
 
-static func _create_scenario_config(world: World, squad: SquadStrategicData, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:
-	var wrapped_squad := Squad.new()
-	wrapped_squad.strategic_data = squad
+static func _create_scenario_config(world: World, squad: SquadData, starting_location_id: String, events: Array[GameEvent], activities: Array[Activity]) -> Dictionary:
 	return {
 		"world": world,
-		"starting_player_squad": wrapped_squad,
+		"starting_player_squad": squad,
 		"starting_location_id": starting_location_id,
 		"factions": [],
 		"events": events,

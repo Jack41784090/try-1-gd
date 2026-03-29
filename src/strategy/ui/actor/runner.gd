@@ -5,12 +5,12 @@ var is_executing_activity = false
 var aem: ActivityExecuteManager
 var turn_count: int = 0
 
-@onready var player_squad: SquadStrategicData:
+@onready var player_squad: SquadData:
 	set(_ps):
 		player_squad = _ps
 	get:
 		if player_squad == null and aem.scenario.starting_player_squad != null:
-			player_squad = aem.scenario.starting_player_squad.strategic_data.duplicate(true)
+			player_squad = aem.scenario.starting_player_squad.duplicate(true)
 		return player_squad
 
 var locations:

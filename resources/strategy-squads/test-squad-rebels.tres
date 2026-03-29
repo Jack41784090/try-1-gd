@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="StrategicSquad" load_steps=4 format=3 uid="uid://cp3nyaq4g08rj"]
+[gd_resource type="Resource" script_class="SquadData" load_steps=4 format=3 uid="uid://cp3nyaq4g08rj"]
 
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="1_rebel"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/social.gd" id="2_rebel"]

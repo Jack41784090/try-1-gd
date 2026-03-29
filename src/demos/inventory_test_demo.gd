@@ -215,7 +215,7 @@ func _test_default_equipment_assignment() -> void:
 func _test_loot_collector_dead_enemies() -> void:
 	_print("")
 	_print("--- LootCollector: collect from dead ---")
-	var enemy_squad := SquadStrategicData.new()
+	var enemy_squad := SquadData.new()
 	var dead_warrior := _make_warrior(EntityClasses.Types.Landsknecht, "DeadEnemy")
 	dead_warrior.is_dead = true
 	enemy_squad.warriors.append(dead_warrior)
@@ -232,7 +232,7 @@ func _test_loot_collector_dead_enemies() -> void:
 func _test_loot_collector_skips_alive() -> void:
 	_print("")
 	_print("--- LootCollector: skips alive ---")
-	var enemy_squad := SquadStrategicData.new()
+	var enemy_squad := SquadData.new()
 	var alive_warrior := _make_warrior(EntityClasses.Types.Landsknecht, "AliveEnemy")
 	alive_warrior.is_dead = false
 	enemy_squad.warriors.append(alive_warrior)
@@ -263,7 +263,7 @@ func _test_loot_collector_apply() -> void:
 func _test_loot_collector_duplicates_items() -> void:
 	_print("")
 	_print("--- LootCollector: duplicates equipment ---")
-	var enemy_squad := SquadStrategicData.new()
+	var enemy_squad := SquadData.new()
 	var w := _make_warrior(EntityClasses.Types.Pikeman, "DeadPike")
 	w.is_dead = true
 	enemy_squad.warriors.append(w)

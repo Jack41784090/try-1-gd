@@ -1,4 +1,4 @@
-class_name SquadStrategicData
+class_name SquadData
 extends Resource
 
 @export var squad_id: String = ""
@@ -35,7 +35,7 @@ func _init() -> void:
 
 
 func _to_string() -> String:
-	return "SquadStrategicData(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
+	return "SquadData(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
 
 
 func consume_food(amount: int) -> bool:
@@ -293,8 +293,8 @@ func get_location_id() -> String:
 	return current_location_id
 
 
-func to_combat_squad(team: String = "player") -> SquadCombatData:
-	push_warning("SquadStrategicData.to_combat_squad() - Combat bridge not yet fully implemented")
+func to_combat_squad(team: String = "player") -> CombatSquad:
+	push_warning("SquadData.to_combat_squad() - Combat bridge not yet fully implemented")
 
 	var entity_configs: Array = []
 	var living_warriors = get_living_warriors()
@@ -315,7 +315,7 @@ func to_combat_squad(team: String = "player") -> SquadCombatData:
 		}
 		entity_configs.append(entity_config)
 
-	return SquadCombatData.new(
+	return CombatSquad.new(
 		{
 			"entities": entity_configs,
 			# "name": squad_name,
@@ -325,7 +325,7 @@ func to_combat_squad(team: String = "player") -> SquadCombatData:
 
 
 func from_combat_results(updates: Array[EntityUpdate]) -> void:
-	push_warning("SquadStrategicData.from_combat_results() - Combat bridge not yet fully implemented")
+	push_warning("SquadData.from_combat_results() - Combat bridge not yet fully implemented")
 
 	for update in updates:
 		if update.target_id >= 0 and update.target_id < warriors.size():

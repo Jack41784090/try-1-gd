@@ -1,11 +1,11 @@
 class_name CaravanBrain
 extends RefCounted
 
-var squad: SquadStrategicData
+var squad: SquadData
 var _config: SquadBrainConfig
 
 
-func _init(p_squad: SquadStrategicData, p_config: SquadBrainConfig) -> void:
+func _init(p_squad: SquadData, p_config: SquadBrainConfig) -> void:
 	assert(p_squad != null, "CaravanBrain requires a squad")
 	assert(p_squad.is_caravan(), "CaravanBrain requires a merchant squad")
 	squad = p_squad

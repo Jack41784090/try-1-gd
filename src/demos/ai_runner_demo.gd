@@ -212,8 +212,8 @@ func create_test_scenario() -> GameScenario:
 
 	return scenario
 
-func create_test_squad(id: String, p_name: String, location: String) -> SquadStrategicData:
-	var squad = SquadStrategicData.new()
+func create_test_squad(id: String, p_name: String, location: String) -> SquadData:
+	var squad = SquadData.new()
 	squad.squad_id = id
 	squad.squad_name = p_name
 	squad.money = 100.0

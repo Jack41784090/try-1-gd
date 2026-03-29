@@ -13,7 +13,7 @@ const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
-var player_squad: SquadStrategicData
+var player_squad: SquadData
 
 var _pass_count: int = 0
 var _fail_count: int = 0
@@ -52,7 +52,7 @@ func _ready():
 
 
 func _inject_fleeing_squad() -> void:
-	var runner = SquadStrategicData.new()
+	var runner = SquadData.new()
 	runner.squad_id = "retreating_scouts"
 	runner.squad_name = "Retreating Scouts"
 	runner.money = 200.0
@@ -106,7 +106,7 @@ func _assign_flee_profile() -> void:
 	config.fallback_action = rest_action
 
 	var runner_id := "retreating_scouts"
-	var runner_squad: SquadStrategicData = null
+	var runner_squad: SquadData = null
 	for sq in presenter.game_scenario.world.roaming_squads:
 		if sq.squad_id == runner_id:
 			runner_squad = sq

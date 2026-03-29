@@ -134,12 +134,10 @@ func test_load_scenario() -> bool:
 		return false
 	if not assert_true(game_scenario.starting_player_squad != null, "Player squad assigned"):
 		return false
-	if not assert_true(game_scenario.starting_player_squad.strategic_data != null, "Player squad strategic_data assigned"):
-		return false
 	
 	print("\n  [INFO] Scenario initialized successfully:")
 	print("    - World: %s" % game_scenario.world)
-	print("    - Player Squad: %s" % game_scenario.starting_player_squad.strategic_data.squad_name)
+	print("    - Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
 	print("    - Starting Location: %s" % game_scenario.starting_location_id)
 	print("    - Turn: %d" % game_scenario.world.turn_count)
 	
@@ -157,7 +155,7 @@ func test_verify_world_state() -> void:
 	assert_greater_than(game_scenario.world.roaming_squads.size(), 0, "World has roaming squads")
 	
 	start_test("Player squad has warriors")
-	var living_warriors = game_scenario.starting_player_squad.strategic_data.get_living_warriors()
+	var living_warriors = game_scenario.starting_player_squad.get_living_warriors()
 	assert_greater_than(living_warriors.size(), 0, "Player squad has living warriors")
 	
 	print("\n  [INFO] World state:")
@@ -178,7 +176,7 @@ func test_verify_world_state() -> void:
 func test_find_forest_bandits() -> bool:
 	start_test("Search for Forest Bandits in roaming squads")
 	
-	var forest_bandits: SquadStrategicData = null
+	var forest_bandits: SquadData = null
 	for squad in game_scenario.world.roaming_squads:
 		print("    [SEARCH] Checking squad: %s" % squad.squad_name)
 		if squad.squad_name == "Forest Bandits":
@@ -196,7 +194,7 @@ func test_find_forest_bandits() -> bool:
 	assert_true(forest_bandits.current_location_id != "", "Bandits have current location")
 	
 	print("\n  [INFO] Forest Bandits details:")
-	print("    - SquadCombatData ID: %s" % forest_bandits.squad_id)
+	print("    - CombatSquad ID: %s" % forest_bandits.squad_id)
 	print("    - Location: %s" % forest_bandits.current_location_id)
 	print("    - Warriors: %d" % bandit_warriors.size())
 	for warrior in bandit_warriors:
@@ -205,8 +203,8 @@ func test_find_forest_bandits() -> bool:
 	# Move player to bandit location for attack
 	start_test("Move player to bandit location for attack")
 	var bandit_location = forest_bandits.current_location_id
-	game_scenario.starting_player_squad.strategic_data.set_location(bandit_location)
-	assert_equal(game_scenario.starting_player_squad.strategic_data.current_location_id, bandit_location, "Player moved to bandit location")
+	game_scenario.starting_player_squad.set_location(bandit_location)
+	assert_equal(game_scenario.starting_player_squad.current_location_id, bandit_location, "Player moved to bandit location")
 	
 	return true
 
@@ -221,7 +219,7 @@ func test_execute_attack() -> void:
 	
 	# Find enemy squad at current location
 	start_test("Find enemies at current location")
-	var enemies_here = game_scenario.world.get_squads_at_location(game_scenario.starting_player_squad.strategic_data.current_location_id)
+	var enemies_here = game_scenario.world.get_squads_at_location(game_scenario.starting_player_squad.current_location_id)
 	assert_greater_than(enemies_here.size(), 0, "Enemies found at location")
 	
 	if enemies_here.is_empty():
@@ -240,7 +238,7 @@ func test_execute_attack() -> void:
 	add_child(mock_overlay)
 	
 	var combat_options = combat_controller.inject_context(
-		game_scenario.starting_player_squad.strategic_data,
+		game_scenario.starting_player_squad,
 		enemy_squad,
 		mock_viewport,
 		mock_overlay
@@ -293,15 +291,15 @@ func test_verify_combat_results() -> void:
 	assert_not_null(game_scenario.starting_player_squad, "Player squad still valid")
 	
 	start_test("Player squad has warriors (some may be dead)")
-	var player_warriors = game_scenario.starting_player_squad.strategic_data.warriors
+	var player_warriors = game_scenario.starting_player_squad.warriors
 	assert_greater_than(player_warriors.size(), 0, "Player squad has warriors array")
 	
 	print("\n  [POST-COMBAT STATUS]")
-	print("    Player Squad: %s" % game_scenario.starting_player_squad.strategic_data.squad_name)
-	print("    Living Warriors: %d" % game_scenario.starting_player_squad.strategic_data.get_living_warriors().size())
-	print("    Morale: %.1f" % game_scenario.starting_player_squad.strategic_data.get_morale())
-	print("    Money: %.1f" % game_scenario.starting_player_squad.strategic_data.money)
-	print("    Food: %d" % game_scenario.starting_player_squad.strategic_data.food)
+	print("    Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
+	print("    Living Warriors: %d" % game_scenario.starting_player_squad.get_living_warriors().size())
+	print("    Morale: %.1f" % game_scenario.starting_player_squad.get_morale())
+	print("    Money: %.1f" % game_scenario.starting_player_squad.money)
+	print("    Food: %d" % game_scenario.starting_player_squad.food)
 
 #endregion
 

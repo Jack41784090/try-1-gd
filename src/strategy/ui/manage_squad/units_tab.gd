@@ -30,7 +30,7 @@ func _ready() -> void:
 	vbox.add_child(_warriors_container)
 
 
-func refresh(squad: SquadStrategicData) -> void:
+func refresh(squad: SquadData) -> void:
 	_title_label.text = "%s — %d warriors" % [squad.squad_name, squad.get_living_warriors().size()]
 
 	for child in _warriors_container.get_children():

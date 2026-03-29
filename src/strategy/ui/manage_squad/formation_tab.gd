@@ -106,7 +106,7 @@ func _build_rows() -> void:
 		_main_vbox.add_child(row_panel)
 
 
-func refresh(squad: SquadStrategicData) -> void:
+func refresh(squad: SquadData) -> void:
 	_clear_selection()
 	for slot in _all_slots:
 		slot.clear_warrior()

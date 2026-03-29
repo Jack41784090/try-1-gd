@@ -1,4 +1,4 @@
-class_name SquadCombatData
+class_name CombatSquad
 extends Resource
 
 var entities: Array[CombatEntity] = []
@@ -74,7 +74,7 @@ func _format_enemy_positions(metadata: Dictionary) -> String:
 	return "{%s}" % " ".join(parts)
 
 
-func squad_attack(enemy_squad: SquadCombatData, round_count: int) -> Array[EntityUpdate]:
+func squad_attack(enemy_squad: CombatSquad, round_count: int) -> Array[EntityUpdate]:
 	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, "[%s]" % squad_name)
 	var updates_after_attack: Array[EntityUpdate] = []
 

@@ -1,7 +1,7 @@
 class_name LootCollector
 extends RefCounted
 
-static func collect_equipment_loot(enemy_squad: SquadStrategicData, enemy_casualties: Array[String]) -> Dictionary:
+static func collect_equipment_loot(enemy_squad: SquadData, enemy_casualties: Array[String]) -> Dictionary:
 	var looted_weapons: Array[WeaponConfig] = []
 	var looted_armors: Array[ArmorConfig] = []
 

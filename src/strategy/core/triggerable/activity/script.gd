@@ -30,7 +30,7 @@ func _to_string() -> String:
 	]
 
 
-func can_execute(squad: SquadStrategicData, location: Location) -> bool:
+func can_execute(squad: SquadData, location: Location) -> bool:
 	# Checks if this activity can be performed given the squad's state and current location
 	# e.g., ATTACK at Location(stability=90) with min_stability_to_block_attack=80 → blocked (90 > 80)
 	# e.g., FORCE_MARCH to "vienna" with squad.food=3, demand=4 → false (not enough food)
@@ -142,9 +142,9 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 func _execute_attack(context: Dictionary) -> ActivityResult:
 	# ATTACK: Attempts to initiate combat with an enemy squad at the current location
 	# Requires contact tracker to have at least SUSPECTED contact on the target
-	# e.g., squad="Wolves" at "salzburg", enemies=[SquadStrategicData("Bandits")] → requires_combat=true
+	# e.g., squad="Wolves" at "salzburg", enemies=[SquadData("Bandits")] → requires_combat=true
 	var world = context.get("world") as World
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var tracker = world.contact_tracker
 
 	# 1. Find enemy squads at the same location
@@ -156,7 +156,7 @@ func _execute_attack(context: Dictionary) -> ActivityResult:
 		return result
 
 	# 3. Pick target — prefer brain's chosen target, then best-contacted enemy
-	var target_enemy: SquadStrategicData = null
+	var target_enemy: SquadData = null
 	var chosen_id = context.get("attack_target", "")
 	if not chosen_id.is_empty():
 		for e in enemies_here:
@@ -201,7 +201,7 @@ func _execute_travel(context: Dictionary) -> ActivityResult:
 	# TRAVEL: Move squad one hop to the destination, consuming food and applying morale penalty
 	# e.g., squad at "salzburg" with destination="vienna", food=5, 3 warriors
 	#   → consume 3 food (1 per warrior), apply -2 morale penalty, set location to "vienna"
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 
 	# 1. Consume food based on each warrior's demand (social class affects demand)
 	# e.g., 3 SOLDIER warriors × 1.0 demand = 3 food consumed
@@ -223,7 +223,7 @@ func _execute_force_march(context: Dictionary) -> ActivityResult:
 	# FORCE_MARCH: Fast travel covering up to 2 hops in one turn at high supply/morale cost
 	# e.g., from "salzburg" → "linz" → "vienna" in one turn, consuming 2x food per hop
 	var world = context.get("world") as World
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 
 	# 1. Consume supplies at 2x rate and apply heavy morale penalty
 	squad.consume_supplies_by_demand(force_march_supply_multiplier)
@@ -260,7 +260,7 @@ func _execute_force_march(context: Dictionary) -> ActivityResult:
 	result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -10.0)
 
 	# 5. Check if enemies are at the destination — triggers forced combat
-	# e.g., enemies_at_destination = [SquadStrategicData("Bandits")] → requires_combat=true
+	# e.g., enemies_at_destination = [SquadData("Bandits")] → requires_combat=true
 	var enemies_at_destination = world.get_squads_at_location(final_location)
 	if not enemies_at_destination.is_empty():
 		var target_enemy = enemies_at_destination[0]
@@ -290,7 +290,7 @@ func _execute_recruit(context: Dictionary) -> ActivityResult:
 
 
 func _execute_investigate(context: Dictionary) -> ActivityResult:
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 
@@ -306,7 +306,7 @@ func _execute_investigate(context: Dictionary) -> ActivityResult:
 func _execute_forage(context: Dictionary) -> ActivityResult:
 	# FORAGE: Gather food from the current location. Yield depends on location type.
 	# e.g., VILLAGE → 2-4 food, ROAD → 1-2 food, CITY → 0 food (no wilderness)
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 
@@ -344,7 +344,7 @@ func _execute_forage(context: Dictionary) -> ActivityResult:
 func _execute_heal(context: Dictionary) -> ActivityResult:
 	# HEAL: Spend money to heal injured warriors. Costs 10 gold per warrior.
 	# e.g., squad has 2 injured warriors, 25 gold → heals 2 warriors for 20 gold, +10 morale
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 
@@ -377,7 +377,7 @@ func _execute_heal(context: Dictionary) -> ActivityResult:
 
 
 func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 
@@ -410,7 +410,7 @@ func _execute_buy_supplies(context: Dictionary) -> ActivityResult:
 
 
 func _execute_patrol(context: Dictionary) -> ActivityResult:
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var tracker = world.contact_tracker
 
@@ -431,7 +431,7 @@ func _execute_mercenary_work(context: Dictionary) -> ActivityResult:
 	# MERCENARY_WORK: Fight monsters for money. Risk/reward — kills earn gold, but warriors can be injured.
 	# e.g., 3 monsters spawned, squad of 4 warriors → rolls per monster, chance of kill or casualty
 	#   → 2 kills × 15g = 30 gold earned, 1 warrior injured, morale -5
-	var squad = context.get("squad") as SquadStrategicData
+	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 
 	# 1. Determine how many monsters to fight (2-4)

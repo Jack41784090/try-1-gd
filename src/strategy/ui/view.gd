@@ -486,11 +486,11 @@ func hide_recruitment_menu() -> void:
 	recruitment_view.hide_recruitment_menu()
 
 
-func show_manage_squad(squad: SquadStrategicData, p_actor: ActivityRunner) -> void:
+func show_manage_squad(squad: SquadData, p_actor: ActivityRunner) -> void:
 	manage_squad_page.presenter.open(squad, p_actor)
 
 
-func show_shop(shop: Shop, squad: SquadStrategicData, location: Location = null) -> void:
+func show_shop(shop: Shop, squad: SquadData, location: Location = null) -> void:
 	shop_view.presenter.open(shop, squad, location)
 
 
@@ -498,7 +498,7 @@ func hide_shop() -> void:
 	shop_view.presenter._on_closed()
 
 
-func show_scouting(world: World, player_squad: SquadStrategicData) -> void:
+func show_scouting(world: World, player_squad: SquadData) -> void:
 	scouting_view.show_scouting(world, player_squad)
 
 

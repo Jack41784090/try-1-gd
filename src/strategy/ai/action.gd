@@ -113,7 +113,7 @@ func _resolve_away_from_enemy(situation: StrategicSituation) -> String:
 	return best_id
 
 
-func _resolve_target(situation: StrategicSituation) -> SquadStrategicData:
+func _resolve_target(situation: StrategicSituation) -> SquadData:
 	# Picks a target enemy squad based on the configured strategy
 	# Only considers enemies with sufficient contact state (at least SUSPECTED)
 	# e.g., WEAKEST strategy: picks enemy with lowest morale from tracked enemies
@@ -124,7 +124,7 @@ func _resolve_target(situation: StrategicSituation) -> SquadStrategicData:
 	# 1. For ATTACK, filter enemies by contact state — can only target what we've detected
 	if activity_type == StrategyTypes.ActivityType.ATTACK:
 		var tracker = situation.world.contact_tracker
-		var tracked: Array[SquadStrategicData] = []
+		var tracked: Array[SquadData] = []
 		for enemy in enemies:
 			var contact = tracker.get_contact(situation.squad.squad_id, enemy.squad_id)
 			if contact and contact.get_state() >= StrategyTypes.ContactState.SUSPECTED:

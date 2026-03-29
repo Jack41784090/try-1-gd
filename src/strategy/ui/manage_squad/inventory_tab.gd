@@ -11,7 +11,7 @@ var _inventory_container: VBoxContainer
 var _warriors_container: VBoxContainer
 var _empty_label: Label
 
-var _current_squad: SquadStrategicData
+var _current_squad: SquadData
 var _selected_weapon: WeaponConfig
 var _selected_armor: ArmorConfig
 
@@ -114,7 +114,7 @@ func _build_warriors_panel(parent: HBoxContainer) -> void:
 	scroll.add_child(_warriors_container)
 
 
-func refresh(squad: SquadStrategicData) -> void:
+func refresh(squad: SquadData) -> void:
 	_current_squad = squad
 	_selected_weapon = null
 	_selected_armor = null

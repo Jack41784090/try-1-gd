@@ -47,8 +47,8 @@ class CombatResult extends RefCounted:
 
 
 var combat_bridge: CombatBridge
-var current_player_squad: SquadStrategicData
-var current_enemy_squad: SquadStrategicData
+var current_player_squad: SquadData
+var current_enemy_squad: SquadData
 var current_tactic: Tactic
 var is_in_combat: bool = false
 var combat_phase: int = 0
@@ -222,7 +222,7 @@ func _attempt_flee() -> CombatResult:
 	# intermission_choice_made.emit("FLEE", roll_result)
 
 	if roll < flee_chance:
-		print("[CombatController]   SUCCESS - SquadCombatData escaped!")
+		print("[CombatController]   SUCCESS - CombatSquad escaped!")
 		result.fled = true
 		result.morale_change = -10.0 # Morale penalty for fleeing
 	else:
@@ -331,7 +331,7 @@ func set_contact_tracker(tracker) -> void:
 	contact_tracker = tracker
 
 
-func _get_squad_survival_stat(squad: SquadStrategicData) -> float:
+func _get_squad_survival_stat(squad: SquadData) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
@@ -342,7 +342,7 @@ func _get_squad_survival_stat(squad: SquadStrategicData) -> float:
 	return total / max(count, 1) / 2.0 # Average of ACR+WIL
 
 
-func _get_squad_diplomacy_stat(squad: SquadStrategicData) -> float:
+func _get_squad_diplomacy_stat(squad: SquadData) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
@@ -378,7 +378,7 @@ func _get_entity_name(entity_id: int) -> String:
 	return "Entity#%d" % entity_id
 
 
-func _generate_loot(enemy_squad: SquadStrategicData) -> Dictionary:
+func _generate_loot(enemy_squad: SquadData) -> Dictionary:
 	var loot = {
 		"money": rng.randi_range(10, 50) * enemy_squad.get_living_warriors().size(),
 		"food": rng.randi_range(1, 5),
@@ -390,7 +390,7 @@ func _generate_loot(enemy_squad: SquadStrategicData) -> Dictionary:
 var _CHANCE = 1
 
 
-func _generate_enemy_clues(enemy_squad: SquadStrategicData, current_turn: int = 0) -> Array[Clue]:
+func _generate_enemy_clues(enemy_squad: SquadData, current_turn: int = 0) -> Array[Clue]:
 	# Generates intelligence clues from the enemy squad after combat
 	# Each clue reveals enemy movements (their current_location_id as destination)
 	# e.g., "Raiders" at "linz" with 2 warriors → creates 2 clues pointing to "linz"
