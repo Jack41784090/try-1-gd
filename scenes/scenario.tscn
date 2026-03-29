@@ -489,38 +489,6 @@ tooltip_text = "Browse the local shop"
 theme_type_variation = &"GoldButton"
 text = "Shop"
 
-[node name="TravelArrowBar" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=2129960287]
-visible = false
-custom_minimum_size = Vector2(0, 56)
-layout_mode = 2
-theme_type_variation = &"TravelArrowBar"
-
-[node name="TravelArrowHBox" type="HBoxContainer" parent="PanelContainer/MainVBox/TravelArrowBar" unique_id=880799231]
-layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="GoBackBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=2111811969]
-custom_minimum_size = Vector2(160, 40)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_type_variation = &"GoBackButton"
-text = "← Go Back"
-
-[node name="TravelLabel" type="Label" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=923392913]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 0.8)
-theme_override_font_sizes/font_size = 15
-horizontal_alignment = 1
-
-[node name="ContinueBtn" type="Button" parent="PanelContainer/MainVBox/TravelArrowBar/TravelArrowHBox" unique_id=1788876918]
-custom_minimum_size = Vector2(160, 40)
-layout_mode = 2
-size_flags_horizontal = 8
-theme_type_variation = &"ContinueButton"
-text = "Continue →"
-
 [node name="BottomNavBar" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=570966560]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -951,33 +919,11 @@ text = "Back"
 script = ExtResource("21_shop_presenter")
 
 [node name="ScoutingView" parent="." unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 
 [node name="MissionsView" parent="." unique_id=38974266 instance=ExtResource("28_missions_scene")]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="MarketView" parent="." unique_id=220318999 instance=ExtResource("31_market_scene")]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="CombatIntermission" type="PanelContainer" parent="." unique_id=770181322]
 visible = false
@@ -1157,6 +1103,46 @@ custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Continue"
+
+[node name="TravelArrowBar" type="PanelContainer" parent="." unique_id=2129960287]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.15
+anchor_top = 1.0
+anchor_right = 0.85
+anchor_bottom = 1.0
+offset_top = -66.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"TravelArrowBar"
+
+[node name="TravelArrowHBox" type="HBoxContainer" parent="TravelArrowBar" unique_id=880799231]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="GoBackBtn" type="Button" parent="TravelArrowBar/TravelArrowHBox" unique_id=2111811969]
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_type_variation = &"GoBackButton"
+text = "← Go Back"
+
+[node name="TravelLabel" type="Label" parent="TravelArrowBar/TravelArrowHBox" unique_id=923392913]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 0.8)
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+
+[node name="ContinueBtn" type="Button" parent="TravelArrowBar/TravelArrowHBox" unique_id=1788876918]
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_type_variation = &"ContinueButton"
+text = "Continue →"
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
 visible = false
