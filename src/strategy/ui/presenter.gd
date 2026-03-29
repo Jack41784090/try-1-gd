@@ -857,6 +857,7 @@ func _update_contact_bars(world: World, squad: SquadData) -> void:
 			_:
 				title = target_squad.squad_name
 		bars.append({
+			"target_id": contact.target_id,
 			"state": state,
 			"progress": contact.progress,
 			"progress_delta": contact.last_delta,
