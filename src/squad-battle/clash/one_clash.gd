@@ -44,7 +44,7 @@ func roll_for_hit() -> bool:
 	var target = target_manifestation()
 
 	var try_hit = chosen_weapon.get_total_hit_value(attacker)
-	var hit_def = 0
+	var hit_def = target.calculate_reality_value(SquadBattleTypes.Reality.Maneuver)
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
 

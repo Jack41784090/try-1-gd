@@ -172,18 +172,8 @@ func _produce_retreat_updates(team_side) -> Array[EntityUpdate]:
 		for entity in squad.entities:
 			if entity.is_dead():
 				continue
-			var eid = entity.player_id
-			var current_loc = entity.get_changeable_stat_num(Types.EntityChangeable.LOC)
-			if current_loc < Types.SquadEntityInSquadLocation.Back:
-				entity.is_retreating = true
-				updates.append(EntityUpdate.new(eid, eid, entity.mod_changeable_stat(Types.EntityChangeable.LOC, 1)))
-				updates.append(EntityUpdate.new(eid, eid, entity.set_changeable_stat(Types.EntityChangeable.ORG, entity.calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
-			elif not entity.has_last_stand:
-				entity.has_last_stand = true
-				entity.is_retreating = true
-				updates.append(EntityUpdate.new(eid, eid, entity.set_changeable_stat(Types.EntityChangeable.ORG, entity.calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
-			else:
-				updates.append(EntityUpdate.new(eid, eid, EntityChange.new(Types.EntityChangeable.CAPITULATE)))
+			for u in entity.retreat_tracker.advance(entity):
+				updates.append(u)
 	return updates
 
 

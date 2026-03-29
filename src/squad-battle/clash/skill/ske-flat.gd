@@ -23,7 +23,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 		stacks -= 1
 	
 	if updates_collector != null:
-		match SquadBattleTypes.EntityChangeable:
+		match property_direct:
 			SquadBattleTypes.EntityChangeable.HP:
 				if value > 0:
 					var h = affected.heal(value)

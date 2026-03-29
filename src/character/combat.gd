@@ -33,8 +33,14 @@ var changeable_stats: Dictionary = {
 }
 #endregion
 
-var is_retreating: bool = false
-var has_last_stand: bool = false
+var retreat_tracker = null
+
+var is_retreating: bool:
+	get: return retreat_tracker != null and retreat_tracker.state != 0
+
+var has_last_stand: bool:
+	get: return retreat_tracker != null and (retreat_tracker.state == 2 or retreat_tracker.state == 3)
+
 var innate_skills: Array[Skill] = []
 var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
@@ -108,6 +114,8 @@ func set_team(_team):
 
 func init_after():
 	_debug_id = "[%d]" % [player_id]
+	var RT = load("res://src/squad-battle/entity/retreat_tracker.gd")
+	retreat_tracker = RT.new()
 	
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)
@@ -179,7 +187,7 @@ func set_logic(new_logic):
 	logic = new_logic
 
 func new_round_reset():
-	is_retreating = false
+	retreat_tracker.new_round_reset()
 
 func is_dead() -> bool:
 	return get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) <= 0
@@ -187,31 +195,39 @@ func is_dead() -> bool:
 func get_armour():
 	return armor
 
+enum _RealityOp { ADD, MUL }
+
+const _REALITY_TABLE: Dictionary = {
+	SquadBattleTypes.Reality.HP: [3.0, _RealityOp.MUL, [["endurance", 5.0], ["siz", 2.0]]],
+	SquadBattleTypes.Reality.Force: [1.0, _RealityOp.MUL, [["strength", 2.0], ["spd", 1.0], ["siz", 1.0]]],
+	SquadBattleTypes.Reality.Guts: [10.0, _RealityOp.ADD, [["wil", 8.0], ["fai", 5.0]]],
+	SquadBattleTypes.Reality.Mana: [0.0, _RealityOp.ADD, [["int_stat", 3.0], ["spr", 2.0], ["fai", 1.0]]],
+	SquadBattleTypes.Reality.Spirituality: [0.0, _RealityOp.ADD, [["spr", 2.0], ["fai", 2.0], ["wil", 1.0]]],
+	SquadBattleTypes.Reality.Divinity: [0.0, _RealityOp.ADD, [["fai", 3.0], ["wil", 2.0], ["cha", 1.0]]],
+	SquadBattleTypes.Reality.Precision: [0.0, _RealityOp.ADD, [["dex", 2.0], ["acr", 1.0], ["spd", 1.0]]],
+	SquadBattleTypes.Reality.Maneuver: [0.0, _RealityOp.ADD, [["acr", 2.0], ["spd", 2.0], ["dex", 1.0]]],
+	SquadBattleTypes.Reality.Convince: [0.0, _RealityOp.ADD, [["cha", 2.0], ["beu", 1.0], ["int_stat", 1.0]]],
+	SquadBattleTypes.Reality.Bravery: [0.0, _RealityOp.ADD, [["wil", 2.0], ["endurance", 1.0], ["fai", 1.0]]],
+}
+
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
-	match reality:
-		SquadBattleTypes.Reality.HP:
-			return 3 + (stats.endurance * 5) * (stats.siz * 2)
-		SquadBattleTypes.Reality.Force:
-			return 1 + (stats.strength * 2) * (stats.spd * 1) * (stats.siz * 1)
-		SquadBattleTypes.Reality.Guts:
-			return 10 + (stats.wil * 8) + (stats.fai * 5)
-		SquadBattleTypes.Reality.Mana:
-			return (stats.int_stat * 3) + (stats.spr * 2) + (stats.fai * 1)
-		SquadBattleTypes.Reality.Spirituality:
-			return (stats.spr * 2) + (stats.fai * 2) + (stats.wil * 1)
-		SquadBattleTypes.Reality.Divinity:
-			return (stats.fai * 3) + (stats.wil * 2) + (stats.cha * 1)
-		SquadBattleTypes.Reality.Precision:
-			return (stats.dex * 2) + (stats.acr * 1) + (stats.spd * 1)
-		SquadBattleTypes.Reality.Maneuver:
-			return (stats.acr * 2) + (stats.spd * 2) + (stats.dex * 1)
-		SquadBattleTypes.Reality.Convince:
-			return (stats.cha * 2) + (stats.beu * 1) + (stats.int_stat * 1)
-		SquadBattleTypes.Reality.Bravery:
-			return (stats.wil * 2) + (stats.endurance * 1) + (stats.fai * 1)
-		_:
-			print("[%s]Warning: Reality value for %s not found" % [_debug_id, reality])
-			return 0
+	if not _REALITY_TABLE.has(reality):
+		push_error("[%s] Reality value for %s not found" % [_debug_id, reality])
+		return 0.0
+	var entry: Array = _REALITY_TABLE[reality]
+	var base: float = entry[0]
+	var op: int = entry[1]
+	var terms: Array = entry[2]
+	if op == _RealityOp.MUL:
+		var product: float = 1.0
+		for term in terms:
+			product *= stats.get(term[0]) * term[1]
+		return base + product
+	else:
+		var total: float = base
+		for term in terms:
+			total += stats.get(term[0]) * term[1]
+		return total
 
 func get_ceiling_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> float:
 	match property:
@@ -270,18 +286,9 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg))
 	]
 	
-	if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG) <= 0:
-		if not is_retreating:
-			is_retreating = true
-			var current_loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
-			if current_loc < SquadBattleTypes.SquadEntityInSquadLocation.Back:
-				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.LOC, 1)))
-				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
-			elif not has_last_stand:
-				has_last_stand = true
-				changes.append(EntityUpdate.new(affected, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, calculate_reality_value(SquadBattleTypes.Reality.Guts) * 0.1)))
-			else:
-				changes.append(EntityUpdate.new(affected, affected, EntityChange.new(SquadBattleTypes.EntityChangeable.CAPITULATE)))
+	if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
+		for u in retreat_tracker.advance(self):
+			changes.append(u)
 	
 	return changes
 
