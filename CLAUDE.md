@@ -141,8 +141,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Don't use `preload`** on "class not found" errors. **Don't export RefCounted** types. **Don't use `class_name` for inner classes**
 - **`Resource.duplicate(true)` does NOT deep-copy external `.tres` sub-resources** — always explicitly duplicate: `activity.result = activity.result.duplicate(true)`
 - **Never programmatically create GUI elements** — define in `.tscn`, use `@onready` refs
-- **Pre-built hidden nodes over scene instantiation** for bounded lists. Scene instantiation only for unbounded/compositional needs
-- **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`
+- **Pre-built hidden nodes over scene instantiation** for bounded lists. Scene instantiation only for unbounded/compositional needs. Collect pools in `_ready()` from container children; hide all initially. Set `visible = true` with demo text in `.tscn` for editor preview
+- **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`. Item templates: `shop_item_row.tscn`, `recruitment_class_item.tscn`, `investigation_clue_item.tscn`
 
 ### Terminal / File Operations
 - **Never use `cat` heredoc** for GDScript files (strips tabs). Use Python `with open()` or `replace_string_in_file`
