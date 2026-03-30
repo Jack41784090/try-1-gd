@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://0urax67nr5wm"]
+[gd_scene load_steps=5 format=3 uid="uid://0urax67nr5wm"]
 
 [ext_resource type="Script" uid="uid://5isbt6bvancc" path="res://src/strategy/ui/vn/view.gd" id="1_view"]
 [ext_resource type="Script" uid="uid://dhgjoxu2jsets" path="res://src/strategy/ui/vn/presenter.gd" id="2_presenter"]
+[ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/dialogue_panel.tres" id="style_dialogue_panel"]
 
 [node name="VnView" type="Control"]
 layout_mode = 3
@@ -42,7 +44,7 @@ offset_right = 500.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_type_variation = &"DialoguePanel"
+theme_override_styles/panel = ExtResource("style_dialogue_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="DialogueBox"]
 layout_mode = 2
@@ -58,18 +60,24 @@ theme_override_constants/separation = 10
 [node name="SpeakerLabel" type="Label" parent="DialogueBox/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
-theme_type_variation = &"VnSpeakerLabel"
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("bold_font")
 text = "Speaker"
 
 [node name="DialogueLabel" type="Label" parent="DialogueBox/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_type_variation = &"DialogueLabel"
+theme_override_constants/line_spacing = 3
+theme_override_font_sizes/font_size = 16
 autowrap_mode = 2
 
 [node name="AdvancePrompt" type="Label" parent="DialogueBox"]
 visible = false
 layout_mode = 2
-theme_type_variation = &"AdvancePromptLabel"
+theme_override_colors/font_color = Color(0.8, 0.75, 0.6, 0.8)
 text = "Click to continue"
 horizontal_alignment = 2
 vertical_alignment = 2

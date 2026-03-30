@@ -28,6 +28,15 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" path="res://scenes/ui/market_view.tscn" id="31_market_scene"]
 [ext_resource type="Script" uid="uid://6elmxh7hf8q6" path="res://src/strategy/ui/notification/notification_bar.gd" id="33_notification_bar"]
+[ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/contact_panel.tres" id="style_contact_panel"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/travel_arrow_bar.tres" id="style_travel_arrow_bar"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_normal.tres" id="style_continue_normal"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_hover.tres" id="style_continue_hover"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_pressed.tres" id="style_continue_pressed"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_normal.tres" id="style_go_back_normal"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_hover.tres" id="style_go_back_hover"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_pressed.tres" id="style_go_back_pressed"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_money"]
 texture = ExtResource("4_s06fx")
@@ -159,7 +168,12 @@ theme_override_constants/separation = 30
 
 [node name="TurnLabel" type="Label" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation" unique_id=201134611]
 layout_mode = 2
-theme_type_variation = &"TurnLabel"
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("bold_font")
 text = "Turn 0"
 
 [node name="Separator" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation" unique_id=2044385177]
@@ -353,7 +367,8 @@ theme_override_constants/margin_bottom = 5
 
 [node name="ConditionLabel" type="Label" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent/ConditionStatus/ConditionMargin" unique_id=1375580732]
 layout_mode = 2
-theme_type_variation = &"ConditionLabel"
+theme_override_colors/font_color = Color(0.4, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 18
 text = "Excellent"
 
 [node name="EndButton" type="Button" parent="PanelContainer/MainVBox/StatusArea" unique_id=466440131]
@@ -376,7 +391,6 @@ expand_mode = 1
 layout_mode = 1
 
 [node name="ContactBarsPanel" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1378260196]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.5
@@ -385,7 +399,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 0
 mouse_filter = 2
-theme_type_variation = &"ContactPanel"
+theme_override_styles/panel = ExtResource("style_contact_panel")
 
 [node name="ContactMargin" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel" unique_id=2026102496]
 layout_mode = 2
@@ -937,7 +951,12 @@ theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="CombatIntermission/MarginContainer/VBoxContainer" unique_id=12399439]
 layout_mode = 2
-theme_type_variation = &"CombatTitleLabel"
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 28
+theme_override_fonts/font = ExtResource("bold_font")
 text = "⚔️ COMBAT ENCOUNTER!"
 horizontal_alignment = 1
 
@@ -962,19 +981,22 @@ alignment = 1
 [node name="FleeButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer" unique_id=1317598368]
 custom_minimum_size = Vector2(160, 60)
 layout_mode = 2
-theme_type_variation = &"FleeButton"
+theme_override_colors/font_color = Color(0.7, 0.9, 0.7, 1)
+theme_override_colors/font_hover_color = Color(0.8, 1, 0.8, 1)
 text = "🏃 Flee (??%)"
 
 [node name="NegotiateButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer" unique_id=435740950]
 custom_minimum_size = Vector2(160, 60)
 layout_mode = 2
-theme_type_variation = &"NegotiateButton"
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
 text = "🤝 Negotiate (??%)"
 
 [node name="FightButton" type="Button" parent="CombatIntermission/MarginContainer/VBoxContainer/ButtonContainer" unique_id=1796212380]
 custom_minimum_size = Vector2(160, 60)
 layout_mode = 2
-theme_type_variation = &"FightButton"
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
 text = "⚔️ Fight!"
 
 [node name="InfoLabel" type="Label" parent="CombatIntermission/MarginContainer/VBoxContainer" unique_id=521362231]
@@ -1098,7 +1120,7 @@ offset_top = -66.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_type_variation = &"TravelArrowBar"
+theme_override_styles/panel = ExtResource("style_travel_arrow_bar")
 
 [node name="TravelArrowHBox" type="HBoxContainer" parent="TravelArrowBar" unique_id=880799231]
 layout_mode = 2
@@ -1109,7 +1131,12 @@ alignment = 1
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_type_variation = &"GoBackButton"
+theme_override_colors/font_color = Color(0.9, 0.75, 0.55, 1)
+theme_override_colors/font_hover_color = Color(1, 0.9, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.55, 0.4, 1)
+theme_override_styles/hover = ExtResource("style_go_back_hover")
+theme_override_styles/normal = ExtResource("style_go_back_normal")
+theme_override_styles/pressed = ExtResource("style_go_back_pressed")
 text = "← Go Back"
 
 [node name="TravelLabel" type="Label" parent="TravelArrowBar/TravelArrowHBox" unique_id=923392913]
@@ -1123,7 +1150,12 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 8
-theme_type_variation = &"ContinueButton"
+theme_override_colors/font_color = Color(0.5, 0.9, 0.6, 1)
+theme_override_colors/font_hover_color = Color(0.6, 1, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.4, 0.7, 0.5, 1)
+theme_override_styles/hover = ExtResource("style_continue_hover")
+theme_override_styles/normal = ExtResource("style_continue_normal")
+theme_override_styles/pressed = ExtResource("style_continue_pressed")
 text = "Continue →"
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
@@ -1148,7 +1180,12 @@ alignment = 1
 
 [node name="TitleLabel" type="Label" parent="GameOverOverlay/GameOverVBox" unique_id=477518408]
 layout_mode = 2
-theme_type_variation = &"DefeatLabel"
+theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 48
+theme_override_fonts/font = ExtResource("bold_font")
 text = "DEFEAT"
 horizontal_alignment = 1
 

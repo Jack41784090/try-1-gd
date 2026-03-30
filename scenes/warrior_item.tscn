@@ -1,10 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://7wiqx3r6htjw"]
+[gd_scene load_steps=3 format=3 uid="uid://7wiqx3r6htjw"]
 
 [ext_resource type="Script" uid="uid://cdrf2o4xvkcgu" path="res://src/strategy/ui/manage_squad/warrior_item.gd" id="1_warrior_item"]
+[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/item_panel.tres" id="style_item_panel"]
 
 [node name="WarriorItem" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 80)
-theme_type_variation = &"ItemPanel"
+theme_override_styles/panel = ExtResource("style_item_panel")
 script = ExtResource("1_warrior_item")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
