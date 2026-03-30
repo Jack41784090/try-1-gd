@@ -1,0 +1,94 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ui/travel/view.gd" id="1_view"]
+[ext_resource type="Script" path="res://src/strategy/ui/travel/presenter.gd" id="2_pres"]
+
+[node name="TravelView" type="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_view")
+
+[node name="OverlayPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -550.0
+offset_top = -325.0
+offset_right = 550.0
+offset_bottom = 325.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"GamePanel"
+
+[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="HBoxContainer" type="HBoxContainer" parent="OverlayPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MapPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.8
+
+[node name="ListPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ListVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SelectedLocationLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+horizontal_alignment = 1
+
+[node name="TravelProgressBar" type="ProgressBar" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="ModeToggleButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Switch to Manual"
+
+[node name="LocationsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LocationsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ConfirmButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Confirm Travel"
+
+[node name="CancelButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
+text = "Cancel"
+
+[node name="TravelPresenter" type="Node" parent="."]
+script = ExtResource("2_pres")
