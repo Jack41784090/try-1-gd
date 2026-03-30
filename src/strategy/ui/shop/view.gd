@@ -23,6 +23,9 @@ signal closed
 @onready var back_button: Button = $OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/ButtonsHBox/BackButton
 @onready var presenter: ShopPresenter = $ShopPresenter
 
+var _item_rows: Array[ShopItemRow]
+var _summary_labels: Array[Label]
+
 func _ready() -> void:
 	overlay_panel.visible = false
 	confirm_button.pressed.connect(func(): confirm_pressed.emit())
@@ -30,6 +33,19 @@ func _ready() -> void:
 	pay_button.pressed.connect(func(): pay_pressed.emit())
 	back_button.pressed.connect(func(): back_pressed.emit())
 	presenter.bind_view(self)
+
+	for child in items_container.get_children():
+		var row := child as ShopItemRow
+		row.quantity_changed.connect(func(tid: String, delta: int): thing_quantity_changed.emit(tid, delta))
+		_item_rows.append(row)
+
+	for child in summary_container.get_children():
+		_summary_labels.append(child as Label)
+
+	for row in _item_rows:
+		row.visible = false
+	for lbl in _summary_labels:
+		lbl.visible = false
 
 func show_shop(shop_name: String, money: float) -> void:
 	self.visible = true
@@ -40,18 +56,21 @@ func show_shop(shop_name: String, money: float) -> void:
 	await UIAnimations.show_overlay(self, overlay_panel)
 
 func display_items(items: Array[Thing], cart: Dictionary, money: float, stock_info: Dictionary = {}) -> void:
-	_clear_items()
 	money_label.text = "Available: %.0f gold" % money
 
 	var cart_total := 0.0
 	for thing in items:
 		cart_total += thing.base_price * cart.get(thing.thing_id, 0)
 
-	for thing in items:
-		var quantity: int = cart.get(thing.thing_id, 0)
-		var remaining_stock: int = stock_info.get(thing.thing_id, 999)
-		var can_afford_more: bool = (money - cart_total) >= thing.base_price and remaining_stock > 0
-		_create_item_row(thing, quantity, can_afford_more, remaining_stock)
+	for i in _item_rows.size():
+		if i < items.size():
+			var thing := items[i]
+			var quantity: int = cart.get(thing.thing_id, 0)
+			var remaining_stock: int = stock_info.get(thing.thing_id, 999)
+			var can_afford_more: bool = (money - cart_total) >= thing.base_price and remaining_stock > 0
+			_item_rows[i].populate(thing, quantity, can_afford_more, remaining_stock)
+		else:
+			_item_rows[i].visible = false
 
 func update_total(total: float, can_confirm: bool) -> void:
 	if total > 0:
@@ -68,13 +87,12 @@ func show_confirmation(summary_lines: Array[String], total: float, remaining: fl
 	confirmation_panel.visible = true
 	confirm_title_label.text = "Confirm Purchase"
 
-	_clear_summary()
-	for line in summary_lines:
-		var line_label = Label.new()
-		line_label.text = line
-		line_label.add_theme_font_size_override("font_size", 16)
-		line_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-		summary_container.add_child(line_label)
+	for i in _summary_labels.size():
+		if i < summary_lines.size():
+			_summary_labels[i].text = summary_lines[i]
+			_summary_labels[i].visible = true
+		else:
+			_summary_labels[i].visible = false
 
 	total_summary_label.text = "Total: %.0f gold" % total
 	remaining_label.text = "Remaining: %.0f gold" % remaining
@@ -86,99 +104,3 @@ func show_browsing() -> void:
 func hide_shop() -> void:
 	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
-
-func _create_item_row(thing: Thing, quantity: int, can_afford_more: bool, remaining_stock: int = 999) -> void:
-	var row_panel = PanelContainer.new()
-	row_panel.custom_minimum_size = Vector2(0, 90)
-
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	row_panel.add_child(margin)
-
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-	margin.add_child(vbox)
-
-	var top_row = HBoxContainer.new()
-	vbox.add_child(top_row)
-
-	var name_label = Label.new()
-	name_label.text = thing.get_label()
-	name_label.add_theme_font_size_override("font_size", 18)
-	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.75))
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_row.add_child(name_label)
-
-	var price_label = Label.new()
-	price_label.text = "%.0f gold" % thing.base_price
-	price_label.add_theme_font_size_override("font_size", 16)
-	price_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
-	top_row.add_child(price_label)
-
-	if remaining_stock < 999:
-		var stock_label = Label.new()
-		if remaining_stock + quantity <= 0:
-			stock_label.text = "Out of Stock"
-			stock_label.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3))
-		else:
-			stock_label.text = "Stock: %d" % (remaining_stock + quantity)
-			stock_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.6))
-		stock_label.add_theme_font_size_override("font_size", 14)
-		top_row.add_child(stock_label)
-
-	if thing.description != "":
-		var desc_label = Label.new()
-		desc_label.text = thing.description
-		desc_label.add_theme_font_size_override("font_size", 13)
-		desc_label.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
-		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		vbox.add_child(desc_label)
-
-	var controls_row = HBoxContainer.new()
-	controls_row.add_theme_constant_override("separation", 12)
-	controls_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(controls_row)
-
-	var minus_button = Button.new()
-	minus_button.text = "-"
-	minus_button.custom_minimum_size = Vector2(40, 32)
-	minus_button.disabled = quantity <= 0
-	var tid_minus := thing.thing_id
-	minus_button.pressed.connect(func(): thing_quantity_changed.emit(tid_minus, -1))
-	controls_row.add_child(minus_button)
-
-	var qty_label = Label.new()
-	qty_label.text = str(quantity)
-	qty_label.add_theme_font_size_override("font_size", 18)
-	qty_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	qty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	qty_label.custom_minimum_size = Vector2(40, 0)
-	controls_row.add_child(qty_label)
-
-	var plus_button = Button.new()
-	plus_button.text = "+"
-	plus_button.custom_minimum_size = Vector2(40, 32)
-	plus_button.disabled = not can_afford_more
-	var tid_plus := thing.thing_id
-	plus_button.pressed.connect(func(): thing_quantity_changed.emit(tid_plus, 1))
-	controls_row.add_child(plus_button)
-
-	if quantity > 0:
-		var subtotal_label = Label.new()
-		subtotal_label.text = "= %.0f gold" % (thing.base_price * quantity)
-		subtotal_label.add_theme_font_size_override("font_size", 14)
-		subtotal_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.5))
-		controls_row.add_child(subtotal_label)
-
-	items_container.add_child(row_panel)
-
-func _clear_items() -> void:
-	for child in items_container.get_children():
-		child.queue_free()
-
-func _clear_summary() -> void:
-	for child in summary_container.get_children():
-		child.queue_free()

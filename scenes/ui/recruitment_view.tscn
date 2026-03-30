@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/strategy/ui/recruitment/view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://scenes/ui/recruitment_class_item.tscn" id="2_class_item"]
 
 [node name="RecruitmentView" type="Control"]
 visible = false
@@ -59,6 +60,47 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="ClassItem0" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+visible = true
+layout_mode = 2
+
+[node name="NameLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem0/MarginContainer/HBoxContainer/InfoVBox" index=0]
+text = "Landsknecht"
+
+[node name="CostLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem0/MarginContainer/HBoxContainer/InfoVBox" index=1]
+text = "Cost: 100 gold"
+
+[node name="StatsLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem0/MarginContainer/HBoxContainer/InfoVBox" index=2]
+text = "STR:12 DEX:8 END:10 INT:6"
+
+[node name="ClassItem1" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+visible = true
+layout_mode = 2
+
+[node name="NameLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem1/MarginContainer/HBoxContainer/InfoVBox" index=0]
+text = "Healer"
+
+[node name="CostLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem1/MarginContainer/HBoxContainer/InfoVBox" index=1]
+text = "Cost: 150 gold"
+
+[node name="StatsLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer/ClassItem1/MarginContainer/HBoxContainer/InfoVBox" index=2]
+text = "STR:4 DEX:6 END:8 INT:14"
+
+[node name="ClassItem2" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+layout_mode = 2
+
+[node name="ClassItem3" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+layout_mode = 2
+
+[node name="ClassItem4" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+layout_mode = 2
+
+[node name="ClassItem5" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+layout_mode = 2
+
+[node name="ClassItem6" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer" instance=ExtResource("2_class_item")]
+layout_mode = 2
 
 [node name="CloseButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)

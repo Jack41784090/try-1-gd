@@ -15,6 +15,8 @@ signal travel_cancelled()
 
 var location_buttons: Dictionary = {}
 var map_view: TravelMapView
+var _location_btns: Array[Button]
+var _no_locations_label: Label
 
 func _ready() -> void:
 	overlay_panel.visible = false
@@ -32,6 +34,16 @@ func _ready() -> void:
 	map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	map_container.add_child(map_view)
 	map_view.location_selected.connect(func(id): presenter.on_location_selected(id))
+
+	for child in locations_container.get_children():
+		if child is Button:
+			_location_btns.append(child)
+		elif child is Label:
+			_no_locations_label = child
+
+	for btn in _location_btns:
+		btn.visible = false
+	_no_locations_label.visible = false
 
 func setup(_actor) -> void:
 	presenter.setup(_actor)
@@ -103,13 +115,21 @@ func update_travel_progress(value: float) -> void:
 func display_locations(location_data: Array[Dictionary], mode: TravelPresenter.TravelMode) -> void:
 	_clear_location_buttons()
 	if location_data.is_empty():
-		var no_locations_label = Label.new()
-		no_locations_label.text = "No reachable locations found."
-		no_locations_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		locations_container.add_child(no_locations_label)
+		_no_locations_label.visible = true
 	else:
-		for data in location_data:
-			_create_location_button(data.location, data.distance, mode)
+		_no_locations_label.visible = false
+		for i in location_data.size():
+			if i >= _location_btns.size():
+				break
+			var data := location_data[i]
+			var btn := _location_btns[i]
+			var loc: Location = data.location
+			btn.text = _format_location_text(loc, data.distance, mode)
+			for conn in btn.pressed.get_connections():
+				btn.pressed.disconnect(conn.callable)
+			btn.pressed.connect(func(): presenter.on_location_selected(loc.location_id))
+			location_buttons[loc.location_id] = btn
+			btn.visible = true
 
 func highlight_location_button(location_id: String) -> void:
 	for button_id in location_buttons:
@@ -122,14 +142,6 @@ func highlight_location_button(location_id: String) -> void:
 #endregion
 
 #region Display Helpers
-
-func _create_location_button(location: Location, distance: int, mode: TravelPresenter.TravelMode) -> void:
-	var button = Button.new()
-	button.custom_minimum_size = Vector2(0, 50)
-	button.text = _format_location_text(location, distance, mode)
-	button.pressed.connect(func(): presenter.on_location_selected(location.location_id))
-	location_buttons[location.location_id] = button
-	locations_container.add_child(button)
 
 func _format_location_text(location: Location, distance: int, mode: TravelPresenter.TravelMode) -> String:
 	var type_str: String = _location_type_to_string(location.type)
@@ -173,8 +185,11 @@ func _location_type_to_icon(loc_type: StrategyTypes.LocationType) -> String:
 		_: return "❓"
 
 func _clear_location_buttons() -> void:
-	for child in locations_container.get_children():
-		child.queue_free()
+	for btn in _location_btns:
+		btn.visible = false
+		for conn in btn.pressed.get_connections():
+			btn.pressed.disconnect(conn.callable)
+	_no_locations_label.visible = false
 	location_buttons.clear()
 
 #endregion

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/strategy/ui/investigation/view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://scenes/ui/investigation_clue_item.tscn" id="2_clue_item"]
 
 [node name="InvestigationView" type="Control"]
 visible = false
@@ -59,6 +60,40 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="ClueItem0" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+visible = true
+layout_mode = 2
+
+[node name="NameLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer/ClueItem0/MarginContainer/VBoxContainer" index=0]
+text = "🔍 Fresh Tracks"
+
+[node name="AgeLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer/ClueItem0/MarginContainer/VBoxContainer" index=1]
+text = "Age: Very recent"
+
+[node name="DestinationLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer/ClueItem0/MarginContainer/VBoxContainer" index=2]
+text = "Direction: Heading north"
+
+[node name="ClueItem1" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem2" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem3" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem4" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem5" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem6" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
+
+[node name="ClueItem7" parent="OverlayPanel/MarginContainer/VBoxContainer/CluesScroll/CluesContainer" instance=ExtResource("2_clue_item")]
+layout_mode = 2
 
 [node name="ConfirmButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)

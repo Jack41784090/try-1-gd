@@ -79,6 +79,68 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
+[node name="NoLocationsLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+layout_mode = 2
+text = "No reachable locations found."
+horizontal_alignment = 1
+
+[node name="LocationBtn0" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "🏛️ Augsburg (City) - 2 locations away
+Dev: 8 | Stab: 75"
+
+[node name="LocationBtn1" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "🏘️ Nuremberg (Town) - 1 location away
+Dev: 5 | Stab: 60"
+
+[node name="LocationBtn2" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "🏡 Weissenburg (Village)
+Dev: 3 | Stab: 85"
+
+[node name="LocationBtn3" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn4" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn5" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn6" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn7" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn8" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="LocationBtn9" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
 [node name="ConfirmButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2

@@ -11,6 +11,8 @@ var current_location: Location:
 	get:
 		return actor.current_location
 
+var _clue_items: Array[InvestigationClueItem]
+
 signal investigation_closed()
 
 func setup(_actor) -> void:
@@ -22,6 +24,13 @@ func _ready() -> void:
 	confirm_button.pressed.connect(_on_confirm_pressed)
 	no_clues_label.visible = false
 
+	for child in clues_container.get_children():
+		if child is InvestigationClueItem:
+			_clue_items.append(child)
+
+	for item in _clue_items:
+		item.visible = false
+
 func show_investigation_menu() -> void:
 	self.visible = true
 	overlay_panel.visible = true
@@ -31,10 +40,10 @@ func show_investigation_menu() -> void:
 func hide_investigation_menu() -> void:
 	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
-	_clear_clue_items()
+	_hide_all_clue_items()
 
 func _update_clues_list() -> void:
-	_clear_clue_items()
+	_hide_all_clue_items()
 	
 	if not current_location:
 		_show_no_clues_message("Location not found")
@@ -54,9 +63,14 @@ func _update_clues_list() -> void:
 	var perception_roll = _calculate_perception_roll()
 	var detection_chance = _calculate_detection_chance()
 	
+	var slot_index := 0
 	for clue in active_clues:
+		if slot_index >= _clue_items.size():
+			break
 		if randf() <= detection_chance:
-			_create_clue_item(clue, perception_roll, current_turn)
+			var squad_name := _get_squad_name(clue.left_by_squad_id) if not clue.left_by_squad_id.is_empty() else ""
+			_clue_items[slot_index].populate(clue, perception_roll, current_turn, squad_name)
+			slot_index += 1
 
 func _calculate_perception_roll() -> int:
 	if not actor.player_squad or actor.player_squad.warriors.is_empty():
@@ -76,44 +90,6 @@ func _calculate_perception_roll() -> int:
 func _calculate_detection_chance() -> float:
 	return 1 # TODO: Adjust this value based on game mechanics
 
-func _create_clue_item(clue: Clue, perception_roll: int, current_turn: int) -> void:
-	var item_panel = PanelContainer.new()
-	item_panel.custom_minimum_size = Vector2(0, 80)
-	
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	item_panel.add_child(margin)
-	
-	var vbox = VBoxContainer.new()
-	margin.add_child(vbox)
-	
-	var name_label = Label.new()
-	name_label.text = "🔍 %s" % clue.clue_name
-	name_label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(name_label)
-	
-	var age_label = Label.new()
-	age_label.text = "Age: %s" % clue.get_age_description(current_turn)
-	age_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	vbox.add_child(age_label)
-	
-	var destination_label = Label.new()
-	var destination_hint = clue.get_destination_hint(perception_roll)
-	destination_label.text = "Direction: %s" % destination_hint
-	destination_label.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	vbox.add_child(destination_label)
-	
-	if not clue.left_by_squad_id.is_empty():
-		var squad_label = Label.new()
-		squad_label.text = "Left by: %s" % _get_squad_name(clue.left_by_squad_id)
-		squad_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.6))
-		vbox.add_child(squad_label)
-	
-	clues_container.add_child(item_panel)
-
 func _get_squad_name(squad_id: String) -> String:
 	var world = actor.aem.world
 	for squad in world.roaming_squads:
@@ -128,6 +104,6 @@ func _show_no_clues_message(message: String) -> void:
 func _on_confirm_pressed() -> void:
 	investigation_closed.emit()
 
-func _clear_clue_items() -> void:
-	for child in clues_container.get_children():
-		child.queue_free()
+func _hide_all_clue_items() -> void:
+	for item in _clue_items:
+		item.visible = false

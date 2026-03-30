@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://src/strategy/ui/shop/view.gd" id="1_view"]
 [ext_resource type="Script" path="res://src/strategy/ui/shop/presenter.gd" id="2_pres"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_item_row.tscn" id="3_item_row"]
 
 [node name="ShopView" type="Control"]
 visible = false
@@ -61,6 +62,50 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
+[node name="ItemRow0" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+visible = true
+layout_mode = 2
+
+[node name="NameLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow0/MarginContainer/VBoxContainer/TopRow" index=0]
+text = "Bread Loaf"
+
+[node name="PriceLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow0/MarginContainer/VBoxContainer/TopRow" index=1]
+text = "12 gold"
+
+[node name="QtyLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow0/MarginContainer/VBoxContainer/ControlsRow" index=1]
+text = "0"
+
+[node name="ItemRow1" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+visible = true
+layout_mode = 2
+
+[node name="NameLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow1/MarginContainer/VBoxContainer/TopRow" index=0]
+text = "Iron Tools"
+
+[node name="PriceLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow1/MarginContainer/VBoxContainer/TopRow" index=1]
+text = "45 gold"
+
+[node name="QtyLabel" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer/ItemRow1/MarginContainer/VBoxContainer/ControlsRow" index=1]
+text = "0"
+
+[node name="ItemRow2" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
+[node name="ItemRow3" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
+[node name="ItemRow4" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
+[node name="ItemRow5" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
+[node name="ItemRow6" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
+[node name="ItemRow7" parent="OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ItemsContainer" instance=ExtResource("3_item_row")]
+layout_mode = 2
+
 [node name="TotalLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_type_variation = &"LocationLabel"
@@ -105,6 +150,56 @@ horizontal_alignment = 1
 [node name="SummaryContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="SummaryLine0" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "2x Bread Loaf — 24 gold"
+
+[node name="SummaryLine1" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "1x Iron Tools — 45 gold"
+
+[node name="SummaryLine2" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SummaryLine3" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SummaryLine4" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SummaryLine5" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SummaryLine6" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SummaryLine7" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox/SummaryContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_font_sizes/font_size = 16
 
 [node name="TotalSummaryLabel" type="Label" parent="OverlayPanel/MarginContainer/ConfirmationPanel/ConfirmMargin/ConfirmVBox"]
 layout_mode = 2
