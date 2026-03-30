@@ -2,12 +2,8 @@
 
 [ext_resource type="Script" uid="uid://21p02orxyh1u" path="res://src/strategy/ui/view.gd" id="1_5eukr"]
 [ext_resource type="Texture2D" uid="uid://b6l36323ydcgn" path="res://assets/BG_03.png" id="2_cfiyq"]
-[ext_resource type="PackedScene" path="res://scenes/ui/travel_view.tscn" id="41_travel_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/investigation_view.tscn" id="42_investigation_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/recruitment_view.tscn" id="43_recruitment_scene"]
 [ext_resource type="Script" uid="uid://tp4io8gth20u" path="res://src/strategy/ui/animator.gd" id="3_vmu77"]
 [ext_resource type="Texture2D" uid="uid://5bdf23syvydf" path="res://assets/BG_02.png" id="3_wm03m"]
-[ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="4_s06fx"]
 [ext_resource type="Texture2D" uid="uid://dqvw881mj3ius" path="res://assets/hoi4_icons/stability_texticon.png" id="6_ssvir"]
 [ext_resource type="Texture2D" uid="uid://dqkm7scsi7hkj" path="res://assets/hoi4_icons/civ_factory.png" id="7_ewb5q"]
 [ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_vmu77"]
@@ -17,11 +13,7 @@
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
-[ext_resource type="PackedScene" path="res://scenes/ui/shop_view.tscn" id="40_shop_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/combat_intermission.tscn" id="44_combat_intermission"]
-[ext_resource type="PackedScene" path="res://scenes/ui/combat_overlay.tscn" id="45_combat_overlay"]
-[ext_resource type="PackedScene" path="res://scenes/ui/result_summary_overlay.tscn" id="46_result_summary"]
-[ext_resource type="PackedScene" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
+[ext_resource type="PackedScene" uid="uid://beiewkvbjg8rk" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
 [ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
 [ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="25_stage_presenter"]
 [ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="26_stage_camera"]
@@ -29,39 +21,22 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" path="res://scenes/ui/market_view.tscn" id="31_market_scene"]
 [ext_resource type="Script" uid="uid://6elmxh7hf8q6" path="res://src/strategy/ui/notification/notification_bar.gd" id="33_notification_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_view.tscn" id="40_shop_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/travel_view.tscn" id="41_travel_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/investigation_view.tscn" id="42_investigation_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/recruitment_view.tscn" id="43_recruitment_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_intermission.tscn" id="44_combat_intermission"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_overlay.tscn" id="45_combat_overlay"]
+[ext_resource type="PackedScene" uid="uid://b3o4ax0t1f4db" path="res://scenes/ui/result_summary_overlay.tscn" id="46_result_summary"]
 [ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/contact_panel.tres" id="style_contact_panel"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/travel_arrow_bar.tres" id="style_travel_arrow_bar"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_normal.tres" id="style_continue_normal"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_hover.tres" id="style_continue_hover"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/continue_btn_pressed.tres" id="style_continue_pressed"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_normal.tres" id="style_go_back_normal"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_hover.tres" id="style_go_back_hover"]
-[ext_resource type="StyleBoxFlat" path="res://resources/theme/styles/go_back_btn_pressed.tres" id="style_go_back_pressed"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_money"]
-texture = ExtResource("4_s06fx")
-texture_margin_left = 10.0
-texture_margin_top = 10.0
-texture_margin_right = 10.0
-texture_margin_bottom = 10.0
-modulate_color = Color(1, 0.95, 0.6, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_food"]
-texture = ExtResource("4_s06fx")
-texture_margin_left = 10.0
-texture_margin_top = 10.0
-texture_margin_right = 10.0
-texture_margin_bottom = 10.0
-modulate_color = Color(0.9, 0.7, 0.5, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_karma"]
-texture = ExtResource("4_s06fx")
-texture_margin_left = 10.0
-texture_margin_top = 10.0
-texture_margin_right = 10.0
-texture_margin_bottom = 10.0
-modulate_color = Color(0.7, 0.85, 1, 1)
+[ext_resource type="PackedScene" path="res://scenes/ui/contact_bars_panel.tscn" id="47_contact_bars"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_hover.tres" id="style_continue_hover"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_normal.tres" id="style_continue_normal"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_pressed.tres" id="style_continue_pressed"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_hover.tres" id="style_go_back_hover"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_normal.tres" id="style_go_back_normal"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_pressed.tres" id="style_go_back_pressed"]
+[ext_resource type="StyleBox" path="res://resources/theme/styles/travel_arrow_bar.tres" id="style_travel_arrow_bar"]
 
 [node name="TrainingScreen" type="Control" unique_id=885015482]
 layout_mode = 3
@@ -173,8 +148,8 @@ theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 24
 theme_override_fonts/font = ExtResource("bold_font")
+theme_override_font_sizes/font_size = 24
 text = "Turn 0"
 
 [node name="Separator" type="VSeparator" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation" unique_id=2044385177]
@@ -197,7 +172,7 @@ theme_override_constants/separation = 0
 
 [node name="Stability" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)" unique_id=2051728842]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+theme_type_variation = &"TransparentPanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Stability" unique_id=633069162]
 layout_mode = 2
@@ -222,7 +197,7 @@ text = "0"
 
 [node name="Development" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)" unique_id=504574071]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+theme_type_variation = &"TransparentPanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Development" unique_id=481476427]
 layout_mode = 2
@@ -252,7 +227,7 @@ theme_override_constants/separation = 25
 
 [node name="Money" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)" unique_id=1484015547]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_money")
+theme_type_variation = &"TransparentPanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Money" unique_id=1372378551]
 layout_mode = 2
@@ -278,7 +253,7 @@ text = "0"
 
 [node name="Food" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)" unique_id=1732950681]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_food")
+theme_type_variation = &"TransparentPanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Food" unique_id=1980062735]
 layout_mode = 2
@@ -304,7 +279,7 @@ text = "0"
 
 [node name="Karma" type="PanelContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)" unique_id=884152681]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_karma")
+theme_type_variation = &"TransparentPanel"
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma" unique_id=878340878]
 layout_mode = 2
@@ -329,7 +304,7 @@ theme_type_variation = &"StatLabel"
 text = "0"
 
 [node name="StatusArea" type="HBoxContainer" parent="PanelContainer/MainVBox" unique_id=524252797]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 75)
 layout_mode = 2
 theme_override_constants/separation = 15
 
@@ -352,7 +327,7 @@ theme_override_constants/separation = 15
 [node name="ProgressBar" type="ProgressBar" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent" unique_id=1757970859]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
+size_flags_vertical = 1
 
 [node name="ConditionStatus" type="PanelContainer" parent="PanelContainer/MainVBox/StatusArea/StatusPanel/StatusMargin/StatusContent" unique_id=1196142322]
 self_modulate = Color(1, 1, 1, 0.9)
@@ -373,6 +348,7 @@ theme_override_font_sizes/font_size = 18
 text = "Excellent"
 
 [node name="EndButton" type="Button" parent="PanelContainer/MainVBox/StatusArea" unique_id=466440131]
+visible = false
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "End Game"
@@ -391,27 +367,8 @@ expand_mode = 1
 [node name="VnView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=2087439437 instance=ExtResource("13_vn_view")]
 layout_mode = 1
 
-[node name="ContactBarsPanel" type="PanelContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1378260196]
+[node name="ContactBarsPanel" parent="PanelContainer/MainVBox/MainScreenArea" instance=ExtResource("47_contact_bars")]
 layout_mode = 1
-anchors_preset = -1
-anchor_right = 0.5
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_vertical = 0
-mouse_filter = 2
-theme_override_styles/panel = ExtResource("style_contact_panel")
-
-[node name="ContactMargin" type="MarginContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel" unique_id=2026102496]
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="ContactBars" type="VBoxContainer" parent="PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin" unique_id=1428873884]
-layout_mode = 2
-theme_override_constants/separation = 4
 
 [node name="ActionButtons" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=1660287274]
 layout_mode = 2
@@ -518,12 +475,14 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="SkipButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=1078780553]
+visible = false
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_type_variation = &"NavButton"
 text = "⏭️ Skip 5 Turns"
 
 [node name="ShortButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=986817078]
+visible = false
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_type_variation = &"NavButton"
@@ -555,31 +514,34 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="MenuButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=309352983]
+visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_type_variation = &"NavButton"
 text = "☰ Menu"
 
-[node name="TravelView" parent="." instance=ExtResource("41_travel_scene")]
+[node name="TravelView" parent="." unique_id=1301890234 instance=ExtResource("41_travel_scene")]
 
-[node name="InvestigationView" parent="." instance=ExtResource("42_investigation_scene")]
+[node name="InvestigationView" parent="." unique_id=1901920132 instance=ExtResource("42_investigation_scene")]
 
-[node name="RecruitmentView" parent="." instance=ExtResource("43_recruitment_scene")]
+[node name="RecruitmentView" parent="." unique_id=936268883 instance=ExtResource("43_recruitment_scene")]
 
 [node name="ManageSquadPage" parent="." unique_id=148327654 instance=ExtResource("30_manage_page")]
 
-[node name="ShopView" parent="." instance=ExtResource("40_shop_scene")]
+[node name="ShopView" parent="." unique_id=1736799284 instance=ExtResource("40_shop_scene")]
 
 [node name="ScoutingView" parent="." unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
+visible = false
+layout_mode = 1
 mouse_filter = 2
 
 [node name="MissionsView" parent="." unique_id=38974266 instance=ExtResource("28_missions_scene")]
 
 [node name="MarketView" parent="." unique_id=220318999 instance=ExtResource("31_market_scene")]
 
-[node name="CombatIntermission" parent="." instance=ExtResource("44_combat_intermission")]
+[node name="CombatIntermission" parent="." unique_id=1713884189 instance=ExtResource("44_combat_intermission")]
 
-[node name="CombatOverlay" parent="." instance=ExtResource("45_combat_overlay")]
+[node name="CombatOverlay" parent="." unique_id=1909413389 instance=ExtResource("45_combat_overlay")]
 
 [node name="ActivityExecuteManager" type="Control" parent="." unique_id=926143068]
 visible = false
@@ -596,9 +558,17 @@ script = ExtResource("19_presenter")
 scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
 is_demo_scenario = false
 
-[node name="ResultSummaryOverlay" parent="." instance=ExtResource("46_result_summary")]
+[node name="ResultSummaryOverlay" parent="." unique_id=197926067 instance=ExtResource("46_result_summary")]
+visible = false
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="TravelArrowBar" type="PanelContainer" parent="." unique_id=2129960287]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.15
@@ -621,11 +591,11 @@ custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_colors/font_color = Color(0.9, 0.75, 0.55, 1)
-theme_override_colors/font_hover_color = Color(1, 0.9, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.55, 0.4, 1)
-theme_override_styles/hover = ExtResource("style_go_back_hover")
+theme_override_colors/font_hover_color = Color(1, 0.9, 0.7, 1)
 theme_override_styles/normal = ExtResource("style_go_back_normal")
 theme_override_styles/pressed = ExtResource("style_go_back_pressed")
+theme_override_styles/hover = ExtResource("style_go_back_hover")
 text = "← Go Back"
 
 [node name="TravelLabel" type="Label" parent="TravelArrowBar/TravelArrowHBox" unique_id=923392913]
@@ -640,11 +610,11 @@ custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_colors/font_color = Color(0.5, 0.9, 0.6, 1)
-theme_override_colors/font_hover_color = Color(0.6, 1, 0.7, 1)
 theme_override_colors/font_pressed_color = Color(0.4, 0.7, 0.5, 1)
-theme_override_styles/hover = ExtResource("style_continue_hover")
+theme_override_colors/font_hover_color = Color(0.6, 1, 0.7, 1)
 theme_override_styles/normal = ExtResource("style_continue_normal")
 theme_override_styles/pressed = ExtResource("style_continue_pressed")
+theme_override_styles/hover = ExtResource("style_continue_hover")
 text = "Continue →"
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
@@ -673,8 +643,8 @@ theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 48
 theme_override_fonts/font = ExtResource("bold_font")
+theme_override_font_sizes/font_size = 48
 text = "DEFEAT"
 horizontal_alignment = 1
 
