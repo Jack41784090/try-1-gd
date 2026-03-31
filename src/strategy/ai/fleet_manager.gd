@@ -53,48 +53,59 @@ func prepare_ai_turns() -> Dictionary:
 		return { "decisions_this_turn": {} }
 
 	Log.debug("Fleet", "=== Preparing AI Turn for %d squads ===" % squad_brains.size())
-
 	decisions_this_turn.clear()
 
 	var directives = faction_brain.produce_directives(scenario.world)
 	var default_directive = directives[0] if not directives.is_empty() else FactionDirective.create_none()
 
 	for squad_id in squad_brains:
-		var brain = squad_brains[squad_id]
-		var result = brain.decide(scenario.world, null, default_directive)
+		decisions_this_turn[squad_id] = _prepare_squad_decision(squad_id, default_directive)
 
-		var activity_type: StrategyTypes.ActivityType = result["activity_type"]
-		var context: Dictionary = result["context"]
+	return { "decisions_this_turn": decisions_this_turn }
 
-		var activity = _get_activity_from_scenario(activity_type)
-		if not activity:
-			activity = _get_activity_from_scenario(StrategyTypes.ActivityType.REST)
-		assert(activity != null, "Must have a REST activity as fallback")
 
-		match activity_type:
-			StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH:
-				activity = activity.duplicate(true)
-				activity.result = activity.result.duplicate(true)
-				var destination = context.get("travel_destination", "")
-				if not destination.is_empty():
-					activity.destination_id = destination
-					activity.result.location_changed = destination
-					if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
-						activity.ultimate_destination_id = context.get("ultimate_destination", "")
+func _prepare_squad_decision(squad_id: String, directive: FactionDirective) -> Dictionary:
+	var brain: SquadBrain = squad_brains[squad_id]
+	var result: Dictionary = brain.decide(scenario.world, null, directive)
 
-		decisions_this_turn[squad_id] = {
-			"activity_type": activity_type,
-			"context": context,
-			"squad": brain.squad,
-			"activity": activity,
-			"location_at_decision": brain.squad.current_location_id,
-		}
-		if squad_executors.has(squad_id):
-			squad_executors[squad_id].ai_decision_context = context
+	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+	var context: Dictionary = result["context"]
+
+	var activity: Activity = _resolve_activity(activity_type)
+	activity = _customize_travel_activity(activity, activity_type, context)
+
+	if squad_executors.has(squad_id):
+		squad_executors[squad_id].ai_decision_context = context
 
 	return {
-		"decisions_this_turn": decisions_this_turn,
+		"activity_type": activity_type,
+		"context": context,
+		"squad": brain.squad,
+		"activity": activity,
+		"location_at_decision": brain.squad.current_location_id,
 	}
+
+
+func _resolve_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
+	var activity: Activity = _get_activity_from_scenario(activity_type)
+	if not activity:
+		activity = _get_activity_from_scenario(StrategyTypes.ActivityType.REST)
+	assert(activity != null, "Must have a REST activity as fallback")
+	return activity
+
+
+func _customize_travel_activity(activity: Activity, activity_type: StrategyTypes.ActivityType, context: Dictionary) -> Activity:
+	match activity_type:
+		StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH:
+			activity = activity.duplicate(true)
+			activity.result = activity.result.duplicate(true)
+			var destination: String = context.get("travel_destination", "")
+			if not destination.is_empty():
+				activity.destination_id = destination
+				activity.result.location_changed = destination
+				if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
+					activity.ultimate_destination_id = context.get("ultimate_destination", "")
+	return activity
 
 
 func _find_squad_by_id(squad_id: String) -> SquadData:

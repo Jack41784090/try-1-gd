@@ -53,15 +53,7 @@ var walking_towards: Variant:
 
 
 func bind_view(v) -> void:
-	# Master setup: wires the presenter to its view and all child components, initializes the scenario
-	# Called once by StrategyView._ready(). This is the game's boot sequence.
-	# Flow: bind refs → load scenario → setup components → connect signals → initialize world → start march → run GAME_START events
-	# e.g., binds view → loads "demo_scenario" → creates CombatController + AIFleetManager → plays opening EventChain
-	view = v
-	actor = view.actor
-	ai_fleet = view.ai_fleet
-	vn_view = view.vn_view
-	stage_presenter = view.get_stage_presenter()
+	_bind_view_references(v)
 	_initialize_scenario()
 	_setup_components()
 	StrategyEventBus.hour_advanced.connect(_on_hour_advanced)
@@ -69,11 +61,23 @@ func bind_view(v) -> void:
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
-	if actor.player_squad.current_location_id not in visited_locations:
-		visited_locations.append(actor.player_squad.current_location_id)
+	_track_starting_location()
 	stage_presenter.start_march(actor.player_squad)
 	await _execute_story_triggerables(StrategyTypes.TriggerWhen.GAME_START)
 	await _check_missions()
+
+
+func _bind_view_references(v) -> void:
+	view = v
+	actor = view.actor
+	ai_fleet = view.ai_fleet
+	vn_view = view.vn_view
+	stage_presenter = view.get_stage_presenter()
+
+
+func _track_starting_location() -> void:
+	if actor.player_squad.current_location_id not in visited_locations:
+		visited_locations.append(actor.player_squad.current_location_id)
 
 
 func _process(delta: float) -> void:
