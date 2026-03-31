@@ -12,6 +12,8 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	squad.apply_travel_morale_penalty(-2.0)
 
 	if not result.location_changed.is_empty():
+		var old_location: String = squad.current_location_id
 		squad.set_location(result.location_changed)
+		StrategyEventBus.location_changed.emit(old_location, result.location_changed)
 
 	return result
