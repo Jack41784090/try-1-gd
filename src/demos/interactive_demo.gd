@@ -194,7 +194,7 @@ func _handle_command(input: String):
 		"mass":
 			await _cmd_activity(StrategyTypes.ActivityType.HOLD_MASS, "Holding mass...")
 		"recruit":
-			_cmd_recruit_info()
+			_cmd_recruit(arg)
 		"attack", "a":
 			await _cmd_attack(arg)
 		"contacts", "c":
@@ -600,14 +600,80 @@ func _cmd_map():
 	_print_separator()
 
 
-func _cmd_recruit_info():
-	_print_separator()
-	_print_line("=== Recruitment ===")
-	_print_line("  Recruitment is not yet interactive in terminal mode.")
-	_print_line("  Available classes: Landsknecht(100g), Crossbowman(120g), Pikeman(130g),")
-	_print_line("  Healer(150g), Feldprediger(180g), Arquebusier(200g), Gelehrter(250g)")
-	_print_line("  Your gold: %.0f" % player_squad.money)
-	_print_separator()
+const _RECRUIT_COSTS: Dictionary = {
+	EntityClasses.Types.Landsknecht: 100.0,
+	EntityClasses.Types.Healer: 150.0,
+	EntityClasses.Types.Crossbowman: 120.0,
+	EntityClasses.Types.Arquebusier: 200.0,
+	EntityClasses.Types.Pikeman: 130.0,
+	EntityClasses.Types.Feldprediger: 180.0,
+	EntityClasses.Types.Gelehrter: 250.0,
+}
+
+const _RECRUIT_LOGIC: Dictionary = {
+	EntityClasses.Types.Landsknecht: LogicFactory.LogicAvailable.Frontline,
+	EntityClasses.Types.Healer: LogicFactory.LogicAvailable.BacklineHeal,
+	EntityClasses.Types.Crossbowman: LogicFactory.LogicAvailable.BacklineShooter,
+	EntityClasses.Types.Arquebusier: LogicFactory.LogicAvailable.BacklineGunner,
+	EntityClasses.Types.Pikeman: LogicFactory.LogicAvailable.DefensiveFrontline,
+	EntityClasses.Types.Feldprediger: LogicFactory.LogicAvailable.BacklineSupport,
+	EntityClasses.Types.Gelehrter: LogicFactory.LogicAvailable.BacklineCaster,
+}
+
+const _RECRUIT_POS: Dictionary = {
+	EntityClasses.Types.Landsknecht: SquadBattleTypes.SquadEntityInSquadLocation.Front,
+	EntityClasses.Types.Healer: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Crossbowman: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Arquebusier: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Pikeman: SquadBattleTypes.SquadEntityInSquadLocation.Front,
+	EntityClasses.Types.Feldprediger: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+	EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
+}
+
+func _cmd_recruit(arg: String):
+	if arg.is_empty():
+		_print_separator()
+		_print_line("=== Recruitment — recruit <class> ===")
+		_print_line("  landsknecht  (100g)  melee DPS, front")
+		_print_line("  crossbowman  (120g)  ranged DPS, back")
+		_print_line("  pikeman      (130g)  defensive, front")
+		_print_line("  healer       (150g)  support, back")
+		_print_line("  feldprediger (180g)  enhanced support, back")
+		_print_line("  arquebusier  (200g)  glass cannon, back")
+		_print_line("  gelehrter    (250g)  AoE mage, back")
+		_print_line("  Your gold: %.0f" % player_squad.money)
+		_print_separator()
+		return
+
+	var class_keys := EntityClasses.Types.keys()
+	var class_enum: EntityClasses.Types = -1
+	for i in range(class_keys.size()):
+		if class_keys[i].to_lower() == arg.to_lower():
+			class_enum = i as EntityClasses.Types
+			break
+	if class_enum == -1:
+		_print_line("Unknown class: '%s'. Type 'recruit' to see options." % arg)
+		return
+
+	var cost: float = _RECRUIT_COSTS.get(class_enum, 100.0)
+	if player_squad.money < cost:
+		_print_line("Not enough gold! Need %.0f, have %.0f" % [cost, player_squad.money])
+		return
+
+	var entity_template := EntityFactory.get_entity(class_enum)
+	var new_warrior := WarriorFactory.create_warrior(
+		class_enum,
+		"warrior_%d_%d" % [world.current_hour, randi()],
+		"%s Recruit" % entity_template.entity_name,
+		StrategyTypes.Religion.CATHOLIC,
+		entity_template.stats.duplicate(true) if entity_template.stats else EntityBaseStats.new()
+	)
+	new_warrior.logic_type = _RECRUIT_LOGIC.get(class_enum, LogicFactory.LogicAvailable.Frontline)
+	new_warrior.location_prebattle = _RECRUIT_POS.get(class_enum, SquadBattleTypes.SquadEntityInSquadLocation.Front)
+
+	player_squad.add_warrior(new_warrior)
+	player_squad.money -= cost
+	_print_line("Recruited %s for %.0f gold! (%.0f gold remaining)" % [new_warrior.name, cost, player_squad.money])
 
 
 func _cmd_quit():
@@ -950,6 +1016,11 @@ func _cmd_screenshot(arg: String):
 		return
 	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
+	var max_width := 960
+	if image.get_width() > max_width:
+		var scale := float(max_width) / float(image.get_width())
+		var new_h := int(float(image.get_height()) * scale)
+		image.resize(max_width, new_h, Image.INTERPOLATE_BILINEAR)
 	var err := image.save_png(path)
 	if err != OK:
 		_print_line("ERROR: Failed to save screenshot (error %d)" % err)
