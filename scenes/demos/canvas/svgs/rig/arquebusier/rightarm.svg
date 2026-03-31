@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
+  <defs>
+    <linearGradient id="sleeveGradR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3a2a20"/>
+      <stop offset="60%" stop-color="#4a3828"/>
+      <stop offset="100%" stop-color="#3a2a20"/>
+    </linearGradient>
+    <linearGradient id="sleeveShadowR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Sleeve shape - more lit side -->
+  <path d="M8 2 Q28 0 48 2 Q52 4 52 10 L50 138 Q48 142 28 144 Q8 142 6 138 L4 10 Q4 4 8 2Z" fill="url(#sleeveGradR)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Subtle right shadow -->
+  <path d="M52 4 L50 138 Q48 142 40 144 L42 2 Q48 2 52 4Z" fill="url(#sleeveShadowR)"/>
+  <!-- Shoulder seam -->
+  <path d="M8 4 Q28 0 48 4" stroke="#1a1210" stroke-width="1.5" fill="none" opacity="0.35"/>
+  <!-- Light catch on front -->
+  <path d="M20 10 Q26 4 34 10 L32 60 Q26 56 22 60Z" fill="#4a3a28" opacity="0.15"/>
+  <!-- Sleeve creases -->
+  <path d="M16 28 Q24 34 20 48" stroke="#1a1210" stroke-width="0.8" fill="none" opacity="0.22"/>
+  <path d="M38 36 Q32 48 36 66" stroke="#1a1210" stroke-width="0.7" fill="none" opacity="0.18"/>
+  <path d="M14 76 Q24 82 18 96" stroke="#1a1210" stroke-width="0.7" fill="none" opacity="0.2"/>
+  <path d="M40 88 Q32 98 38 116" stroke="#1a1210" stroke-width="0.6" fill="none" opacity="0.16"/>
+  <!-- Cross-hatching on shadow side -->
+  <line x1="42" y1="20" x2="48" y2="40" stroke="#1a1210" stroke-width="0.4" opacity="0.15"/>
+  <line x1="44" y1="50" x2="48" y2="70" stroke="#1a1210" stroke-width="0.4" opacity="0.12"/>
+  <line x1="42" y1="80" x2="48" y2="100" stroke="#1a1210" stroke-width="0.4" opacity="0.12"/>
+  <!-- Soot stains -->
+  <ellipse cx="28" cy="50" rx="7" ry="4" fill="#1a1210" opacity="0.08" transform="rotate(8 28 50)"/>
+  <ellipse cx="34" cy="110" rx="6" ry="3" fill="#1a1210" opacity="0.07"/>
+  <!-- Elbow area -->
+  <ellipse cx="28" cy="72" rx="12" ry="8" fill="#4a3828" opacity="0.12"/>
+  <!-- Seam -->
+  <line x1="28" y1="6" x2="28" y2="140" stroke="#1a1210" stroke-width="0.5" opacity="0.12"/>
+</svg>

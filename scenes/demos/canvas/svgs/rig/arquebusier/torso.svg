@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
+  <defs>
+    <linearGradient id="coatGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2a2018"/>
+      <stop offset="30%" stop-color="#3a2a20"/>
+      <stop offset="70%" stop-color="#3a2a20"/>
+      <stop offset="100%" stop-color="#2a1a14"/>
+    </linearGradient>
+    <linearGradient id="coatShadowL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="coatShadowR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="crosshatch" width="6" height="6" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="6" y2="6" stroke="#1a1210" stroke-width="0.5" opacity="0.2"/>
+      <line x1="6" y1="0" x2="0" y2="6" stroke="#1a1210" stroke-width="0.3" opacity="0.15"/>
+    </pattern>
+  </defs>
+  <!-- Coat body - long duster -->
+  <path d="M30 4 Q40 0 96 0 Q152 0 162 4 L172 170 Q140 176 96 176 Q52 176 20 170Z" fill="url(#coatGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Cross-hatching texture -->
+  <path d="M30 4 Q40 0 96 0 Q152 0 162 4 L172 170 Q140 176 96 176 Q52 176 20 170Z" fill="url(#crosshatch)"/>
+  <!-- Left shadow -->
+  <path d="M30 4 L20 170 Q50 176 70 176 L60 4Z" fill="url(#coatShadowL)"/>
+  <!-- Right subtle shadow -->
+  <path d="M162 4 L172 170 Q150 176 130 176 L140 4Z" fill="url(#coatShadowR)"/>
+  <!-- Collar - turned up high -->
+  <path d="M42 0 Q50 -2 72 2 L68 20 Q56 16 46 18Z" fill="#2a1a14" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M150 0 Q142 -2 120 2 L124 20 Q136 16 146 18Z" fill="#2a1a14" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Collar shadow -->
+  <path d="M44 2 Q50 0 70 4 L68 14 Q56 10 48 12Z" fill="#000000" opacity="0.2"/>
+  <path d="M148 2 Q142 0 122 4 L124 14 Q136 10 144 12Z" fill="#000000" opacity="0.2"/>
+  <!-- Center seam / button line -->
+  <line x1="96" y1="8" x2="96" y2="170" stroke="#1a1210" stroke-width="1.5" opacity="0.4"/>
+  <!-- Brass buttons - 6 down center -->
+  <circle cx="96" cy="24" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="24" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <circle cx="96" cy="48" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="48" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <circle cx="96" cy="72" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="72" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <circle cx="96" cy="96" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="96" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <circle cx="96" cy="120" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="120" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <circle cx="96" cy="144" r="3.5" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="144" r="1.5" fill="#9a8a40" opacity="0.6"/>
+  <!-- Bandolier - diagonal from right shoulder to left hip -->
+  <path d="M150 8 L40 160" stroke="#4a3828" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M150 8 L40 160" stroke="#0a0a0a" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.08"/>
+  <!-- Bandolier outline -->
+  <path d="M150 8 L40 160" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Powder charge pouches on bandolier -->
+  <rect x="132" y="22" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 137 29)"/>
+  <rect x="120" y="42" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 125 49)"/>
+  <rect x="108" y="62" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 113 69)"/>
+  <rect x="94" y="82" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 99 89)"/>
+  <rect x="80" y="102" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 85 109)"/>
+  <rect x="66" y="122" width="10" height="14" rx="2" fill="#3a2a1a" stroke="#0a0a0a" stroke-width="1" transform="rotate(-20 71 129)"/>
+  <!-- Pouch caps -->
+  <line x1="132" y1="24" x2="142" y2="24" stroke="#7a6a30" stroke-width="1" transform="rotate(-20 137 24)"/>
+  <line x1="120" y1="44" x2="130" y2="44" stroke="#7a6a30" stroke-width="1" transform="rotate(-20 125 44)"/>
+  <line x1="108" y1="64" x2="118" y2="64" stroke="#7a6a30" stroke-width="1" transform="rotate(-20 113 64)"/>
+  <line x1="94" y1="84" x2="104" y2="84" stroke="#7a6a30" stroke-width="1" transform="rotate(-20 99 84)"/>
+  <line x1="80" y1="104" x2="90" y2="104" stroke="#7a6a30" stroke-width="1" transform="rotate(-20 85 104)"/>
+  <!-- Soot marks - dark smudges -->
+  <ellipse cx="60" cy="50" rx="12" ry="8" fill="#1a1210" opacity="0.12" transform="rotate(-10 60 50)"/>
+  <ellipse cx="140" cy="90" rx="10" ry="6" fill="#1a1210" opacity="0.1" transform="rotate(15 140 90)"/>
+  <ellipse cx="80" cy="140" rx="14" ry="7" fill="#1a1210" opacity="0.1" transform="rotate(-5 80 140)"/>
+  <ellipse cx="50" cy="100" rx="8" ry="5" fill="#1a1210" opacity="0.08"/>
+  <!-- Powder burn marks -->
+  <circle cx="130" cy="60" r="3" fill="#8a4a20" opacity="0.15"/>
+  <circle cx="55" cy="80" r="2" fill="#8a4a20" opacity="0.12"/>
+  <circle cx="120" cy="130" r="2.5" fill="#8a4a20" opacity="0.1"/>
+  <!-- Fabric creases -->
+  <path d="M50 30 Q60 50 55 80" stroke="#1a1210" stroke-width="0.8" fill="none" opacity="0.25"/>
+  <path d="M140 30 Q132 50 136 80" stroke="#1a1210" stroke-width="0.8" fill="none" opacity="0.2"/>
+  <path d="M40 100 Q60 110 50 140" stroke="#1a1210" stroke-width="0.8" fill="none" opacity="0.2"/>
+  <path d="M150 100 Q135 110 142 140" stroke="#1a1210" stroke-width="0.8" fill="none" opacity="0.18"/>
+  <!-- Bottom hem wear -->
+  <path d="M20 168 Q50 172 96 174 Q140 172 172 168" stroke="#1a1210" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M24 170 Q30 174 40 170" stroke="#2a1a14" stroke-width="0.5" fill="none" opacity="0.3"/>
+  <path d="M140 170 Q150 174 160 170" stroke="#2a1a14" stroke-width="0.5" fill="none" opacity="0.3"/>
+</svg>
