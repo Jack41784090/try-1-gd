@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 192" width="64" height="192">
+  <defs>
+    <linearGradient id="rlGrad" x1="0" y1="0" x2="1" y2="0.2">
+      <stop offset="0%" stop-color="#1a2a4a"/>
+      <stop offset="50%" stop-color="#1e3050"/>
+      <stop offset="100%" stop-color="#152240"/>
+    </linearGradient>
+    <linearGradient id="rlShadow" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="rlHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(42)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#0a1020" stroke-width="0.5" opacity="0.2"/>
+    </pattern>
+  </defs>
+  <!-- Robe skirt — right leg -->
+  <path d="M6 4 Q16 0 32 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 32 192 Q14 192 6 184 L2 150 Q0 100 2 50 Z" fill="url(#rlGrad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Cross-hatching on right shadow -->
+  <path d="M32 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 32 192 Z" fill="url(#rlHatch)" opacity="0.35"/>
+  <!-- Shadow on right side -->
+  <path d="M48 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 48 192 Z" fill="url(#rlShadow)"/>
+  <!-- Vertical fold lines -->
+  <path d="M14 6 Q12 50 14 100 Q16 150 14 188" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
+  <path d="M24 4 Q22 50 24 100 Q26 150 24 190" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M36 4 Q34 50 36 100 Q38 150 36 190" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M48 8 Q46 50 48 100 Q50 150 48 186" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.45"/>
+  <!-- Horizontal drape -->
+  <path d="M6 45 Q18 42 36 44 Q50 46 60 48" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.25"/>
+  <path d="M6 95 Q18 92 36 94 Q50 96 60 98" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.25"/>
+  <path d="M6 145 Q18 142 36 144 Q50 146 60 148" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.2"/>
+  <!-- Light highlight on near side -->
+  <path d="M10 10 Q8 60 10 120 Q12 160 10 184" stroke="#243660" stroke-width="0.6" fill="none" opacity="0.3"/>
+  <!-- Bottom hem -->
+  <path d="M6 184 Q16 190 32 192 Q48 190 58 184" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <!-- Outline reinforcement -->
+  <path d="M6 4 Q16 0 32 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 32 192 Q14 192 6 184 L2 150 Q0 100 2 50 Z" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+</svg>

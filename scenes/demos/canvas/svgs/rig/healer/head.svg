@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
+  <defs>
+    <linearGradient id="hoodGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a2040"/>
+      <stop offset="60%" stop-color="#121830"/>
+      <stop offset="100%" stop-color="#0a1020"/>
+    </linearGradient>
+    <linearGradient id="hoodShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#0a1020" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="headHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a1020" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <!-- Hood outer shape — deep cowl -->
+  <path d="M8 20 Q8 2 44 2 Q80 2 80 20 L82 70 Q82 90 68 96 L44 102 L20 96 Q6 90 6 70 Z" fill="url(#hoodGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Hood draping folds left -->
+  <path d="M12 24 Q16 50 18 70 Q18 82 22 92" stroke="#0e1428" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M20 18 Q22 40 24 65" stroke="#0e1428" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Hood draping folds right -->
+  <path d="M76 24 Q72 50 70 70 Q70 82 66 92" stroke="#0e1428" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M68 18 Q66 40 64 65" stroke="#0e1428" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Cross-hatching on hood left side -->
+  <path d="M8 20 Q8 2 44 2 L44 70 L6 70 Z" fill="url(#headHatch)" opacity="0.4"/>
+  <!-- Deep shadow under cowl — darkness from which face emerges -->
+  <ellipse cx="44" cy="58" rx="30" ry="28" fill="#0a1020" opacity="0.85"/>
+  <ellipse cx="44" cy="56" rx="28" ry="24" fill="#0a1020" opacity="0.5"/>
+  <!-- Face — pale skin barely visible -->
+  <ellipse cx="44" cy="68" rx="22" ry="20" fill="#e0d4c0" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Face shadow — upper half lost in hood darkness -->
+  <rect x="22" y="48" width="44" height="22" fill="url(#hoodShadow)"/>
+  <!-- Eye glow — white-blue luminescence from shadow -->
+  <ellipse cx="34" cy="62" rx="6" ry="3" fill="#3a6080" opacity="0.2"/>
+  <ellipse cx="54" cy="62" rx="6" ry="3" fill="#3a6080" opacity="0.2"/>
+  <!-- Eyes — glowing from darkness -->
+  <ellipse cx="34" cy="62" rx="5" ry="3.5" fill="#d8dce8"/>
+  <ellipse cx="54" cy="62" rx="5" ry="3.5" fill="#d8dce8"/>
+  <!-- Irises — pale blue-white -->
+  <circle cx="35" cy="62" r="2.5" fill="#6090b0"/>
+  <circle cx="55" cy="62" r="2.5" fill="#6090b0"/>
+  <!-- Pupils -->
+  <circle cx="35" cy="62" r="1.2" fill="#0a1020"/>
+  <circle cx="55" cy="62" r="1.2" fill="#0a1020"/>
+  <!-- Eye glow highlights -->
+  <circle cx="36" cy="61" r="0.8" fill="#c0d8e8" opacity="0.9"/>
+  <circle cx="56" cy="61" r="0.8" fill="#c0d8e8" opacity="0.9"/>
+  <!-- Under-eye glow — faint luminous teal -->
+  <ellipse cx="34" cy="64" rx="6" ry="2" fill="#60a0a0" opacity="0.15"/>
+  <ellipse cx="54" cy="64" rx="6" ry="2" fill="#60a0a0" opacity="0.15"/>
+  <!-- Nose — subtle -->
+  <path d="M44 64 L42 72 Q40 74 38 73" stroke="#b0a490" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M46 72 Q48 74 50 73" stroke="#b0a490" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <!-- Mouth — thin, solemn -->
+  <path d="M36 80 Q44 83 52 80" stroke="#8a6a5a" stroke-width="1.5" fill="none"/>
+  <path d="M38 81 Q44 84 50 81" fill="#9a7a6a" opacity="0.3"/>
+  <!-- Chin shadow -->
+  <ellipse cx="44" cy="86" rx="14" ry="4" fill="#c0b4a0" opacity="0.3"/>
+  <!-- Holy cross symbol etched on hood brim -->
+  <line x1="44" y1="38" x2="44" y2="48" stroke="#a08830" stroke-width="1.2" opacity="0.6"/>
+  <line x1="40" y1="42" x2="48" y2="42" stroke="#a08830" stroke-width="1.2" opacity="0.6"/>
+  <!-- Hood brim edge highlight -->
+  <path d="M16 48 Q30 52 44 54 Q58 52 72 48" stroke="#243660" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Left side deep shadow overlay -->
+  <path d="M8 20 Q8 2 44 2 L44 102 L20 96 Q6 90 6 70 Z" fill="#0a1020" opacity="0.2"/>
+  <!-- Hood outer outline reinforcement -->
+  <path d="M8 20 Q8 2 44 2 Q80 2 80 20 L82 70 Q82 90 68 96 L44 102 L20 96 Q6 90 6 70 Z" fill="none" stroke="#0a0a0a" stroke-width="2.5"/>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
+  <defs>
+    <linearGradient id="robeGrad" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#152240"/>
+      <stop offset="40%" stop-color="#1a2a4a"/>
+      <stop offset="100%" stop-color="#0e1830"/>
+    </linearGradient>
+    <linearGradient id="robeShad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="torsoHatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(40)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#0a1020" stroke-width="0.6" opacity="0.25"/>
+    </pattern>
+  </defs>
+  <!-- Main torso robe shape -->
+  <path d="M30 4 Q50 0 96 0 Q142 0 162 4 L170 40 L174 100 Q176 140 168 170 L96 176 L24 170 Q16 140 18 100 L22 40 Z" fill="url(#robeGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Collar — cream inner lining -->
+  <path d="M58 4 Q76 0 96 0 Q116 0 134 4 L128 18 Q96 22 64 18 Z" fill="#d0c8b0" stroke="#0a0a0a" stroke-width="1.5"/>
+  <path d="M62 6 Q78 2 96 2 Q114 2 130 6 L126 16 Q96 20 66 16 Z" fill="#c4b8a0" opacity="0.4"/>
+  <!-- Vertical center seam -->
+  <line x1="96" y1="18" x2="96" y2="176" stroke="#0e1830" stroke-width="1.5" opacity="0.6"/>
+  <line x1="96" y1="18" x2="96" y2="176" stroke="#243660" stroke-width="0.5" stroke-dasharray="4,6" opacity="0.4"/>
+  <!-- Holy cross embroidered in gold at chest -->
+  <line x1="96" y1="40" x2="96" y2="68" stroke="#a08830" stroke-width="2" opacity="0.8"/>
+  <line x1="84" y1="50" x2="108" y2="50" stroke="#a08830" stroke-width="2" opacity="0.8"/>
+  <!-- Gold cross glow -->
+  <line x1="96" y1="42" x2="96" y2="66" stroke="#c0a840" stroke-width="0.8" opacity="0.4"/>
+  <line x1="86" y1="50" x2="106" y2="50" stroke="#c0a840" stroke-width="0.8" opacity="0.4"/>
+  <!-- Cloth fold lines — left side draping -->
+  <path d="M36 20 Q40 60 38 100 Q36 130 34 160" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <path d="M50 16 Q54 50 52 90 Q50 130 48 166" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M28 40 Q32 80 30 120 Q28 150 26 168" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Cloth fold lines — right side -->
+  <path d="M156 20 Q152 60 154 100 Q156 130 158 160" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.5"/>
+  <path d="M142 16 Q138 50 140 90 Q142 130 144 166" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.35"/>
+  <!-- Cross-hatching on left shadow side -->
+  <path d="M30 4 L22 40 L18 100 Q16 140 24 170 L96 176 L96 0 Q50 0 30 4 Z" fill="url(#torsoHatch)" opacity="0.35"/>
+  <!-- Heavy shadow overlay on left side -->
+  <path d="M30 4 L22 40 L18 100 Q16 140 24 170 L60 174 L60 2 Q46 0 30 4 Z" fill="url(#robeShad)"/>
+  <!-- Bottom hem detail -->
+  <path d="M24 170 Q60 176 96 176 Q132 176 168 170" stroke="#0e1830" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M28 168 Q62 174 96 174 Q130 174 164 168" stroke="#243660" stroke-width="0.5" stroke-dasharray="3,5" fill="none" opacity="0.3"/>
+  <!-- Subtle stitching along seam -->
+  <line x1="94" y1="20" x2="94" y2="170" stroke="#243660" stroke-width="0.4" stroke-dasharray="2,4" opacity="0.3"/>
+  <line x1="98" y1="20" x2="98" y2="170" stroke="#243660" stroke-width="0.4" stroke-dasharray="2,4" opacity="0.3"/>
+  <!-- Shoulder definition -->
+  <path d="M30 4 Q34 10 36 20" stroke="#0e1830" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <path d="M162 4 Q158 10 156 20" stroke="#0e1830" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Outer outline reinforcement -->
+  <path d="M30 4 Q50 0 96 0 Q142 0 162 4 L170 40 L174 100 Q176 140 168 170 L96 176 L24 170 Q16 140 18 100 L22 40 Z" fill="none" stroke="#0a0a0a" stroke-width="2.5"/>
+</svg>
