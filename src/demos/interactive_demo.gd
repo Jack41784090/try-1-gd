@@ -1085,12 +1085,30 @@ func _cmd_tick(arg: String):
 		return
 	var snap := _snapshot_state()
 	for i in range(hours):
+		var act_type := player_squad.current_activity_type
+		var activity = presenter.actor.get_activity(act_type)
+		if activity:
+			var handler = Activity._get_registry().get_handler(act_type)
+			if handler:
+				var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
+				handler.execute(ctx, ActivityResult.new())
 		world.current_hour += 1
 		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		await get_tree().create_timer(0.1).timeout
 		while presenter.is_executing_activity:
 			await get_tree().create_timer(0.05).timeout
 	_print_line("Advanced %d hour(s). Now: Hour %d (Day %d, %s)" % [hours, world.current_hour, world.get_day(), world.get_clock_display()])
 	_print_turn_report(snap)
+
+
+func _cmd_debug_activities():
+	_print_line("Current activity type: %s" % StrategyTypes.ActivityType.keys()[player_squad.current_activity_type])
+	var activity = presenter.actor.get_activity(player_squad.current_activity_type)
+	_print_line("Activity found: %s" % (activity.trigger_name if activity else "NULL"))
+	_print_line("Registered triggerables:")
+	for t in presenter.actor.aem.scenario.triggerable_manager.registered_triggerables:
+		if t is Activity:
+			_print_line("  Activity: %s (type=%s)" % [t.trigger_name, StrategyTypes.ActivityType.keys()[t.activity_type]])
 
 
 func _print_banner():
