@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "condor-screenshot": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "tools/mcp-screenshot/server.py"]
+    }
+  }
+}

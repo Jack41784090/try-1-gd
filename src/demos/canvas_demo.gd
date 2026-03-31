@@ -71,6 +71,11 @@ var _shader_materials: Dictionary = {}
 var _watch_timer := 0.0
 const WATCH_INTERVAL := 0.5
 
+var _busy := false
+var _pending_file_reload := false
+var _debounce_timer := 0.0
+const DEBOUNCE_INTERVAL := 0.3
+
 var _mode := "canvas"
 var _rig: WarriorRig
 var _rig_class_name := ""
@@ -97,12 +102,21 @@ func _process(delta: float) -> void:
 		return
 
 	_drain_stdin()
-	_process_commands()
+	if not _busy:
+		_process_commands()
+
+	if _debounce_timer > 0.0:
+		_debounce_timer -= delta
+		if _debounce_timer <= 0.0 and _pending_file_reload and not _busy:
+			_debounce_timer = 0.0
+			_pending_file_reload = false
+			_do_file_reload()
 
 	_watch_timer += delta
 	if _watch_timer >= WATCH_INTERVAL:
 		_watch_timer = 0.0
-		_check_file_changes()
+		if not _busy:
+			_check_file_changes()
 
 	_update_info_label()
 
@@ -285,9 +299,11 @@ func _cmd_screenshot(arg: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		_out("ERROR: Screenshots require GUI mode. Use tools/start_canvas.sh")
 		return
+	_busy = true
 	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
 	var err := image.save_png(path)
+	_busy = false
 	if err != OK:
 		_out("ERROR: Failed to save screenshot (error %d)" % err)
 		return
@@ -321,10 +337,12 @@ func _cmd_center() -> void:
 
 
 func _cmd_reload() -> void:
+	_busy = true
 	if _mode == "rig":
 		_reload_rig_svgs()
 	else:
 		_reload_canvas()
+	_busy = false
 	_out("Reloaded.")
 
 
@@ -332,8 +350,10 @@ func _cmd_load(name: String) -> void:
 	if name.is_empty():
 		_out("Usage: load <name>  (loads scenes/demos/canvas/<name>.tscn)")
 		return
+	_busy = true
 	_exit_rig_mode()
 	_load_canvas(name)
+	_busy = false
 
 
 func _cmd_info() -> void:
@@ -413,6 +433,7 @@ func _cmd_shader(node_path: String, param: String, value_str: String) -> void:
 
 func _cmd_rig(class_name_arg: String) -> void:
 	var cn := class_name_arg.to_lower() if not class_name_arg.is_empty() else "landsknecht"
+	_busy = true
 	_exit_rig_mode()
 	_clear_canvas()
 	_mode = "rig"
@@ -422,15 +443,15 @@ func _cmd_rig(class_name_arg: String) -> void:
 	assert(scene, "Failed to load warrior_rig.tscn")
 	_rig = scene.instantiate() as WarriorRig
 	_rig.position = Vector2(960, 700)
-	_rig.scale = Vector2(3.0, 3.0)
 	var class_id := _class_name_to_id(cn)
 	_rig.setup(class_id, "canvas_preview")
 	_content_root.add_child(_rig)
 
-	_camera.position = Vector2(960, 540)
-	_camera.zoom = Vector2(1.0, 1.0)
+	_camera.position = Vector2(960, 600)
+	_camera.zoom = Vector2(3.0, 3.0)
 
 	_reload_rig_svgs()
+	_busy = false
 	_out("Rig mode: %s (edit SVGs in scenes/demos/canvas/svgs/rig/%s/)" % [cn, cn])
 	_out("  Bone SVGs: %d / %d loaded" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
 	_out("  Use 'anim idle', 'anim walk', etc. to animate")
@@ -642,42 +663,60 @@ func _check_canvas_changes() -> void:
 		return
 	var current_mtime := FileAccess.get_modified_time(abs_path)
 	if current_mtime != _canvas_mtime:
-		_out("Canvas changed, reloading...")
-		_reload_canvas()
+		_schedule_file_reload()
 
 
 func _check_svg_changes() -> void:
+	var changed := false
 	for abs_path in _svg_mtimes.keys():
 		if not FileAccess.file_exists(abs_path):
 			continue
 		var current_mtime := FileAccess.get_modified_time(abs_path)
 		if current_mtime != _svg_mtimes[abs_path]:
-			_svg_mtimes[abs_path] = current_mtime
-			var scale_val := SVG_RENDER_SCALE
-			if _svg_sprites.has(abs_path) and is_instance_valid(_svg_sprites[abs_path]):
-				scale_val = (_svg_sprites[abs_path] as Sprite2D).get_meta("svg_scale", SVG_RENDER_SCALE)
-			var tex := _load_svg_from_disk(abs_path, scale_val)
-			if tex and _svg_sprites.has(abs_path) and is_instance_valid(_svg_sprites[abs_path]):
-				(_svg_sprites[abs_path] as Sprite2D).texture = tex
-				_svg_textures[abs_path] = tex
-				_out("SVG reloaded: %s" % abs_path.get_file())
+			changed = true
+			break
+	if changed:
+		_schedule_file_reload()
 
 
 func _check_rig_svg_changes() -> void:
-	var any_changed := false
 	for abs_path in _rig_svg_mtimes.keys():
 		if not FileAccess.file_exists(abs_path):
 			continue
 		var current_mtime := FileAccess.get_modified_time(abs_path)
 		if current_mtime != _rig_svg_mtimes[abs_path]:
-			any_changed = true
-			break
-	if any_changed:
-		_out("Rig SVGs changed, reloading...")
-		_reload_rig_svgs()
+			_schedule_file_reload()
+			return
 
 
 func _check_shader_changes() -> void:
+	for abs_path in _shader_mtimes.keys():
+		if not FileAccess.file_exists(abs_path):
+			continue
+		var current_mtime := FileAccess.get_modified_time(abs_path)
+		if current_mtime != _shader_mtimes[abs_path]:
+			_schedule_file_reload()
+			return
+
+
+func _schedule_file_reload() -> void:
+	_pending_file_reload = true
+	_debounce_timer = DEBOUNCE_INTERVAL
+
+
+func _do_file_reload() -> void:
+	_busy = true
+	if _mode == "rig":
+		_out("Rig SVGs changed, reloading...")
+		_reload_rig_svgs()
+	else:
+		_out("Files changed, reloading...")
+		_reload_canvas()
+	_reload_changed_shaders()
+	_busy = false
+
+
+func _reload_changed_shaders() -> void:
 	for abs_path in _shader_mtimes.keys():
 		if not FileAccess.file_exists(abs_path):
 			continue

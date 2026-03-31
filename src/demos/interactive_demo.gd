@@ -1006,7 +1006,7 @@ func _cmd_god_economy():
 	_print_separator()
 
 
-const SCREENSHOT_PATH := "/tmp/condor_screenshot.png"
+const SCREENSHOT_PATH := "/tmp/condor_screenshot.jpg"
 
 
 func _cmd_screenshot(arg: String):
@@ -1016,15 +1016,21 @@ func _cmd_screenshot(arg: String):
 		return
 	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
-	var max_width := 960
+	var max_width := 640
 	if image.get_width() > max_width:
 		var scale := float(max_width) / float(image.get_width())
 		var new_h := int(float(image.get_height()) * scale)
 		image.resize(max_width, new_h, Image.INTERPOLATE_BILINEAR)
-	var err := image.save_png(path)
-	if err != OK:
-		_print_line("ERROR: Failed to save screenshot (error %d)" % err)
-		return
+	if path.ends_with(".jpg") or path.ends_with(".jpeg"):
+		var err := image.save_jpg(path, 0.7)
+		if err != OK:
+			_print_line("ERROR: Failed to save screenshot (error %d)" % err)
+			return
+	else:
+		var err := image.save_png(path)
+		if err != OK:
+			_print_line("ERROR: Failed to save screenshot (error %d)" % err)
+			return
 	_print_line("SCREENSHOT_SAVED:%s" % path)
 
 

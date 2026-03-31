@@ -1,6 +1,8 @@
 class_name CombatUI
 extends RefCounted
 
+const SUMMARY_SCENE = preload("res://scenes/ui/battle_summary_overlay.tscn")
+
 var _host: Control
 
 var panel: PanelContainer
@@ -135,17 +137,12 @@ func show_result_overlay(result: CombatController.CombatResult, morale_before: f
 	var original_parent = _morale_panel.get_parent()
 	var original_index = _morale_panel.get_index()
 
-	var overlay_container = Control.new()
-	overlay_container.name = "BattleSummaryOverlay"
-	overlay_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.add_child(overlay_container)
-
-	var result_label = _create_result_label(result)
-	overlay_container.add_child(result_label)
+	var summary: BattleSummaryOverlay = SUMMARY_SCENE.instantiate()
+	overlay.add_child(summary)
+	summary.configure_result(result.victory, result.fled, result.negotiated)
 
 	original_parent.remove_child(_morale_panel)
-	overlay_container.add_child(_morale_panel)
+	summary.add_child(_morale_panel)
 
 	_morale_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_morale_panel.anchor_left = 0.1
@@ -169,14 +166,14 @@ func show_result_overlay(result: CombatController.CombatResult, morale_before: f
 	await tween.finished
 
 	if abs(result.morale_change) >= 0.1:
-		_spawn_morale_delta_label(result.morale_change, overlay_container)
+		summary.animate_morale_delta(result.morale_change)
 
 	if not result.equipment_loot.is_empty():
-		_spawn_equipment_loot_display(result.equipment_loot, overlay_container)
+		summary.show_equipment_loot(result.equipment_loot)
 
 	await _host.get_tree().create_timer(1.2).timeout
 
-	overlay_container.remove_child(_morale_panel)
+	summary.remove_child(_morale_panel)
 	original_parent.add_child(_morale_panel)
 	original_parent.move_child(_morale_panel, original_index)
 
@@ -187,7 +184,7 @@ func show_result_overlay(result: CombatController.CombatResult, morale_before: f
 	_morale_panel.anchor_bottom = 0
 	_morale_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	overlay_container.queue_free()
+	summary.queue_free()
 
 	_cleanup_battle_children()
 	overlay.visible = false
@@ -206,118 +203,7 @@ func _cleanup_battle_children() -> void:
 			child.queue_free()
 
 
-func _create_result_label(result: CombatController.CombatResult) -> Label:
-	var result_label = Label.new()
-	result_label.name = "ResultLabel"
-	result_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	result_label.anchor_top = 0.15
-	result_label.anchor_bottom = 0.25
-	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	result_label.add_theme_font_size_override("font_size", 48)
-	result_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	result_label.add_theme_constant_override("shadow_offset_x", 3)
-	result_label.add_theme_constant_override("shadow_offset_y", 3)
-
-	if result.victory:
-		result_label.text = "VICTORY!"
-		result_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-	elif result.fled:
-		result_label.text = "Escaped!"
-		result_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-	elif result.negotiated:
-		result_label.text = "Negotiated!"
-		result_label.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
-	else:
-		result_label.text = "DEFEAT!"
-		result_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-
-	return result_label
-
-
 func _play_sfx(method_name: String) -> void:
 	var sfx = _host.get_tree().root.get_node_or_null("SFX")
 	if sfx and sfx.has_method(method_name):
 		sfx.call(method_name)
-
-
-func _spawn_morale_delta_label(delta_value: float, parent: Control) -> void:
-	var delta_label = Label.new()
-	parent.add_child(delta_label)
-
-	delta_label.text = "%+.1f Morale" % delta_value
-	delta_label.add_theme_font_size_override("font_size", 28)
-	delta_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	delta_label.add_theme_constant_override("shadow_offset_x", 2)
-	delta_label.add_theme_constant_override("shadow_offset_y", 2)
-
-	if delta_value >= 0:
-		delta_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-	else:
-		delta_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-
-	delta_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	delta_label.anchor_top = 0.10
-	delta_label.anchor_bottom = 0.14
-	delta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-
-	var tween = _host.create_tween().set_parallel(true)
-	tween.tween_property(delta_label, "anchor_top", 0.16, 1.2).set_ease(Tween.EASE_OUT)
-	tween.tween_property(delta_label, "anchor_bottom", 0.20, 1.2).set_ease(Tween.EASE_OUT)
-	tween.tween_property(delta_label, "modulate:a", 0.0, 0.8).set_delay(0.4)
-
-
-func _spawn_equipment_loot_display(equipment_loot: Dictionary, parent: Control) -> void:
-	var weapons: Array = equipment_loot.get("weapons", [])
-	var armors: Array = equipment_loot.get("armors", [])
-	if weapons.is_empty() and armors.is_empty():
-		return
-
-	var loot_container := VBoxContainer.new()
-	loot_container.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	loot_container.anchor_top = 0.65
-	loot_container.anchor_bottom = 0.92
-	loot_container.anchor_left = 0.3
-	loot_container.anchor_right = 0.7
-	loot_container.offset_top = 0
-	loot_container.offset_bottom = 0
-	loot_container.add_theme_constant_override("separation", 4)
-	parent.add_child(loot_container)
-
-	var header := Label.new()
-	header.text = "Equipment Looted"
-	header.add_theme_font_size_override("font_size", 20)
-	header.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	header.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	header.add_theme_constant_override("shadow_offset_x", 2)
-	header.add_theme_constant_override("shadow_offset_y", 2)
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loot_container.add_child(header)
-
-	for w in weapons:
-		if w is WeaponConfig:
-			var label := Label.new()
-			label.text = "+ %s" % w.weapon_name
-			label.add_theme_font_size_override("font_size", 16)
-			label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
-			label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
-			label.add_theme_constant_override("shadow_offset_x", 1)
-			label.add_theme_constant_override("shadow_offset_y", 1)
-			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			loot_container.add_child(label)
-
-	for a in armors:
-		if a is ArmorConfig:
-			var label := Label.new()
-			label.text = "+ %s" % a.armor_name
-			label.add_theme_font_size_override("font_size", 16)
-			label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55))
-			label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
-			label.add_theme_constant_override("shadow_offset_x", 1)
-			label.add_theme_constant_override("shadow_offset_y", 1)
-			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			loot_container.add_child(label)
-
-	loot_container.modulate.a = 0.0
-	var tween := _host.create_tween()
-	tween.tween_property(loot_container, "modulate:a", 1.0, 0.5)

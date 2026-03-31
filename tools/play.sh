@@ -33,8 +33,17 @@
 CMD=""
 WAIT=4
 VERBOSE=false
-OUTPUT_FILE="${CONDOR_OUTPUT:-/tmp/condor_output}"
-INPUT_FILE="${CONDOR_INPUT:-/tmp/condor_input}"
+
+# Session support: CONDOR_SESSION picks per-instance pipes, or fall back to legacy env/defaults.
+if [ -n "$CONDOR_SESSION" ]; then
+    OUTPUT_FILE="/tmp/condor_output_${CONDOR_SESSION}"
+    INPUT_FILE="/tmp/condor_input_${CONDOR_SESSION}"
+    PLAY_LOCK="/tmp/condor_play_${CONDOR_SESSION}.lock"
+else
+    OUTPUT_FILE="${CONDOR_OUTPUT:-/tmp/condor_output}"
+    INPUT_FILE="${CONDOR_INPUT:-/tmp/condor_input}"
+    PLAY_LOCK="/tmp/condor_play.lock"
+fi
 
 # Parse args: cmd [wait] [--verbose]
 for arg in "$@"; do
@@ -65,22 +74,28 @@ if [ ! -f "$OUTPUT_FILE" ]; then
     exit 1
 fi
 
-BEFORE=$(wc -l < "$OUTPUT_FILE")
-echo "$CMD" >> "$INPUT_FILE"
-sleep "$WAIT"
+# Serialize command+read as an atomic operation across parallel agents.
+# flock -w 30: wait up to 30s for the lock (covers longest expected wait).
+(
+    flock -w 30 201 || { echo "Timed out waiting for play lock"; exit 1; }
 
-if [ "$VERBOSE" = true ]; then
-    # Verbose: show everything except low-level Godot engine noise
-    tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
-        | grep -vE "^(  at: |  <[A-Z])" \
-        | grep -vE "(backtrace|variant_iter)" \
-        | grep -vE "^\s*$"
-else
-    # Normal: show game output, hide engine internals
-    tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
-        | grep -vE "^(WARNING:|ERROR:|USER WARNING:|USER ERROR:|  at: |  <[A-Z])" \
-        | grep -vE "^(Godot Engine )" \
-        | grep -vE "(\.gd:[0-9]+|\.cs:[0-9]+|backtrace|variant_)" \
-        | grep -vE "^\[" \
-        | grep -vE "^\s*$"
-fi
+    BEFORE=$(wc -l < "$OUTPUT_FILE")
+    echo "$CMD" >> "$INPUT_FILE"
+    sleep "$WAIT"
+
+    if [ "$VERBOSE" = true ]; then
+        # Verbose: show everything except low-level Godot engine noise
+        tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
+            | grep -vE "^(  at: |  <[A-Z])" \
+            | grep -vE "(backtrace|variant_iter)" \
+            | grep -vE "^\s*$"
+    else
+        # Normal: show game output, hide engine internals
+        tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
+            | grep -vE "^(WARNING:|ERROR:|USER WARNING:|USER ERROR:|  at: |  <[A-Z])" \
+            | grep -vE "^(Godot Engine )" \
+            | grep -vE "(\.gd:[0-9]+|\.cs:[0-9]+|backtrace|variant_)" \
+            | grep -vE "^\[" \
+            | grep -vE "^\s*$"
+    fi
+) 201>"$PLAY_LOCK"
