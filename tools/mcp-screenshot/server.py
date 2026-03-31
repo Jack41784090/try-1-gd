@@ -9,30 +9,121 @@
 CONDOR Game Screenshot MCP Server
 
 Provides tools for Copilot Agent to capture and view screenshots of the
-running CONDOR Godot game instance (requires GUI mode via start_game_gui.sh).
+running CONDOR Godot game instance. Auto-starts a dedicated game instance
+per MCP server (each agent gets its own).
 
 Tools:
   - screenshot_game: Send a command + capture a screenshot of the game window
   - view_screenshot: View the most recent screenshot without sending a command
+  - game_command: Send a command and get text output (no screenshot)
 """
 
+import atexit
 import base64
 import os
+import signal
+import subprocess
 import time
+import uuid
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-SCREENSHOT_PATH = "/tmp/condor_screenshot.jpg"
-INPUT_PIPE = os.environ.get("CONDOR_INPUT", "/tmp/condor_input")
-OUTPUT_PIPE = os.environ.get("CONDOR_OUTPUT", "/tmp/condor_output")
+SESSION_ID = f"mcp_{uuid.uuid4().hex[:8]}"
+PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
+SCREENSHOT_PATH = f"/tmp/condor_screenshot_{SESSION_ID}.jpg"
+INPUT_PIPE = f"/tmp/condor_input_{SESSION_ID}"
+OUTPUT_PIPE = f"/tmp/condor_output_{SESSION_ID}"
+PID_FILE = f"/tmp/condor_pid_{SESSION_ID}"
 
 mcp = FastMCP("condor-screenshot")
 
+_game_started = False
+_game_pid: int | None = None
+
+
+def _is_game_running() -> bool:
+    if not Path(PID_FILE).exists():
+        return False
+    try:
+        pid = int(Path(PID_FILE).read_text().strip())
+        os.kill(pid, 0)
+        return True
+    except (ProcessLookupError, ValueError, PermissionError, FileNotFoundError):
+        return False
+
+
+def _start_game() -> None:
+    global _game_started, _game_pid
+
+    if _is_game_running():
+        _game_started = True
+        _game_pid = int(Path(PID_FILE).read_text().strip())
+        return
+
+    Path(INPUT_PIPE).write_text("")
+    Path(OUTPUT_PIPE).write_text("")
+
+    proc = subprocess.Popen(
+        [
+            "bash", "-c",
+            f"tail -f '{INPUT_PIPE}' | godot-mono --path '{PROJECT_DIR}' "
+            f"scenes/demos/interactive_demo.tscn 2>&1 | tee '{OUTPUT_PIPE}'"
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    _game_pid = proc.pid
+    Path(PID_FILE).write_text(str(_game_pid))
+
+    # Wait for game to be ready
+    timeout = 45
+    elapsed = 0
+    while elapsed < timeout:
+        if Path(OUTPUT_PIPE).exists():
+            content = Path(OUTPUT_PIPE).read_text()
+            if "Game ready!" in content:
+                break
+        time.sleep(2)
+        elapsed += 2
+
+    _game_started = True
+
+
+def _stop_game() -> None:
+    global _game_pid
+    if _game_pid is not None:
+        try:
+            os.killpg(_game_pid, signal.SIGTERM)
+        except (ProcessLookupError, PermissionError):
+            try:
+                os.kill(_game_pid, signal.SIGTERM)
+            except (ProcessLookupError, PermissionError):
+                pass
+    for path in [PID_FILE, INPUT_PIPE, OUTPUT_PIPE]:
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+
+
+atexit.register(_stop_game)
+
+
+def _ensure_game() -> str | None:
+    global _game_started
+    if not _game_started or not _is_game_running():
+        _start_game()
+    if not _is_game_running():
+        return "ERROR: Failed to start game instance."
+    return None
+
 
 def _send_command(cmd: str, wait: float = 2.0) -> str:
-    if not Path(OUTPUT_PIPE).exists():
-        return "ERROR: Game not running. Start with: bash tools/start_game_gui.sh"
+    err = _ensure_game()
+    if err:
+        return err
 
     before = 0
     if Path(OUTPUT_PIPE).exists():
@@ -99,7 +190,7 @@ def screenshot_game(
             result_parts.append({"type": "text", "text": text_output})
         time.sleep(0.5)
 
-    ss_output = _send_command("screenshot", wait=3.0)
+    ss_output = _send_command(f"screenshot {SCREENSHOT_PATH}", wait=3.0)
 
     if "SCREENSHOT_SAVED:" in ss_output:
         img_data, err = _read_screenshot()

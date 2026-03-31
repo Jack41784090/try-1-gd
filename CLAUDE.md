@@ -29,19 +29,20 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`
 - **Sound generation**: `python3 tools/sound_designer.py` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Run relevant demo tests after logic changes.
-- **AI Interactive Play** via `tools/play.sh`: start game with `bash tools/start_game.sh`, wait ~20s, then `bash tools/play.sh "command"`. GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`
-- **AI Interactive Play (GUI + screenshots)**: start with `bash tools/start_game_gui.sh` (visible window), then `bash tools/play.sh "screenshot"` saves `/tmp/condor_screenshot.png`. MCP server in `tools/mcp-screenshot/server.py` exposes `screenshot_game`, `view_screenshot`, `game_command` tools for Copilot Agent
+- **AI Interactive Play** via `tools/play.sh`: auto-starts a dedicated game instance per session (no manual setup). `bash tools/play.sh "status"` — auto-generates `CONDOR_SESSION`, starts game, sends command. Set `export CONDOR_SESSION=<id>` for persistence across calls. GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`. Flags: `--gui` (visible window for screenshots), `--stop` (kill session's game)
+- **AI Interactive Play (GUI + screenshots)**: `bash tools/play.sh "screenshot" --gui` auto-starts with visible window. MCP server in `tools/mcp-screenshot/server.py` auto-starts its own game per instance — no manual setup needed
+- **Per-agent game isolation**: Each agent gets a dedicated game instance via `CONDOR_SESSION`. `play.sh` auto-generates a session ID if unset. `start_game.sh [session_id]` / `start_game_gui.sh [session_id]` accept optional session IDs (default: `default`). MCP server auto-generates a unique session ID at startup. Pipes: `/tmp/condor_{input,output,pid}_<session>`
 - **Screenshot workflow for AI agents**:
-  1. Start game: `bash tools/start_game_gui.sh` — launches Godot with visible window + stdin/stdout pipes. Uses real `scenario.tscn` StrategyView (full UI) when in GUI mode, `HeadlessStrategyView` when `--headless`
-  2. Wait ~25s for init, then send commands via `bash tools/play.sh "<command>" [wait_seconds]`
-  3. Capture screenshot: `bash tools/play.sh "screenshot"` → saves `/tmp/condor_screenshot.png`
-  4. MCP tools (auto-discovered via `.vscode/mcp.json`): `screenshot_game` (command + screenshot), `view_screenshot` (last screenshot), `game_command` (text-only)
-  5. The `screenshot`/`ss` command in interactive_demo.gd uses `get_viewport().get_texture().get_image().save_png()` — only works in GUI mode, errors gracefully in headless
-  6. Clock overlay: `ClockLabel` in top-left corner shows `⌚ HH:00`, updated by `StrategyView.update_clock()`
+  1. Just call `bash tools/play.sh "status"` — game auto-starts (headless). For screenshots: `bash tools/play.sh "screenshot" --gui`
+  2. Or start manually: `bash tools/start_game_gui.sh mysession` then `CONDOR_SESSION=mysession bash tools/play.sh "screenshot"`
+  3. MCP tools (auto-discovered via `.vscode/mcp.json`): `screenshot_game` (command + screenshot), `view_screenshot` (last screenshot), `game_command` (text-only) — all auto-start their own game
+  4. The `screenshot`/`ss` command in interactive_demo.gd uses `get_viewport().get_texture().get_image().save_png()` — only works in GUI mode, errors gracefully in headless
+  5. Clock overlay: `ClockLabel` in top-left corner shows `⌚ HH:00`, updated by `StrategyView.update_clock()`
+  6. Stop a session's game: `CONDOR_SESSION=<id> bash tools/play.sh --stop`
 - **SVG Drawing Canvas** (`canvas_demo.tscn`): AI drawing sandbox — edit `.tscn` + `.svg` files, auto-reloads, screenshots via same pipes
   1. Start: `bash tools/start_canvas.sh [session_id]` — GUI window + per-session pipes. Defaults to session `canvas`
   2. **Multi-instance**: multiple canvases can run simultaneously with different session IDs: `bash tools/start_canvas.sh agent1`, `bash tools/start_canvas.sh agent2`
-  3. Wait ~10s, then `CONDOR_SESSION=<id> bash tools/play.sh "info"` to verify. Without `CONDOR_SESSION`, uses legacy default pipes
+  3. Wait ~10s, then `CONDOR_SESSION=<id> bash tools/play.sh "info"` to verify
   4. **Free-form mode**: Edit `scenes/demos/canvas/default.tscn` (Sprite2D nodes with `metadata/svg_path`), edit SVGs in `scenes/demos/canvas/svgs/` — auto-reloads within 0.5s
   5. **Rig mode**: `CONDOR_SESSION=canvas bash tools/play.sh "rig landsknecht"` — loads warrior skeleton, applies SVG textures from `svgs/rig/landsknecht/` (15 bones: head, torso, hips, leftarm, etc.)
   6. Rig animations: `bash tools/play.sh "anim idle"` / `walk` / `attack` / `defend` / `hurt` / `die`
