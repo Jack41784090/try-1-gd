@@ -717,6 +717,8 @@ func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagem
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 
+	GrimdarkFX.set_combat_mode(true)
+
 	combat_options = combat_orch.inject_context(
 		actor.player_squad,
 		enemy_squad,
@@ -750,6 +752,10 @@ func _on_combat_timeout() -> void:
 
 func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
+
+	GrimdarkFX.set_combat_mode(false)
+	if not result.player_casualties.is_empty():
+		GrimdarkFX.trigger_damage_pulse()
 
 	var outcome = combat_orch.apply_result(result, actor.player_squad, actor.current_location, game_scenario.world, turn_log)
 	await view.show_combat_result_overlay(result, outcome["morale_before"], outcome["morale_after"])

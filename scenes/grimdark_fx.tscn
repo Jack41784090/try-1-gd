@@ -1,0 +1,107 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/fx/combat_atmosphere.gdshader" id="1_combat"]
+[ext_resource type="Shader" path="res://assets/shaders/fx/time_of_day.gdshader" id="2_tod"]
+[ext_resource type="Shader" path="res://assets/shaders/fx/fog_wisps.gdshader" id="3_fog"]
+[ext_resource type="Shader" path="res://assets/shaders/fx/vignette.gdshader" id="4_vig"]
+[ext_resource type="Shader" path="res://assets/shaders/fx/film_grain.gdshader" id="5_grain"]
+[ext_resource type="Shader" path="res://assets/shaders/fx/damage_pulse.gdshader" id="6_dmg"]
+[ext_resource type="Script" path="res://src/singletons/grimdark_fx.gd" id="7_script"]
+
+[sub_resource type="ShaderMaterial" id="mat_combat"]
+shader = ExtResource("1_combat")
+shader_parameter/desaturation = 0.5
+shader_parameter/contrast = 1.2
+shader_parameter/red_shift = 0.06
+shader_parameter/darkness = 0.1
+shader_parameter/mix_amount = 1.0
+
+[sub_resource type="ShaderMaterial" id="mat_tod"]
+shader = ExtResource("2_tod")
+shader_parameter/hour_of_day = 12.0
+shader_parameter/intensity = 1.0
+
+[sub_resource type="ShaderMaterial" id="mat_fog"]
+shader = ExtResource("3_fog")
+shader_parameter/intensity = 0.12
+shader_parameter/speed = 0.08
+shader_parameter/density = 1.8
+shader_parameter/fog_color = Color(0.6, 0.58, 0.52, 1)
+shader_parameter/vertical_fade = 0.7
+
+[sub_resource type="ShaderMaterial" id="mat_vig"]
+shader = ExtResource("4_vig")
+shader_parameter/intensity = 0.45
+shader_parameter/softness = 0.45
+shader_parameter/roundness = 1.0
+shader_parameter/vignette_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="mat_grain"]
+shader = ExtResource("5_grain")
+shader_parameter/intensity = 0.035
+shader_parameter/speed = 8.0
+
+[sub_resource type="ShaderMaterial" id="mat_dmg"]
+shader = ExtResource("6_dmg")
+shader_parameter/pulse_intensity = 0.0
+shader_parameter/pulse_color = Color(0.6, 0.02, 0.02, 1)
+shader_parameter/inner_radius = 0.3
+
+[node name="GrimdarkFX" type="CanvasLayer"]
+layer = 200
+script = ExtResource("7_script")
+
+[node name="CombatAtmosphere" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_combat")
+
+[node name="TimeOfDay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_tod")
+
+[node name="FogWisps" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_fog")
+
+[node name="Vignette" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_vig")
+
+[node name="FilmGrain" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_grain")
+
+[node name="DamagePulse" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mat_dmg")
