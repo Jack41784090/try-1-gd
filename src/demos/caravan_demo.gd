@@ -197,15 +197,25 @@ func _add_castle_location() -> void:
 
 
 func _run_simulation() -> void:
-	var max_turns := 15
-	Log.info("CaravanDemo", "Running %d turns (REST each turn, economy ticks via presenter)..." % max_turns)
+	var target_days := 5
+	var target_hours := target_days * 24
+	Log.info("CaravanDemo", "Running %d days (%d hours) with fast clock. Economy ticks every 24h." % [target_days, target_hours])
 	Log.info("CaravanDemo", "")
 
-	for turn in range(1, max_turns + 1):
-		Log.info("CaravanDemo", "=== TURN %d ===" % turn)
-		presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
-		await get_tree().create_timer(0.1).timeout
-		_print_turn_summary(turn)
+	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
+	presenter.game_clock.set_speed(200.0)
+	presenter.game_clock.unpause()
+
+	var last_reported_day := -1
+	while world.current_hour < target_hours:
+		await get_tree().create_timer(0.05).timeout
+		var current_day := world.get_day()
+		if current_day != last_reported_day:
+			last_reported_day = current_day
+			Log.info("CaravanDemo", "=== DAY %d (hour %d) ===" % [current_day, world.current_hour])
+			_print_turn_summary(current_day)
+
+	presenter.game_clock.pause()
 
 	Log.info("CaravanDemo", "")
 	_print_final_summary()
@@ -268,7 +278,9 @@ func _run_assertions() -> void:
 
 	var castle_loc := world.get_location_by_id("castle")
 	_assert_gte("Castle food inventory exists", castle_loc.inventory.get_available(food), 0.0)
-	_assert_gt("Castle received tools", castle_loc.inventory.get_available(tools), 0.0)
+	var castle_cloth := castle_loc.inventory.get_available(cloth)
+	var castle_luxury := castle_loc.inventory.get_available(luxury)
+	_assert_gt("Castle received trade goods", castle_cloth + castle_luxury, 0.0)
 
 	var farmstead_loc := world.get_location_by_id("farmstead")
 	_assert_gt("Farmstead produced food (source)", farmstead_loc.inventory.get_available(food), 0.0)

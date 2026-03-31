@@ -14,7 +14,7 @@ func is_adjacent(from_id: String, to_id: String) -> bool:
 		return false
 	return location.is_connected_to(to_id)
 
-func find_path(from_id: String, to_id: String) -> Array:
+func find_path(from_id: String, to_id: String) -> Array[String]:
 	assert(locations.has(from_id))
 	assert(locations.has(to_id))
 
@@ -41,7 +41,7 @@ func find_path(from_id: String, to_id: String) -> Array:
 		# Check all neighbors
 		for connection in current_location.connections.tt:
 			var neighbor_id = connection.to_location_id
-			var tentative_g_score = g_score[current] + connection.travel_time
+			var tentative_g_score = g_score[current] + connection.distance_km
 			
 			if not g_score.has(neighbor_id) or tentative_g_score < g_score[neighbor_id]:
 				came_from[neighbor_id] = current
@@ -70,14 +70,14 @@ func _get_lowest_f_score_node(open_set: Array, f_score: Dictionary) -> String:
 	
 	return lowest_node
 
-func _reconstruct_path(came_from: Dictionary, current: String) -> Array:
-	var total_path: Array = [current]
+func _reconstruct_path(came_from: Dictionary, current: String) -> Array[String]:
+	var total_path: Array[String] = [current]
 	while came_from.has(current):
 		current = came_from[current]
 		total_path.insert(0, current)
 	return total_path
 
-func calculate_travel_time_between(from, to) -> int:
+func calculate_distance_km_between(from, to) -> float:
 	assert(from is String or from is Location)
 	assert(to is String or to is Location)
 	
@@ -88,32 +88,51 @@ func calculate_travel_time_between(from, to) -> int:
 
 	var path = find_path(from, to)
 	if path.is_empty():
-		return -1
-	return calculate_travel_time(path)
+		return -1.0
+	return get_path_distance_km(path)
 
-func calculate_travel_time(path: Array) -> int:
+func get_path_distance_km(path: Array) -> float:
 	if path.size() <= 1:
-		return 0
+		return 0.0
 	
-	var total_time = 0
+	var total_km := 0.0
 	
 	for i in range(path.size() - 1):
 		assert(locations.has(path[i]))
-		assert(locations.has(path[i + 1]));
+		assert(locations.has(path[i + 1]))
 
 		var from_location = get_location(path[i])
 		var to_location = get_location(path[i + 1])
 		
-		# if from_location and to_location:
-		var segment_time = from_location.calculate_base_travel_time(to_location)
-		if segment_time < 0:
-			return -1
-		total_time += segment_time
+		var dist := from_location.get_distance_km(to_location)
+		if dist < 0.0:
+			return -1.0
+		total_km += dist
 	
-	return total_time
+	return total_km
 
-func get_distance(from_id: String, to_id: String) -> int:
+func calculate_travel_hours(path: Array, speed_kmh: float) -> float:
+	if path.size() <= 1:
+		return 0.0
+	
+	var total_hours := 0.0
+	
+	for i in range(path.size() - 1):
+		assert(locations.has(path[i]))
+		assert(locations.has(path[i + 1]))
+
+		var from_location = get_location(path[i])
+		var to_location = get_location(path[i + 1])
+		
+		var segment_hours := from_location.get_travel_hours(to_location, speed_kmh)
+		if segment_hours < 0.0:
+			return -1.0
+		total_hours += segment_hours
+	
+	return total_hours
+
+func get_distance(from_id: String, to_id: String) -> float:
 	var path = find_path(from_id, to_id)
 	if path.is_empty():
-		return -1
-	return path.size() - 1
+		return -1.0
+	return get_path_distance_km(path)

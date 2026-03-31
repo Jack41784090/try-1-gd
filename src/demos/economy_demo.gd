@@ -154,8 +154,17 @@ func _run_simulation() -> void:
 	Log.info("EconDemo", "Running %d turns..." % max_turns)
 	Log.info("EconDemo", "")
 
+	var matcher := TradeMatcher.new()
+
 	for turn in range(1, max_turns + 1):
 		var result := engine.tick(turn)
+
+		var demands := engine.get_pending_demands()
+		var supplies := engine.get_available_supplies()
+		var matches := matcher.match_trades(demands, supplies, world)
+		if not matches.is_empty():
+			engine.apply_trade_matches(matches)
+
 		result.log_to_console()
 
 		if turn <= 3 or turn % 5 == 0 or turn == max_turns:
