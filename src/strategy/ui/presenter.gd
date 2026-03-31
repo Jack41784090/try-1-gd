@@ -20,6 +20,7 @@ var stage_presenter
 var combat_orch: CombatOrchestrator
 var economy_orch: EconomyOrchestrator
 var contact_orch: ContactOrchestrator
+var game_clock: GameClock
 
 var game_scenario: GameScenario:
 	get:
@@ -63,7 +64,7 @@ func bind_view(v) -> void:
 	stage_presenter = view.get_stage_presenter()
 	_initialize_scenario()
 	_setup_components()
-	StrategyEventBus.turn_advanced.connect(_on_turn_advanced)
+	StrategyEventBus.hour_advanced.connect(_on_hour_advanced)
 	view.update_morale_bar(actor.player_squad.get_morale())
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
@@ -76,6 +77,8 @@ func bind_view(v) -> void:
 
 
 func _process(delta: float) -> void:
+	if game_clock:
+		game_clock.process(delta)
 	if combat_orch and combat_orch.is_in_encounter and encounter_timeout_timer > 0:
 		encounter_timeout_timer -= delta
 		view.update_combat_timer(encounter_timeout_timer, combat_options.get("timeout_seconds", 30.0))
@@ -116,6 +119,9 @@ func _setup_components() -> void:
 	combat_orch.setup(game_scenario.world.contact_tracker)
 	economy_orch = EconomyOrchestrator.new()
 	contact_orch = ContactOrchestrator.new()
+	game_clock = GameClock.new(game_scenario.world)
+	game_clock.hour_ticked.connect(_on_hour_tick)
+	game_clock.pause()
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	vn_view.presenter.set_stage_presenter(stage_presenter)
@@ -154,38 +160,64 @@ func set_ui_mode(mode: UIMode, trans_type: EventChain.TransitionType = EventChai
 #region User Action Handlers
 
 func on_activity_requested(type: StrategyTypes.ActivityType) -> void:
-	_execute_activity(type)
+	actor.player_squad.current_activity_type = type
+	_update_activity_buttons()
+	view.update_resting_banner(type == StrategyTypes.ActivityType.REST)
 
 
 func on_travel_requested() -> void:
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_travel_menu(game_scenario, actor.locations)
 
 
 func on_investigate_requested() -> void:
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_investigation_menu()
 
 
 func on_recruit_requested() -> void:
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_recruitment_menu()
 
 
 func on_manage_squad_requested() -> void:
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_manage_squad(actor.player_squad, actor)
 
 
 func on_shop_requested() -> void:
 	var location = actor.current_location
 	assert(location.has_shop(), "Shop requested but location has no shop")
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_shop(location.shop, actor.player_squad, location)
 
 
 func on_travel_confirmed(location_id: String) -> void:
-	var travel_activity = actor.create_travel_activity(location_id)
+	var squad := actor.player_squad
+	var from_id := squad.current_location_id
+	var path: Array = game_scenario.world.travel_graph.find_path(from_id, location_id)
+	if path.size() < 2:
+		return
+
+	var route: Array[String] = []
+	for p in path:
+		route.append(p)
+	squad.travel_route = route
+	squad.travel_segment_index = 0
+	squad.travel_progress_km = 0.0
+	squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
+	actor.walking_towards = location_id
+
 	view.update_location(_get_travel_label())
 	view.hide_travel_menu()
-	await _execute_activity_obj(travel_activity)
-	if travel_activity.result.location_changed == location_id:
-		view.set_travel_mode_autopilot()
+	view.set_travel_mode_autopilot()
+	_update_activity_buttons()
+	view.update_resting_banner(false)
 
 
 func on_travel_cancelled() -> void:
@@ -195,11 +227,9 @@ func on_travel_cancelled() -> void:
 func on_continue_travel() -> void:
 	var dest_location = actor.walking_towards["location"]
 	assert(dest_location != null, "Continue travel called but no destination set")
-	var travel_activity = actor.create_travel_activity(dest_location.location_id)
-	view.update_location(_get_travel_label())
-	await _execute_activity_obj(travel_activity)
-	if travel_activity.result.location_changed == dest_location.location_id:
-		view.set_travel_mode_autopilot()
+	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
+	view.update_resting_banner(false)
+	_update_ui()
 
 
 func on_go_back_travel() -> void:
@@ -207,6 +237,8 @@ func on_go_back_travel() -> void:
 	assert(from_location != null, "Go back called but no current location")
 	Log.info("Presenter", "Cancelling travel, staying at %s" % from_location.location_name)
 	actor.walking_towards = null
+	actor.player_squad.clear_travel()
+	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
 	_update_ui()
 
 
@@ -239,7 +271,9 @@ func on_shop_closed() -> void:
 
 
 func on_scouting_requested() -> void:
-	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else {}
+	game_clock.pause()
+	view.update_pause_state(true)
+	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else { }
 	view.show_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
 
@@ -250,6 +284,8 @@ func on_scouting_closed() -> void:
 func on_missions_requested() -> void:
 	if game_scenario.factions.is_empty():
 		return
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_missions(game_scenario.factions)
 
 
@@ -261,6 +297,8 @@ func on_market_requested() -> void:
 	var location = actor.current_location
 	if not location.has_economy():
 		return
+	game_clock.pause()
+	view.update_pause_state(true)
 	view.show_market(game_scenario.world, location, visited_locations)
 
 
@@ -282,7 +320,7 @@ func on_skip_pressed() -> void:
 func on_summary_pressed() -> void:
 	var _summary_text = "=== Campaign Summary ===\n"
 	_summary_text += "CombatSquad: %s\n" % actor.player_squad.squad_name
-	_summary_text += "Turn: %d\n" % game_scenario.world.turn_count
+	_summary_text += "Hour: %d (%s)\n" % [game_scenario.world.current_hour, game_scenario.world.get_clock_display()]
 	_summary_text += "Location: %s (Dev:%d Stab:%.0f)\n" % [
 		actor.current_location.location_name,
 		actor.current_location.development,
@@ -297,6 +335,20 @@ func on_summary_pressed() -> void:
 func on_battle_close() -> void:
 	Log.debug("Presenter", "User closed battle manually")
 	view.cleanup_battle_scene()
+
+
+func on_pause_toggle() -> void:
+	game_clock.toggle_pause()
+	var is_paused := game_scenario.world.is_paused
+	view.update_pause_state(is_paused)
+	view.update_resting_banner(
+		actor.player_squad.current_activity_type == StrategyTypes.ActivityType.REST
+	)
+
+
+func on_speed_changed(speed: float) -> void:
+	game_clock.set_speed(speed)
+	view.update_speed_display(speed)
 
 
 func on_retreat_requested() -> void:
@@ -333,6 +385,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 	if is_executing_activity:
 		return
 	is_executing_activity = true
+	game_clock.pause()
 	view.disable_all_activity_buttons()
 	turn_log.clear()
 
@@ -355,14 +408,16 @@ func _execute_activity_obj(activity: Activity) -> void:
 
 	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
 	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
-	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+	var hour := game_scenario.world.current_hour
+	if hour % 24 == 0:
+		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
 	var turn_entries = _build_karma_sorted_entries(ai_results)
 
 	for entry in turn_entries:
 		if entry["is_player"]:
-			await _execute_story_triggerables(StrategyTypes.TriggerWhen.TURN_START)
+			await _execute_story_triggerables(StrategyTypes.TriggerWhen.HOUR_START)
 		else:
-			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.TURN_START)
+			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.HOUR_START)
 
 	for phase in ['before', 'activity', 'after']:
 		for entry in turn_entries:
@@ -383,9 +438,15 @@ func _execute_activity_obj(activity: Activity) -> void:
 
 	var contact_before_for_log := contact_before_states.duplicate()
 	var contact_result = contact_orch.update(
-		game_scenario.world, actor.player_squad, actor.walking_towards,
-		ai_fleet, activity, player_location_before, contact_before_states,
-		_notification_collector, squad_names_cache,
+		game_scenario.world,
+		actor.player_squad,
+		actor.walking_towards,
+		ai_fleet,
+		activity,
+		player_location_before,
+		contact_before_states,
+		_notification_collector,
+		squad_names_cache,
 	)
 	var contact_after_states: Dictionary = contact_result["contact_after"]
 	for key in contact_after_states:
@@ -411,7 +472,7 @@ func _execute_activity_obj(activity: Activity) -> void:
 	_collect_and_show_notifications()
 	if actor.player_squad.current_location_id not in visited_locations:
 		visited_locations.append(actor.player_squad.current_location_id)
-	actor.advance_turn()
+	actor.advance_hour()
 	is_executing_activity = false
 	_update_ui()
 
@@ -509,8 +570,8 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 
 
 func _collect_and_show_notifications() -> void:
-	return  # Notifications disabled temporarily
-	var turn := game_scenario.world.turn_count
+	return # Notifications disabled temporarily
+	var turn := game_scenario.world.current_hour
 
 	_notification_collector.collect_resource_notifications(actor.player_squad, turn)
 
@@ -578,7 +639,7 @@ func _show_pending_results() -> void:
 	if _pending_results.is_empty():
 		return
 
-	var aggregated_stats: Dictionary = {}
+	var aggregated_stats: Dictionary = { }
 	var recruits: Array[Warrior] = []
 
 	for result in _pending_results:
@@ -708,7 +769,6 @@ func _check_game_over() -> bool:
 		return true
 	return false
 
-
 #endregion
 
 #endregion
@@ -795,14 +855,17 @@ func _update_ui() -> void:
 	var world = game_scenario.world
 	var location = actor.current_location
 
-	view.update_turn(world.turn_count)
+	view.update_clock(world.current_hour)
 
 	var walking = actor.walking_towards
 	if walking != null and walking["location"] != null:
 		var dest: Location = walking["location"]
-		var progress: int = walking["progress"]
-		var distance: int = actor.get_distance(actor.current_location, dest)
-		view.update_location("Travelling to %s (%d/%d)" % [dest.location_name, progress, distance])
+		squad = actor.player_squad
+		if squad.is_traveling():
+			var total_km = world.travel_graph.get_path_distance_km(squad.travel_route)
+			view.update_location("Travelling to %s (%.0f/%.0f km)" % [dest.location_name, squad.travel_progress_km, total_km])
+		else:
+			view.update_location("Travelling to %s" % dest.location_name)
 	else:
 		view.update_location(
 			"%s (%s)" % [
@@ -856,67 +919,66 @@ func _update_contact_bars(world: World, squad: SquadData) -> void:
 				title = target_squad.squad_name if target_squad.is_caravan() else "Unknown Force"
 			_:
 				title = target_squad.squad_name
-		bars.append({
-			"target_id": contact.target_id,
-			"state": state,
-			"progress": contact.progress,
-			"progress_delta": contact.last_delta,
-			"title": title,
-		})
+		bars.append(
+			{
+				"target_id": contact.target_id,
+				"state": state,
+				"progress": contact.progress,
+				"progress_delta": contact.last_delta,
+				"title": title,
+			},
+		)
 	bars.sort_custom(func(a, b): return a["progress"] > b["progress"])
 	view.update_contact_bars(bars)
 
 
 func _update_activity_buttons() -> void:
-	# Enables/disables each activity button based on whether the current location supports that activity
-	# Also handles special cases: attack requires enemies at location, shop requires location.has_shop()
-	# e.g., location="salzburg" (Village) with activities=[REST, FORAGE, TRAVEL]
-	#   → rest=enabled, drill=disabled, forage=enabled, travel=enabled, attack=disabled (no enemies)
 	if not game_scenario or not actor.current_location:
 		return
 
 	var location = actor.current_location
+	var current_at := actor.player_squad.current_activity_type
 
-	view.update_activity_button(
-		"rest",
-		"Rest",
-		not location.has_activity_type(StrategyTypes.ActivityType.REST),
-		_get_activity_tooltip(StrategyTypes.ActivityType.REST),
-	)
+	view.update_resting_banner(current_at == StrategyTypes.ActivityType.REST)
 
 	view.update_activity_button(
 		"drill",
-		"Drill",
+		"Drill" + (" [ACTIVE]" if current_at == StrategyTypes.ActivityType.DRILL else ""),
 		not location.has_activity_type(StrategyTypes.ActivityType.DRILL),
 		_get_activity_tooltip(StrategyTypes.ActivityType.DRILL),
+		current_at == StrategyTypes.ActivityType.DRILL,
 	)
 
 	view.update_activity_button(
 		"patrol",
-		"Patrol",
+		"Patrol" + (" [ACTIVE]" if current_at == StrategyTypes.ActivityType.PATROL else ""),
 		not location.has_activity_type(StrategyTypes.ActivityType.PATROL),
 		_get_activity_tooltip(StrategyTypes.ActivityType.PATROL),
+		current_at == StrategyTypes.ActivityType.PATROL,
 	)
 
 	view.update_activity_button(
 		"investigate",
-		"Investigate",
+		"Investigate" + (" [ACTIVE]" if current_at == StrategyTypes.ActivityType.INVESTIGATE else ""),
 		not location.has_activity_type(StrategyTypes.ActivityType.INVESTIGATE),
 		_get_activity_tooltip(StrategyTypes.ActivityType.INVESTIGATE),
+		current_at == StrategyTypes.ActivityType.INVESTIGATE,
 	)
 
 	view.update_activity_button(
 		"hold_mass",
-		"Hold Mass",
+		"Hold Mass" + (" [ACTIVE]" if current_at == StrategyTypes.ActivityType.HOLD_MASS else ""),
 		not location.has_activity_type(StrategyTypes.ActivityType.HOLD_MASS),
 		_get_activity_tooltip(StrategyTypes.ActivityType.HOLD_MASS),
+		current_at == StrategyTypes.ActivityType.HOLD_MASS,
 	)
 
 	view.update_activity_button(
 		"travel",
-		"Travel",
+		"Travel" + (" [ACTIVE]" if current_at == StrategyTypes.ActivityType.TRAVEL else ""),
 		false,
 		"Travel to another location",
+		current_at == StrategyTypes.ActivityType.TRAVEL,
 	)
 
 	var enemies_here = game_scenario.world.get_squads_at_location(location.location_id)
@@ -978,7 +1040,7 @@ func _get_activity_tooltip(activity_type: StrategyTypes.ActivityType) -> String:
 	var activity = actor.get_activity(activity_type)
 	if not activity:
 		return "Unknown activity"
-	return "%s\n\nTime Cost: %d turn(s)" % [activity.description, activity.time_cost]
+	return activity.description
 
 
 func _get_travel_label() -> String:
@@ -991,8 +1053,96 @@ func _get_travel_label() -> String:
 
 #region Model Signal Handlers
 
-func _on_turn_advanced(turn: int) -> void:
-	view.update_turn(turn)
+func _on_hour_tick(hour: int) -> void:
+	if is_executing_activity:
+		return
+	is_executing_activity = true
+	StrategyEventBus.hour_advanced.emit(hour)
+	view.update_clock(hour)
+
+	var player_activity_type := actor.player_squad.current_activity_type
+	var activity = actor.get_activity(player_activity_type)
+	if not activity:
+		activity = actor.get_activity(StrategyTypes.ActivityType.REST)
+	assert(activity != null)
+
+	if player_activity_type == StrategyTypes.ActivityType.TRAVEL:
+		var dest = actor.walking_towards
+		if dest and dest["location"]:
+			activity = actor.create_travel_activity(dest["location"].location_id)
+		else:
+			actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
+			activity = actor.get_activity(StrategyTypes.ActivityType.REST)
+
+	_capture_stat_snapshot()
+
+	turn_log.clear()
+	var player_location_before = actor.player_squad.current_location_id
+
+	var ai_results = ai_fleet.prepare_ai_turns()
+
+	var is_new_day := (hour % 24 == 0)
+	if is_new_day:
+		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+
+	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
+	var turn_entries = _build_karma_sorted_entries(ai_results)
+
+	for entry in turn_entries:
+		if not entry["is_player"]:
+			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.HOUR_START)
+
+	for phase in ['before', 'activity', 'after']:
+		for entry in turn_entries:
+			if entry["is_player"]:
+				var results = actor["exec_%s" % phase].call(activity)
+				_pending_results.append_array(results)
+			else:
+				var executor: ActivityExecuteManager = entry["executor"]
+				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
+				_resolve_ai_combat_from_results(results, entry["squad_id"])
+
+	ai_fleet.cleanup_defeated_squads()
+	turn_log.append_array(ai_fleet.combat_log)
+	ai_fleet.combat_log.clear()
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
+
+	var contact_result = contact_orch.update(
+		game_scenario.world,
+		actor.player_squad,
+		actor.walking_towards,
+		ai_fleet,
+		activity,
+		player_location_before,
+		contact_before_states,
+		_notification_collector,
+		squad_names_cache,
+	)
+
+	var player_engagements: Array[Dictionary] = contact_result["engagements"]
+	for engagement in player_engagements:
+		game_clock.pause()
+		await _handle_player_engagement(engagement)
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
+
+	if actor.player_squad.current_location_id not in visited_locations:
+		visited_locations.append(actor.player_squad.current_location_id)
+
+	_pending_results.clear()
+	is_executing_activity = false
+	_update_ui()
+	_animate_stat_changes()
+
+
+func _on_hour_advanced(hour: int) -> void:
+	view.update_clock(hour)
 
 #endregion
 

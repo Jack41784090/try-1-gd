@@ -31,6 +31,7 @@ extends Control
 @onready var scouting_view: ScoutingView = $ScoutingView
 @onready var missions_view: MissionsView = $MissionsView
 @onready var market_view: MarketView = $MarketView
+@onready var resting_banner: CenterContainer = $PanelContainer/MainVBox/MainScreenArea/RestingBanner
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
@@ -85,9 +86,17 @@ func _ready() -> void:
 	for child in _contact_bars_container.get_children():
 		_contact_bars.append(child as ContactMiniBar)
 		child.visible = false
+	rest_button.visible = false
 	_connect_signals()
 	_register_button_animations()
 	presenter.bind_view(self)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_SPACE:
+			presenter.on_pause_toggle()
+			get_viewport().set_input_as_handled()
 
 #endregion
 
@@ -95,15 +104,17 @@ func _ready() -> void:
 
 func _register_button_animations() -> void:
 	var action_btns: Array[Button] = [
-		rest_button, drill_button, patrol_button, investigate_button,
+		drill_button, patrol_button, investigate_button,
 		hold_mass_button, travel_button, attack_button, manage_squad_button,
 		recruit_button, shop_button
 	]
 	for btn in action_btns:
+		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
 
 	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button, market_button]
 	for btn in nav_btns:
+		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
 
 	combat_ui.register_button_animations()
@@ -113,7 +124,6 @@ func _register_button_animations() -> void:
 #region Signal Wiring
 
 func _connect_signals() -> void:
-	rest_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.REST))
 	drill_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.DRILL))
 	patrol_button.pressed.connect(func(): presenter.on_activity_requested(StrategyTypes.ActivityType.PATROL))
 	investigate_button.pressed.connect(func(): presenter.on_investigate_requested())
@@ -182,8 +192,23 @@ func _connect_signals() -> void:
 
 #region Display Updates
 
-func update_turn(turn: int) -> void:
-	turn_label.text = "Turn %d" % turn
+func update_clock(hour: int) -> void:
+	var day := hour / 24 + 1
+	var hour_of_day := hour % 24
+	turn_label.text = "Day %d — %02d:00" % [day, hour_of_day]
+
+
+func update_pause_state(is_paused: bool) -> void:
+	if is_paused:
+		turn_label.text += " [PAUSED]"
+
+
+func update_resting_banner(is_resting: bool) -> void:
+	resting_banner.visible = is_resting and not presenter.game_scenario.world.is_paused
+
+
+func update_speed_display(speed: float) -> void:
+	pass
 
 
 func update_location(text: String) -> void:
@@ -233,15 +258,19 @@ func update_stats(money: float, food: int, karma: float, stability: float, devel
 	stat_animator.karma_label.text = "%.0f" % karma
 
 
-func update_activity_button(key: String, text: String, disabled: bool, tooltip: String) -> void:
+func update_activity_button(key: String, text: String, disabled: bool, tooltip: String, is_active: bool = false) -> void:
 	var button: Button = _get_activity_button(key)
 	if button:
+		button.text = text
 		button.disabled = disabled
 		button.tooltip_text = tooltip
+		if is_active:
+			button.modulate = Color(0.4, 1.0, 0.5, 1.0)
+		else:
+			button.modulate = Color(1, 1, 1, 1)
 
 
 func disable_all_activity_buttons() -> void:
-	rest_button.disabled = true
 	drill_button.disabled = true
 	patrol_button.disabled = true
 	investigate_button.disabled = true
@@ -274,7 +303,7 @@ func _get_activity_button(key: String) -> Button:
 func show_strategy_ui() -> void:
 	action_buttons.visible = true
 	var btns: Array[Button] = [
-		rest_button, drill_button, patrol_button, investigate_button,
+		drill_button, patrol_button, investigate_button,
 		hold_mass_button, travel_button, attack_button, manage_squad_button,
 		recruit_button, shop_button
 	]

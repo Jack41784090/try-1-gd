@@ -14,6 +14,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `ai_runner_demo.tscn` — AI squad brain decisions
   - `ai_battle_royale_demo.tscn` — fleet simulation with headless combat
   - `ai_stress_test_demo.tscn` — 13-location, 8-squad, 50-turn stress test
+  - `pause_system_test.tscn` — pause/unpause, menu auto-pause, resting banner. Headless via `--headless`
   - `squad_battle_2d_demo.tscn` — 2D WarriorRig battle with skeletal animations
   - `stage_demo.tscn` — warrior stage: rigs, march, speech bubbles, camera
   - `dialogue_demo.tscn` — dialogue system (typewriter, after_id, interrupts). Headless via `--headless`
@@ -28,6 +29,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Sound generation**: `python3 tools/sound_designer.py` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Run relevant demo tests after logic changes.
 - **AI Interactive Play** via `tools/play.sh`: start game with `bash tools/start_game.sh`, wait ~20s, then `bash tools/play.sh "command"`. GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`
+- **AI Interactive Play (GUI + screenshots)**: start with `bash tools/start_game_gui.sh` (visible window), then `bash tools/play.sh "screenshot"` saves `/tmp/condor_screenshot.png`. MCP server in `tools/mcp-screenshot/server.py` exposes `screenshot_game`, `view_screenshot`, `game_command` tools for Copilot Agent
 
 ## Architecture
 
@@ -47,15 +49,18 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
    - **Reality calculation**: Table-driven via `CombatEntity._REALITY_TABLE` — `[base, op, terms]` per Reality
    - **Forced retreat**: `order_retreat(ATTACKER)` mid-battle. Entities progress Front→Back→last stand→capitulate
 
-2. **Strategic Campaign** (`src/strategy/`)
+2. **Strategic Campaign** (`src/strategy/`) — **Hour-based real-time** with Paradox-style speed controls
    - `GameScenario` (core/scenario.gd) — main orchestrator. `_setup_economy()` auto-initializes economy for worlds with `goods`/`inventory`
-   - `World` (core/world.gd) — location graph, roaming squads, turn counter, `@export goods: Array[Thing]`, `contact_tracker`
-   - **Unified turn pipeline**: All squads karma-sorted, phases TURN_START→BEFORE→ACTIVITY→AFTER execute per-phase across all squads. Combat resolved inline
+   - `World` (core/world.gd) — location graph, roaming squads, **hour counter** (`current_hour`), `is_paused`, `speed_multiplier`, `get_day()`, `get_hour_of_day()`, `get_clock_display()`
+   - `GameClock` (core/game_clock.gd) — drives real-time hour progression. `process(delta)` accumulates time, emits `hour_ticked` signal. `pause()/unpause()/toggle_pause()/set_speed()`
+   - **Hourly tick pipeline**: `GameClock.hour_ticked` → `StrategyPresenter._on_hour_tick()` runs player's current activity + all AI squads each hour. Economy ticks every 24 hours
+   - **Activity toggle system**: Activities (REST, PATROL, DRILL, etc.) are persistent state on `SquadData.current_activity_type`. Player toggles, clock runs automatically. Active button shows `[ACTIVE]` text + green modulate tint. REST is default (no REST button — RESTING banner shown instead). SPACE key toggles pause (via `_input`, not `_unhandled_input`, to prevent button re-activation). Selecting an activity does NOT auto-unpause — only explicit SPACE toggle unpauses
+   - **Menu auto-pause**: Opening any menu (travel, recruit, manage squad, shop, investigate, scouting, missions, market) auto-pauses the game clock. Closing a menu does NOT auto-unpause — game stays paused until explicit SPACE toggle
    - `ActivityExecuteManager` (ui/actor/!main.gd) — shared execution with `exec_before/activity/after()`. AI executors (`_IS_AI=true`) skip triggerables
    - **Activity Strategy Pattern** (`core/activity/`): `ActivityHandler` base → `ActivityRegistry` maps ActivityType→handler. 10 handlers + 5 pass-through types
    - **Triggerable system** (`core/triggerable/`): unified base for GameEvent, Mission, Ending. `TriggerableManager` with `triggerable_fired` signal, `get_triggerables_triggered()`
    - **Mission system**: `Faction.check_mission_completions(context)` → unlocks postrequisites. `StrategyPresenter._check_missions()` after GAME_START and each turn
-   - **Travel time**: `TownConnection.travel_time` (@export int) per hop. ROAD bonuses (-1), stability penalties (+1). `TravelGraph.calculate_travel_time(path)` sums hops
+   - **Travel system**: km-based distances with speed-dependent travel. `TownConnection.distance_km` per edge, `EntityClasses.SPEED_TABLE` (km/h per class), `SquadData.get_speed_kmh()` (slowest warrior, ×0.5 for caravan). `travel_progress_km`, `travel_route`, `travel_segment_index` on SquadData. `TravelGraph` uses distance-weighted A*
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
    - `CombatBridge` (!main.gd) — stateless strategic↔tactical data translation. CAPITULATE → `is_injured=true`
