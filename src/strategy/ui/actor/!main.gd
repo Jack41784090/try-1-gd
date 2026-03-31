@@ -138,7 +138,7 @@ func _build_context(activity: Activity = null) -> Dictionary:
 		"prev_location": previous_location,
 		"next_location": next_location,
 		"is_location_changing": is_location_changing,
-		"turn": world.turn_count,
+		"turn": world.current_hour,
 		"completed_missions": completed_mission_ids,
 	}
 	if _IS_AI:
@@ -187,7 +187,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	#       when = AFTER_ACTIVITY
 	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[when])
 	# 1. Create a filter that only matches GameEvents scheduled for this timing
-	# e.g., GameEvent("Ambush", when=AFTER_ACTIVITY) passes, GameEvent("Dawn", when=TURN_START) is skipped
+	# e.g., GameEvent("Ambush", when=AFTER_ACTIVITY) passes, GameEvent("Dawn", when=HOUR_START) is skipped
 	var when_filter = func(t: Triggerable) -> bool:
 		return t is GameEvent and (t as GameEvent).when_to_trigger == when
 

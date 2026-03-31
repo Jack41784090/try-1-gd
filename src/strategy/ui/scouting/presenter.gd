@@ -159,7 +159,7 @@ func _get_destination_intel(contact, target_squad: SquadData) -> Dictionary:
 	var displayed_dest := actual_dest
 	if not is_locked and progress < 60.0:
 		var wrong_chance := clampf((1.0 - (progress - 30.0) / 30.0) * 0.8, 0.0, 0.8)
-		var seed_val := hash(contact.observer_id + contact.target_id + str(_world.turn_count))
+		var seed_val := hash(contact.observer_id + contact.target_id + str(_world.current_hour))
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_val
 		if rng.randf() < wrong_chance:
@@ -168,10 +168,11 @@ func _get_destination_intel(contact, target_squad: SquadData) -> Dictionary:
 	var result := {"destination": displayed_dest}
 
 	if is_locked and _world and _world.travel_graph:
-		var travel_time := _world.travel_graph.calculate_travel_time_between(
+		var distance_km := _world.travel_graph.calculate_distance_km_between(
 			target_squad.current_location_id, actual_dest)
-		if travel_time >= 0:
-			result["turns_remaining"] = travel_time
+		if distance_km >= 0:
+			var speed := target_squad.get_speed_kmh()
+			result["estimated_hours"] = ceili(distance_km / maxf(speed, 0.1))
 
 	var loc := _world.get_location_by_id(displayed_dest) if _world else null
 	result["destination_name"] = loc.location_name if loc else displayed_dest

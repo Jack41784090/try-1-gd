@@ -40,6 +40,9 @@ func modify_morale(amount: float) -> void:
 func get_morale() -> float:
 	return morale
 
+func get_speed_kmh() -> float:
+	return EntityClasses.SPEED_TABLE.get(class_id, 5.0)
+
 func check_religion(religion_type: StrategyTypes.Religion) -> bool:
 	return religion == religion_type
 

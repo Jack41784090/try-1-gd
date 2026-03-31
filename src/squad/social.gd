@@ -16,6 +16,10 @@ var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
 var cargo: CargoManifest = CargoManifest.new()
 var scouting_focus = null
 var inventory = load("res://src/strategy/core/inventory.gd").new()
+var current_activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.REST
+var travel_progress_km: float = 0.0
+var travel_route: Array[String] = []
+var travel_segment_index: int = 0
 
 var aggregate_morale: float:
 	get:
@@ -235,7 +239,7 @@ func get_coordination() -> float:
 	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
 
 
-func attempt_stealth_return_failed(location: Location, destination_id: String, current_turn: int) -> Array[Warrior]:
+func attempt_stealth_return_failed(location: Location, destination_id: String, current_hour: int) -> Array[Warrior]:
 	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
 	# Used when traveling to determine if enemies can track this squad's movement
 	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
@@ -283,3 +287,25 @@ func has_reached_destination() -> bool:
 
 func get_location_id() -> String:
 	return current_location_id
+
+
+func get_speed_kmh() -> float:
+	var living := get_living_warriors()
+	if living.is_empty():
+		return 0.0
+	var min_speed := INF
+	for warrior in living:
+		min_speed = min(min_speed, warrior.get_speed_kmh())
+	if is_caravan():
+		min_speed *= 0.5
+	return min_speed
+
+
+func is_traveling() -> bool:
+	return not travel_route.is_empty()
+
+
+func clear_travel() -> void:
+	travel_route.clear()
+	travel_segment_index = 0
+	travel_progress_km = 0.0

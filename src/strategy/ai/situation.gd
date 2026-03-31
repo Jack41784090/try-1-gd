@@ -218,13 +218,13 @@ func _find_clue_destination() -> String:
 	# Finds the destination from the freshest active clue at the current location
 	# Clues are left by events/results and point toward enemy activity
 	# e.g., location has clues: [Clue(dest="linz", turn=3), Clue(dest="vienna", turn=5)] → returns "vienna" (freshest)
-	var active_clues = location.get_active_clues(world.turn_count)
+	var active_clues = location.get_active_clues(world.current_hour)
 	if active_clues.is_empty():
 		return ""
 
 	var freshest = active_clues[0]
 	for clue in active_clues:
-		if clue.created_turn > freshest.created_turn:
+		if clue.created_hour > freshest.created_hour:
 			freshest = clue
 
 	return freshest.destination_id

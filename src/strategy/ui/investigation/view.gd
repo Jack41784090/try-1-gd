@@ -51,8 +51,8 @@ func _update_clues_list() -> void:
 	
 	title_label.text = "Investigating: %s" % current_location.location_name
 	
-	var current_turn = actor.aem.world.turn_count
-	var active_clues = current_location.get_active_clues(current_turn)
+	var current_hour = actor.aem.world.current_hour
+	var active_clues = current_location.get_active_clues(current_hour)
 	
 	if active_clues.is_empty():
 		_show_no_clues_message("No clues found at this location")
@@ -69,7 +69,7 @@ func _update_clues_list() -> void:
 			break
 		if randf() <= detection_chance:
 			var squad_name := _get_squad_name(clue.left_by_squad_id) if not clue.left_by_squad_id.is_empty() else ""
-			_clue_items[slot_index].populate(clue, perception_roll, current_turn, squad_name)
+			_clue_items[slot_index].populate(clue, perception_roll, current_hour, squad_name)
 			slot_index += 1
 
 func _calculate_perception_roll() -> int:

@@ -3,7 +3,7 @@ extends Node
 
 var is_executing_activity = false
 var aem: ActivityExecuteManager
-var turn_count: int = 0
+var hour_count: int = 0
 
 @onready var player_squad: SquadData:
 	set(_ps):
@@ -77,7 +77,7 @@ func embark_new_journey(towards: Location):
 
 
 func get_distance(current_id, location_id):
-	return aem.scenario.world.travel_graph.calculate_travel_time_between(current_id, location_id)
+	return aem.scenario.world.travel_graph.calculate_distance_km_between(current_id, location_id)
 
 
 func get_location_by_id(location_id):
@@ -136,10 +136,10 @@ func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	return res
 
 
-func advance_turn() -> void:
-	turn_count += 1
-	aem.scenario.world.turn_count = turn_count
-	StrategyEventBus.turn_advanced.emit(turn_count)
+func advance_hour() -> void:
+	hour_count += 1
+	aem.scenario.world.current_hour = hour_count
+	StrategyEventBus.hour_advanced.emit(hour_count)
 
 
 func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
@@ -150,55 +150,82 @@ func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:
 
 
 func create_travel_activity(location_id: String) -> Activity:
-	# Creates/configures a TRAVEL activity for a specific destination
-	# Manages multi-turn travel: tracks walking_towards destination and progress
-	# Three cases:
-	#   1. New journey: sets walking_towards, no location change yet (progress=0)
-	#   2. Continue: increments progress, checks if arrived (progress >= distance)
-	#   3. Destination change: resets progress (TODO: not fully implemented)
-	# e.g., travel to "vienna" from "salzburg" (distance=3):
-	#   Turn 1: walking_towards={vienna, progress=0}, location_changed="" (still at salzburg)
-	#   Turn 2: continue, progress=1, location_changed="" (still en route)
-	#   Turn 3: continue, progress=2, progress >= 3? no. progress=2
-	#   Turn 4: continue, progress=3, progress >= 3? yes! location_changed="vienna", walking_towards=null
 	var activity = get_activity(StrategyTypes.ActivityType.TRAVEL)
 	activity.destination_id = location_id
-
 	activity.trigger_id = "travel-to-%s" % location_id
 	activity.trigger_name = "Travel"
 	activity.description = "Travel to another location"
 	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
 	activity.time_cost = 1
 
-	# # Create result with travel costs - morale decreases, travel tools consumed
 	var travel_result = ActivityResult.new({ "location_changed": location_id })
 	travel_result.event_chain_path = "empty"
 
-	# # Travel costs: morale penalty and travel tools consumption
-	# # These can be modified based on distance, terrain, etc.
-	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.MORALE] = -5.0
-	# travel_result.squad_stat_changes[StrategyTypes.SquadProperty.AMMO_SUPPLIES] = -1.0 # travel_tools
+	var squad := player_squad
+	var from_id: String = squad.current_location_id
+	var path: Array = aem.scenario.world.travel_graph.find_path(from_id, location_id)
+
+	if path.size() < 2:
+		activity.result.location_changed = location_id
+		squad.set_location(location_id)
+		return activity
 
 	var walking_towards_location = walking_towards["location"]
-	if walking_towards_location == null: # if we are not already travelling
-		walking_towards = location_id # set to { "location": confirmed_location_id, "progress": 0 } by setters
-		activity.result.location_changed = "" # no location change yet, just starting journey
-		Log.debug("Runner", "New journey to %s from %s (progress=0)" % [location_id, current_location.location_id if current_location else "null"])
+	if walking_towards_location == null:
+		var route: Array[String] = []
+		for p in path:
+			route.append(p)
+		squad.travel_route = route
+		squad.travel_segment_index = 0
+		squad.travel_progress_km = 0.0
+		squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
+		walking_towards = location_id
+		activity.result.location_changed = ""
+		Log.debug("Runner", "New journey to %s from %s (route: %s)" % [location_id, from_id, route])
 	elif location_id == walking_towards_location.location_id:
-		Log.debug("Runner", "Continuing down the path towards intended location")
-		(current_location as Location).type = StrategyTypes.LocationType.ROAD # temporarily set current location to road to allow travel between towns
-		walking_towards = location_id # Assigning the same location will increment progres by 1, refer to setter
-		var dist = get_distance(current_location, walking_towards_location)
-		Log.debug("Runner", "Travel progress: %d / %d (from %s to %s)" % [travel_progress, dist, current_location.location_id, walking_towards_location.location_id])
-		if travel_progress >= dist:
-			Log.debug("Runner", "Arrived at destination: %s" % location_id)
-			current_location = walking_towards_location
-			walking_towards = null
-			activity.result.location_changed = location_id # signal arrival to _execute_travel
-		else:
-			activity.result.location_changed = "" # no location change yet
-	else:
-		Log.debug("Runner", "Changing destination") # TODO
+		Log.debug("Runner", "Continuing journey towards %s (progress: %.1f km, segment: %d)" % [location_id, squad.travel_progress_km, squad.travel_segment_index])
+		var speed := squad.get_speed_kmh()
+		squad.travel_progress_km += speed
 
-	# activity.result = travel_result
+		var current_seg_from := squad.travel_route[squad.travel_segment_index]
+		var current_seg_to := squad.travel_route[squad.travel_segment_index + 1]
+		var seg_dist := aem.scenario.world.travel_graph.calculate_distance_km_between(current_seg_from, current_seg_to)
+
+		while squad.travel_progress_km >= seg_dist and squad.travel_segment_index < squad.travel_route.size() - 2:
+			squad.travel_progress_km -= seg_dist
+			squad.travel_segment_index += 1
+			var arrived_at := squad.travel_route[squad.travel_segment_index]
+			squad.set_location(arrived_at)
+			current_location = arrived_at
+			Log.debug("Runner", "Reached waypoint: %s" % arrived_at)
+
+			if squad.travel_segment_index < squad.travel_route.size() - 1:
+				current_seg_from = squad.travel_route[squad.travel_segment_index]
+				current_seg_to = squad.travel_route[squad.travel_segment_index + 1]
+				seg_dist = aem.scenario.world.travel_graph.calculate_distance_km_between(current_seg_from, current_seg_to)
+			else:
+				break
+
+		if squad.travel_segment_index >= squad.travel_route.size() - 2 and squad.travel_progress_km >= seg_dist:
+			var final_dest := squad.travel_route[squad.travel_route.size() - 1]
+			squad.set_location(final_dest)
+			current_location = final_dest
+			walking_towards = null
+			squad.clear_travel()
+			activity.result.location_changed = final_dest
+			Log.debug("Runner", "Arrived at final destination: %s" % final_dest)
+		else:
+			activity.result.location_changed = ""
+	else:
+		Log.debug("Runner", "Changing destination to %s" % location_id)
+		var route: Array[String] = []
+		for p in path:
+			route.append(p)
+		squad.travel_route = route
+		squad.travel_segment_index = 0
+		squad.travel_progress_km = 0.0
+		squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
+		walking_towards = location_id
+		activity.result.location_changed = ""
+
 	return activity

@@ -16,19 +16,19 @@
 script = ExtResource("2_conn")
 from_location_id = "schwaebisch_hall"
 to_location_id = "oehringen"
-travel_time = 3
+distance_km = 35.0
 
 [sub_resource type="Resource" id="conn_schwaebisch_hall_to_heilbronn"]
 script = ExtResource("2_conn")
 from_location_id = "schwaebisch_hall"
 to_location_id = "heilbronn"
-travel_time = 2
+distance_km = 60.0
 
 [sub_resource type="Resource" id="conn_schwaebisch_hall_to_frankenhoehe"]
 script = ExtResource("2_conn")
 from_location_id = "schwaebisch_hall"
 to_location_id = "frankenhoehe"
-travel_time = 2
+distance_km = 55.0
 
 [sub_resource type="Resource" id="conns_schwaebisch_hall"]
 script = ExtResource("3_conns")

@@ -15,7 +15,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 		StrategyTypes.Religion.CATHOLIC,
 		EntityBaseStats.new(),
 	)
-	new_warrior.name = "Recruit_%d" % world.turn_count
+	new_warrior.name = "Recruit_%d" % world.current_hour
 
 	Log.info("RecruitHandler", "Recruited new warrior: %s" % new_warrior.name)
 	result.append_new_recruits([new_warrior])

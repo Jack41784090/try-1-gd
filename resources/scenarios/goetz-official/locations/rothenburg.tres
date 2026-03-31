@@ -17,13 +17,13 @@
 script = ExtResource("2_conn")
 from_location_id = "rothenburg"
 to_location_id = "frankenhoehe"
-travel_time = 2
+distance_km = 25.0
 
 [sub_resource type="Resource" id="conn_rothenburg_to_altdorf"]
 script = ExtResource("2_conn")
 from_location_id = "rothenburg"
 to_location_id = "altdorf"
-travel_time = 2
+distance_km = 80.0
 
 [sub_resource type="Resource" id="conns_rothenburg"]
 script = ExtResource("3_conns")

@@ -390,7 +390,7 @@ func _generate_loot(enemy_squad: SquadData) -> Dictionary:
 var _CHANCE = 1
 
 
-func _generate_enemy_clues(enemy_squad: SquadData, current_turn: int = 0) -> Array[Clue]:
+func _generate_enemy_clues(enemy_squad: SquadData, current_hour: int = 0) -> Array[Clue]:
 	# Generates intelligence clues from the enemy squad after combat
 	# Each clue reveals enemy movements (their current_location_id as destination)
 	# e.g., "Raiders" at "linz" with 2 warriors → creates 2 clues pointing to "linz"
@@ -403,7 +403,7 @@ func _generate_enemy_clues(enemy_squad: SquadData, current_turn: int = 0) -> Arr
 				Clue.get_random_clue_name(warrior.religion),
 				enemy_squad.squad_id,
 				warrior.id,
-				current_turn,
+				current_hour,
 				3, # stealth_failure_margin (detail level)
 				enemy_squad.current_location_id, # destination
 			)

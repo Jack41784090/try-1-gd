@@ -13,13 +13,13 @@
 script = ExtResource("2_conn")
 from_location_id = "neckartal"
 to_location_id = "hornberg_castle"
-travel_time = 2
+distance_km = 20.0
 
 [sub_resource type="Resource" id="conn_neckartal_to_oehringen"]
 script = ExtResource("2_conn")
 from_location_id = "neckartal"
 to_location_id = "oehringen"
-travel_time = 2
+distance_km = 40.0
 
 [sub_resource type="Resource" id="conns_neckartal"]
 script = ExtResource("3_conns")

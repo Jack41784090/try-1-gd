@@ -226,7 +226,7 @@ func _capture_notifications(phase: String) -> void:
 		descs.append("[%s] %s" % [type_name, n.title])
 	_notification_log.append({
 		"phase": phase,
-		"turn": presenter.game_scenario.world.turn_count,
+		"turn": presenter.game_scenario.world.current_hour,
 		"notifications": descs,
 		"raw": notifs.duplicate(),
 	})

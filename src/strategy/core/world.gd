@@ -10,12 +10,23 @@ class_name World
 	"earth": 0.0
 }
 @export var locations: Array[Location] = []
-@export var turn_count: int = 0
+@export var current_hour: int = 0
+@export var is_paused: bool = true
+@export var speed_multiplier: float = 1.0
 @export var roaming_squads: Array[SquadData] = []
 @export var map_scene: PackedScene
 @export var goods: Array[Thing] = []
 
 var economy_engine: EconomyEngine = null
+
+func get_day() -> int:
+	return current_hour / 24 + 1
+
+func get_hour_of_day() -> int:
+	return current_hour % 24
+
+func get_clock_display() -> String:
+	return "Day %d — %02d:00" % [get_day(), get_hour_of_day()]
 
 func get_economy_locations() -> Array[Location]:
 	var result: Array[Location] = []
@@ -83,11 +94,11 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	
 	return travel_graph.find_path(from_id, to_id)
 
-func calculate_travel_time(from_id: String, to_id: String) -> int:
+func calculate_travel_hours(from_id: String, to_id: String, speed_kmh: float) -> float:
 	var path = travel_graph.find_path(from_id, to_id)
 	if path.is_empty():
-		return -1
-	return travel_graph.calculate_travel_time(path)
+		return -1.0
+	return travel_graph.calculate_travel_hours(path, speed_kmh)
 
 func get_squads_at_location(location_id: String) -> Array[SquadData]:
 	var squads_at_loc: Array[SquadData] = []
@@ -163,14 +174,14 @@ func save_state() -> Dictionary:
 	return {
 		"end_progression": end_progression,
 		"global_modifiers": global_modifiers,
-		"turn_count": turn_count,
+		"current_hour": current_hour,
 		"locations": location_data
 	}
 
 func load_state(data: Dictionary) -> void:
 	end_progression = data.get("end_progression", 0.0)
 	global_modifiers = data.get("global_modifiers", global_modifiers)
-	turn_count = data.get("turn_count", 0)
+	current_hour = data.get("current_hour", 0)
 	
 	locations.clear()
 	var location_data = data.get("locations", [])

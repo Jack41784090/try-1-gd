@@ -139,7 +139,7 @@ func test_load_scenario() -> bool:
 	print("    - World: %s" % game_scenario.world)
 	print("    - Player Squad: %s" % game_scenario.starting_player_squad.squad_name)
 	print("    - Starting Location: %s" % game_scenario.starting_location_id)
-	print("    - Turn: %d" % game_scenario.world.turn_count)
+	print("    - Hour: %d" % game_scenario.world.current_hour)
 	
 	return true
 

@@ -79,7 +79,7 @@ func _ready():
 
 		for entry in entries:
 			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(
-				StrategyTypes.TriggerWhen.TURN_START,
+				StrategyTypes.TriggerWhen.HOUR_START,
 			)
 
 		for phase in ['before', 'activity', 'after']:
@@ -101,7 +101,7 @@ func _ready():
 			round
 		)
 
-		scenario.world.turn_count = round
+		scenario.world.current_hour = round
 
 		Log.debug("StressTest", "--- End of Round %d ---" % round)
 		_print_squad_status()

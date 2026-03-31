@@ -20,7 +20,7 @@
 script = ExtResource("3_1wmke")
 from_location_id = "camp"
 to_location_id = "enemy_fort"
-travel_time = 2
+distance_km = 30.0
 metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
 
 [sub_resource type="Resource" id="Resource_iomub"]
@@ -55,7 +55,7 @@ shop = SubResource("Resource_w6qqo")
 script = ExtResource("3_1wmke")
 from_location_id = "enemy_fort"
 to_location_id = "camp"
-travel_time = 2
+distance_km = 30.0
 metadata/_custom_type_script = "uid://6qv6kwo7x3vm"
 
 [sub_resource type="Resource" id="Resource_33suu"]

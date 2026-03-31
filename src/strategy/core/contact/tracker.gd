@@ -65,7 +65,7 @@ func get_contacts_on(squad_id: String) -> Array:
 			result.append(c)
 	return result
 
-func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_turn: int, focus_map: Dictionary = {}) -> void:
+func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_hour: int, focus_map: Dictionary = {}) -> void:
 	for i in range(all_squads.size()):
 		var observer: SquadData = all_squads[i]
 		var observer_activity: StrategyTypes.ActivityType = activity_log.get(observer.squad_id, StrategyTypes.ActivityType.REST)
@@ -83,13 +83,13 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 			var contact = get_or_create_contact(observer.squad_id, enemy.squad_id)
 			var is_tracked = tracked_targets.has(enemy.squad_id)
 			if not is_tracked:
-				contact.apply_delta(-DECAY_RATE, current_turn)
+				contact.apply_delta(-DECAY_RATE, current_hour)
 				continue
 
 			var enemy_activity: StrategyTypes.ActivityType = activity_log.get(enemy.squad_id, StrategyTypes.ActivityType.REST)
 			var proximity = _determine_proximity(observer, enemy, world, edge_log)
 			if proximity <= 0.0:
-				contact.apply_delta(-DECAY_RATE, current_turn)
+				contact.apply_delta(-DECAY_RATE, current_hour)
 				continue
 
 			var observer_location = world.get_location_by_id(observer.current_location_id)
@@ -114,9 +114,9 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 				else:
 					rate *= (1.0 - coordination * FOCUS_PENALTY)
 
-			contact.apply_delta(rate, current_turn)
+			contact.apply_delta(rate, current_hour)
 
-	_log_contacts(current_turn)
+	_log_contacts(current_hour)
 
 
 func calculate_focus_multiplier(observer: SquadData, target: SquadData, focus) -> float:
@@ -305,12 +305,12 @@ func _get_stealth_mod(activity: StrategyTypes.ActivityType) -> float:
 	var mods = ACTIVITY_MODIFIERS.get(activity, [0.5, 0.5])
 	return mods[1]
 
-func _log_contacts(current_turn: int) -> void:
+func _log_contacts(current_hour: int) -> void:
 	for key in contacts:
 		var c = contacts[key]
 		if c.progress > 0.0:
 			Log.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
-				current_turn,
+				current_hour,
 				c.observer_id,
 				c.target_id,
 				c.progress,

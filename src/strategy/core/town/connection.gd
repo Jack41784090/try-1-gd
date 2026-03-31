@@ -2,11 +2,15 @@ class_name TownConnection extends Resource
 
 @export var from_location_id: String = ""
 @export var to_location_id: String = ""
-@export var travel_time: int = 1
+@export var distance_km: float = 10.0
 
-func _init(_from = null, _to = null, _tt = null) -> void:
-    if _from == null or _to == null or _tt == null:
+func _init(_from = null, _to = null, _dist = null) -> void:
+    if _from == null or _to == null or _dist == null:
         return
     from_location_id = _from
     to_location_id = _to
-    travel_time = _tt
+    distance_km = _dist
+
+func get_travel_hours(speed_kmh: float) -> float:
+    assert(speed_kmh > 0.0, "Speed must be positive")
+    return distance_km / speed_kmh

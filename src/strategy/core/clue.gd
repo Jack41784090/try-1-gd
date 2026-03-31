@@ -4,7 +4,7 @@ class_name Clue extends Resource
 @export var clue_name: String = ""
 @export var destination_id: String = ""
 @export var decay: int = 5
-@export var created_turn: int = 0
+@export var created_hour: int = 0
 @export var left_by_warrior_id: String = ""
 @export var left_by_squad_id: String = ""
 @export var detail_level: int = 0
@@ -14,16 +14,16 @@ func _init() -> void:
 	pass
 
 
-func is_expired(current_turn: int) -> bool:
-	return get_age(current_turn) >= decay
+func is_expired(current_hour: int) -> bool:
+	return get_age(current_hour) >= decay
 
 
-func get_age(current_turn: int) -> int:
-	return current_turn - created_turn
+func get_age(current_hour: int) -> int:
+	return current_hour - created_hour
 
 
-func get_age_description(current_turn: int) -> String:
-	var age := get_age(current_turn)
+func get_age_description(current_hour: int) -> String:
+	var age := get_age(current_hour)
 	match age:
 		0:
 			return "fresh, left within the hour"
@@ -59,16 +59,16 @@ static func create_clue(
 	clue_name_param: String,
 	squad_id: String,
 	warrior_id: String,
-	current_turn: int,
+	current_hour: int,
 	stealth_failure_margin: int,
 	destination: String = ""
 ) -> Clue:
 	var clue := Clue.new()
-	clue.clue_id = "%s_%s_%d" % [squad_id, warrior_id, current_turn]
+	clue.clue_id = "%s_%s_%d" % [squad_id, warrior_id, current_hour]
 	clue.clue_name = clue_name_param
 	clue.left_by_squad_id = squad_id
 	clue.left_by_warrior_id = warrior_id
-	clue.created_turn = current_turn
+	clue.created_hour = current_hour
 	clue.destination_id = destination
 	clue.decay = randi_range(3, 7)
 	clue.detail_level = clampi(stealth_failure_margin * 10, 0, 100)

@@ -16,7 +16,7 @@
 script = ExtResource("2_conn")
 from_location_id = "hornberg_castle"
 to_location_id = "neckartal"
-travel_time = 2
+distance_km = 20.0
 
 [sub_resource type="Resource" id="conns_hornberg_castle"]
 script = ExtResource("3_conns")

@@ -186,7 +186,7 @@ func test_clue_creation() -> void:
 	assert_equal(clue.clue_name, "Boot Prints", "clue_name set correctly")
 	assert_equal(clue.left_by_squad_id, "squad_001", "squad_id set correctly")
 	assert_equal(clue.left_by_warrior_id, "warrior_001", "warrior_id set correctly")
-	assert_equal(clue.created_turn, 5, "created_turn set correctly")
+	assert_equal(clue.created_hour, 5, "created_hour set correctly")
 	assert_equal(clue.destination_id, "moscow", "destination_id set correctly")
 	assert_true(clue.decay >= 3 and clue.decay <= 7, "decay is between 3-7")
 	assert_true(clue.detail_level >= 0 and clue.detail_level <= 100, "detail_level clamped correctly")
@@ -196,7 +196,7 @@ func test_clue_expiry() -> void:
 	start_test("Clue: is_expired() and get_age()")
 	
 	var clue = Clue.new()
-	clue.created_turn = 5
+	clue.created_hour = 5
 	clue.decay = 3
 	
 	assert_equal(clue.get_age(5), 0, "age at creation turn is 0")
@@ -209,7 +209,7 @@ func test_clue_age_description() -> void:
 	start_test("Clue: get_age_description()")
 	
 	var clue = Clue.new()
-	clue.created_turn = 0
+	clue.created_hour = 0
 	clue.decay = 10
 	
 	var desc_fresh = clue.get_age_description(0)
@@ -483,12 +483,12 @@ func test_location_get_active_clues() -> void:
 	
 	var clue1 = Clue.new()
 	clue1.clue_name = "Fresh Clue"
-	clue1.created_turn = 5
+	clue1.created_hour = 5
 	clue1.decay = 3
 	
 	var clue2 = Clue.new()
 	clue2.clue_name = "Old Clue"
-	clue2.created_turn = 0
+	clue2.created_hour = 0
 	clue2.decay = 3
 	
 	location.add_clue(clue1)
@@ -527,7 +527,7 @@ func test_location_investigate_clues() -> void:
 	
 	var clue = Clue.new()
 	clue.clue_name = "Test Clue"
-	clue.created_turn = 0
+	clue.created_hour = 0
 	clue.decay = 5
 	clue.destination_id = "moscow"
 	clue.detail_level = 50

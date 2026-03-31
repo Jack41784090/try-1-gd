@@ -5,7 +5,7 @@ var observer_id: String
 var target_id: String
 var progress: float = 0.0
 var last_delta: float = 0.0
-var last_updated_turn: int = 0
+var last_updated_hour: int = 0
 
 static func create(p_observer: String, p_target: String):
 	var ContactScript = load("res://src/strategy/core/contact/contact.gd")
@@ -23,10 +23,10 @@ func get_state() -> StrategyTypes.ContactState:
 		return StrategyTypes.ContactState.SUSPECTED
 	return StrategyTypes.ContactState.NONE
 
-func apply_delta(delta: float, current_turn: int) -> void:
+func apply_delta(delta: float, current_hour: int) -> void:
 	if delta <= 0.0: being_tracked = false
 	else: being_tracked = true
 
 	last_delta = delta
 	progress = clampf(progress + delta, 0.0, 100.0)
-	last_updated_turn = current_turn
+	last_updated_hour = current_hour

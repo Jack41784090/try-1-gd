@@ -77,15 +77,16 @@ func _restore_cached_selection() -> void:
 		current_location.location_id,
 		selected_location_id,
 	)
-	var travel_time = actor.aem.world.travel_graph.calculate_travel_time_between(
-		current_location.location_id,
-		selected_location_id,
+	var squad_speed := actor.player_squad.get_speed_kmh()
+	var travel_hours := actor.aem.world.travel_graph.calculate_travel_hours(
+		_selected_path,
+		squad_speed,
 	)
 	view.update_selected_location(
-		"Selected: %s (%d locations, %d turns)" % [
+		"Selected: %s (%.0f km, ~%.0f hours)" % [
 			location.location_name,
 			distance,
-			travel_time,
+			travel_hours,
 		],
 	)
 	view.set_confirm_visible(true)
@@ -109,27 +110,28 @@ func on_mode_toggle() -> void:
 func on_location_selected(location_id: String) -> void:
 	selected_location_id = location_id
 	var location = actor.aem.world.travel_graph.get_location(location_id)
+	_selected_path = actor.aem.world.travel_graph.find_path(
+		current_location.location_id,
+		location_id,
+	)
 	var distance = actor.aem.world.travel_graph.get_distance(
 		current_location.location_id,
 		location_id,
 	)
-	var travel_time = actor.aem.world.travel_graph.calculate_travel_time_between(
-		current_location.location_id,
-		location_id,
-	)
-	_selected_path = actor.aem.world.travel_graph.find_path(
-		current_location.location_id,
-		location_id,
+	var squad_speed := actor.player_squad.get_speed_kmh()
+	var travel_hours := actor.aem.world.travel_graph.calculate_travel_hours(
+		_selected_path,
+		squad_speed,
 	)
 	var path_typed: Array[String] = []
 	for p in _selected_path:
 		path_typed.append(p)
 	view.highlight_path_on_map(path_typed)
 	view.update_selected_location(
-		"Selected: %s (%d locations, %d turns)" % [
+		"Selected: %s (%.0f km, ~%.0f hours)" % [
 			location.location_name,
 			distance,
-			travel_time,
+			travel_hours,
 		],
 	)
 	view.set_confirm_visible(true)
@@ -208,11 +210,12 @@ func _gather_location_data() -> Array[Dictionary]:
 				var location = actor.get_location_by_id(neighbor_id)
 				if not location:
 					continue
+				var dist := actor.aem.world.travel_graph.calculate_distance_km_between(current_loc_id, neighbor_id)
 				location_data.append(
 					{
 						"location_id": neighbor_id,
 						"location": location,
-						"distance": 1,
+						"distance": dist,
 						"development": location.development,
 					},
 				)

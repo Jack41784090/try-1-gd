@@ -49,13 +49,13 @@ func update(
 		focus_map[player.squad_id] = player.scouting_focus
 
 	var before_states: Dictionary = pre_states if not pre_states.is_empty() else snapshot_states(tracker, player.squad_id)
-	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.turn_count, focus_map)
+	tracker.update_all_contacts(world, all_squads, activity_log, edge_log, world.current_hour, focus_map)
 	var after_states := snapshot_states(tracker, player.squad_id)
-	notification_collector.collect_contact_notifications(before_states, after_states, world, player.squad_id, world.turn_count, squad_names)
+	notification_collector.collect_contact_notifications(before_states, after_states, world, player.squad_id, world.current_hour, squad_names)
 
 	var location = world.get_location_by_id(player.current_location_id)
 	if location:
-		var active_clues = location.get_active_clues(world.turn_count)
+		var active_clues = location.get_active_clues(world.current_hour)
 		for clue in active_clues:
 			for enemy in world.roaming_squads:
 				if clue.left_by_squad_id == enemy.squad_id:

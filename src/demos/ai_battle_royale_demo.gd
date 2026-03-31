@@ -12,7 +12,7 @@ extends Node
 ##   4. Contact tracking (ContactTracker.update_all_contacts)
 ##   5. Commit AI decisions (AIFleetManager)
 ##   6. Engagement detection & headless combat
-##   7. Advance turn (StrategyEventBus.turn_advanced)
+##   7. Advance turn (StrategyEventBus.hour_advanced)
 
 const SCENARIO_PATH := "res://resources/scenarios/combat-test/combat-test-scenario.tres"
 const MAX_ROUNDS = 20
@@ -84,7 +84,7 @@ func _initialize():
 
 #endregion
 
-#region Turn Pipeline (mirrors _execute_activity_obj)
+#region Hour Pipeline (mirrors _execute_activity_obj)
 
 func _run_simulation():
 	var round_num = 0
@@ -95,13 +95,13 @@ func _run_simulation():
 			_count_living_squads(),
 		])
 
-		await _execute_one_turn()
+		await _execute_one_hour()
 		_print_all_squads()
 
 		await get_tree().create_timer(0.3).timeout
 
 
-func _execute_one_turn():
+func _execute_one_hour():
 	var directive = FactionDirective.create_none()
 	var decision = player_brain.decide(
 		scenario.world,
@@ -137,10 +137,10 @@ func _execute_one_turn():
 
 	for entry in turn_entries:
 		if entry["is_player"]:
-			actor.exec_at(StrategyTypes.TriggerWhen.TURN_START)
+			actor.exec_at(StrategyTypes.TriggerWhen.HOUR_START)
 		else:
 			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(
-				StrategyTypes.TriggerWhen.TURN_START,
+				StrategyTypes.TriggerWhen.HOUR_START,
 			)
 
 	for phase in ['before', 'activity', 'after']:
@@ -159,8 +159,8 @@ func _execute_one_turn():
 	ai_fleet.cleanup_defeated_squads()
 	_update_contacts(activity, player_loc_before)
 
-	actor.advance_turn()
-	scenario.world.turn_count += 1
+	actor.advance_hour()
+	scenario.world.current_hour += 1
 
 	player_squad.consume_supplies_by_demand()
 
@@ -251,14 +251,14 @@ func _update_contacts(
 		all_squads,
 		activity_log,
 		edge_log,
-		world.turn_count,
+		world.current_hour,
 	)
 
 	var location = world.get_location_by_id(
 		player_squad.current_location_id,
 	)
 	if location:
-		var clues = location.get_active_clues(world.turn_count)
+		var clues = location.get_active_clues(world.current_hour)
 		for clue in clues:
 			for enemy in world.roaming_squads:
 				if clue.left_by_squad_id == enemy.squad_id:
@@ -444,7 +444,7 @@ func _print_all_squads():
 
 
 func _print_final_results():
-	Log.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Turn %d ===" % scenario.world.turn_count)
+	Log.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Hour %d ===" % scenario.world.current_hour)
 
 	var survivors: Array[SquadData] = []
 	if player_squad.get_living_warriors().size() > 0:

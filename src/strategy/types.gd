@@ -43,7 +43,7 @@ enum TriggerWhen {
 	BEFORE_ACTIVITY,
 	AFTER_ACTIVITY,
 	GAME_START,
-	TURN_START,
+	HOUR_START,
 }
 
 enum LogicalOperator {

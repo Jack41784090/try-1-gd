@@ -27,7 +27,7 @@ static var DEFAULT_DEMO_VALUES: Dictionary = {
 		"starting_location_id": "test_city"
 	},
 	"world": {
-		"turn_count": 0,
+		"current_hour": 0,
 		"end_progression": 0.0
 	}
 }
@@ -48,7 +48,7 @@ static func create_demo_scenario(demo_values: Dictionary = {}) -> GameScenario:
 static func _create_demo_world(demo_values: Dictionary) -> World:
 	var world_values = demo_values["world"]
 	var locations = _create_demo_locations(demo_values)
-	return _create_world(world_values["turn_count"], world_values["end_progression"], locations)
+	return _create_world(world_values["current_hour"], world_values["end_progression"], locations)
 
 static func _create_demo_locations(demo_values: Dictionary) -> Array[Location]:
 	var city_values = demo_values["city"]
@@ -148,12 +148,13 @@ static func _create_locations_with_connections(location_configs: Array[Dictionar
 			var from_location = locations.filter(func(loc): return loc.location_id == from_id)
 			var to_location = locations.filter(func(loc): return loc.location_id == to_id)
 			if from_location.size() > 0 and to_location.size() > 0:
-				from_location[0].add_connection(to_id, 1)
+				var dist: float = connection[2] if connection.size() >= 3 else 30.0
+				from_location[0].add_connection(to_id, dist)
 	return locations
 
-static func _create_world(turn_count: int, end_progression: float, locations: Array[Location]) -> World:
+static func _create_world(start_hour: int, end_progression: float, locations: Array[Location]) -> World:
 	var world = World.new()
-	world.turn_count = turn_count
+	world.current_hour = start_hour
 	world.end_progression = end_progression
 
 	for location in locations:
