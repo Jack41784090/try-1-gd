@@ -24,6 +24,24 @@ const BONE_DISPLAY_SIZES: Dictionary = {
 	"RightFoot": Vector2(24, 12),
 }
 
+const BONE_OFFSETS: Dictionary = {
+	"Head": Vector2(0, -4),
+	"Torso": Vector2(0, 10),
+	"Hips": Vector2(0, -2),
+	"LeftArm": Vector2(0, 9),
+	"LeftForearm": Vector2(0, 6),
+	"LeftHand": Vector2(0, 3),
+	"RightArm": Vector2(0, 9),
+	"RightForearm": Vector2(0, 6),
+	"RightHand": Vector2(0, 3),
+	"LeftLeg": Vector2(0, 12),
+	"LeftShin": Vector2(0, 9),
+	"LeftFoot": Vector2(2, 3),
+	"RightLeg": Vector2(0, 12),
+	"RightShin": Vector2(0, 9),
+	"RightFoot": Vector2(2, 3),
+}
+
 var class_id: EntityClasses.Types
 var character_id: String = ""
 var facing: int = 1
@@ -125,6 +143,9 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 		var tex_size := Vector2(texture.get_width(), texture.get_height())
 		display_scale = Vector2(target_size.x / tex_size.x, target_size.y / tex_size.y)
 		sprite.scale = display_scale
+	if BONE_OFFSETS.has(bone_name):
+		var world_offset: Vector2 = BONE_OFFSETS[bone_name]
+		sprite.offset = world_offset / display_scale
 	add_child(sprite)
 	_limb_nodes[bone_name] = [sprite]
 	_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
@@ -133,25 +154,25 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 
 func _build_placeholder_body() -> void:
 	var p := _get_class_palette()
-
-	_add_part("LeftLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
-	_add_part("LeftShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
-	_add_part("LeftFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
-	_add_part("RightLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
-	_add_part("RightShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
-	_add_part("RightFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
-
-	_add_part("Hips", _make_rect(Vector2(0, -2), 20, 6), p.hips)
-	_add_part("Torso", _make_rect(Vector2(0, 10), 24, 22), p.torso)
-	_add_part("Torso", _make_rect(Vector2(0, -2), 20, 6), p.torso_accent)
-
+	## Z-order: back-to-front for side-facing character
+	# Far arm (behind body)
 	_add_part("LeftArm", _make_rect(Vector2(0, 9), 7, 18), p.arms)
 	_add_part("LeftForearm", _make_rect(Vector2(0, 6), 6, 13), p.arms)
 	_add_part("LeftHand", _make_circle(Vector2(0, 3), 4), SKIN_COLOR)
-	_add_part("RightArm", _make_rect(Vector2(0, 9), 7, 18), p.arms)
-	_add_part("RightForearm", _make_rect(Vector2(0, 6), 6, 13), p.arms)
-	_add_part("RightHand", _make_circle(Vector2(0, 3), 4), SKIN_COLOR)
-
+	# Far leg
+	_add_part("LeftLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
+	_add_part("LeftShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
+	_add_part("LeftFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
+	# Hips
+	_add_part("Hips", _make_rect(Vector2(0, -2), 20, 6), p.hips)
+	# Near leg (in front of hips)
+	_add_part("RightLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
+	_add_part("RightShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
+	_add_part("RightFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
+	# Torso (on top of legs)
+	_add_part("Torso", _make_rect(Vector2(0, 10), 24, 22), p.torso)
+	_add_part("Torso", _make_rect(Vector2(0, -2), 20, 6), p.torso_accent)
+	# Head
 	_add_part("Head", _make_oval(Vector2(0, -4), 11, 13), SKIN_COLOR)
 	_add_part("Head", _make_oval(Vector2(0, -12), 12, 6), HAIR_COLOR)
 	_add_part("Head", _make_circle(Vector2(-4, -5), 2.5), EYE_WHITE)
@@ -159,6 +180,10 @@ func _build_placeholder_body() -> void:
 	_add_part("Head", _make_circle(Vector2(-4, -5), 1.2), EYE_PUPIL)
 	_add_part("Head", _make_circle(Vector2(4, -5), 1.2), EYE_PUPIL)
 	_add_part("Head", _make_rect(Vector2(0, 2), 5, 1.5), MOUTH_COLOR)
+	# Near arm (on top of everything)
+	_add_part("RightArm", _make_rect(Vector2(0, 9), 7, 18), p.arms)
+	_add_part("RightForearm", _make_rect(Vector2(0, 6), 6, 13), p.arms)
+	_add_part("RightHand", _make_circle(Vector2(0, 3), 4), SKIN_COLOR)
 
 func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) -> void:
 	var bone := _find_bone_recursive(skeleton, bone_name)

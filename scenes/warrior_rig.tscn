@@ -452,10 +452,6 @@ rest = Transform2D(1, 0, 0, 1, 0, -20)
 position = Vector2(0, -25)
 rest = Transform2D(1, 0, 0, 1, 0, -25)
 
-[node name="TorsoSprite" type="Sprite2D" parent="Skeleton2D/Root/Hips/Torso"]
-position = Vector2(0, -10)
-scale = Vector2(0.4, 0.5)
-
 [node name="LeftArm" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso"]
 position = Vector2(-15, -5)
 rest = Transform2D(1, 0, 0, 1, -15, -5)
