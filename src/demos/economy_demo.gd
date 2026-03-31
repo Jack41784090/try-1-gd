@@ -90,10 +90,10 @@ func _setup_farmstead() -> void:
 	loc.inventory.init_thing(wool, 20.0)
 	loc.inventory.init_thing(iron_ore, 10.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("farmstead_harvest", food, 250.0),
-		SupplyRule.create_extract("farmstead_shearing", wool, 80.0),
-		SupplyRule.create_extract("farmstead_mining", iron_ore, 40.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 250.0),
+		NaturalResource.create(wool, 80.0),
+		NaturalResource.create(iron_ore, 40.0),
 	]
 
 	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires) - food+wool+iron" % loc.population.size())
@@ -120,13 +120,10 @@ func _setup_market_town() -> void:
 	loc.inventory.init_thing(tools, 5.0)
 	loc.inventory.init_thing(luxury, 2.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_import("town_import_food", food, "farmstead", 100.0),
-		SupplyRule.create_import("town_import_wool", wool, "farmstead", 60.0),
-		SupplyRule.create_import("town_import_iron", iron_ore, "farmstead", 30.0),
-		SupplyRule.create_craft("town_weaving", cloth, 15.0),
-		SupplyRule.create_craft("town_toolsmith", tools, 25.0),
-		SupplyRule.create_craft("town_luxuries", luxury, 20.0),
+	loc.natural_resources = [
+		NaturalResource.create_craft(cloth, 15.0),
+		NaturalResource.create_craft(tools, 25.0),
+		NaturalResource.create_craft(luxury, 20.0),
 	]
 
 	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - crafts" % loc.population.size())
@@ -147,13 +144,7 @@ func _setup_castle() -> void:
 	loc.inventory.init_thing(tools, 2.0)
 	loc.inventory.init_thing(luxury, 1.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_import("castle_import_food", food, "market_town", 20.0),
-		SupplyRule.create_import("castle_direct_food", food, "farmstead", 40.0, 1),
-		SupplyRule.create_import("castle_import_cloth", cloth, "market_town", 15.0),
-		SupplyRule.create_import("castle_import_tools", tools, "market_town", 10.0),
-		SupplyRule.create_import("castle_import_luxury", luxury, "market_town", 10.0),
-	]
+	loc.natural_resources = []
 
 	Log.info("EconDemo", "Castle: %d people (10 servants, 5 barons)" % loc.population.size())
 

@@ -10,7 +10,7 @@ class_name Location
 @export var available_activity_types: Array[StrategyTypes.ActivityType] = []
 @export var shop: Shop
 @export var clues: Array[Clue] = []
-@export var supply_rules: Array[SupplyRule] = []
+@export var natural_resources: Array[NaturalResource] = []
 @export var inventory: LocationInventory
 @export var population_config: PopulationConfig
 
@@ -28,25 +28,30 @@ func modify_development(amount: int) -> void:
 func is_connected_to(location_id_check: String) -> bool:
 	return get_connection_to(location_id_check) != null
 
-func calculate_base_travel_time(to_location: Location) -> int:
+func get_distance_km(to_location: Location) -> float:
 	var conn := get_connection_to(to_location.location_id)
 	if conn == null:
-		return -1
-	
-	var base_time: int = conn.travel_time
-	
+		return -1.0
+	return conn.distance_km
+
+
+func get_speed_modifier(to_location: Location) -> float:
+	var modifier := 1.0
 	if self.type == StrategyTypes.LocationType.ROAD:
-		base_time -= 1
-	
+		modifier += 0.2
 	if to_location.type == StrategyTypes.LocationType.ROAD:
-		base_time -= 1
-	
-	base_time = max(1, base_time)
-	
+		modifier += 0.2
 	if stability < 50.0 or to_location.stability < 50.0:
-		base_time += 1
-	
-	return base_time
+		modifier -= 0.2
+	return max(0.2, modifier)
+
+
+func get_travel_hours(to_location: Location, base_speed_kmh: float) -> float:
+	var dist := get_distance_km(to_location)
+	if dist < 0.0:
+		return -1.0
+	var effective_speed := base_speed_kmh * get_speed_modifier(to_location)
+	return dist / effective_speed
 
 func get_connection_to(location_id_check: String) -> TownConnection:
 	if connections == null:
@@ -70,19 +75,19 @@ func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
 	available_activity_types.clear()
 	available_activity_types.append_array(types)
 
-func add_connection(location_id_to_connect: String, _time: int = 1) -> void:
+func add_connection(location_id_to_connect: String, _dist: float = 10.0) -> void:
 	if connections == null:
 		connections = TownConnections.new()
 	if not is_connected_to(location_id_to_connect):
-		connections.tt.append(TownConnection.new(location_id, location_id_to_connect, _time))
+		connections.tt.append(TownConnection.new(location_id, location_id_to_connect, _dist))
 
 func add_clue(clue: Clue) -> void:
 	clues.append(clue)
 
-func get_active_clues(current_turn: int) -> Array[Clue]:
+func get_active_clues(current_hour: int) -> Array[Clue]:
 	var active: Array[Clue] = []
 	for clue in clues:
-		if not clue.is_expired(current_turn):
+		if not clue.is_expired(current_hour):
 			active.append(clue)
 	return active
 
@@ -96,12 +101,12 @@ func decay_clues() -> void:
 			clues.remove_at(i)
 		i -= 1
 
-func investigate_clues(perception: int, current_turn: int) -> Array[Dictionary]:
+func investigate_clues(perception: int, current_hour: int) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
-	for clue in get_active_clues(current_turn):
+	for clue in get_active_clues(current_hour):
 		var info = {
 			"clue_name": clue.clue_name,
-			"age_description": clue.get_age_description(current_turn),
+			"age_description": clue.get_age_description(current_hour),
 			"destination_hint": clue.get_destination_hint(perception)
 		}
 		results.append(info)

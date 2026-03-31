@@ -5,6 +5,7 @@ enum GlanceSubject {
 	LOCATION,
 	WORLD,
 	FACTION,
+	TRADE,
 }
 
 enum SquadGlanceable {
@@ -32,7 +33,7 @@ enum LocationGlanceable {
 }
 
 enum WorldGlanceable {
-	TURN_COUNT,
+	HOUR_COUNT,
 	ADJACENT_ENEMY_COUNT,
 	NEAREST_ENEMY_DISTANCE,
 	NEAREST_TOWN_DISTANCE,
@@ -62,4 +63,15 @@ enum DirectiveType {
 	ATTACK_LOCATION,
 	DEFEND_LOCATION,
 	RETREAT,
+}
+
+enum TradeGlanceable {
+	PROFIT_MARGIN,
+	ROUTE_DANGER,
+	DEMAND_URGENCY,
+	DELIVERY_VALUE,
+	ACQUISITION_COST,
+	DISTANCE_KM,
+	SUPPLY_QUANTITY,
+	DEMAND_QUANTITY,
 }

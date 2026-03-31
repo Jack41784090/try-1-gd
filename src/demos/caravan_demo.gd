@@ -59,7 +59,7 @@ func _ready() -> void:
 			"starting_location_id": "market_town",
 		},
 		"world": {
-			"turn_count": 0,
+			"current_hour": 0,
 			"end_progression": 0.0,
 		},
 	}
@@ -83,9 +83,9 @@ func _setup_economy() -> void:
 	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0)
 	world.goods = [food, cloth, tools, luxury]
 
-	_setup_econ_location("farmstead", _farmstead_pop(), _farmstead_inv(), _farmstead_rules())
-	_setup_econ_location("market_town", _market_town_pop(), _market_town_inv(), _market_town_rules())
-	_setup_econ_location("castle", _castle_pop(), _castle_inv(), _castle_rules())
+	_setup_econ_location("farmstead", _farmstead_pop(), _farmstead_inv(), _farmstead_resources())
+	_setup_econ_location("market_town", _market_town_pop(), _market_town_inv(), _market_town_resources())
+	_setup_econ_location("castle", _castle_pop(), _castle_inv(), _castle_resources())
 
 	engine = EconomyEngine.new()
 	engine.world = world
@@ -98,12 +98,12 @@ func _setup_economy() -> void:
 	world.economy_engine = engine
 
 
-func _setup_econ_location(loc_id: String, pop: Population, inv: LocationInventory, rules: Array[SupplyRule]) -> void:
+func _setup_econ_location(loc_id: String, pop: Population, inv: LocationInventory, resources: Array[NaturalResource]) -> void:
 	var loc := world.get_location_by_id(loc_id)
 	assert(loc != null, "Location %s not found in world" % loc_id)
 	loc.population = pop
 	loc.inventory = inv
-	loc.supply_rules = rules
+	loc.natural_resources = resources
 
 
 func _farmstead_pop() -> Population:
@@ -122,10 +122,10 @@ func _farmstead_inv() -> LocationInventory:
 	inv.init_thing(cloth, 10.0)
 	return inv
 
-func _farmstead_rules() -> Array[SupplyRule]:
+func _farmstead_resources() -> Array[NaturalResource]:
 	return [
-		SupplyRule.create_extract("farmstead_harvest", food, 250.0),
-		SupplyRule.create_extract("farmstead_spinning", cloth, 50.0),
+		NaturalResource.create(food, 250.0),
+		NaturalResource.create(cloth, 50.0),
 	]
 
 
@@ -149,13 +149,11 @@ func _market_town_inv() -> LocationInventory:
 	inv.init_thing(luxury, 2.0)
 	return inv
 
-func _market_town_rules() -> Array[SupplyRule]:
+func _market_town_resources() -> Array[NaturalResource]:
 	return [
-		SupplyRule.create_import("town_import_food", food, "farmstead", 100.0),
-		SupplyRule.create_import("town_import_cloth", cloth, "farmstead", 50.0),
-		SupplyRule.create_craft("town_weaving", cloth, 15.0),
-		SupplyRule.create_craft("town_toolsmith", tools, 25.0),
-		SupplyRule.create_craft("town_luxuries", luxury, 20.0),
+		NaturalResource.create_craft(cloth, 15.0),
+		NaturalResource.create_craft(tools, 25.0),
+		NaturalResource.create_craft(luxury, 20.0),
 	]
 
 
@@ -175,14 +173,8 @@ func _castle_inv() -> LocationInventory:
 	inv.init_thing(luxury, 1.0)
 	return inv
 
-func _castle_rules() -> Array[SupplyRule]:
-	return [
-		SupplyRule.create_import("castle_import_food", food, "market_town", 20.0),
-		SupplyRule.create_import("castle_direct_food", food, "farmstead", 40.0, 1),
-		SupplyRule.create_import("castle_import_cloth", cloth, "market_town", 15.0),
-		SupplyRule.create_import("castle_import_tools", tools, "market_town", 10.0),
-		SupplyRule.create_import("castle_import_luxury", luxury, "market_town", 10.0),
-	]
+func _castle_resources() -> Array[NaturalResource]:
+	return []
 
 
 func _add_castle_location() -> void:

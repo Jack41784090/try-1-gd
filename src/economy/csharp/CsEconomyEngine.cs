@@ -5,7 +5,7 @@ namespace Condor.Economy;
 
 /// <summary>
 /// Per-location data held by the C# engine. Maps 1:1 with GDScript Location
-/// objects that have economy data (population + inventory + supply_rules).
+/// objects that have economy data (population + inventory + natural_resources).
 /// </summary>
 public sealed class CsLocationData
 {
@@ -18,12 +18,16 @@ public sealed class CsLocationData
     public float[] Stocks { get; set; }
     public float[] Prices { get; set; }
 
-    public List<CsSupplyRule> SupplyRules { get; } = new();
+    public List<CsNaturalResource> NaturalResources { get; } = new();
+
+    // Per-good cost basis tracking (FIFO average)
+    public float[] CostBasis { get; set; }
 
     public CsLocationData(int goodsCount)
     {
         Stocks = new float[goodsCount];
         Prices = new float[goodsCount];
+        CostBasis = new float[goodsCount];
     }
 
     public float GetAvailable(int thingIdx) => Stocks[thingIdx];
@@ -41,16 +45,12 @@ public sealed class CsLocationData
     public float GetPrice(int thingIdx) => Prices[thingIdx];
 }
 
-public sealed class CsSupplyRule
+public sealed class CsNaturalResource
 {
-    public string RuleId { get; set; }
     public int ThingIdx { get; set; }
-    public RuleAction Action { get; set; }
-    public int SourceLocationIdx { get; set; } = -1;
-    public string SourceLocationId { get; set; } = "";
-    public float CapacityPerTurn { get; set; }
+    public float BaseCapacity { get; set; }
     public JobType WorkerJob { get; set; } = JobType.Farmer;
-    public float WorkersPerFullOutput { get; set; } = 50f;
+    public float WorkersNeeded { get; set; } = 50f;
 }
 
 /// <summary>
@@ -124,10 +124,9 @@ public sealed class CsEconomyEngine
         PhaseBankLending();
         PhaseDemand();
         PhaseContracts();
-        PhaseProduction();
+        PhaseSupplyGeneration();
         PhaseSubsistence();
         PhaseTradeAdvance(result);
-        PhaseTradeDispatch(result);
         PhasePriceUpdate();
         PhaseMarket();
         PhaseConsumption();
@@ -178,48 +177,50 @@ public sealed class CsEconomyEngine
         }
     }
 
-    private void PhaseProduction()
+    private void PhaseSupplyGeneration()
     {
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
-            foreach (var rule in loc.SupplyRules)
+            foreach (var resource in loc.NaturalResources)
             {
-                if (rule.Action == RuleAction.Extract)
+                var workers = loc.Population.GetByJob(resource.WorkerJob);
+                int workerCount = workers.Count;
+                if (workerCount == 0) continue;
+                float ratio = MathF.Min((float)workerCount / resource.WorkersNeeded, 1f);
+                float produced = resource.BaseCapacity * ratio;
+
+                var thingDef = Goods[resource.ThingIdx];
+                float costBasis = 0f;
+
+                if (thingDef.Inputs.Length > 0)
                 {
-                    var workers = loc.Population.GetByJob(rule.WorkerJob);
-                    int workerCount = workers.Count;
-                    if (workerCount == 0) continue;
-                    float ratio = MathF.Min((float)workerCount / rule.WorkersPerFullOutput, 1f);
-                    float produced = rule.CapacityPerTurn * ratio;
-
-                    // If the output thing has inputs, consume them proportionally
-                    var thingDef = Goods[rule.ThingIdx];
-                    if (thingDef.Inputs.Length > 0)
-                    {
-                        produced = LimitByInputs(loc, thingDef, produced);
-                        if (produced <= 0f) continue;
-                        ConsumeInputs(loc, thingDef, produced);
-                    }
-
-                    loc.Add(rule.ThingIdx, produced);
+                    produced = LimitByInputs(loc, thingDef, produced);
+                    if (produced <= 0f) continue;
+                    costBasis = CalculateInputCost(loc, thingDef);
+                    ConsumeInputs(loc, thingDef, produced);
                 }
-                else if (rule.Action == RuleAction.Produce)
-                {
-                    float produced = rule.CapacityPerTurn;
 
-                    var thingDef = Goods[rule.ThingIdx];
-                    if (thingDef.Inputs.Length > 0)
-                    {
-                        produced = LimitByInputs(loc, thingDef, produced);
-                        if (produced <= 0f) continue;
-                        ConsumeInputs(loc, thingDef, produced);
-                    }
+                // Update location cost basis as weighted average
+                float existingStock = loc.Stocks[resource.ThingIdx];
+                float existingCost = loc.CostBasis[resource.ThingIdx];
+                float totalStock = existingStock + produced;
+                if (totalStock > 0f)
+                    loc.CostBasis[resource.ThingIdx] = (existingCost * existingStock + costBasis * produced) / totalStock;
 
-                    loc.Add(rule.ThingIdx, produced);
-                }
+                loc.Add(resource.ThingIdx, produced);
             }
         }
+    }
+
+    private float CalculateInputCost(CsLocationData loc, ThingDef thingDef)
+    {
+        float totalCost = 0f;
+        foreach (var input in thingDef.Inputs)
+        {
+            totalCost += loc.Prices[input.ThingIdx] * input.Quantity;
+        }
+        return totalCost;
     }
 
     /// <summary>
@@ -296,120 +297,103 @@ public sealed class CsEconomyEngine
         ActiveMoves.AddRange(stillActive);
     }
 
-    private void PhaseTradeDispatch(CsEconomyTickResult result)
+    /// <summary>
+    /// Export pending demands from all locations. Unfulfilled wants become demands.
+    /// Called by bridge after C# demand phase, before GDScript trade matching.
+    /// </summary>
+    public List<CsDemandExport> ExportPendingDemands()
     {
-        // orderedThisTick[locIdx * goodsCount + thingIdx] = amount
-        var orderedThisTick = new Dictionary<int, float>();
-        // sourceReserveCache[locIdx * goodsCount + thingIdx] = reserve
-        var sourceReserveCache = new Dictionary<int, float>();
-        // consumptionCache[locIdx * goodsCount + thingIdx] = consumption
-        var consumptionCache = new Dictionary<int, float>();
-
-        // Build candidate list with scoring
-        var candidates = new List<TradeCandidate>();
-
+        var demands = new List<CsDemandExport>();
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
-            foreach (var rule in loc.SupplyRules)
+            for (int gi = 0; gi < _goodsCount; gi++)
             {
-                if (rule.Action != RuleAction.Import) continue;
+                float totalDemand = loc.Population.GetTotalDemand(gi);
+                float localSupply = loc.Stocks[gi];
+                float unmet = totalDemand - localSupply;
+                if (unmet <= 0f) continue;
 
-                int consKey = li * _goodsCount + rule.ThingIdx;
-                float consumptionPerTurn;
-                if (consumptionCache.TryGetValue(consKey, out float cached))
-                    consumptionPerTurn = cached;
-                else
+                float priority = Goods[gi].ThingType == ThingType.Food ? 10f : 1f;
+                demands.Add(new CsDemandExport
                 {
-                    consumptionPerTurn = loc.Population.GetTotalDemand(rule.ThingIdx);
-                    consumptionCache[consKey] = consumptionPerTurn;
-                }
-                if (consumptionPerTurn <= 0f) continue;
-
-                int travelTime = GetTravelTime(rule.SourceLocationIdx, li);
-                float coverageNeeded = consumptionPerTurn * (travelTime + 0.5f);
-                float localSupply = loc.GetAvailable(rule.ThingIdx);
-                float inTransit = GetInTransitTo(li, rule.ThingIdx);
-                float projectedSupply = localSupply + inTransit;
-                if (projectedSupply >= coverageNeeded) continue;
-
-                float shortfall = coverageNeeded - projectedSupply;
-
-                // Score: urgency (shortfall / coverage) * 0.6 + margin * 0.4
-                float urgency = coverageNeeded > 0f ? shortfall / coverageNeeded : 0f;
-                float destPrice = loc.GetPrice(rule.ThingIdx);
-                float srcPrice = rule.SourceLocationIdx >= 0 && rule.SourceLocationIdx < Locations.Length
-                    ? Locations[rule.SourceLocationIdx].GetPrice(rule.ThingIdx) : Goods[rule.ThingIdx].BasePrice;
-                float transportCost = Goods[rule.ThingIdx].BasePrice * 0.1f * travelTime;
-                float margin = destPrice > 0f ? (destPrice - srcPrice - transportCost) / destPrice : 0f;
-                float score = urgency * 0.6f + MathF.Max(margin, 0f) * 0.4f;
-
-                candidates.Add(new TradeCandidate
-                {
-                    DestIdx = li,
-                    Rule = rule,
-                    Shortfall = shortfall,
-                    TravelTime = travelTime,
-                    Score = score,
+                    ThingIdx = gi,
+                    ThingId = Goods[gi].ThingId,
+                    Quantity = unmet,
+                    MaxPrice = loc.Prices[gi] * 1.5f,
+                    LocationIdx = li,
+                    LocationId = loc.LocationId,
+                    Priority = priority,
                 });
             }
         }
+        return demands;
+    }
 
-        // Sort by score descending — highest priority dispatched first
-        candidates.Sort((a, b) => b.Score.CompareTo(a.Score));
-
-        foreach (var c in candidates)
+    /// <summary>
+    /// Export available supplies from all locations. Surplus stock becomes supply.
+    /// Called by bridge after C# supply generation, before GDScript trade matching.
+    /// </summary>
+    public List<CsSupplyExport> ExportAvailableSupplies()
+    {
+        var supplies = new List<CsSupplyExport>();
+        for (int li = 0; li < Locations.Length; li++)
         {
-            var loc = Locations[c.DestIdx];
-            var rule = c.Rule;
-
-            // Recheck projected supply with already-ordered
-            int key = c.DestIdx * _goodsCount + rule.ThingIdx;
-            float alreadyOrdered = orderedThisTick.GetValueOrDefault(key, 0f);
-            float localSupply = loc.GetAvailable(rule.ThingIdx);
-            float inTransit = GetInTransitTo(c.DestIdx, rule.ThingIdx);
-            float projectedSupply = localSupply + inTransit + alreadyOrdered;
-
-            int consKey = c.DestIdx * _goodsCount + rule.ThingIdx;
-            float consumptionPerTurn = consumptionCache[consKey];
-            float coverageNeeded = consumptionPerTurn * (c.TravelTime + 0.5f);
-            if (projectedSupply >= coverageNeeded) continue;
-            float shortfall = coverageNeeded - projectedSupply;
-
-            if (rule.SourceLocationIdx < 0 || rule.SourceLocationIdx >= Locations.Length)
-                continue;
-            var sourceLoc = Locations[rule.SourceLocationIdx];
-            float rawSource = sourceLoc.GetAvailable(rule.ThingIdx);
-            if (rawSource <= 0f) continue;
-
-            int reserveKey = rule.SourceLocationIdx * _goodsCount + rule.ThingIdx;
-            float sourceReserve;
-            if (sourceReserveCache.TryGetValue(reserveKey, out float cachedReserve))
-                sourceReserve = cachedReserve;
-            else
+            var loc = Locations[li];
+            for (int gi = 0; gi < _goodsCount; gi++)
             {
-                sourceReserve = 0f;
-                var sp = sourceLoc.Population.People;
+                float totalDemand = loc.Population.GetTotalDemand(gi);
+                float localStock = loc.Stocks[gi];
+                // Reserve enough for local population, export the rest
+                float reserve = 0f;
+                var sp = loc.Population.People;
                 for (int pi = 0; pi < sp.Count; pi++)
                 {
-                    float w = sp[pi].GetWant(rule.ThingIdx);
-                    float h = sp[pi].GetInventory(rule.ThingIdx);
-                    sourceReserve += MathF.Max(w - h, 0f);
+                    float w = sp[pi].GetWant(gi);
+                    float h = sp[pi].GetInventory(gi);
+                    reserve += MathF.Max(w - h, 0f);
                 }
-                sourceReserveCache[reserveKey] = sourceReserve;
+                float surplus = MathF.Max(localStock - reserve, localStock * 0.4f);
+                if (surplus <= 1f) continue;
+
+                supplies.Add(new CsSupplyExport
+                {
+                    ThingIdx = gi,
+                    ThingId = Goods[gi].ThingId,
+                    Quantity = surplus,
+                    CostBasis = loc.CostBasis[gi],
+                    LocationIdx = li,
+                    LocationId = loc.LocationId,
+                });
             }
+        }
+        return supplies;
+    }
 
-            float availableAtSource = MathF.Max(rawSource - sourceReserve, rawSource * 0.4f);
-            if (availableAtSource <= 0f) continue;
+    /// <summary>
+    /// Apply trade matches from GDScript TradeMatcher.
+    /// Creates economy moves and shipment dispatches for cross-location trades.
+    /// </summary>
+    public void ApplyTradeMatches(List<CsTradeMatchImport> matches, CsEconomyTickResult result)
+    {
+        foreach (var match in matches)
+        {
+            if (!_locationIdToIdx.TryGetValue(match.SourceLocationId, out int srcIdx)) continue;
+            if (!_locationIdToIdx.TryGetValue(match.DestLocationId, out int destIdx)) continue;
+            if (!_thingIdToIdx.TryGetValue(match.ThingId, out int thingIdx)) continue;
 
-            float sendQty = MathF.Min(shortfall, MathF.Min(availableAtSource, rule.CapacityPerTurn));
-            sourceLoc.Consume(rule.ThingIdx, sendQty);
-            orderedThisTick[key] = alreadyOrdered + sendQty;
+            var srcLoc = Locations[srcIdx];
+            float available = srcLoc.GetAvailable(thingIdx);
+            float sendQty = MathF.Min(match.Quantity, available);
+            if (sendQty <= 0f) continue;
 
+            srcLoc.Consume(thingIdx, sendQty);
+
+            int travelTime = GetTravelTime(srcIdx, destIdx);
             var move = CsEconomyMove.Create(
-                rule.ThingIdx, sendQty, rule.SourceLocationIdx, c.DestIdx,
-                c.TravelTime, $"rule:{rule.RuleId}",
-                sourceLoc.LocationId, loc.LocationId, Goods[rule.ThingIdx].ThingId);
+                thingIdx, sendQty, srcIdx, destIdx,
+                travelTime, "trade_match",
+                match.SourceLocationId, match.DestLocationId, match.ThingId);
             ActiveMoves.Add(move);
             result.MovesCreated.Add(move);
 
@@ -420,14 +404,9 @@ public sealed class CsEconomyEngine
         }
     }
 
-    private struct TradeCandidate
-    {
-        public int DestIdx;
-        public CsSupplyRule Rule;
-        public float Shortfall;
-        public int TravelTime;
-        public float Score;
-    }
+    // Index lookups injected from bridge
+    internal Dictionary<string, int> _locationIdToIdx;
+    internal Dictionary<string, int> _thingIdToIdx;
 
     private void PhasePriceUpdate()
     {

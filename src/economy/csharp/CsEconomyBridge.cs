@@ -153,34 +153,21 @@ public partial class CsEconomyBridge : Node
                     csLoc.Prices[gi] = _goods[gi].BasePrice;
             }
 
-            // Mirror supply rules
-            var gdRules = (Godot.Collections.Array)gdLoc.Get("supply_rules");
-            for (int ri = 0; ri < gdRules.Count; ri++)
+            // Mirror natural resources
+            var gdResources = (Godot.Collections.Array)gdLoc.Get("natural_resources");
+            for (int ri = 0; ri < gdResources.Count; ri++)
             {
-                var gdRule = (Resource)gdRules[ri];
-                var csRule = new CsSupplyRule
+                var gdRes = (Resource)gdResources[ri];
+                var csRes = new CsNaturalResource
                 {
-                    RuleId = (string)gdRule.Get("rule_id"),
-                    Action = (RuleAction)(int)gdRule.Get("action"),
-                    CapacityPerTurn = (float)gdRule.Get("capacity_per_turn"),
-                    WorkerJob = (JobType)(int)gdRule.Get("worker_job"),
-                    WorkersPerFullOutput = (float)gdRule.Get("workers_per_full_output"),
+                    BaseCapacity = (float)gdRes.Get("base_capacity"),
+                    WorkerJob = (JobType)(int)gdRes.Get("worker_job"),
+                    WorkersNeeded = (float)gdRes.Get("workers_needed"),
                 };
-                var ruleThing = (Resource)gdRule.Get("thing");
-                string ruleThingId = (string)ruleThing.Get("thing_id");
-                csRule.ThingIdx = _thingIdToIdx[ruleThingId];
-
-                if (csRule.Action == RuleAction.Import)
-                {
-                    string sourceId = (string)gdRule.Get("source_location_id");
-                    csRule.SourceLocationId = sourceId;
-                    if (_locationIdToIdx.TryGetValue(sourceId, out int srcIdx))
-                        csRule.SourceLocationIdx = srcIdx;
-                    else
-                        csRule.SourceLocationIdx = -1;
-                }
-
-                csLoc.SupplyRules.Add(csRule);
+                var resThing = (Resource)gdRes.Get("thing");
+                string resThingId = (string)resThing.Get("thing_id");
+                csRes.ThingIdx = _thingIdToIdx[resThingId];
+                csLoc.NaturalResources.Add(csRes);
             }
         }
 
@@ -189,13 +176,15 @@ public partial class CsEconomyBridge : Node
         _engine.Initialize(_goods, _locations);
         _engine.NobleLoanThreshold = _nobleLoanThreshold;
         _engine.LoanAmount = _loanAmount;
+        _engine._locationIdToIdx = _locationIdToIdx;
+        _engine._thingIdToIdx = _thingIdToIdx;
 
-        // Travel time callback via GDScript world
+        // Travel time callback via GDScript world (returns hours at default caravan speed)
         _engine.GetTravelTimeFunc = (fromIdx, toIdx) =>
         {
             string fromId = _locations[fromIdx].LocationId;
             string toId = _locations[toIdx].LocationId;
-            return (int)_world.Call("calculate_travel_time", fromId, toId);
+            return (int)_world.Call("calculate_travel_hours", fromId, toId, 3.0f);
         };
     }
 
@@ -231,7 +220,93 @@ public partial class CsEconomyBridge : Node
     public Godot.Collections.Dictionary Tick(int turn)
     {
         var csResult = _engine.Tick(turn);
+        _lastTickResult = csResult;
         return ConvertResult(csResult);
+    }
+
+    private CsEconomyTickResult _lastTickResult;
+
+    /// <summary>
+    /// Export pending demands as an Array of Dictionaries for GDScript trade matching.
+    /// Call after Tick().
+    /// </summary>
+    public Godot.Collections.Array GetPendingDemands()
+    {
+        var demands = _engine.ExportPendingDemands();
+        var result = new Godot.Collections.Array();
+        foreach (var d in demands)
+        {
+            result.Add(new Godot.Collections.Dictionary
+            {
+                ["thing_id"] = d.ThingId,
+                ["quantity"] = d.Quantity,
+                ["max_price"] = d.MaxPrice,
+                ["location_id"] = d.LocationId,
+                ["priority"] = d.Priority,
+            });
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Export available supplies as an Array of Dictionaries for GDScript trade matching.
+    /// Call after Tick().
+    /// </summary>
+    public Godot.Collections.Array GetAvailableSupplies()
+    {
+        var supplies = _engine.ExportAvailableSupplies();
+        var result = new Godot.Collections.Array();
+        foreach (var s in supplies)
+        {
+            result.Add(new Godot.Collections.Dictionary
+            {
+                ["thing_id"] = s.ThingId,
+                ["quantity"] = s.Quantity,
+                ["cost_basis"] = s.CostBasis,
+                ["location_id"] = s.LocationId,
+            });
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Apply trade matches from GDScript side. Creates economy moves and shipment dispatches.
+    /// Returns updated result dictionary with new moves/dispatches.
+    /// </summary>
+    public Godot.Collections.Dictionary ApplyTradeMatches(Godot.Collections.Array matches)
+    {
+        var csMatches = new List<CsTradeMatchImport>();
+        for (int i = 0; i < matches.Count; i++)
+        {
+            var dict = (Godot.Collections.Dictionary)matches[i];
+            csMatches.Add(new CsTradeMatchImport
+            {
+                ThingId = (string)dict["thing_id"],
+                Quantity = (float)dict["quantity"],
+                SourceLocationId = (string)dict["source_location_id"],
+                DestLocationId = (string)dict["dest_location_id"],
+            });
+        }
+
+        var result = _lastTickResult ?? new CsEconomyTickResult();
+        _engine.ApplyTradeMatches(csMatches, result);
+        _lastTickResult = result;
+
+        // Return only the new dispatches
+        var dispatches = new Godot.Collections.Array();
+        foreach (var dispatch in result.ShipmentDispatches)
+        {
+            dispatches.Add(new Godot.Collections.Dictionary
+            {
+                ["shipment_id"] = dispatch.ShipmentId,
+                ["guard_count"] = dispatch.GuardCount,
+                ["move"] = ConvertMove(dispatch.Move),
+            });
+        }
+        return new Godot.Collections.Dictionary
+        {
+            ["shipment_dispatches"] = dispatches,
+        };
     }
 
     /// <summary>

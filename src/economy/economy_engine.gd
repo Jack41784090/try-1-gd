@@ -68,6 +68,72 @@ func tick(turn: int) -> EconomyTickResult:
 	return _tick_csharp(turn)
 
 
+func get_pending_demands() -> Array[EconomicDemand]:
+	assert(_cs_bridge != null, "C# bridge required")
+	var raw: Array = _cs_bridge.call("GetPendingDemands")
+	var demands: Array[EconomicDemand] = []
+	for d: Dictionary in raw:
+		var thing := _find_thing_by_id(d["thing_id"])
+		if thing == null:
+			continue
+		demands.append(EconomicDemand.create(
+			thing,
+			d["quantity"],
+			d["max_price"],
+			d["location_id"],
+			"population",
+			d["priority"],
+		))
+	return demands
+
+
+func get_available_supplies() -> Array[EconomicSupply]:
+	assert(_cs_bridge != null, "C# bridge required")
+	var raw: Array = _cs_bridge.call("GetAvailableSupplies")
+	var supplies: Array[EconomicSupply] = []
+	for s: Dictionary in raw:
+		var thing := _find_thing_by_id(s["thing_id"])
+		if thing == null:
+			continue
+		supplies.append(EconomicSupply.create(
+			thing,
+			s["quantity"],
+			s["cost_basis"],
+			s["location_id"],
+			"inventory",
+		))
+	return supplies
+
+
+func apply_trade_matches(matches: Array[TradeMatch]) -> Array[EconomyTickResult.ShipmentDispatch]:
+	assert(_cs_bridge != null, "C# bridge required")
+	var match_array: Array = []
+	for m in matches:
+		match_array.append({
+			"thing_id": m.supply.thing.thing_id,
+			"quantity": m.quantity,
+			"source_location_id": m.supply.location_id,
+			"dest_location_id": m.demand.location_id,
+		})
+	var result: Dictionary = _cs_bridge.call("ApplyTradeMatches", match_array)
+	_cs_bridge.call("SyncInventories")
+
+	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
+	var dispatches_raw: Array = result.get("shipment_dispatches", [])
+	for d_dict: Dictionary in dispatches_raw:
+		var move_dict: Dictionary = d_dict.get("move", {})
+		var move := _move_from_dict(move_dict)
+		active_moves.append(move)
+		_shipment_counter += 1
+		var dispatch := EconomyTickResult.ShipmentDispatch.create(
+			d_dict.get("shipment_id", "shipment_%d" % _shipment_counter),
+			move,
+			d_dict.get("guard_count", 2),
+		)
+		dispatches.append(dispatch)
+	return dispatches
+
+
 func _tick_csharp(turn: int) -> EconomyTickResult:
 	var cs_dict: Dictionary = _cs_bridge.call("Tick", turn)
 	_cs_bridge.call("SyncInventories")

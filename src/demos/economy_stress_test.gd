@@ -105,9 +105,9 @@ func _setup_breadbasket() -> void:
 	loc.inventory.init_thing(food, 8000.0)
 	loc.inventory.init_thing(cloth, 600.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("bb_harvest", food, 12000.0),
-		SupplyRule.create_extract("bb_flax", cloth, 800.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 12000.0),
+		NaturalResource.create(cloth, 800.0),
 	]
 
 
@@ -123,9 +123,9 @@ func _setup_grain_village() -> void:
 	loc.inventory.init_thing(food, 4000.0)
 	loc.inventory.init_thing(cloth, 300.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("gv_harvest", food, 5000.0),
-		SupplyRule.create_extract("gv_spinning", cloth, 400.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 5000.0),
+		NaturalResource.create(cloth, 400.0),
 	]
 
 
@@ -142,9 +142,9 @@ func _setup_vineyard() -> void:
 	loc.inventory.init_thing(cloth, 100.0)
 	loc.inventory.init_thing(luxury, 80.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("vy_harvest", food, 3600.0),
-		SupplyRule.create_craft("vy_wine", luxury, 400.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 3600.0),
+		NaturalResource.create_craft(luxury, 400.0),
 	]
 
 
@@ -161,10 +161,9 @@ func _setup_mining_town() -> void:
 	loc.inventory.init_thing(food, 6000.0)
 	loc.inventory.init_thing(tools, 1000.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("mh_food", food, 1000.0),
-		SupplyRule.create_craft("mh_tools", tools, 1000.0),
-		SupplyRule.create_import("mh_import_food", food, "market_town", 3000.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 1000.0),
+		NaturalResource.create_craft(tools, 1000.0),
 	]
 
 
@@ -183,17 +182,11 @@ func _setup_market_town() -> void:
 	loc.inventory.init_thing(tools, 400.0)
 	loc.inventory.init_thing(luxury, 120.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("mt_food", food, 1600.0),
-		SupplyRule.create_import("mt_import_food_bb", food, "breadbasket", 6000.0),
-		SupplyRule.create_import("mt_import_food_gv", food, "grain_village", 3000.0),
-		SupplyRule.create_import("mt_import_cloth_bb", cloth, "breadbasket", 1200.0),
-		SupplyRule.create_import("mt_import_cloth_gv", cloth, "grain_village", 600.0),
-		SupplyRule.create_craft("mt_weaving", cloth, 800.0),
-		SupplyRule.create_craft("mt_tools", tools, 500.0),
-		SupplyRule.create_import("mt_import_tools_mh", tools, "mining_town", 600.0),
-		SupplyRule.create_import("mt_import_luxury_vy", luxury, "vineyard", 240.0),
-		SupplyRule.create_craft("mt_luxury", luxury, 200.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 1600.0),
+		NaturalResource.create_craft(cloth, 800.0),
+		NaturalResource.create_craft(tools, 500.0),
+		NaturalResource.create_craft(luxury, 200.0),
 	]
 
 
@@ -213,15 +206,11 @@ func _setup_great_city() -> void:
 	loc.inventory.init_thing(tools, 1000.0)
 	loc.inventory.init_thing(luxury, 400.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("gc_food", food, 1000.0),
-		SupplyRule.create_import("gc_import_food", food, "market_town", 8000.0),
-		SupplyRule.create_import("gc_import_cloth", cloth, "market_town", 3000.0),
-		SupplyRule.create_import("gc_import_tools", tools, "market_town", 1600.0),
-		SupplyRule.create_import("gc_import_luxury", luxury, "market_town", 800.0),
-		SupplyRule.create_craft("gc_fine_cloth", cloth, 1000.0),
-		SupplyRule.create_craft("gc_fine_tools", tools, 600.0),
-		SupplyRule.create_craft("gc_fine_luxury", luxury, 500.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 1000.0),
+		NaturalResource.create_craft(cloth, 1000.0),
+		NaturalResource.create_craft(tools, 600.0),
+		NaturalResource.create_craft(luxury, 500.0),
 	]
 
 
@@ -241,15 +230,10 @@ func _setup_port_city() -> void:
 	loc.inventory.init_thing(tools, 600.0)
 	loc.inventory.init_thing(luxury, 200.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("pc_food", food, 600.0),
-		SupplyRule.create_import("pc_import_food", food, "market_town", 5000.0),
-		SupplyRule.create_import("pc_import_cloth", cloth, "market_town", 1600.0),
-		SupplyRule.create_import("pc_import_tools_mt", tools, "market_town", 800.0),
-		SupplyRule.create_import("pc_import_tools_mh", tools, "mining_town", 600.0),
-		SupplyRule.create_import("pc_import_luxury", luxury, "market_town", 600.0),
-		SupplyRule.create_craft("pc_ships_tools", tools, 500.0),
-		SupplyRule.create_craft("pc_trade_luxury", luxury, 240.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 600.0),
+		NaturalResource.create_craft(tools, 500.0),
+		NaturalResource.create_craft(luxury, 240.0),
 	]
 
 
@@ -269,14 +253,8 @@ func _setup_castle() -> void:
 	loc.inventory.init_thing(tools, 160.0)
 	loc.inventory.init_thing(luxury, 120.0)
 
-	loc.supply_rules = [
-		SupplyRule.create_extract("ca_food", food, 200.0),
-		SupplyRule.create_import("ca_import_food_gc", food, "great_city", 1200.0),
-		SupplyRule.create_import("ca_import_food_pc", food, "port_city", 600.0),
-		SupplyRule.create_import("ca_import_cloth", cloth, "great_city", 400.0),
-		SupplyRule.create_import("ca_import_tools", tools, "great_city", 300.0),
-		SupplyRule.create_import("ca_import_luxury_gc", luxury, "great_city", 400.0),
-		SupplyRule.create_import("ca_import_luxury_pc", luxury, "port_city", 200.0),
+	loc.natural_resources = [
+		NaturalResource.create(food, 200.0),
 	]
 
 

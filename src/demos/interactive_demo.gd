@@ -56,16 +56,25 @@ func _ready():
 	_print_banner()
 	_print_line("Initializing game scenario...")
 
-	var mock_view = HeadlessView.new()
-	add_child(mock_view)
-	mock_view.setup_headless()
+	var is_gui := DisplayServer.get_name() != "headless"
 
-	presenter = StrategyPresenter.new()
-	presenter.scenario_path = SCENARIO_PATH
-	presenter.is_demo_scenario = false
-	mock_view.add_child(presenter)
+	if is_gui:
+		var real_scene: Node = load("res://scenes/scenario.tscn").instantiate()
+		add_child(real_scene)
+		presenter = real_scene.get_node("StrategyPresenter") as StrategyPresenter
+		while presenter.actor == null:
+			await get_tree().create_timer(0.1).timeout
+	else:
+		var mock_view = HeadlessView.new()
+		add_child(mock_view)
+		mock_view.setup_headless()
 
-	await presenter.bind_view(mock_view)
+		presenter = StrategyPresenter.new()
+		presenter.scenario_path = SCENARIO_PATH
+		presenter.is_demo_scenario = false
+		mock_view.add_child(presenter)
+
+		await presenter.bind_view(mock_view)
 
 	player_squad = presenter.actor.player_squad
 	world = presenter.game_scenario.world
@@ -208,6 +217,8 @@ func _handle_command(input: String):
 			_cmd_god_lock(arg)
 		"god_economy", "ge":
 			_cmd_god_economy()
+		"screenshot", "ss":
+			await _cmd_screenshot(arg)
 		"quit", "q", "exit":
 			_cmd_quit()
 		_:
@@ -254,6 +265,9 @@ func _cmd_help():
 	_print_line("  GOD_CONTACTS(gc)  Raw contact data with squad IDs")
 	_print_line("  GOD_LOCK (gl)<id> Force-lock contact on a squad")
 	_print_line("  GOD_ECONOMY (ge)  Full economy: stocks, prices, moves")
+	_print_line("")
+	_print_line("  --- SCREENSHOT ---")
+	_print_line("  SCREENSHOT (ss) [path]  Save viewport screenshot (GUI mode only)")
 	_print_separator()
 
 
@@ -265,7 +279,7 @@ func _cmd_status():
 		if w.is_injured:
 			injured += 1
 
-	_print_line("=== %s — Turn %d ===" % [player_squad.squad_name, world.turn_count])
+	_print_line("=== %s — %s ===" % [player_squad.squad_name, world.get_clock_display()])
 	_print_line("  Location:  %s" % _get_location_display(player_squad.current_location_id))
 	_print_line("  Warriors:  %d alive (%d injured)" % [living.size(), injured])
 	_print_line("  Morale:    %.0f" % player_squad.get_morale())
@@ -297,7 +311,7 @@ func _cmd_look():
 	for conn in loc.connections.tt:
 		var to_loc := world.get_location_by_id(conn.to_location_id)
 		var to_name := to_loc.location_name if to_loc else conn.to_location_id
-		_print_line("    → %s (%s) — %d turns" % [to_name, conn.to_location_id, conn.travel_time])
+		_print_line("    → %s (%s) — %.0f km" % [to_name, conn.to_location_id, conn.distance_km])
 
 	_print_line("")
 	_print_line("  --- Available Activities ---")
@@ -383,7 +397,7 @@ func _cmd_travel(destination: String):
 		for conn in loc.connections.tt:
 			var to_loc := world.get_location_by_id(conn.to_location_id)
 			var to_name := to_loc.location_name if to_loc else conn.to_location_id
-			_print_line("  %s — %s (%d turns)" % [conn.to_location_id, to_name, conn.travel_time])
+			_print_line("  %s — %s (%.0f km)" % [conn.to_location_id, to_name, conn.distance_km])
 		return
 
 	var to_loc := world.get_location_by_id(destination)
@@ -565,7 +579,7 @@ func _cmd_map():
 		for conn in loc.connections.tt:
 			var to_loc := world.get_location_by_id(conn.to_location_id)
 			var to_name := to_loc.location_name if to_loc else conn.to_location_id
-			_print_line("    → %s (%d turns)" % [to_name, conn.travel_time])
+			_print_line("    → %s (%.0f km)" % [to_name, conn.distance_km])
 
 		var squads_here := world.get_squads_at_location(loc.location_id)
 		for sq in squads_here:
@@ -615,7 +629,7 @@ func _snapshot_state() -> Dictionary:
 		}
 
 	return {
-		"turn": world.turn_count,
+		"turn": world.current_hour,
 		"location": player_squad.current_location_id,
 		"warriors": player_squad.get_living_warriors().size(),
 		"injured": player_squad.get_living_warriors().filter(func(w): return w.is_injured).size(),
@@ -634,7 +648,7 @@ func _snapshot_state() -> Dictionary:
 func _print_turn_report(before: Dictionary):
 	var after := _snapshot_state()
 	_print_separator()
-	_print_line("── Turn %d → %d Report ──" % [before["turn"], world.turn_count])
+	_print_line("── Hour %d → %d Report ──" % [before["turn"], world.current_hour])
 
 	if presenter.turn_log.size() > 0:
 		_print_line("")
@@ -800,8 +814,8 @@ func _print_event(text: String):
 
 func _print_prompt():
 	printt("")
-	print("[Turn %d] %s @ %s > " % [
-		world.turn_count,
+	print("[%s] %s @ %s > " % [
+		world.get_clock_display(),
 		player_squad.squad_name,
 		_get_location_display(player_squad.current_location_id)])
 
@@ -859,7 +873,7 @@ func _cmd_god_contacts():
 		_print_line("    location: %s | role: %s | warriors: %d" % [
 			sq_loc, sq_role, sq_alive])
 		_print_line("    being_tracked: %s | last_updated: %d" % [
-			str(contact.being_tracked), contact.last_updated_turn])
+			str(contact.being_tracked), contact.last_updated_hour])
 		_print_line("")
 	_print_separator()
 
@@ -892,8 +906,8 @@ func _cmd_god_economy():
 		_print_separator()
 		return
 	var engine = world.economy_engine
-	_print_line("  Turn: %d | Deaths: %d | Births: %d | Promotions: %d" % [
-		world.turn_count, engine.total_deaths, engine.total_births, engine.total_promotions])
+	_print_line("  Hour: %d | Deaths: %d | Births: %d | Promotions: %d" % [
+		world.current_hour, engine.total_deaths, engine.total_births, engine.total_promotions])
 	_print_line("  Active contracts: %d | Completed: %d" % [
 		engine.active_contracts_count, engine.completed_contracts_count])
 	_print_line("")
@@ -906,14 +920,30 @@ func _cmd_god_economy():
 				var amt = loc.inventory.stocks[thing]
 				var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
 				_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
-		if loc.supply_rules and loc.supply_rules.size() > 0:
-			for rule in loc.supply_rules:
-				var action_name = EconomyTypes.RuleAction.keys()[rule.action]
-				var thing_name = rule.thing.thing_name if rule.thing else "?"
-				var source = rule.source_location_id if rule.source_location_id else "local"
-				_print_line("    rule: %s %s from %s (qty:%.1f)" % [
-					action_name, thing_name, source, rule.quantity])
+		if loc.natural_resources and loc.natural_resources.size() > 0:
+			for resource in loc.natural_resources:
+				var thing_name = resource.thing.thing_name if resource.thing else "?"
+				var job_name = EconomyTypes.JobType.keys()[resource.worker_job]
+				_print_line("    resource: %s (capacity:%.1f, job:%s)" % [
+					thing_name, resource.base_capacity, job_name])
 	_print_separator()
+
+
+const SCREENSHOT_PATH := "/tmp/condor_screenshot.png"
+
+
+func _cmd_screenshot(arg: String):
+	var path := arg if not arg.is_empty() else SCREENSHOT_PATH
+	if DisplayServer.get_name() == "headless":
+		_print_line("ERROR: Screenshots require GUI mode. Use tools/start_game_gui.sh")
+		return
+	await RenderingServer.frame_post_draw
+	var image := get_viewport().get_texture().get_image()
+	var err := image.save_png(path)
+	if err != OK:
+		_print_line("ERROR: Failed to save screenshot (error %d)" % err)
+		return
+	_print_line("SCREENSHOT_SAVED:%s" % path)
 
 
 func _print_banner():

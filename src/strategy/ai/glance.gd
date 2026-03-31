@@ -4,7 +4,7 @@ extends Resource
 @export var subject: StrategicAITypes.GlanceSubject = StrategicAITypes.GlanceSubject.SQUAD
 @export var squad_property: StrategicAITypes.SquadGlanceable = StrategicAITypes.SquadGlanceable.FOOD
 @export var location_property: StrategicAITypes.LocationGlanceable = StrategicAITypes.LocationGlanceable.STABILITY
-@export var world_property: StrategicAITypes.WorldGlanceable = StrategicAITypes.WorldGlanceable.TURN_COUNT
+@export var world_property: StrategicAITypes.WorldGlanceable = StrategicAITypes.WorldGlanceable.HOUR_COUNT
 @export var faction_property: StrategicAITypes.FactionGlanceable = StrategicAITypes.FactionGlanceable.REPUTATION
 @export var normalize_max: float = 0.0
 @export var use_comparison: bool = false
@@ -15,9 +15,10 @@ extends Resource
 @export var location_type_filter: StrategyTypes.LocationType = StrategyTypes.LocationType.VILLAGE
 @export var additional_glance: StrategicGlance = null
 @export var operation_on_other_glance: CsdrTypes.OP = CsdrTypes.OP.MUL
+@export var trade_property: StrategicAITypes.TradeGlanceable = StrategicAITypes.TradeGlanceable.PROFIT_MARGIN
 
 
-func evaluate(situation: StrategicSituation) -> float:
+func evaluate(situation) -> float:
 	# Reads a single world property from the situation, normalizes, inverts, chains, and filters it
 	# Pipeline: raw_value → normalize → inverse → chain additional_glance → comparison gate
 	# e.g., Glance(subject=SQUAD, squad_property=FOOD, normalize_max=100, inverse=true)
@@ -74,6 +75,8 @@ func _get_raw_value(situation: StrategicSituation) -> float:
 			return _get_world_value(situation)
 		StrategicAITypes.GlanceSubject.FACTION:
 			return _get_faction_value(situation)
+		StrategicAITypes.GlanceSubject.TRADE:
+			return _get_trade_value(situation)
 		_:
 			assert(false, "Unknown GlanceSubject: %s" % subject)
 			return 0.0
@@ -125,7 +128,7 @@ func _get_location_value(situation: StrategicSituation) -> float:
 		StrategicAITypes.LocationGlanceable.ENEMY_COUNT:
 			return float(situation.enemies_here.size())
 		StrategicAITypes.LocationGlanceable.ACTIVE_CLUE_COUNT:
-			return float(situation.location.get_active_clues(situation.world.turn_count).size())
+			return float(situation.location.get_active_clues(situation.world.current_hour).size())
 		StrategicAITypes.LocationGlanceable.HAS_ACTIVITY:
 			return 1.0 if situation.location.has_activity_type(activity_type_filter) else 0.0
 		StrategicAITypes.LocationGlanceable.TYPE:
@@ -141,8 +144,8 @@ func _get_world_value(situation: StrategicSituation) -> float:
 	# Reads a numeric property from the broader world state
 	# e.g., ADJACENT_ENEMY_COUNT → 3 enemies in neighboring locations, NEAREST_TOWN_DISTANCE → 2 hops
 	match world_property:
-		StrategicAITypes.WorldGlanceable.TURN_COUNT:
-			return float(situation.world.turn_count)
+		StrategicAITypes.WorldGlanceable.HOUR_COUNT:
+			return float(situation.world.current_hour)
 		StrategicAITypes.WorldGlanceable.ADJACENT_ENEMY_COUNT:
 			return float(situation.adjacent_enemies.size())
 		StrategicAITypes.WorldGlanceable.NEAREST_ENEMY_DISTANCE:
@@ -182,3 +185,26 @@ func _check_condition(value: float) -> bool:
 			return value < threshold
 		_:
 			return false
+
+
+func _get_trade_value(situation) -> float:
+	match trade_property:
+		StrategicAITypes.TradeGlanceable.PROFIT_MARGIN:
+			return situation.profit_margin
+		StrategicAITypes.TradeGlanceable.ROUTE_DANGER:
+			return situation.route_danger
+		StrategicAITypes.TradeGlanceable.DEMAND_URGENCY:
+			return situation.demand.priority
+		StrategicAITypes.TradeGlanceable.DELIVERY_VALUE:
+			return situation.delivery_value
+		StrategicAITypes.TradeGlanceable.ACQUISITION_COST:
+			return situation.acquisition_cost
+		StrategicAITypes.TradeGlanceable.DISTANCE_KM:
+			return situation.distance_km
+		StrategicAITypes.TradeGlanceable.SUPPLY_QUANTITY:
+			return situation.supply.available
+		StrategicAITypes.TradeGlanceable.DEMAND_QUANTITY:
+			return situation.demand.unfulfilled
+		_:
+			assert(false, "Unknown TradeGlanceable: %s" % trade_property)
+			return 0.0

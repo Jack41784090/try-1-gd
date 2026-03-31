@@ -30,6 +30,13 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - Run relevant demo tests after logic changes.
 - **AI Interactive Play** via `tools/play.sh`: start game with `bash tools/start_game.sh`, wait ~20s, then `bash tools/play.sh "command"`. GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`
 - **AI Interactive Play (GUI + screenshots)**: start with `bash tools/start_game_gui.sh` (visible window), then `bash tools/play.sh "screenshot"` saves `/tmp/condor_screenshot.png`. MCP server in `tools/mcp-screenshot/server.py` exposes `screenshot_game`, `view_screenshot`, `game_command` tools for Copilot Agent
+- **Screenshot workflow for AI agents**:
+  1. Start game: `bash tools/start_game_gui.sh` — launches Godot with visible window + stdin/stdout pipes. Uses real `scenario.tscn` StrategyView (full UI) when in GUI mode, `HeadlessStrategyView` when `--headless`
+  2. Wait ~25s for init, then send commands via `bash tools/play.sh "<command>" [wait_seconds]`
+  3. Capture screenshot: `bash tools/play.sh "screenshot"` → saves `/tmp/condor_screenshot.png`
+  4. MCP tools (auto-discovered via `.vscode/mcp.json`): `screenshot_game` (command + screenshot), `view_screenshot` (last screenshot), `game_command` (text-only)
+  5. The `screenshot`/`ss` command in interactive_demo.gd uses `get_viewport().get_texture().get_image().save_png()` — only works in GUI mode, errors gracefully in headless
+  6. Clock overlay: `ClockLabel` in top-left corner shows `⌚ HH:00`, updated by `StrategyView.update_clock()`
 
 ## Architecture
 
@@ -98,12 +105,15 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - Proximity: SAME_LOCATION(1.0), SAME_EDGE(0.7), ADJACENT(0.3). Activity modifiers: PATROL 1.5x scouting, REST 1.3x stealth
   - ATTACK requires LOCKED contact. Engagement types: AMBUSH/SET_PIECE/MEETING
   - `ScoutingFocus` — player-configurable filter with role/class targeting and coordination multipliers
-- **Shop System** (`src/strategy/core/shop/`): `Shop` Resource on Location. `Location.shop`, `Location.inventory`, `Location.supply_rules`
+- **Shop System** (`src/strategy/core/shop/`): `Shop` Resource on Location. `Location.shop`, `Location.inventory`, `Location.natural_resources`
 - **Inventory & Equipment** (`src/strategy/core/inventory.gd`, `loot_collector.gd`): `SquadInventory` for spare weapons/armors, `LootCollector` collects from dead enemies. `Warrior.equipment_weapon/armor` per-warrior slots
-- **Economy** (`src/economy/`): Odoo-inspired supply chain. **C# mandatory** — `CsEconomyEngine` via `CsEconomyBridge`; GDScript `EconomyEngine` is thin facade
-  - Core: `Thing` (goods), `EconPerson` (actors), `Population`, `LocationInventory` (stock+prices), `SupplyRule` (EXTRACT/PRODUCE/IMPORT), `EconomyMove` (in-transit goods)
-  - Features: input-based production chains, elastic demand, price-responsive trade dispatch (`urgency * 0.6 + margin * 0.4`), dynamic population (starvation/birth), social mobility
-  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `SyncInventories()`. Build: `dotnet build`. Run with `godot-mono`
+- **Economy** (`src/economy/`): Demand/Supply matching system. **C# mandatory** — `CsEconomyEngine` via `CsEconomyBridge`; GDScript `EconomyEngine` is thin facade
+  - Core: `Thing` (goods), `EconPerson` (actors), `Population`, `LocationInventory` (stock+prices), `NaturalResource` (local production capacity), `EconomicDemand`/`EconomicSupply` (trade opportunities), `EconomyMove` (in-transit goods)
+  - **Trade pipeline**: C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplies()` export to GDScript → `TradeMatcher` scores Supply→Demand pairs using `StrategicConsideration` system → `ApplyTradeMatches()` creates shipment dispatches → `EconomyOrchestrator` spawns caravans
+  - **TradeMatcher** (`trade_matcher.gd`): Greedy matching engine. Creates `TradeSituation` per pair, scores via considerations or default `(margin * 0.4 + urgency * 0.6) * safety`
+  - **RouteDangerCalculator** (`route_danger.gd`): Route safety (0-1) based on aggressive squads along connections. Per-edge safety = `1.0 / (1.0 + threats)`. Route = product of edges
+  - Features: input-based production chains, FIFO cost-basis tracking, elastic demand, dynamic population (starvation/birth), social mobility, central bank
+  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. Build: `dotnet build`. Run with `godot-mono`
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn
 
 ### Key Enums
@@ -114,8 +124,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - Logic: `src/squad-battle/entity/logic/_factory.gd` — Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster
 - Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole (COMBAT, MERCHANT)
-- Strategic AI: `src/strategy/ai/types.gd` — GlanceSubject, SquadGlanceable, DestinationStrategy, TargetStrategy
-- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, RuleAction, ThingType
+- Strategic AI: `src/strategy/ai/types.gd` — GlanceSubject (SQUAD, LOCATION, WORLD, FACTION, TRADE), SquadGlanceable, TradeGlanceable, DestinationStrategy, TargetStrategy
+- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ### Unit Classes

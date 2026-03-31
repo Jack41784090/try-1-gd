@@ -44,3 +44,32 @@ public sealed class CsEconomyTickResult
     public List<CsEconomyMove> MovesCompleted { get; } = new();
     public List<CsShipmentDispatch> ShipmentDispatches { get; } = new();
 }
+
+public sealed class CsDemandExport
+{
+    public int ThingIdx { get; set; }
+    public string ThingId { get; set; }
+    public float Quantity { get; set; }
+    public float MaxPrice { get; set; }
+    public int LocationIdx { get; set; }
+    public string LocationId { get; set; }
+    public float Priority { get; set; }
+}
+
+public sealed class CsSupplyExport
+{
+    public int ThingIdx { get; set; }
+    public string ThingId { get; set; }
+    public float Quantity { get; set; }
+    public float CostBasis { get; set; }
+    public int LocationIdx { get; set; }
+    public string LocationId { get; set; }
+}
+
+public sealed class CsTradeMatchImport
+{
+    public string ThingId { get; set; }
+    public float Quantity { get; set; }
+    public string SourceLocationId { get; set; }
+    public string DestLocationId { get; set; }
+}

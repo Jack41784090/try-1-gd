@@ -2,17 +2,27 @@ class_name EconomyOrchestrator
 extends RefCounted
 
 var _active_shipments: Dictionary = {}
+var _trade_matcher: TradeMatcher
 
 var active_shipment_count: int:
 	get: return _active_shipments.size()
+
+
+func _init() -> void:
+	_trade_matcher = TradeMatcher.new()
 
 
 func tick_and_spawn_caravans(game_scenario: GameScenario, ai_fleet: AIFleetManager) -> Array[String]:
 	var log: Array[String] = []
 	var economy_engine := game_scenario.world.economy_engine
 	assert(economy_engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
-	var turn := game_scenario.world.turn_count
+	var turn := game_scenario.world.current_hour
 	var tick_result := economy_engine.tick(turn)
+
+	var demands := economy_engine.get_pending_demands()
+	var supplies := economy_engine.get_available_supplies()
+	var trade_matches := _trade_matcher.match_trades(demands, supplies, game_scenario.world)
+	var trade_dispatches := economy_engine.apply_trade_matches(trade_matches)
 
 	var Bridge = load("res://src/economy/caravan_bridge.gd")
 	var idle_caravans: Array[SquadData] = []
@@ -20,6 +30,10 @@ func tick_and_spawn_caravans(game_scenario: GameScenario, ai_fleet: AIFleetManag
 
 	var pending_dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
 	for dispatch in tick_result.shipment_dispatches:
+		if _active_shipments.has(dispatch.shipment_id):
+			continue
+		pending_dispatches.append(dispatch)
+	for dispatch in trade_dispatches:
 		if _active_shipments.has(dispatch.shipment_id):
 			continue
 		pending_dispatches.append(dispatch)

@@ -8,7 +8,7 @@ extends Resource
 @export var returning: StrategicAction = null
 
 
-func score(situation: StrategicSituation) -> float:
+func score(situation) -> float:
 	# Scores this consideration by evaluating all its glances against the situation
 	# e.g., consideration "low_food" with glances=[Glance(FOOD, inverse=true, normalize/100)]
 	#   → squad.food=20, normalize_max=100 → 0.2, inverse → 0.8

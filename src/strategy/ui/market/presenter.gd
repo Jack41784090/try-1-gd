@@ -43,11 +43,10 @@ func _build_goods_cards(world: World, location: Location) -> Array[Dictionary]:
 
 func _get_local_production(location: Location) -> Array[String]:
 	var names: Array[String] = []
-	for rule in location.supply_rules:
-		if rule.action == EconomyTypes.RuleAction.EXTRACT:
-			var label := rule.thing.get_label()
-			if label not in names:
-				names.append(label)
+	for resource in location.natural_resources:
+		var label := resource.thing.get_label()
+		if label not in names:
+			names.append(label)
 	return names
 
 
