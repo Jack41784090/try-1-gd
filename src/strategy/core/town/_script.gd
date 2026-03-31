@@ -93,7 +93,7 @@ func get_active_clues(current_hour: int) -> Array[Clue]:
 
 func decay_clues() -> void:
 	for clue in clues:
-		clue.decay_one_turn()
+		clue.decay_one_hour()
 	
 	var i = clues.size() - 1
 	while i >= 0:

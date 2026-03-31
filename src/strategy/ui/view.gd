@@ -43,12 +43,14 @@ extends Control
 @onready var combat_overlay_node: CanvasLayer = $CombatOverlay
 var combat_ui: CombatUI
 var _contact_bars: Array[ContactMiniBar] = []
-var _active_contacts: Dictionary = {}
+var _active_contacts: Dictionary = { }
 
 var battle_viewport: SubViewport:
-	get: return combat_ui.viewport if combat_ui else null
+	get:
+		return combat_ui.viewport if combat_ui else null
 var combat_overlay: CanvasLayer:
-	get: return combat_ui.overlay if combat_ui else null
+	get:
+		return combat_ui.overlay if combat_ui else null
 #endregion
 
 #region Components
@@ -72,6 +74,7 @@ var combat_overlay: CanvasLayer:
 @onready var _game_over_title: Label = $GameOverOverlay/GameOverVBox/TitleLabel
 @onready var _game_over_desc: Label = $GameOverOverlay/GameOverVBox/DescLabel
 @onready var _game_over_restart_btn: Button = $GameOverOverlay/GameOverVBox/RestartButton
+@onready var _clock_display: ClockDisplay = $PanelContainer/MainVBox/StatusHeader/HeaderPanel/HeaderHBox/HeaderMargin/TurnAndLocation/ClockDisplay
 #endregion
 
 #region Lifecycle
@@ -104,9 +107,15 @@ func _input(event: InputEvent) -> void:
 
 func _register_button_animations() -> void:
 	var action_btns: Array[Button] = [
-		drill_button, patrol_button, investigate_button,
-		hold_mass_button, travel_button, attack_button, manage_squad_button,
-		recruit_button, shop_button
+		drill_button,
+		patrol_button,
+		investigate_button,
+		hold_mass_button,
+		travel_button,
+		attack_button,
+		manage_squad_button,
+		recruit_button,
+		shop_button,
 	]
 	for btn in action_btns:
 		btn.focus_mode = Control.FOCUS_NONE
@@ -146,13 +155,15 @@ func _connect_signals() -> void:
 	combat_ui.connect_signals(presenter)
 
 	if travel_view:
-		travel_view.travel_confirmed.connect(func(id):
-			_play_sfx("play_ui_confirm")
-			presenter.on_travel_confirmed(id)
+		travel_view.travel_confirmed.connect(
+			func(id):
+				_play_sfx("play_ui_confirm")
+				presenter.on_travel_confirmed(id)
 		)
-		travel_view.travel_cancelled.connect(func():
-			_play_sfx("play_ui_cancel")
-			presenter.on_travel_cancelled()
+		travel_view.travel_cancelled.connect(
+			func():
+				_play_sfx("play_ui_cancel")
+				presenter.on_travel_cancelled()
 		)
 
 	if investigation_view:
@@ -172,13 +183,15 @@ func _connect_signals() -> void:
 	if market_view:
 		market_view.closed.connect(func(): presenter.on_market_closed())
 
-	_go_back_btn.pressed.connect(func():
-		_play_sfx("play_ui_cancel")
-		presenter.on_go_back_travel()
+	_go_back_btn.pressed.connect(
+		func():
+			_play_sfx("play_ui_cancel")
+			presenter.on_go_back_travel()
 	)
-	_continue_btn.pressed.connect(func():
-		_play_sfx("play_ui_confirm")
-		presenter.on_continue_travel()
+	_continue_btn.pressed.connect(
+		func():
+			_play_sfx("play_ui_confirm")
+			presenter.on_continue_travel()
 	)
 	UIAnimations.register_button(_go_back_btn)
 	UIAnimations.register_button(_continue_btn)
@@ -192,15 +205,22 @@ func _connect_signals() -> void:
 
 #region Display Updates
 
+var _clock_base_text: String = ""
+
+
 func update_clock(hour: int) -> void:
 	var day := hour / 24 + 1
 	var hour_of_day := hour % 24
-	turn_label.text = "Day %d — %02d:00" % [day, hour_of_day]
+	_clock_base_text = "Day %d — %02d:00" % [day, hour_of_day]
+	turn_label.text = _clock_base_text
+	_clock_display.set_hour(hour_of_day)
 
 
 func update_pause_state(is_paused: bool) -> void:
 	if is_paused:
-		turn_label.text += " [PAUSED]"
+		turn_label.text = _clock_base_text + " [PAUSED]"
+	else:
+		turn_label.text = _clock_base_text
 
 
 func update_resting_banner(is_resting: bool) -> void:
@@ -224,7 +244,7 @@ func update_condition(text: String) -> void:
 
 
 func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
-	var new_ids: Dictionary = {}
+	var new_ids: Dictionary = { }
 	for data in contacts_data:
 		new_ids[data["target_id"]] = data
 
@@ -284,16 +304,26 @@ func disable_all_activity_buttons() -> void:
 
 func _get_activity_button(key: String) -> Button:
 	match key:
-		"rest": return rest_button
-		"drill": return drill_button
-		"patrol": return patrol_button
-		"investigate": return investigate_button
-		"hold_mass": return hold_mass_button
-		"travel": return travel_button
-		"attack": return attack_button
-		"manage_squad": return manage_squad_button
-		"shop": return shop_button
-		"market": return market_button
+		"rest":
+			return rest_button
+		"drill":
+			return drill_button
+		"patrol":
+			return patrol_button
+		"investigate":
+			return investigate_button
+		"hold_mass":
+			return hold_mass_button
+		"travel":
+			return travel_button
+		"attack":
+			return attack_button
+		"manage_squad":
+			return manage_squad_button
+		"shop":
+			return shop_button
+		"market":
+			return market_button
 	return null
 
 #endregion
@@ -303,9 +333,15 @@ func _get_activity_button(key: String) -> Button:
 func show_strategy_ui() -> void:
 	action_buttons.visible = true
 	var btns: Array[Button] = [
-		drill_button, patrol_button, investigate_button,
-		hold_mass_button, travel_button, attack_button, manage_squad_button,
-		recruit_button, shop_button
+		drill_button,
+		patrol_button,
+		investigate_button,
+		hold_mass_button,
+		travel_button,
+		attack_button,
+		manage_squad_button,
+		recruit_button,
+		shop_button,
 	]
 	UIAnimations.stagger_buttons(btns)
 
@@ -436,9 +472,10 @@ func hide_travel_arrows() -> void:
 	var tw = create_tween().set_parallel(true)
 	tw.tween_property(_travel_arrow_bar, "modulate:a", 0.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tw.tween_property(_travel_arrow_bar, "offset_top", -46.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
-	tw.chain().tween_callback(func():
-		_travel_arrow_bar.visible = false
-		_travel_arrow_bar.offset_top = -66.0
+	tw.chain().tween_callback(
+		func():
+			_travel_arrow_bar.visible = false
+			_travel_arrow_bar.offset_top = -66.0
 	)
 
 
@@ -474,7 +511,7 @@ func hide_shop() -> void:
 	shop_view.presenter._on_closed()
 
 
-func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
+func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
 	scouting_view.show_scouting(world, player_squad, ai_decisions)
 
 
@@ -563,7 +600,6 @@ func hide_stage() -> void:
 #endregion
 
 #region Notification Bar
-
 
 func _acquire_contact_bar() -> ContactMiniBar:
 	for bar in _contact_bars:

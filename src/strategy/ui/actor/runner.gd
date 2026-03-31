@@ -137,9 +137,7 @@ func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 
 
 func advance_hour() -> void:
-	hour_count += 1
-	aem.scenario.world.current_hour = hour_count
-	StrategyEventBus.hour_advanced.emit(hour_count)
+	hour_count = aem.scenario.world.current_hour
 
 
 func get_activity(_getting_type: StrategyTypes.ActivityType) -> Activity:

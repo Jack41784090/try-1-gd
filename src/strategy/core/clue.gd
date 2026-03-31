@@ -3,7 +3,7 @@ class_name Clue extends Resource
 @export var clue_id: String = ""
 @export var clue_name: String = ""
 @export var destination_id: String = ""
-@export var decay: int = 5
+@export var decay: int = 120
 @export var created_hour: int = 0
 @export var left_by_warrior_id: String = ""
 @export var left_by_squad_id: String = ""
@@ -24,19 +24,22 @@ func get_age(current_hour: int) -> int:
 
 func get_age_description(current_hour: int) -> String:
 	var age := get_age(current_hour)
-	match age:
-		0:
-			return "fresh, left within the hour"
-		1:
-			return "1 to 2 days old"
-		2:
-			return "2 to 3 days old"
-		3:
-			return "3 to 4 days old"
-		4:
-			return "4 to 5 days old"
-		_:
-			return "nearly faded, at least %d days old" % age
+	if age <= 0:
+		return "fresh, left within the hour"
+	elif age < 6:
+		return "a few hours old"
+	elif age < 24:
+		return "less than a day old"
+	elif age < 48:
+		return "1 to 2 days old"
+	elif age < 72:
+		return "2 to 3 days old"
+	elif age < 96:
+		return "3 to 4 days old"
+	elif age < 120:
+		return "4 to 5 days old"
+	else:
+		return "nearly faded, at least %d days old" % (age / 24)
 
 
 func get_destination_hint(perception_roll: int) -> String:
@@ -51,7 +54,7 @@ func get_destination_hint(perception_roll: int) -> String:
 		return "direction unclear"
 
 
-func decay_one_turn() -> void:
+func decay_one_hour() -> void:
 	decay -= 1
 
 
@@ -70,7 +73,7 @@ static func create_clue(
 	clue.left_by_warrior_id = warrior_id
 	clue.created_hour = current_hour
 	clue.destination_id = destination
-	clue.decay = randi_range(3, 7)
+	clue.decay = randi_range(72, 168)
 	clue.detail_level = clampi(stealth_failure_margin * 10, 0, 100)
 	return clue
 

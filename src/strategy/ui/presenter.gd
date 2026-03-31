@@ -1085,6 +1085,9 @@ func _on_hour_tick(hour: int) -> void:
 	if is_new_day:
 		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
 
+	for location in game_scenario.world.locations:
+		location.decay_clues()
+
 	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
 	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
 	var turn_entries = _build_karma_sorted_entries(ai_results)

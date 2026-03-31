@@ -39,16 +39,18 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   5. The `screenshot`/`ss` command in interactive_demo.gd uses `get_viewport().get_texture().get_image().save_png()` — only works in GUI mode, errors gracefully in headless
   6. Clock overlay: `ClockLabel` in top-left corner shows `⌚ HH:00`, updated by `StrategyView.update_clock()`
 - **SVG Drawing Canvas** (`canvas_demo.tscn`): AI drawing sandbox — edit `.tscn` + `.svg` files, auto-reloads, screenshots via same pipes
-  1. Start: `bash tools/start_canvas.sh` — GUI window + stdin/stdout pipes (same as game)
-  2. Wait ~10s, then `bash tools/play.sh "info"` to verify
-  3. **Free-form mode**: Edit `scenes/demos/canvas/default.tscn` (Sprite2D nodes with `metadata/svg_path`), edit SVGs in `scenes/demos/canvas/svgs/` — auto-reloads within 0.5s
-  4. **Rig mode**: `bash tools/play.sh "rig landsknecht"` — loads warrior skeleton, applies SVG textures from `svgs/rig/landsknecht/` (15 bones: head, torso, hips, leftarm, etc.)
-  5. Rig animations: `bash tools/play.sh "anim idle"` / `walk` / `attack` / `defend` / `hurt` / `die`
-  6. Camera: `zoom 3.0`, `zoom_in`, `zoom_out`, `pan 500 300`, `center`
-  7. Other: `grid` (toggle), `bg #1a1a2e` (background), `tree` (node dump), `sizes` (bone dimensions), `shader <node> <param> <value>`
-  8. SVG viewBox sizes (base ×4): Head=88×104, Torso=192×176, Hips=160×48, Arm=56×144, Forearm=48×104, Hand=40×40, Leg=64×192, Shin=56×144, Foot=96×48
-  9. Shaders: put `.gdshader` files in `assets/shaders/canvas/`, reference from canvas `.tscn` as ShaderMaterial — auto-reloads on edit
-  10. Same MCP tools work (`screenshot_game`, `view_screenshot`, `game_command`) — uses identical pipe files
+  1. Start: `bash tools/start_canvas.sh [session_id]` — GUI window + per-session pipes. Defaults to session `canvas`
+  2. **Multi-instance**: multiple canvases can run simultaneously with different session IDs: `bash tools/start_canvas.sh agent1`, `bash tools/start_canvas.sh agent2`
+  3. Wait ~10s, then `CONDOR_SESSION=<id> bash tools/play.sh "info"` to verify. Without `CONDOR_SESSION`, uses legacy default pipes
+  4. **Free-form mode**: Edit `scenes/demos/canvas/default.tscn` (Sprite2D nodes with `metadata/svg_path`), edit SVGs in `scenes/demos/canvas/svgs/` — auto-reloads within 0.5s
+  5. **Rig mode**: `CONDOR_SESSION=canvas bash tools/play.sh "rig landsknecht"` — loads warrior skeleton, applies SVG textures from `svgs/rig/landsknecht/` (15 bones: head, torso, hips, leftarm, etc.)
+  6. Rig animations: `bash tools/play.sh "anim idle"` / `walk` / `attack` / `defend` / `hurt` / `die`
+  7. Camera: `zoom 3.0`, `zoom_in`, `zoom_out`, `pan 500 300`, `center`
+  8. Other: `grid` (toggle), `bg #1a1a2e` (background), `tree` (node dump), `sizes` (bone dimensions), `shader <node> <param> <value>`
+  9. SVG viewBox sizes (base ×4): Head=88×104, Torso=192×176, Hips=160×48, Arm=56×144, Forearm=48×104, Hand=40×40, Leg=64×192, Shin=56×144, Foot=96×48
+  10. Shaders: put `.gdshader` files in `assets/shaders/canvas/`, reference from canvas `.tscn` as ShaderMaterial — auto-reloads on edit
+  11. Same MCP tools work (`screenshot_game`, `view_screenshot`, `game_command`) — uses identical pipe files
+  12. **Concurrency**: `play.sh` uses `flock` per-session to serialize commands from parallel agents. `canvas_demo.gd` debounces file-watch reloads (0.3s) and gates commands/reloads behind `_busy` flag
 
 ## Architecture
 
@@ -93,6 +95,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Theme** (`resources/theme/condor_theme.tres`): EB Garamond font, multi-use styles via `theme_type_variation`, single-use via `theme_override_*` or standalone `.tres` in `resources/theme/styles/`. `ThemeConstants` (`src/utils/theme_constants.gd`) for GDScript color/size constants
 - **Data models**: `SquadData` (src/squad/social.gd), `CombatSquad` (src/squad/combat.gd), `CargoManifest` (src/squad/cargo_manifest.gd), `Warrior` (src/character/social.gd), `CombatEntity` (src/character/combat.gd)
 - **Animation** (`src/animation/`): 5-layer system — Clips→iExpression→AnimAction→Behavior→WarriorAnimController. `WarriorRig` (warrior_rig.gd) generates placeholder Polygon2D body parts, `apply_config()` replaces with textures. `WarriorRigConfig/Factory` for per-class configs
+- **Rig Art Style**: Darkest Dungeon × chibi — heavy black outlines, gradient shadows, cross-hatching, muted dark palettes. SVG textures in `assets/rig_textures/<class>/` (15 bones × 7 classes = 105 SVGs). Canvas demo copies in `scenes/demos/canvas/svgs/rig/<class>/`
+- **Animation Style**: Dramatic weighted movement — idle (2s slow breathe), walk (1s heavy stride with shin bend), attack (0.9s explosive wind-up), defend (0.7s bracing), hurt (0.6s stagger), die (1.5s tragic collapse with alpha fade), talk (1.6s weighted gestures), gesture (1s dramatic flourish)
 - **Warrior Stage** (`src/strategy/ui/stage/`): `StageView` + `StagePresenter` — shared 2D viewport for march and VN. Modes: MARCH/VN/HIDDEN. `SpeechBubble` with typewriter effect, `StageCamera` with tween-based focus
 - **Visual Novel** (`src/strategy/ui/vn/`): `EventChain` triggers via `event_chain_path` in results. `VnPresenter` is stage-aware (speech bubble on rig or fallback textbox). `DialogueInstruction` (instructions/dialogue_instruction.gd) extends `CinematicInstruction` with speaker_name, line_spoken, after_id. `GroupPlayback` processes `CinematicGroup` trees (parallel/sequential/auto-gate). `CharacterInstruction` (SHOW/HIDE + StageAnchor), `CameraInstruction` (screen position panning)
 - **Strategic AI** (`src/strategy/ai/`): Data-driven Consideration scoring
@@ -180,6 +184,10 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Typed array assignment**: Never assign from `Dictionary.get()` to typed arrays. Iterate and append with type checks
 - **Squad positions**: `Front = 1`, `Middle = 2`, `Back = 3` (NOT zero-indexed). Forward = -1, retreat = +1
 - **Entity updates**: All combat state changes return `EntityUpdate` containing `EntityChange`
+- **Never use `+=` on label text for state indicators** — store the base text and rebuild. Repeated calls append duplicates (e.g., `"[PAUSED][PAUSED][PAUSED]"`)
+- **Single source of truth for time progression** — `GameClock` owns `world.current_hour`. Never overwrite it from `ActivityRunner` or other subsystems. Only one place should emit `hour_advanced`
+- **Unit conversion on system migration** — when changing time granularity (turns→hours), audit ALL hardcoded numeric constants: decay timers, condition thresholds in `.tres` files, age description breakpoints. A "5" that meant "5 days" becomes "5 hours" if not scaled
+- **Wire up all lifecycle methods** — if a method like `decay_clues()` exists, verify it's actually called somewhere. Dead code that looks functional is worse than missing code
 
 ## File Organization
 
@@ -189,6 +197,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - `src/strategy/ui/actor/` — ActivityExecuteManager (!main.gd), ActivityRunner, AI executors
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, glances, actions, caravan brain
 - `src/animation/` — WarriorRig, configs, expressions, actions, controller
+- `assets/rig_textures/` — SVG bone textures per class (landsknecht, healer, crossbowman, arquebusier, pikeman, feldprediger, gelehrter)
 - `src/character/` — Warrior (social.gd), CombatEntity (combat.gd), classes enum
 - `src/squad/` — SquadData, CombatSquad, CargoManifest
 - `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge; `csharp/` for C# engine

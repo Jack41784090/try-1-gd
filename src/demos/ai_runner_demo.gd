@@ -120,7 +120,7 @@ func test_achievement_with_clues():
 	clue.clue_name = "Fresh Tracks"
 	clue.destination_id = "village_1"
 	clue.created_hour = 0
-	clue.decay = 5
+	clue.decay = 120
 	clue.left_by_squad_id = "enemy_squad"
 	city_location.add_clue(clue)
 

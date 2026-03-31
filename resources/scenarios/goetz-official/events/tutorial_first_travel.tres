@@ -17,7 +17,7 @@ script = ExtResource("1_cond")
 condition_type = 5
 parameters = {
 "turn_min": 0,
-"turn_max": 5
+"turn_max": 120
 }
 metadata/_custom_type_script = "uid://bttrmws06n1o1"
 

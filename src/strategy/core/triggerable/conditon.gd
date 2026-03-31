@@ -127,10 +127,10 @@ func _check_time(context: Dictionary) -> bool:
 	if not world:
 		return false
 	
-	var turn_min = parameters.get("turn_min", 0)
-	var turn_max = parameters.get("turn_max", 999999)
+	var hour_min = parameters.get("hour_min", parameters.get("turn_min", 0))
+	var hour_max = parameters.get("hour_max", parameters.get("turn_max", 999999))
 	
-	return world.current_hour >= turn_min and world.current_hour <= turn_max
+	return world.current_hour >= hour_min and world.current_hour <= hour_max
 
 func _check_mission(context: Dictionary) -> bool:
 	var completed_missions: Array = context.get("completed_missions", [])
