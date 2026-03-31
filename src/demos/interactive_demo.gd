@@ -225,6 +225,8 @@ func _handle_command(input: String):
 			_cmd_speed(arg)
 		"tick":
 			await _cmd_tick(arg)
+		"click", "advance", "x":
+			_cmd_click()
 		"quit", "q", "exit":
 			_cmd_quit()
 		_:
@@ -279,6 +281,7 @@ func _cmd_help():
 	_print_line("  PAUSE   (pp)      Toggle pause on/off")
 	_print_line("  SPEED   <n>       Set speed multiplier (e.g. speed 5)")
 	_print_line("  TICK    [n]       Advance n hours (default 1, game must be paused)")
+	_print_line("  CLICK   (x)       Advance/dismiss current dialog")
 	_print_separator()
 
 
@@ -1038,6 +1041,15 @@ func _cmd_pause():
 	presenter.game_clock.toggle_pause()
 	var state := "PAUSED" if world.is_paused else "RUNNING (speed %.1fx)" % world.speed_multiplier
 	_print_line("Game clock: %s | Hour %d (Day %d, %s)" % [state, world.current_hour, world.get_day(), world.get_clock_display()])
+
+
+func _cmd_click():
+	var vn_pres = presenter.vn_view.presenter if presenter.vn_view else null
+	if vn_pres and (vn_pres._debug_chain_pending or vn_pres.is_playing_chain):
+		vn_pres.on_advance()
+		_print_line("Advanced dialog.")
+	else:
+		_print_line("No active dialog to advance.")
 
 
 func _cmd_speed(arg: String):

@@ -91,4 +91,3 @@ func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 				Log.debug("Activity", "Skipped chained activity (chance failed): %s" % chained_trigger.trigger_name)
 
 	return all_triggered_results
-
