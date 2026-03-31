@@ -1,13 +1,14 @@
 extends CanvasLayer
 
-@onready var _time_of_day: ColorRect = $TimeOfDay
 @onready var _vignette: ColorRect = $Vignette
 @onready var _film_grain: ColorRect = $FilmGrain
-@onready var _fog_wisps: ColorRect = $FogWisps
 @onready var _damage_pulse: ColorRect = $DamagePulse
 @onready var _combat_atmosphere: ColorRect = $CombatAtmosphere
 
 var _current_hour_of_day: float = 12.0
+var _world_shader: Shader = preload("res://assets/shaders/fx/world_atmosphere.gdshader")
+var _bg_material: ShaderMaterial
+var _fg_material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -17,7 +18,19 @@ func _ready() -> void:
 	_damage_pulse.visible = false
 	_combat_atmosphere.visible = false
 	StrategyEventBus.hour_advanced.connect(_on_hour_advanced)
-	update_time(8)
+	update_time(0)
+
+
+func register_world_textures(bg: TextureRect, fg: TextureRect) -> void:
+	_bg_material = ShaderMaterial.new()
+	_bg_material.shader = _world_shader
+	bg.material = _bg_material
+
+	_fg_material = ShaderMaterial.new()
+	_fg_material.shader = _world_shader
+	fg.material = _fg_material
+
+	_apply_world_shader_params()
 
 
 func _on_hour_advanced(hour: int) -> void:
@@ -26,18 +39,24 @@ func _on_hour_advanced(hour: int) -> void:
 
 func update_time(hour: int) -> void:
 	_current_hour_of_day = float(hour % 24)
-
-	var tod_mat: ShaderMaterial = _time_of_day.material
-	tod_mat.set_shader_parameter("hour_of_day", _current_hour_of_day)
+	_apply_world_shader_params()
 
 	var night := _get_night_factor(_current_hour_of_day)
 
 	var vig_mat: ShaderMaterial = _vignette.material
 	vig_mat.set_shader_parameter("intensity", 0.35 + night * 0.25)
 
-	var fog_mat: ShaderMaterial = _fog_wisps.material
+
+func _apply_world_shader_params() -> void:
+	var night := _get_night_factor(_current_hour_of_day)
 	var dawn := _get_dawn_factor(_current_hour_of_day)
-	fog_mat.set_shader_parameter("intensity", 0.06 + night * 0.14 + dawn * 0.12)
+	var fog := 0.06 + night * 0.18 + dawn * 0.12
+
+	for mat: ShaderMaterial in [_bg_material, _fg_material]:
+		if mat == null:
+			continue
+		mat.set_shader_parameter("hour_of_day", _current_hour_of_day)
+		mat.set_shader_parameter("fog_intensity", fog)
 
 
 func trigger_damage_pulse() -> void:

@@ -92,6 +92,7 @@ func _ready() -> void:
 	rest_button.visible = false
 	_connect_signals()
 	_register_button_animations()
+	GrimdarkFX.register_world_textures(main_background, foreground)
 	presenter.bind_view(self)
 
 
