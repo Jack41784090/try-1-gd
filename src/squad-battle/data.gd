@@ -2,10 +2,10 @@ extends RefCounted
 
 class_name SquadBattle
 
-var Types = SquadBattleTypes
+var Types := SquadBattleTypes
 
 var teams_and_squads: Dictionary = { }
-var team_names: Array = []
+var team_names: Array[Variant] = []
 var round_count: int = -1
 
 # Tactic configuration for battle flow
@@ -41,10 +41,9 @@ func _init(config: Dictionary):
 
 		team_names.append(team_name)
 
-	pass
 
 
-func get_entity_by_id(entity_id: int):
+func get_entity_by_id(entity_id: int) -> CombatEntity:
 	for team_name in teams_and_squads:
 		var squads = teams_and_squads[team_name]
 		for squad in squads:
@@ -52,11 +51,11 @@ func get_entity_by_id(entity_id: int):
 				if entity.player_id == entity_id:
 					return entity
 
-	push_error("Entity with ID ", entity_id, " not found!")
+	Log.error("SquadBattle", "Entity with ID %d not found!" % entity_id)
 	return null
 
 
-func remove_capitulated_entities(capitulated_entities: Array):
+func remove_capitulated_entities(capitulated_entities: Array[CombatEntity]) -> void:
 	for entity in capitulated_entities:
 		for team_name in teams_and_squads:
 			var squads = teams_and_squads[team_name]
@@ -65,14 +64,14 @@ func remove_capitulated_entities(capitulated_entities: Array):
 				for i in range(squad.entities.size()):
 					if squad.entities[i].player_id == entity.player_id:
 						entities_to_remove.append(i)
-						print("[WARNING] Entity ", squad.entities[i].player_id, " has capitulated and left the battle!")
+						Log.warn("SquadBattle", "Entity %d has capitulated and left the battle!" % squad.entities[i].player_id)
 
 				for i in range(entities_to_remove.size() - 1, -1, -1):
 					squad.entities.remove_at(entities_to_remove[i])
 
 
-func get_all_enemy_squads(current_team_name: Variant) -> Array:
-	var enemy_squads: Array = []
+func get_all_enemy_squads(current_team_name: Variant) -> Array[CombatSquad]:
+	var enemy_squads: Array[CombatSquad] = []
 
 	for team_name in team_names:
 		if team_name != current_team_name:
@@ -82,12 +81,12 @@ func get_all_enemy_squads(current_team_name: Variant) -> Array:
 	return enemy_squads
 
 
-func choose_weighted_enemy_squad(current_team_name: String):
+func choose_weighted_enemy_squad(current_team_name: String) -> CombatSquad:
 	var enemy_squads = get_all_enemy_squads(current_team_name)
-	var result = null
+	var result: CombatSquad = null
 
 	if enemy_squads.size() > 0:
-		var weights = []
+		var weights: Array[float] = []
 		for squad in enemy_squads:
 			var total_hp = 0.0
 			for entity in squad.entities:
@@ -102,7 +101,7 @@ func choose_weighted_enemy_squad(current_team_name: String):
 
 		var random_value = randf() * total_weight
 		var current_weight = 0.0
-		var selected_squad = null
+		var selected_squad: CombatSquad = null
 
 		for i in range(enemy_squads.size()):
 			current_weight += weights[i]
@@ -151,7 +150,7 @@ func get_battle_outcome() -> SquadBattleTypes.BattleOutcome:
 	return SquadBattleTypes.BattleOutcome.ONGOING
 
 
-func squad_recoveries():
+func squad_recoveries() -> void:
 	# Between rounds, squads that weren't attacked last round recover some stats
 	# e.g., squad "enemy" last_attacked_at=2, round_count=4 → recovery() restores some STA/ORG
 	for team_name in teams_and_squads:
@@ -218,7 +217,7 @@ func squad_actions() -> Array[EntityUpdate]:
 	return updates
 
 
-func remove_dead_entities():
+func remove_dead_entities() -> void:
 	for team_name in teams_and_squads:
 		var squads = teams_and_squads[team_name]
 		for squad in squads:
@@ -240,15 +239,15 @@ func run_headless() -> Array[EntityUpdate]:
 	# e.g., 3-round battle: Round 1 (2 hits, 1 kill) → Round 2 (1 hit) → Round 3 (DRAW at max_rounds)
 	#   → returns all ~8 EntityUpdate objects collected across all rounds
 	var all_updates: Array[EntityUpdate] = []
-	var headless_capitulated: Array = []
+	var headless_capitulated: Array[CombatEntity] = []
 
-	print("[SquadBattle] Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
+	Log.info("SquadBattle", "Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
 
 	round_count = 0
 
 	while not check_victory() and round_count < max_rounds:
 		round_count += 1
-		print("[SquadBattle] === Round %d/%d ===" % [round_count, max_rounds])
+		Log.debug("SquadBattle", "=== Round %d/%d ===" % [round_count, max_rounds])
 		squad_recoveries()
 		var round_updates = squad_actions()
 		for update in round_updates:
@@ -261,9 +260,9 @@ func run_headless() -> Array[EntityUpdate]:
 		remove_capitulated_entities(headless_capitulated)
 		headless_capitulated.clear()
 		var outcome = get_battle_outcome()
-		print("[SquadBattle] Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
+		Log.debug("SquadBattle", "Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
 
 	var final_outcome = get_battle_outcome()
-	print("[SquadBattle] Battle complete after %d round(s): %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[final_outcome]])
+	Log.info("SquadBattle", "Battle complete after %d round(s): %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[final_outcome]])
 
 	return all_updates

@@ -35,7 +35,7 @@ func _setup(config: Dictionary) -> void:
 	# Registration order: factions→missions → endings → events → activities → set location
 	# e.g., world has 5 locations, 2 factions with 3 missions each, 10 generic events, 8 activities
 	#   → triggerable_manager gets 6 missions + 2 endings + 10 events + 8 activities = 26 triggerables
-	print("Scenario setup: ", config);
+	Log.debug("Scenario", "Scenario setup: %s" % str(config))
 	# 1. Initialize triggerable_manager — central registry for all game triggerables
 	triggerable_manager = TriggerableManager.new()
 	
