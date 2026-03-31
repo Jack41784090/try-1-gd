@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 104" width="48" height="104">
+  <defs>
+    <linearGradient id="lfa-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a1018"/>
+      <stop offset="60%" stop-color="#2a0a10"/>
+      <stop offset="100%" stop-color="#1a0608"/>
+    </linearGradient>
+    <linearGradient id="lfa-shadow" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0406" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0a0406" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+  <!-- Narrowing robe sleeve -->
+  <path d="M4 2 Q0 2 0 12 L2 64 Q2 72 6 76 L6 76 Q4 80 6 100 L42 100 Q44 80 42 76 L42 76 Q46 72 46 64 L48 12 Q48 2 44 2Z" fill="url(#lfa-grad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Fabric fold lines -->
+  <path d="M12 6 Q16 30 10 56" fill="none" stroke="#1a0608" stroke-width="1" opacity="0.4"/>
+  <path d="M32 6 Q36 34 30 60" fill="none" stroke="#1a0608" stroke-width="1" opacity="0.35"/>
+  <!-- Wrist bandage wrappings -->
+  <path d="M6 68 Q24 64 42 68" fill="none" stroke="#8a8060" stroke-width="2.5" opacity="0.6"/>
+  <path d="M6 74 Q24 70 42 74" fill="none" stroke="#8a8060" stroke-width="2.5" opacity="0.55"/>
+  <path d="M6 80 Q24 76 42 80" fill="none" stroke="#8a8060" stroke-width="2.5" opacity="0.5"/>
+  <path d="M6 86 Q24 82 42 86" fill="none" stroke="#8a8060" stroke-width="2.5" opacity="0.45"/>
+  <path d="M8 92 Q24 88 40 92" fill="none" stroke="#8a8060" stroke-width="2" opacity="0.4"/>
+  <!-- Bandage cross-hatching -->
+  <line x1="14" y1="66" x2="18" y2="88" stroke="#6a6040" stroke-width="0.6" opacity="0.3"/>
+  <line x1="26" y1="64" x2="28" y2="86" stroke="#6a6040" stroke-width="0.6" opacity="0.3"/>
+  <line x1="36" y1="66" x2="34" y2="88" stroke="#6a6040" stroke-width="0.6" opacity="0.3"/>
+  <!-- Chemical stains on bandages -->
+  <ellipse cx="18" cy="78" rx="5" ry="4" fill="#8a9060" opacity="0.3"/>
+  <ellipse cx="34" cy="84" rx="4" ry="3" fill="#6a8040" opacity="0.25"/>
+  <ellipse cx="12" cy="88" rx="3" ry="2" fill="#4a6a30" opacity="0.2"/>
+  <!-- Arcane mark on upper sleeve -->
+  <circle cx="24" cy="28" r="6" fill="none" stroke="#6a3050" stroke-width="0.7" opacity="0.3"/>
+  <line x1="18" y1="28" x2="30" y2="28" stroke="#6a3050" stroke-width="0.5" opacity="0.25"/>
+  <line x1="24" y1="22" x2="24" y2="34" stroke="#6a3050" stroke-width="0.5" opacity="0.25"/>
+  <circle cx="24" cy="28" r="2" fill="#6a3050" opacity="0.15"/>
+  <!-- Alchemical stain on sleeve -->
+  <ellipse cx="36" cy="40" rx="5" ry="7" fill="#2a4a20" opacity="0.15"/>
+  <!-- Shadow overlay -->
+  <path d="M4 2 Q0 2 0 12 L2 64 Q2 72 6 76 L6 100 L42 100 L42 76 Q46 72 46 64 L48 12 Q48 2 44 2Z" fill="url(#lfa-shadow)"/>
+</svg>
