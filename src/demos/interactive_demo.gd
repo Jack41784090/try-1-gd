@@ -421,14 +421,24 @@ func _cmd_travel(destination: String):
 
 	_print_line("Setting out for %s..." % to_loc.location_name)
 	var snap := _snapshot_state()
-	await presenter.on_travel_confirmed(destination)
+	presenter.on_travel_confirmed(destination)
 
-	while presenter.actor.walking_towards["location"] != null:
-		_print_turn_report(snap)
-		snap = _snapshot_state()
-		await presenter.on_continue_travel()
+	var was_paused := world.is_paused
+	var max_hours := 200
+	var hours_traveled := 0
+	while presenter.actor.walking_towards["location"] != null and hours_traveled < max_hours:
+		world.current_hour += 1
+		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		while presenter.is_executing_activity:
+			await get_tree().create_timer(0.05).timeout
+		hours_traveled += 1
 
-	_print_line("Arrived at %s!" % to_loc.location_name)
+	if presenter.actor.walking_towards["location"] != null:
+		_print_line("Travel still in progress after %d hours." % hours_traveled)
+	else:
+		_print_line("Arrived at %s! (%d hours)" % [to_loc.location_name, hours_traveled])
+	if was_paused:
+		world.is_paused = true
 	_print_turn_report(snap)
 
 
