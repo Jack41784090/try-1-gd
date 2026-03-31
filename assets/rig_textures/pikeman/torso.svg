@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
+  <defs>
+    <linearGradient id="plateSteel" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#3a3a42"/>
+      <stop offset="35%" stop-color="#4a4a52"/>
+      <stop offset="70%" stop-color="#3a3a42"/>
+      <stop offset="100%" stop-color="#2a2a30"/>
+    </linearGradient>
+    <linearGradient id="plateSheen" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#72727a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#2a2a30" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="torsoHatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#1a1a2a" stroke-width="0.4" opacity="0.25"/>
+    </pattern>
+    <pattern id="torsoHatch2" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-35)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#1a1a2a" stroke-width="0.3" opacity="0.15"/>
+    </pattern>
+  </defs>
+  <!-- Under-layer dark fabric visible at edges -->
+  <rect x="6" y="4" width="180" height="168" rx="12" fill="#1a1a2a"/>
+  <!-- Main breastplate -->
+  <path d="M20 12 Q20 4 40 4 L152 4 Q172 4 172 12 L176 120 Q176 140 160 148 L96 172 L32 148 Q16 140 16 120Z" fill="url(#plateSteel)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Cross-hatch texture -->
+  <path d="M20 12 Q20 4 40 4 L152 4 Q172 4 172 12 L176 120 Q176 140 160 148 L96 172 L32 148 Q16 140 16 120Z" fill="url(#torsoHatch)"/>
+  <path d="M20 12 Q20 4 40 4 L152 4 Q172 4 172 12 L176 120 Q176 140 160 148 L96 172 L32 148 Q16 140 16 120Z" fill="url(#torsoHatch2)"/>
+  <!-- Median ridge down center -->
+  <line x1="96" y1="8" x2="96" y2="160" stroke="#606068" stroke-width="1.5" opacity="0.5"/>
+  <line x1="97" y1="8" x2="97" y2="160" stroke="#2a2a30" stroke-width="1" opacity="0.5"/>
+  <!-- Sheen highlight on right -->
+  <path d="M120 8 Q160 20 168 60 Q172 100 164 140" stroke="#72727a" stroke-width="2.5" fill="none" opacity="0.3"/>
+  <path d="M130 12 Q158 24 164 56" stroke="#8a8a92" stroke-width="1" fill="none" opacity="0.2"/>
+  <!-- Chest plate definition -->
+  <path d="M40 20 Q96 8 152 20 Q156 60 148 80 Q96 90 44 80 Q36 60 40 20Z" fill="url(#plateSteel)" stroke="#1a1a2a" stroke-width="1.5" opacity="0.6"/>
+  <!-- Articulated lames at waist -->
+  <path d="M24 112 Q96 120 168 112" stroke="#1a1a2a" stroke-width="1.5" fill="none"/>
+  <path d="M22 124 Q96 132 170 124" stroke="#1a1a2a" stroke-width="1.5" fill="none"/>
+  <path d="M20 136 Q96 144 172 136" stroke="#1a1a2a" stroke-width="1.2" fill="none"/>
+  <path d="M24 148 Q96 156 168 148" stroke="#1a1a2a" stroke-width="1" fill="none"/>
+  <!-- Rivet lines along top edge -->
+  <circle cx="36" cy="10" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="56" cy="8" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="76" cy="6" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="96" cy="5" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="116" cy="6" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="136" cy="8" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <circle cx="156" cy="10" r="1.8" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.8"/>
+  <!-- Rivet lines along sides -->
+  <circle cx="22" cy="40" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <circle cx="20" cy="70" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <circle cx="18" cy="100" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <circle cx="170" cy="40" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <circle cx="172" cy="70" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <circle cx="174" cy="100" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
+  <!-- Battle scratches -->
+  <line x1="60" y1="30" x2="80" y2="50" stroke="#606068" stroke-width="0.7" opacity="0.5"/>
+  <line x1="62" y1="32" x2="78" y2="48" stroke="#72727a" stroke-width="0.4" opacity="0.3"/>
+  <line x1="120" y1="60" x2="140" y2="90" stroke="#606068" stroke-width="0.6" opacity="0.4"/>
+  <line x1="50" y1="80" x2="60" y2="70" stroke="#606068" stroke-width="0.5" opacity="0.35"/>
+  <line x1="140" y1="30" x2="150" y2="45" stroke="#72727a" stroke-width="0.5" opacity="0.4"/>
+  <!-- Battle dents -->
+  <ellipse cx="70" cy="44" rx="6" ry="4" fill="#1a1a2a" opacity="0.2"/>
+  <ellipse cx="140" cy="80" rx="5" ry="3" fill="#1a1a2a" opacity="0.15"/>
+  <ellipse cx="50" cy="100" rx="4" ry="5" fill="#1a1a2a" opacity="0.18"/>
+  <!-- Rust spots -->
+  <circle cx="30" cy="90" r="3" fill="#6a3a20" opacity="0.25"/>
+  <circle cx="160" cy="50" r="2.5" fill="#6a3a20" opacity="0.2"/>
+  <circle cx="80" cy="140" r="2" fill="#6a3a20" opacity="0.22"/>
+  <!-- Dark blue-black under-layer at joints -->
+  <path d="M16 4 Q8 4 8 12 L8 20 Q16 16 20 12Z" fill="#1a1a2a" opacity="0.7"/>
+  <path d="M176 4 Q184 4 184 12 L184 20 Q176 16 172 12Z" fill="#1a1a2a" opacity="0.7"/>
+  <!-- Left side shadow overlay -->
+  <path d="M20 12 Q20 4 40 4 L96 4 L96 172 L32 148 Q16 140 16 120Z" fill="#0a0a0a" opacity="0.15"/>
+  <!-- Gorget at neck -->
+  <path d="M56 4 Q96 -2 136 4" stroke="#606068" stroke-width="2" fill="none"/>
+  <path d="M60 2 Q96 -4 132 2" stroke="#4a4a52" stroke-width="1" fill="none"/>
+</svg>

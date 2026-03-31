@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 104" width="48" height="104">
+  <defs>
+    <linearGradient id="rfaGrad" x1="0" y1="0" x2="1" y2="0.3">
+      <stop offset="0%" stop-color="#1a2a4a"/>
+      <stop offset="50%" stop-color="#1e3050"/>
+      <stop offset="100%" stop-color="#152240"/>
+    </linearGradient>
+    <pattern id="rfaHatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#0a1020" stroke-width="0.5" opacity="0.2"/>
+    </pattern>
+  </defs>
+  <!-- Lower sleeve narrowing -->
+  <path d="M4 4 Q12 0 24 0 Q36 0 44 4 L46 30 Q48 55 46 80 L42 96 Q36 104 24 104 Q12 104 6 96 L2 80 Q0 55 2 30 Z" fill="url(#rfaGrad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Cross-hatching on right shadow -->
+  <path d="M24 0 Q36 0 44 4 L46 30 Q48 55 46 80 L42 96 Q36 104 24 104 Z" fill="url(#rfaHatch)" opacity="0.35"/>
+  <!-- Shadow overlay right -->
+  <path d="M34 0 Q36 0 44 4 L46 30 Q48 55 46 80 L42 96 Q36 104 34 104 Z" fill="#0a1020" opacity="0.2"/>
+  <!-- Cloth fold lines -->
+  <path d="M14 6 Q12 30 14 60 Q16 80 14 100" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.45"/>
+  <path d="M26 4 Q24 30 26 60 Q28 85 26 100" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
+  <path d="M36 8 Q34 30 36 60 Q38 80 36 100" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
+  <!-- Cream cuff band at bottom -->
+  <path d="M8 88 Q12 92 24 96 Q36 92 40 88 L42 96 Q36 104 24 104 Q12 104 6 96 Z" fill="#d0c8b0" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Cuff stitching -->
+  <path d="M10 90 Q16 94 24 96 Q32 94 38 90" stroke="#b0a890" stroke-width="0.5" stroke-dasharray="2,3" fill="none" opacity="0.6"/>
+  <!-- Holy symbol stitching -->
+  <circle cx="24" cy="45" r="5" fill="none" stroke="#a08830" stroke-width="0.8" opacity="0.5"/>
+  <line x1="24" y1="40" x2="24" y2="50" stroke="#a08830" stroke-width="0.8" opacity="0.5"/>
+  <line x1="19" y1="45" x2="29" y2="45" stroke="#a08830" stroke-width="0.8" opacity="0.5"/>
+  <!-- Light highlight on near side -->
+  <path d="M10 10 Q8 35 10 65 Q12 85 10 98" stroke="#243660" stroke-width="0.6" fill="none" opacity="0.3"/>
+  <!-- Outline reinforcement -->
+  <path d="M4 4 Q12 0 24 0 Q36 0 44 4 L46 30 Q48 55 46 80 L42 96 Q36 104 24 104 Q12 104 6 96 L2 80 Q0 55 2 30 Z" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 192" width="64" height="192">
+  <defs>
+    <linearGradient id="llGrad" x1="0" y1="0" x2="1" y2="0.2">
+      <stop offset="0%" stop-color="#0e1830"/>
+      <stop offset="50%" stop-color="#1a2a4a"/>
+      <stop offset="100%" stop-color="#152240"/>
+    </linearGradient>
+    <linearGradient id="llShadow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="llHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(42)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#0a1020" stroke-width="0.5" opacity="0.25"/>
+    </pattern>
+  </defs>
+  <!-- Robe skirt — left leg -->
+  <path d="M6 4 Q16 0 32 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 32 192 Q14 192 6 184 L2 150 Q0 100 2 50 Z" fill="url(#llGrad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Cross-hatching shadow side -->
+  <path d="M6 4 Q16 0 32 0 L32 192 Q14 192 6 184 L2 150 Q0 100 2 50 Z" fill="url(#llHatch)" opacity="0.4"/>
+  <!-- Deep shadow on left -->
+  <path d="M6 4 L2 50 Q0 100 2 150 L6 184 Q8 188 16 192 L16 0 Q16 0 6 4 Z" fill="url(#llShadow)"/>
+  <!-- Vertical fold lines -->
+  <path d="M16 8 Q18 50 16 100 Q14 150 16 186" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.5"/>
+  <path d="M28 4 Q30 50 28 100 Q26 150 28 190" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M40 4 Q42 50 40 100 Q38 150 40 190" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
+  <path d="M50 6 Q52 50 50 100 Q48 150 50 188" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <!-- Horizontal drape suggestion -->
+  <path d="M8 40 Q20 38 40 40 Q52 42 58 44" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.3"/>
+  <path d="M8 90 Q20 88 40 90 Q52 92 58 94" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.25"/>
+  <path d="M6 140 Q20 138 40 140 Q52 142 58 144" stroke="#0e1830" stroke-width="0.6" fill="none" opacity="0.25"/>
+  <!-- Fabric gathering at knee hint -->
+  <path d="M12 120 Q22 116 36 118 Q48 120 56 124" stroke="#243660" stroke-width="0.5" fill="none" opacity="0.3"/>
+  <!-- Bottom hem -->
+  <path d="M6 184 Q16 190 32 192 Q48 190 58 184" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <!-- Outline reinforcement -->
+  <path d="M6 4 Q16 0 32 0 Q48 0 58 4 L62 50 Q64 100 62 150 L58 184 Q50 192 32 192 Q14 192 6 184 L2 150 Q0 100 2 50 Z" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+</svg>

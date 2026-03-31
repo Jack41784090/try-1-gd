@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 48" width="96" height="48">
+  <defs>
+    <linearGradient id="rfoot-grad" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3e1420"/>
+      <stop offset="100%" stop-color="#2e0e14"/>
+    </linearGradient>
+    <linearGradient id="rfoot-shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0406" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0a0406" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <!-- Ground shadow -->
+  <ellipse cx="48" cy="44" rx="42" ry="4" fill="#0a0406" opacity="0.2"/>
+  <!-- Shoe body (mirrored) -->
+  <path d="M26 4 Q20 8 16 16 L8 26 Q4 32 6 38 Q10 44 20 44 L76 44 Q86 44 92 40 Q98 38 96 32 Q94 26 86 20 L72 10 Q66 4 56 4Z" fill="url(#rfoot-grad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Pointed curled toe -->
+  <path d="M96 32 Q100 28 98 22 Q96 16 90 14 Q86 14 84 18" fill="url(#rfoot-grad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Toe curl spiral -->
+  <path d="M94 22 Q96 18 92 16 Q88 16 88 20" fill="none" stroke="#1e0a10" stroke-width="1" opacity="0.5"/>
+  <!-- Shoe seam -->
+  <path d="M56 6 Q66 18 84 28" fill="none" stroke="#0a0a0a" stroke-width="1" opacity="0.4"/>
+  <!-- Top opening -->
+  <path d="M26 4 Q41 2 56 4" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Leather folds -->
+  <path d="M44 10 Q48 20 50 30" fill="none" stroke="#1e0a10" stroke-width="0.8" opacity="0.3"/>
+  <path d="M34 8 Q38 18 40 28" fill="none" stroke="#1e0a10" stroke-width="0.8" opacity="0.25"/>
+  <path d="M66 14 Q70 24 72 34" fill="none" stroke="#1e0a10" stroke-width="0.8" opacity="0.28"/>
+  <!-- Arcane symbol -->
+  <circle cx="76" cy="30" r="4" fill="none" stroke="#5a3850" stroke-width="0.6" opacity="0.25"/>
+  <polygon points="76,26 79,33 73,33" fill="none" stroke="#5a3850" stroke-width="0.5" opacity="0.2"/>
+  <!-- Chemical stain -->
+  <ellipse cx="40" cy="28" rx="6" ry="4" fill="#2a4a20" opacity="0.14"/>
+  <ellipse cx="60" cy="36" rx="4" ry="3" fill="#4a3a20" opacity="0.1"/>
+  <!-- Cross-hatching on heel -->
+  <g opacity="0.12" stroke="#0a0a0a" stroke-width="0.5">
+    <line x1="18" y1="20" x2="22" y2="36"/>
+    <line x1="14" y1="18" x2="18" y2="34"/>
+    <line x1="10" y1="22" x2="14" y2="38"/>
+  </g>
+  <!-- Shadow overlay -->
+  <path d="M26 4 Q20 8 16 16 L8 26 Q4 32 6 38 Q10 44 20 44 L76 44 Q86 44 92 40 Q98 38 96 32 Q94 26 86 20 L72 10 Q66 4 56 4Z" fill="url(#rfoot-shadow)"/>
+</svg>

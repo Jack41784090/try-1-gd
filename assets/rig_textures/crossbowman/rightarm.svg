@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
+  <defs>
+    <linearGradient id="rarmGrad" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0f1e0d"/>
+      <stop offset="40%" stop-color="#1a3018"/>
+      <stop offset="100%" stop-color="#2a4422"/>
+    </linearGradient>
+    <pattern id="rarmHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(-30)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a0a0a" stroke-width="0.5" opacity="0.12"/>
+    </pattern>
+    <pattern id="rbracerGrain" patternUnits="userSpaceOnUse" width="5" height="5">
+      <circle cx="2" cy="3" r="0.3" fill="#0a0a0a" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <!-- Sleeve base -->
+  <rect x="4" y="0" width="48" height="144" rx="12" fill="url(#rarmGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Fabric folds -->
+  <path d="M40 20 Q36 35 42 50" stroke="#0f1e0d" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M38 60 Q34 75 40 90" stroke="#0f1e0d" stroke-width="1.2" fill="none" opacity="0.35"/>
+  <path d="M16 25 Q20 45 16 65" stroke="#2a4422" stroke-width="1" fill="none" opacity="0.3"/>
+  <!-- Lighter shadow on far side (more lit) -->
+  <path d="M40 0 L52 0 L52 144 L40 144Z" fill="url(#rarmHatch)"/>
+  <rect x="38" y="0" width="14" height="144" rx="8" fill="#0a0a0a" opacity="0.1"/>
+  <!-- Leather bracer overlay -->
+  <rect x="6" y="80" width="44" height="50" rx="8" fill="#3a2818" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="6" y="80" width="44" height="50" rx="8" fill="url(#rbracerGrain)"/>
+  <!-- Bracer straps -->
+  <rect x="4" y="86" width="48" height="6" rx="2" fill="#4e3620" stroke="#0a0a0a" stroke-width="1"/>
+  <rect x="4" y="100" width="48" height="6" rx="2" fill="#4e3620" stroke="#0a0a0a" stroke-width="1"/>
+  <rect x="4" y="114" width="48" height="6" rx="2" fill="#4e3620" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Strap buckles (left side for right arm) -->
+  <rect x="10" y="84" width="8" height="8" rx="1.5" fill="#8a7a40" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="14" cy="88" r="1.2" fill="#6a5a30"/>
+  <rect x="10" y="98" width="8" height="8" rx="1.5" fill="#8a7a40" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="14" cy="102" r="1.2" fill="#6a5a30"/>
+  <rect x="10" y="112" width="8" height="8" rx="1.5" fill="#8a7a40" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="14" cy="116" r="1.2" fill="#6a5a30"/>
+  <!-- Bracer stitching -->
+  <path d="M28 82 L28 128" stroke="#2a1c10" stroke-width="0.7" stroke-dasharray="2,3" opacity="0.4"/>
+  <!-- Shoulder seam -->
+  <path d="M8 4 Q28 -2 48 4" stroke="#0f1e0d" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Highlight strip -->
+  <rect x="22" y="10" width="8" height="60" rx="4" fill="#2a4422" opacity="0.15"/>
+  <!-- Wear marks -->
+  <path d="M30 95 L34 96" stroke="#5a4430" stroke-width="0.5" opacity="0.3"/>
+</svg>

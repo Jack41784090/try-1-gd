@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 48" width="160" height="48">
+  <defs>
+    <linearGradient id="hipFabric" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#241838"/>
+      <stop offset="100%" stop-color="#18102a"/>
+    </linearGradient>
+    <linearGradient id="ropeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a89070"/>
+      <stop offset="100%" stop-color="#887058"/>
+    </linearGradient>
+  </defs>
+  <!-- Hip fabric base -->
+  <rect x="12" y="0" width="136" height="48" rx="4" fill="url(#hipFabric)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Fabric fold lines -->
+  <line x1="40" y1="2" x2="38" y2="46" stroke="#0a0a0a" stroke-width="1" opacity="0.2"/>
+  <line x1="80" y1="2" x2="80" y2="46" stroke="#0a0a0a" stroke-width="1" opacity="0.15"/>
+  <line x1="120" y1="2" x2="122" y2="46" stroke="#0a0a0a" stroke-width="1" opacity="0.2"/>
+  <!-- Rope cincture belt -->
+  <path d="M16 14 Q40 18 80 16 Q120 18 144 14" stroke="url(#ropeGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Rope twist texture -->
+  <path d="M16 14 Q40 18 80 16 Q120 18 144 14" stroke="#6a5840" stroke-width="1" fill="none" stroke-dasharray="3,2" opacity="0.5"/>
+  <path d="M18 12 Q42 16 80 14 Q118 16 142 12" stroke="#b8a078" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <!-- Rope knot at center -->
+  <circle cx="80" cy="16" r="5" fill="#a89070" stroke="#0a0a0a" stroke-width="1.5"/>
+  <path d="M78 14 Q80 16 82 14" stroke="#6a5840" stroke-width="1" fill="none"/>
+  <path d="M78 18 Q80 16 82 18" stroke="#6a5840" stroke-width="1" fill="none"/>
+  <!-- Hanging rope tails -->
+  <path d="M78 20 Q74 30 70 42 Q68 46 66 48" stroke="url(#ropeGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M82 20 Q86 32 84 44" stroke="url(#ropeGrad)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Rosary beads hanging from rope -->
+  <circle cx="68" cy="34" r="2.5" fill="#3a2828" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="66" cy="40" r="2.5" fill="#3a2828" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="65" cy="46" r="2" fill="#3a2828" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Rosary cross at end -->
+  <line x1="65" y1="46" x2="65" y2="48" stroke="#9a8030" stroke-width="1.5"/>
+  <!-- Second rosary strand -->
+  <circle cx="84" cy="38" r="2" fill="#3a2828" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="84" cy="44" r="2" fill="#3a2828" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Gold clasp -->
+  <rect x="74" y="10" width="12" height="12" rx="2" fill="#9a8030" stroke="#0a0a0a" stroke-width="1.5"/>
+  <line x1="77" y1="14" x2="83" y2="14" stroke="#b09040" stroke-width="1"/>
+  <line x1="80" y1="11" x2="80" y2="21" stroke="#b09040" stroke-width="1"/>
+  <circle cx="80" cy="16" r="2" fill="#4a1018" stroke="#807020" stroke-width="0.8"/>
+  <!-- Shadow overlay -->
+  <rect x="80" y="0" width="68" height="48" rx="2" fill="#0a0a0a" opacity="0.1"/>
+  <!-- Cross-hatch texture -->
+  <line x1="30" y1="28" x2="36" y2="38" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+  <line x1="50" y1="26" x2="56" y2="36" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+  <line x1="110" y1="28" x2="116" y2="38" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+  <line x1="130" y1="26" x2="136" y2="36" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+</svg>

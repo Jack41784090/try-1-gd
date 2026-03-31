@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
+  <defs>
+    <linearGradient id="hatGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2420"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="hatShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="faceShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.5"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Hat brim - wide, casting shadow -->
+  <ellipse cx="44" cy="28" rx="43" ry="12" fill="url(#hatGrad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Hat brim underside shadow -->
+  <ellipse cx="44" cy="30" rx="40" ry="10" fill="#000000" opacity="0.3"/>
+  <!-- Hat crown -->
+  <path d="M20 28 Q20 4 44 2 Q68 4 68 28" fill="#1a1a1a" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Hat crown shadow detail -->
+  <path d="M24 26 Q24 8 44 6 Q50 6 56 10" fill="#2a2420" opacity="0.4"/>
+  <!-- Hat band -->
+  <rect x="22" y="22" width="44" height="5" rx="1" fill="#3a2a20" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Hat band buckle -->
+  <rect x="40" y="22" width="8" height="5" rx="1" fill="#7a6a30" stroke="#0a0a0a" stroke-width="1"/>
+  <rect x="42" y="23" width="4" height="3" fill="#1a1a1a"/>
+  <!-- Hat brim curl - left side slightly upturned -->
+  <path d="M2 28 Q0 24 4 22" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+  <!-- Cross-hatching on hat crown -->
+  <line x1="28" y1="10" x2="32" y2="22" stroke="#0a0a0a" stroke-width="0.5" opacity="0.3"/>
+  <line x1="36" y1="6" x2="38" y2="22" stroke="#0a0a0a" stroke-width="0.5" opacity="0.3"/>
+  <line x1="50" y1="6" x2="52" y2="22" stroke="#0a0a0a" stroke-width="0.5" opacity="0.3"/>
+  <line x1="58" y1="10" x2="60" y2="22" stroke="#0a0a0a" stroke-width="0.5" opacity="0.3"/>
+  <!-- Face - mostly in shadow from hat -->
+  <ellipse cx="44" cy="62" rx="30" ry="36" fill="#b08060" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Deep hat shadow over upper face -->
+  <ellipse cx="44" cy="55" rx="28" ry="28" fill="url(#faceShadow)"/>
+  <!-- Ears -->
+  <ellipse cx="14" cy="58" rx="5" ry="8" fill="#a07050" stroke="#0a0a0a" stroke-width="1.5"/>
+  <ellipse cx="74" cy="58" rx="5" ry="8" fill="#a07050" stroke="#0a0a0a" stroke-width="1.5"/>
+  <ellipse cx="14" cy="58" rx="3" ry="5" fill="#8a6040" opacity="0.5"/>
+  <ellipse cx="74" cy="58" rx="3" ry="5" fill="#8a6040" opacity="0.5"/>
+  <!-- Eyes - glinting from shadow, narrow and calculating -->
+  <path d="M28 52 Q34 49 40 52" stroke="#0a0a0a" stroke-width="1.5" fill="none"/>
+  <path d="M48 52 Q54 49 60 52" stroke="#0a0a0a" stroke-width="1.5" fill="none"/>
+  <!-- Eye glints - piercing from darkness -->
+  <circle cx="34" cy="51" r="2" fill="#c8a050" opacity="0.8"/>
+  <circle cx="54" cy="51" r="2" fill="#c8a050" opacity="0.8"/>
+  <circle cx="35" cy="50" r="0.8" fill="#ffe080" opacity="0.9"/>
+  <circle cx="55" cy="50" r="0.8" fill="#ffe080" opacity="0.9"/>
+  <!-- Gaunt cheek shadows -->
+  <path d="M20 58 Q28 68 30 78" fill="#8a5a40" opacity="0.3"/>
+  <path d="M68 58 Q60 68 58 78" fill="#8a5a40" opacity="0.3"/>
+  <!-- Nose - sharp, angular -->
+  <path d="M44 56 L42 70 Q40 74 37 73" stroke="#7a5030" stroke-width="1.5" fill="none"/>
+  <path d="M46 70 Q48 74 51 73" stroke="#7a5030" stroke-width="1.5" fill="none"/>
+  <!-- Thin, grim mouth -->
+  <path d="M34 82 Q44 85 54 82" stroke="#5a2a1a" stroke-width="2" fill="none"/>
+  <path d="M36 83 Q44 86 52 83" fill="#4a2020" opacity="0.5"/>
+  <!-- Stubble / five o'clock shadow -->
+  <rect x="28" y="76" width="32" height="18" rx="10" fill="#3a2a20" opacity="0.15"/>
+  <!-- Bandana pulled down around neck -->
+  <path d="M16 88 Q20 84 44 86 Q68 84 72 88 Q72 100 44 102 Q16 100 16 88Z" fill="#3a2a20" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Bandana fold details -->
+  <path d="M24 90 Q34 88 44 90" stroke="#2a1a10" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M44 90 Q54 88 64 90" stroke="#2a1a10" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M30 96 Q44 94 58 96" stroke="#2a1a10" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <!-- Bandana knot -->
+  <ellipse cx="44" cy="98" rx="6" ry="4" fill="#4a3828" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Soot stains on face -->
+  <ellipse cx="24" cy="64" rx="4" ry="3" fill="#2a2020" opacity="0.15" transform="rotate(-15 24 64)"/>
+  <ellipse cx="62" cy="70" rx="3" ry="2" fill="#2a2020" opacity="0.12" transform="rotate(10 62 70)"/>
+  <!-- Overall dark shadow overlay for sinister look -->
+  <ellipse cx="44" cy="50" rx="30" ry="20" fill="#000000" opacity="0.15"/>
+</svg>

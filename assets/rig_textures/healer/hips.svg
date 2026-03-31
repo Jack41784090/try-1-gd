@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 48" width="160" height="48">
+  <defs>
+    <linearGradient id="hipGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0e1830"/>
+      <stop offset="50%" stop-color="#1a2a4a"/>
+      <stop offset="100%" stop-color="#152240"/>
+    </linearGradient>
+    <pattern id="hipHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a1020" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <!-- Robe continuation at hips -->
+  <rect x="8" y="0" width="144" height="48" rx="6" ry="4" fill="url(#hipGrad)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Cross-hatching shadow underneath -->
+  <rect x="8" y="24" width="144" height="24" rx="0" ry="4" fill="url(#hipHatch)" opacity="0.4"/>
+  <!-- Rope belt / cincture -->
+  <path d="M12 10 Q40 6 80 6 Q120 6 148 10 Q148 18 148 22 Q120 18 80 18 Q40 18 12 22 Q12 18 12 10 Z" fill="#8a7a60" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Rope texture lines -->
+  <path d="M20 10 Q20 14 20 20" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <path d="M40 8 Q40 13 40 18" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <path d="M60 7 Q60 12 60 17" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <path d="M100 7 Q100 12 100 17" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <path d="M120 8 Q120 13 120 18" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <path d="M140 10 Q140 14 140 20" stroke="#6a5a40" stroke-width="0.8" opacity="0.6"/>
+  <!-- Belt knot — center -->
+  <ellipse cx="80" cy="14" rx="8" ry="6" fill="#7a6a50" stroke="#0a0a0a" stroke-width="1.5"/>
+  <path d="M76 10 Q80 8 84 10 Q82 14 80 18 Q78 14 76 10 Z" fill="#6a5a40" opacity="0.5"/>
+  <!-- Knot hanging ends -->
+  <path d="M76 18 Q74 28 70 36 Q68 40 66 42" stroke="#8a7a60" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M84 18 Q86 28 82 36 Q80 40 78 44" stroke="#8a7a60" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Rope highlight -->
+  <path d="M14 12 Q40 8 80 8 Q120 8 146 12" stroke="#a09070" stroke-width="0.6" fill="none" opacity="0.4"/>
+  <!-- Shadow below belt -->
+  <path d="M12 22 Q40 18 80 18 Q120 18 148 22 L148 28 Q120 24 80 24 Q40 24 12 28 Z" fill="#0a1020" opacity="0.25"/>
+  <!-- Lower robe fold lines -->
+  <path d="M30 26 Q32 34 30 46" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M130 26 Q128 34 130 46" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Left shadow overlay -->
+  <rect x="8" y="0" width="40" height="48" fill="#0a1020" opacity="0.15" rx="6"/>
+</svg>

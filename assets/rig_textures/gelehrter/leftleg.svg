@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 192" width="64" height="192">
+  <defs>
+    <linearGradient id="lleg-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a0a10"/>
+      <stop offset="100%" stop-color="#1a0608"/>
+    </linearGradient>
+    <linearGradient id="lleg-shadow" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0406" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0a0406" stop-opacity="0.4"/>
+    </linearGradient>
+    <pattern id="lleg-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#0a0406" stroke-width="0.5" opacity="0.15"/>
+    </pattern>
+  </defs>
+  <!-- Robe skirt piece -->
+  <path d="M4 0 Q0 4 0 16 L0 160 Q0 184 12 190 L52 190 Q62 184 62 160 L64 16 Q64 4 60 0Z" fill="url(#lleg-grad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Fabric drape folds -->
+  <path d="M14 0 Q18 60 10 130" fill="none" stroke="#0a0406" stroke-width="1.5" opacity="0.4"/>
+  <path d="M36 0 Q40 70 32 140" fill="none" stroke="#0a0406" stroke-width="1.2" opacity="0.35"/>
+  <path d="M50 0 Q54 50 48 120" fill="none" stroke="#0a0406" stroke-width="1" opacity="0.3"/>
+  <path d="M24 20 Q28 80 20 150" fill="none" stroke="#0a0406" stroke-width="0.8" opacity="0.25"/>
+  <!-- Arcane pattern along hem -->
+  <circle cx="16" cy="170" r="6" fill="none" stroke="#6a3050" stroke-width="0.8" opacity="0.3"/>
+  <circle cx="32" cy="174" r="5" fill="none" stroke="#6a3050" stroke-width="0.7" opacity="0.25"/>
+  <circle cx="48" cy="170" r="6" fill="none" stroke="#6a3050" stroke-width="0.8" opacity="0.3"/>
+  <polygon points="16,164 20,176 12,176" fill="none" stroke="#6a3050" stroke-width="0.6" opacity="0.2"/>
+  <polygon points="48,164 52,176 44,176" fill="none" stroke="#6a3050" stroke-width="0.6" opacity="0.2"/>
+  <!-- Connecting arcane line -->
+  <path d="M10 172 Q32 166 54 172" fill="none" stroke="#5a3850" stroke-width="0.6" opacity="0.2"/>
+  <!-- Mid-robe arcane symbols -->
+  <circle cx="28" cy="60" r="8" fill="none" stroke="#5a3850" stroke-width="0.6" opacity="0.2"/>
+  <line x1="20" y1="60" x2="36" y2="60" stroke="#5a3850" stroke-width="0.5" opacity="0.15"/>
+  <line x1="28" y1="52" x2="28" y2="68" stroke="#5a3850" stroke-width="0.5" opacity="0.15"/>
+  <!-- Chemical splatter marks -->
+  <ellipse cx="20" cy="100" rx="8" ry="12" fill="#2a4a20" opacity="0.18"/>
+  <ellipse cx="44" cy="80" rx="6" ry="8" fill="#3a5a28" opacity="0.12"/>
+  <ellipse cx="14" cy="140" rx="5" ry="6" fill="#4a3a20" opacity="0.14"/>
+  <circle cx="48" cy="130" r="4" fill="#2a4a20" opacity="0.1"/>
+  <circle cx="30" cy="30" r="3" fill="#3a4a28" opacity="0.1"/>
+  <!-- Cross-hatching for depth -->
+  <rect x="0" y="140" width="64" height="50" fill="url(#lleg-hatch)"/>
+  <g opacity="0.12" stroke="#0a0a0a" stroke-width="0.5">
+    <line x1="4" y1="150" x2="8" y2="170"/>
+    <line x1="8" y1="148" x2="12" y2="168"/>
+    <line x1="50" y1="150" x2="54" y2="170"/>
+    <line x1="54" y1="148" x2="58" y2="168"/>
+  </g>
+  <!-- Deep shadow overlay -->
+  <path d="M4 0 Q0 4 0 16 L0 160 Q0 184 12 190 L52 190 Q62 184 62 160 L64 16 Q64 4 60 0Z" fill="url(#lleg-shadow)"/>
+</svg>

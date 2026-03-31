@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
+  <defs>
+    <pattern id="torso-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(135)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a0a0a" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <linearGradient id="torso-shadow" x1="0" y1="0" x2="0.6" y2="0.4">
+      <stop offset="0%" stop-color="#0a0a0a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="slash-pattern" patternUnits="userSpaceOnUse" width="20" height="30" patternTransform="rotate(-20)">
+      <path d="M2 0 L18 30" stroke="#2a0e0e" stroke-width="4" fill="none" opacity="0.5"/>
+      <path d="M4 0 L16 30" stroke="#4a1a1a" stroke-width="2" fill="none" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <!-- Base doublet -->
+  <rect x="4" y="4" width="184" height="168" rx="12" fill="#6b1a1a" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Slashed fabric pattern -->
+  <rect x="4" y="4" width="184" height="168" rx="12" fill="url(#slash-pattern)"/>
+  <!-- Inner darker fabric showing through slashes -->
+  <path d="M20 30 L35 55" stroke="#2a0e0e" stroke-width="6" fill="none" opacity="0.6"/>
+  <path d="M15 60 L30 90" stroke="#2a0e0e" stroke-width="5" fill="none" opacity="0.5"/>
+  <path d="M10 100 L28 135" stroke="#2a0e0e" stroke-width="6" fill="none" opacity="0.5"/>
+  <path d="M155 35 L170 60" stroke="#2a0e0e" stroke-width="5" fill="none" opacity="0.5"/>
+  <path d="M160 70 L175 100" stroke="#2a0e0e" stroke-width="6" fill="none" opacity="0.5"/>
+  <path d="M158 110 L172 140" stroke="#2a0e0e" stroke-width="5" fill="none" opacity="0.4"/>
+  <!-- Steel chest plate fragment -->
+  <path d="M60 20 Q96 15 132 20 L136 80 Q96 90 56 80 Z" fill="#3a3a42" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Chest plate highlight -->
+  <path d="M66 24 Q96 20 126 24 L128 50 Q96 55 64 50 Z" fill="#52525a" opacity="0.5"/>
+  <!-- Chest plate rivets -->
+  <circle cx="68" cy="30" r="3" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="124" cy="30" r="3" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="68" cy="55" r="3" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="124" cy="55" r="3" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="25" r="2.5" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="96" cy="72" r="2.5" fill="#2a2a30" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Chest plate battle scratches -->
+  <path d="M75 35 L105 42" stroke="#5a5a64" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <path d="M80 50 L115 55" stroke="#5a5a64" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M90 30 L95 65" stroke="#5a5a64" stroke-width="0.7" fill="none" opacity="0.4"/>
+  <!-- Gold trim at collar line -->
+  <path d="M30 8 Q96 0 162 8" stroke="#a08030" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M32 8 Q96 2 160 8" stroke="#c0a040" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Gold trim decorative dots -->
+  <circle cx="50" cy="8" r="2" fill="#a08030"/>
+  <circle cx="96" cy="5" r="2" fill="#a08030"/>
+  <circle cx="142" cy="8" r="2" fill="#a08030"/>
+  <!-- Center seam line -->
+  <line x1="96" y1="85" x2="96" y2="170" stroke="#0a0a0a" stroke-width="1.5" opacity="0.3"/>
+  <!-- Fabric fold lines -->
+  <path d="M40 90 Q50 100 45 120" stroke="#4a1010" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M150 90 Q142 100 146 120" stroke="#4a1010" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M60 120 Q65 140 60 160" stroke="#4a1010" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <path d="M132 120 Q127 140 132 160" stroke="#4a1010" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <!-- Shadow overlay left side -->
+  <rect x="4" y="4" width="92" height="168" rx="12" fill="url(#torso-shadow)"/>
+  <!-- Cross-hatching shadow -->
+  <rect x="4" y="4" width="184" height="168" rx="12" fill="url(#torso-hatch)"/>
+  <!-- Battle damage scratches on fabric -->
+  <path d="M30 50 L50 48" stroke="#8b3030" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <path d="M140 120 L165 115" stroke="#8b3030" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <path d="M25 140 L45 145" stroke="#8b3030" stroke-width="0.7" fill="none" opacity="0.4"/>
+  <!-- Bottom hem -->
+  <path d="M10 164 Q96 172 182 164" stroke="#0a0a0a" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Outline reinforcement -->
+  <rect x="4" y="4" width="184" height="168" rx="12" fill="none" stroke="#0a0a0a" stroke-width="2.5"/>
+</svg>
