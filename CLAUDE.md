@@ -24,6 +24,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `ai_act_demo.tscn` — scripted game testing with assertions. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
   - `economy_demo.tscn` — 3-location supply chain, 20-turn simulation. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
+  - `contact_system_test.tscn` — contact system unit tests (40 assertions: state transitions, proximity, decay, focus, engagements). Usage: `godot --headless --path . scenes/demos/contact_system_test.tscn`
   - `interactive_demo.tscn` — terminal game with stdin commands. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
   - `canvas_demo.tscn` — SVG drawing canvas with rig preview. Usage: `bash tools/start_canvas.sh`, then `bash tools/play.sh "info"`
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`
