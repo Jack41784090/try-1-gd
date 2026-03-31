@@ -178,21 +178,21 @@ func _handle_command(input: String):
 		"travel", "t":
 			await _cmd_travel(arg)
 		"rest":
-			await _cmd_activity(StrategyTypes.ActivityType.REST, "Resting...")
+			await _cmd_activity(StrategyTypes.ActivityType.REST, "Resting...", arg)
 		"forage", "f":
-			await _cmd_activity(StrategyTypes.ActivityType.FORAGE, "Foraging for supplies...")
+			await _cmd_activity(StrategyTypes.ActivityType.FORAGE, "Foraging for supplies...", arg)
 		"drill":
-			await _cmd_activity(StrategyTypes.ActivityType.DRILL, "Drilling troops...")
+			await _cmd_activity(StrategyTypes.ActivityType.DRILL, "Drilling troops...", arg)
 		"patrol", "p":
-			await _cmd_activity(StrategyTypes.ActivityType.PATROL, "Patrolling the area...")
+			await _cmd_activity(StrategyTypes.ActivityType.PATROL, "Patrolling the area...", arg)
 		"heal":
-			await _cmd_activity(StrategyTypes.ActivityType.HEAL, "Healing injured warriors...")
+			await _cmd_activity(StrategyTypes.ActivityType.HEAL, "Healing injured warriors...", arg)
 		"buy":
-			await _cmd_activity(StrategyTypes.ActivityType.BUY_SUPPLIES, "Buying supplies...")
+			await _cmd_activity(StrategyTypes.ActivityType.BUY_SUPPLIES, "Buying supplies...", arg)
 		"mercenary", "merc":
-			await _cmd_activity(StrategyTypes.ActivityType.MERCENARY_WORK, "Doing mercenary work...")
+			await _cmd_activity(StrategyTypes.ActivityType.MERCENARY_WORK, "Doing mercenary work...", arg)
 		"mass":
-			await _cmd_activity(StrategyTypes.ActivityType.HOLD_MASS, "Holding mass...")
+			await _cmd_activity(StrategyTypes.ActivityType.HOLD_MASS, "Holding mass...", arg)
 		"recruit":
 			_cmd_recruit(arg)
 		"attack", "a":
@@ -225,6 +225,8 @@ func _handle_command(input: String):
 			_cmd_speed(arg)
 		"tick":
 			await _cmd_tick(arg)
+		"check_missions", "cm":
+			await _cmd_check_missions()
 		"click", "advance", "x":
 			_cmd_click()
 		"quit", "q", "exit":
@@ -437,17 +439,29 @@ func _cmd_travel(destination: String):
 		_print_line("Travel still in progress after %d hours." % hours_traveled)
 	else:
 		_print_line("Arrived at %s! (%d hours)" % [to_loc.location_name, hours_traveled])
+	presenter.actor.aem.player_squad.current_location_id = player_squad.current_location_id
 	if was_paused:
 		world.is_paused = true
 	_print_turn_report(snap)
 
 
-func _cmd_activity(type: StrategyTypes.ActivityType, description: String):
+func _cmd_activity(type: StrategyTypes.ActivityType, description: String, arg: String = ""):
+	var hours := int(arg) if not arg.is_empty() else 1
+	if hours <= 0:
+		hours = 1
 	_print_line(description)
+	player_squad.current_activity_type = type
 	var snap := _snapshot_state()
-	presenter.on_activity_requested(type)
-	while presenter.is_executing_activity:
-		await get_tree().create_timer(0.05).timeout
+	for i in range(hours):
+		var handler = Activity._get_registry().get_handler(type)
+		if handler:
+			var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
+			handler.execute(ctx, ActivityResult.new())
+		world.current_hour += 1
+		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		await get_tree().create_timer(0.1).timeout
+		while presenter.is_executing_activity:
+			await get_tree().create_timer(0.05).timeout
 	_print_turn_report(snap)
 
 
@@ -1109,6 +1123,38 @@ func _cmd_debug_activities():
 	for t in presenter.actor.aem.scenario.triggerable_manager.registered_triggerables:
 		if t is Activity:
 			_print_line("  Activity: %s (type=%s)" % [t.trigger_name, StrategyTypes.ActivityType.keys()[t.activity_type]])
+
+
+func _cmd_check_missions():
+	_print_line("Checking missions...")
+	## Sync AEM's player_squad location with the actual player_squad
+	presenter.actor.aem.player_squad.current_location_id = player_squad.current_location_id
+	var context := {
+		"squad": player_squad,
+		"world": world,
+		"activity": null,
+		"location": world.get_location_by_id(player_squad.current_location_id),
+		"prev_location": null,
+		"next_location": null,
+		"is_location_changing": false,
+		"turn": world.current_hour,
+		"completed_missions": [],
+	}
+	for faction in presenter.game_scenario.factions:
+		for id in faction.get_completed_mission_ids():
+			context["completed_missions"].append(id)
+		var results = faction.check_mission_completions(context)
+		for r in results:
+			_print_line("  ★ MISSION COMPLETED: %s" % r.mission_id)
+			for unlocked_id in r.unlocked_missions:
+				var unlocked_mission = faction.get_mission_by_id(unlocked_id)
+				if unlocked_mission:
+					unlocked_mission.unlock()
+					_print_line("    → Unlocked: %s" % unlocked_id)
+	## Also run event chains from mission results
+	await presenter._check_missions()
+	var snap := _snapshot_state()
+	_print_turn_report(snap)
 
 
 func _print_banner():
