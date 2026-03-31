@@ -74,7 +74,6 @@ func _to_string() -> String:
 	var mag = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.MAG)
 	var loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
 	
-	# var class_id_str = class_id if class_id else "NULL"
 	var weapon_str = weapon.weapon_name if weapon else "NULL"
 	var armor_str = armor.armor_name if armor else "NULL"
 	var icon_str = icon.resource_path if icon else "NULL"
@@ -124,10 +123,8 @@ func init_after():
 	changeable_stats[SquadBattleTypes.EntityChangeable.MAG] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.MAG)
 
 
-func _validate_existence():
-	pass
-	# assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
-	# assert(class_id != null, "Class ID must not be null")
+func _validate_existence() -> void:
+	assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
 
 
 func _init(config: EntityConfig = null):
@@ -348,7 +345,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 		for eu in skill_result:
 			updates.append(eu)
 	else:
-		print("%s/%s: no skill, idling" % [_debug_id, entity_name])
+		Log.debug("Combat", "%s/%s: no skill, idling" % [_debug_id, entity_name])
 		for c in recover():
 			updates.append(EntityUpdate.new(player_id, player_id, c))
 	
@@ -373,7 +370,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 			for eu in skill_result:
 				updates.append(eu)
 	else:
-		print("%s/%s: no skill, skipping reaction" % [_debug_id, entity_name])
+		Log.debug("Combat", "%s/%s: no skill, skipping reaction" % [_debug_id, entity_name])
 	
 	return updates
 
@@ -383,22 +380,9 @@ func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
 	
 	var updates: Array = []
 	
-	# var needs_target = _skill_needs_target(skill)
-	
-	# if needs_target:
-	# 	var one_clash = logic_obj.choose_clash_with_skill(skill)
-	# 	if one_clash:
-	# 		var clash_updates = one_clash.commit()
-	# 		for eu in clash_updates:
-	# 			updates.append(eu)
-	# 	else:
-	# 		print("[%s] Cannot find target for skill: %s" % [_debug_id, skill.name])
-	# else:
-	# 	updates = _execute_non_target_skill(skill, logic_obj)
-
 	var clash = logic_obj.choose_clash_with_skill(skill)
 	if clash == null:
-		print("%s/%s no valid target for '%s'" % [_debug_id, entity_name, skill.name])
+		Log.debug("Combat", "%s/%s: no valid target for '%s'" % [_debug_id, entity_name, skill.name])
 		return []
 	
 	for u in clash.commit():

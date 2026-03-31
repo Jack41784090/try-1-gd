@@ -5,7 +5,3 @@ class_name DamageTranslation extends Resource
 
 func _to_string() -> String:
 	return "DamageTranslation(reality=%s, potency_list=%s)" % [reality, potency_list]
-
-# func _init(p_Reality: SquadBattleTypes.reality, p_PotencyList: Array[PotencyObj]):
-# 	reality = p_Reality
-# 	potency_list = p_PotencyList

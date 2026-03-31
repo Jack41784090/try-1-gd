@@ -124,5 +124,4 @@ func _get_entities_to_evaluate(entity: CombatEntity, situation: Situation) -> Ar
 		_:
 			assert(false, "Unimplemented entity limiter: %s" % entity_limiter)
 
-	# print(entities)
 	return entities

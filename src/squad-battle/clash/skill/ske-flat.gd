@@ -3,18 +3,6 @@ class_name SkillEffectFlat extends SkillEffect
 @export var value: float
 @export var property_direct: SquadBattleTypes.EntityChangeable;
 
-# func _init(
-# 	_name: String = '',
-# 	_source: CombatEntity = null,
-# 	_affected: CombatEntity = null,
-# 	# _targeting: Targeting = Targeting.SENTINEL,
-# 	_commitType: ClashCommonTypes.CommitType = ClashCommonTypes.CommitType.ApplyStatusEffect,
-# 	_triggers: Array[StatusEffectEventBus.Signals] = [],
-# 	_additional_data: Dictionary = {}
-# ) -> void:
-# 	# super._init(_name, _source, _affected, _commitType, _triggers, _additional_data)
-# 	_debug_id = "[%s-%s]" % [self.get_class(), name]
-
 func commit(_data = null) -> Array[EntityUpdate]:
 	if stacks == 0:
 		for t in triggers:

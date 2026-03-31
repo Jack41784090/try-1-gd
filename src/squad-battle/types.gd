@@ -75,16 +75,6 @@ enum BattleOutcome {
 }
 
 
-# class WeaponConfig:
-# 	var hit_bonus: float
-# 	var penetration_bonus: float
-# 	var damage_translation: Dictionary = {}
-# 	var weapon_range: Dictionary = {}
-	
-# 	func _init(p_hit_bonus: float = 0, p_penetration_bonus: float = 0):
-# 		hit_bonus = p_hit_bonus
-# 		penetration_bonus = p_penetration_bonus
-
 class ArmourConfig:
 	var DV: float
 	var PV: float

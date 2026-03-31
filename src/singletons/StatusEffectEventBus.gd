@@ -38,17 +38,3 @@ func Connect(nameOfSignal: Signals, function):
 func Disconnect(nameOfSignal: Signals, function):
 	var _signal = _get_signal(nameOfSignal)
 	_signal.disconnect(function)
-
-# #button.gd
-# var worldName := "Earth"
-# func helloWorld()-> void:
-#     SignalBus.emit_signal("_hello_world", worldName)
-
-# Connect the node that should trigger event.
-
-# #player.gd
-# func _ready()-> void:
-#     SignalBus.connect("_hello_world", helloWorld) 
-
-# func helloWorld(val):
-#     print("Hello ", val)
