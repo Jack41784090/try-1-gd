@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="lhGloveGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2e1c10"/>
+      <stop offset="100%" stop-color="#3a2818"/>
+    </linearGradient>
+    <pattern id="lhGrain" patternUnits="userSpaceOnUse" width="4" height="4">
+      <circle cx="2" cy="2" r="0.3" fill="#0a0a0a" opacity="0.12"/>
+    </pattern>
+  </defs>
+  <!-- Palm base -->
+  <ellipse cx="20" cy="22" rx="16" ry="16" fill="url(#lhGloveGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Leather grain -->
+  <ellipse cx="20" cy="22" rx="16" ry="16" fill="url(#lhGrain)"/>
+  <!-- Finger cuts (fingerless glove) — exposed knuckles -->
+  <circle cx="10" cy="6" r="4" fill="#b89070" stroke="#0a0a0a" stroke-width="1.5"/>
+  <circle cx="20" cy="4" r="4" fill="#b89070" stroke="#0a0a0a" stroke-width="1.5"/>
+  <circle cx="30" cy="6" r="4" fill="#b89070" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Knuckle highlights -->
+  <circle cx="10" cy="5" r="1.5" fill="#c8a080" opacity="0.4"/>
+  <circle cx="20" cy="3" r="1.5" fill="#c8a080" opacity="0.4"/>
+  <circle cx="30" cy="5" r="1.5" fill="#c8a080" opacity="0.4"/>
+  <!-- Knuckle creases -->
+  <path d="M8 7 L12 7" stroke="#8a6848" stroke-width="0.6" opacity="0.5"/>
+  <path d="M18 5 L22 5" stroke="#8a6848" stroke-width="0.6" opacity="0.5"/>
+  <path d="M28 7 L32 7" stroke="#8a6848" stroke-width="0.6" opacity="0.5"/>
+  <!-- Glove edge where fingers are cut -->
+  <path d="M6 10 Q10 12 14 10 Q17 9 20 10 Q24 12 26 10 Q30 9 34 10" stroke="#2e1c10" stroke-width="1.5" fill="none"/>
+  <!-- Palm grip lines (worn from crossbow use) -->
+  <path d="M10 20 Q16 18 24 20" stroke="#1a1008" stroke-width="0.8" opacity="0.3"/>
+  <path d="M12 26 Q18 24 26 26" stroke="#1a1008" stroke-width="0.8" opacity="0.3"/>
+  <!-- Wrist strap -->
+  <rect x="6" y="34" width="28" height="5" rx="2" fill="#4e3620" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Small brass rivet -->
+  <circle cx="30" cy="36" r="1.5" fill="#8a7a40" stroke="#0a0a0a" stroke-width="0.6"/>
+  <!-- Shadow on left side -->
+  <ellipse cx="10" cy="22" rx="8" ry="14" fill="#0a0a0a" opacity="0.15"/>
+  <!-- Stitching arc -->
+  <path d="M8 16 Q20 14 32 16" stroke="#4e3620" stroke-width="0.6" stroke-dasharray="1.5,2" opacity="0.4"/>
+</svg>
