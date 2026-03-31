@@ -157,7 +157,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **`Resource.duplicate(true)` does NOT deep-copy external `.tres` sub-resources** — always explicitly duplicate: `activity.result = activity.result.duplicate(true)`
 - **Never programmatically create GUI elements** — define in `.tscn`, use `@onready` refs
 - **Pre-built hidden nodes over scene instantiation** for bounded lists. Scene instantiation only for unbounded/compositional needs
-- **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`
+- **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`. Item templates: `shop_item_row.tscn`, `recruitment_class_item.tscn`, `investigation_clue_item.tscn`, `contact_mini_bar.tscn`
+- **Custom-drawn Controls must also be `.tscn` scenes** — even pure `_draw()` components get their own scene file with layout/size defaults baked in. Prefer SVG assets over runtime `_draw()` when possible
 
 ### Terminal / File Operations
 - **Never use `cat` heredoc** for GDScript files (strips tabs). Use Python `with open()` or `replace_string_in_file`

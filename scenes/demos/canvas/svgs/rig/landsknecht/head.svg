@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
+  <!-- Landsknecht Head: 22×26 base ×4 = 88×104 -->
+  <!-- Hair -->
+  <ellipse cx="44" cy="22" rx="42" ry="22" fill="#3c2819"/>
+  <rect x="22" y="4" width="44" height="14" rx="4" fill="#503723"/>
+  <!-- Face -->
+  <ellipse cx="44" cy="58" rx="40" ry="46" fill="#edC299"/>
+  <!-- Skin shadow arc -->
+  <ellipse cx="44" cy="58" rx="40" ry="46" fill="none" stroke="#d2a882" stroke-width="2"/>
+</svg>

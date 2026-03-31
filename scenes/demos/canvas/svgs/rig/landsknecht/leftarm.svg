@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
+  <!-- Landsknecht Arm: 14×36 base ×4 = 56×144 -->
+  <rect width="56" height="144" fill="#962a2a"/>
+  <rect width="56" height="12" fill="#b82e2e"/>
+  <rect y="128" width="56" height="16" fill="#b82e2e"/>
+</svg>

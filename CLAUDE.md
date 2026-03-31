@@ -25,6 +25,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `economy_demo.tscn` — 3-location supply chain, 20-turn simulation. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
   - `interactive_demo.tscn` — terminal game with stdin commands. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
+  - `canvas_demo.tscn` — SVG drawing canvas with rig preview. Usage: `bash tools/start_canvas.sh`, then `bash tools/play.sh "info"`
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
 - **Sound generation**: `python3 tools/sound_designer.py` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Run relevant demo tests after logic changes.
@@ -37,6 +38,17 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   4. MCP tools (auto-discovered via `.vscode/mcp.json`): `screenshot_game` (command + screenshot), `view_screenshot` (last screenshot), `game_command` (text-only)
   5. The `screenshot`/`ss` command in interactive_demo.gd uses `get_viewport().get_texture().get_image().save_png()` — only works in GUI mode, errors gracefully in headless
   6. Clock overlay: `ClockLabel` in top-left corner shows `⌚ HH:00`, updated by `StrategyView.update_clock()`
+- **SVG Drawing Canvas** (`canvas_demo.tscn`): AI drawing sandbox — edit `.tscn` + `.svg` files, auto-reloads, screenshots via same pipes
+  1. Start: `bash tools/start_canvas.sh` — GUI window + stdin/stdout pipes (same as game)
+  2. Wait ~10s, then `bash tools/play.sh "info"` to verify
+  3. **Free-form mode**: Edit `scenes/demos/canvas/default.tscn` (Sprite2D nodes with `metadata/svg_path`), edit SVGs in `scenes/demos/canvas/svgs/` — auto-reloads within 0.5s
+  4. **Rig mode**: `bash tools/play.sh "rig landsknecht"` — loads warrior skeleton, applies SVG textures from `svgs/rig/landsknecht/` (15 bones: head, torso, hips, leftarm, etc.)
+  5. Rig animations: `bash tools/play.sh "anim idle"` / `walk` / `attack` / `defend` / `hurt` / `die`
+  6. Camera: `zoom 3.0`, `zoom_in`, `zoom_out`, `pan 500 300`, `center`
+  7. Other: `grid` (toggle), `bg #1a1a2e` (background), `tree` (node dump), `sizes` (bone dimensions), `shader <node> <param> <value>`
+  8. SVG viewBox sizes (base ×4): Head=88×104, Torso=192×176, Hips=160×48, Arm=56×144, Forearm=48×104, Hand=40×40, Leg=64×192, Shin=56×144, Foot=96×48
+  9. Shaders: put `.gdshader` files in `assets/shaders/canvas/`, reference from canvas `.tscn` as ShaderMaterial — auto-reloads on edit
+  10. Same MCP tools work (`screenshot_game`, `view_screenshot`, `game_command`) — uses identical pipe files
 
 ## Architecture
 
@@ -158,6 +170,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Never programmatically create GUI elements** — define in `.tscn`, use `@onready` refs
 - **Pre-built hidden nodes over scene instantiation** for bounded lists. Scene instantiation only for unbounded/compositional needs. Collect pools in `_ready()` from container children; hide all initially. Set `visible = true` with demo text in `.tscn` for editor preview
 - **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`. Item templates: `shop_item_row.tscn`, `recruitment_class_item.tscn`, `investigation_clue_item.tscn`, `contact_mini_bar.tscn`
+- **Custom-drawn Controls must also be `.tscn` scenes** — even pure `_draw()` components get their own scene file with layout/size defaults baked in. Prefer SVG assets over runtime `_draw()` when possible
 
 ### Terminal / File Operations
 - **Never use `cat` heredoc** for GDScript files (strips tabs). Use Python `with open()` or `replace_string_in_file`
@@ -184,3 +197,5 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - `resources/ai/strategic/` — AI behavior .tres files
 - `resources/generic-activities/` — Activity .tres files
 - `resources/theme/` — condor_theme.tres, styles/, bold_font.tres
+- `scenes/demos/canvas/` — SVG drawing canvas: editable `.tscn` layouts + `svgs/` directory + `svgs/rig/<class>/` bone SVGs
+- `assets/shaders/canvas/` — canvas shader experiments

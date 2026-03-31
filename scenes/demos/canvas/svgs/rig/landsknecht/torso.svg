@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
+  <!-- Landsknecht Torso: 48×44 base ×4 = 192×176 -->
+  <!-- Striped body -->
+  <defs>
+    <pattern id="stripes" patternUnits="userSpaceOnUse" width="24" height="24" patternTransform="rotate(45)">
+      <rect width="12" height="24" fill="#b82e2e"/>
+      <rect x="12" width="12" height="24" fill="#942424"/>
+    </pattern>
+  </defs>
+  <rect width="192" height="176" fill="url(#stripes)"/>
+  <!-- Accent chest plate -->
+  <rect x="64" y="8" width="64" height="58" rx="4" fill="#dcb432"/>
+  <!-- Top/bottom secondary bands -->
+  <rect width="192" height="28" fill="#942424"/>
+  <rect y="148" width="192" height="28" fill="#942424"/>
+</svg>

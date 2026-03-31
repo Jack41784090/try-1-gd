@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 48" width="160" height="48">
+  <!-- Landsknecht Hips: 40×12 base ×4 = 160×48 -->
+  <rect width="160" height="48" fill="#6e482a"/>
+  <line x1="0" y1="24" x2="160" y2="24" stroke="#aaaab0" stroke-width="2"/>
+</svg>
