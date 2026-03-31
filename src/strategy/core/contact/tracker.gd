@@ -144,6 +144,10 @@ func check_engagements(world: World, all_squads: Array) -> Array[Dictionary]:
 			if squad_a.current_location_id != squad_b.current_location_id:
 				continue
 
+			## MERCHANT squads don't trigger automatic engagements
+			if squad_a.squad_role == StrategyTypes.SquadRole.MERCHANT or squad_b.squad_role == StrategyTypes.SquadRole.MERCHANT:
+				continue
+
 			var contact_ab = get_contact(squad_a.squad_id, squad_b.squad_id)
 			var contact_ba = get_contact(squad_b.squad_id, squad_a.squad_id)
 			if not contact_ab or not contact_ba:
