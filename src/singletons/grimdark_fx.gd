@@ -1,4 +1,3 @@
-class_name GrimdarkFX
 extends CanvasLayer
 
 @onready var _time_of_day: ColorRect = $TimeOfDay
