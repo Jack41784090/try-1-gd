@@ -219,6 +219,12 @@ func _handle_command(input: String):
 			_cmd_god_economy()
 		"screenshot", "ss":
 			await _cmd_screenshot(arg)
+		"pause", "pp":
+			_cmd_pause()
+		"speed":
+			_cmd_speed(arg)
+		"tick":
+			await _cmd_tick(arg)
 		"quit", "q", "exit":
 			_cmd_quit()
 		_:
@@ -268,6 +274,11 @@ func _cmd_help():
 	_print_line("")
 	_print_line("  --- SCREENSHOT ---")
 	_print_line("  SCREENSHOT (ss) [path]  Save viewport screenshot (GUI mode only)")
+	_print_line("")
+	_print_line("  --- TIME CONTROL ---")
+	_print_line("  PAUSE   (pp)      Toggle pause on/off")
+	_print_line("  SPEED   <n>       Set speed multiplier (e.g. speed 5)")
+	_print_line("  TICK    [n]       Advance n hours (default 1, game must be paused)")
 	_print_separator()
 
 
@@ -944,6 +955,43 @@ func _cmd_screenshot(arg: String):
 		_print_line("ERROR: Failed to save screenshot (error %d)" % err)
 		return
 	_print_line("SCREENSHOT_SAVED:%s" % path)
+
+
+func _cmd_pause():
+	presenter.game_clock.toggle_pause()
+	var state := "PAUSED" if world.is_paused else "RUNNING (speed %.1fx)" % world.speed_multiplier
+	_print_line("Game clock: %s | Hour %d (Day %d, %s)" % [state, world.current_hour, world.get_day(), world.get_clock_display()])
+
+
+func _cmd_speed(arg: String):
+	if arg.is_empty():
+		_print_line("Current speed: %.1fx | %s" % [world.speed_multiplier, "PAUSED" if world.is_paused else "RUNNING"])
+		_print_line("Usage: speed <multiplier>  (e.g. speed 5)")
+		return
+	var spd := float(arg)
+	if spd <= 0.0:
+		_print_line("Speed must be positive.")
+		return
+	presenter.game_clock.set_speed(spd)
+	_print_line("Speed set to %.1fx" % spd)
+
+
+func _cmd_tick(arg: String):
+	var hours := int(arg) if not arg.is_empty() else 1
+	if hours <= 0:
+		_print_line("Must tick at least 1 hour.")
+		return
+	if not world.is_paused:
+		_print_line("Pause the game first (use 'pause'), then tick manually.")
+		return
+	var snap := _snapshot_state()
+	for i in range(hours):
+		world.current_hour += 1
+		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		while presenter.is_executing_activity:
+			await get_tree().create_timer(0.05).timeout
+	_print_line("Advanced %d hour(s). Now: Hour %d (Day %d, %s)" % [hours, world.current_hour, world.get_day(), world.get_clock_display()])
+	_print_turn_report(snap)
 
 
 func _print_banner():
