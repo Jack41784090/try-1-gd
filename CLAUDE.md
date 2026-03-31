@@ -90,13 +90,12 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 ### Supporting Systems
 
 - **SFX** (`src/singletons/sfx.gd`): `SFX` autoload, semantic play methods. Disabled in headless
-- **GrimdarkFX** (`src/singletons/grimdark_fx.gd` + `scenes/grimdark_fx.tscn`): `GrimdarkFX` autoload, full-screen post-processing. CanvasLayer(200) with 6 shader overlays. Disabled in headless
-  - **Time-of-day** (`assets/shaders/fx/time_of_day.gdshader`): Night=dark blue, dawn=warm amber, day=subtle warm, dusk=deep orange. Auto-updates via `StrategyEventBus.hour_advanced`
-  - **Vignette** (`assets/shaders/fx/vignette.gdshader`): Dark radial edges, intensifies at night
-  - **Film grain** (`assets/shaders/fx/film_grain.gdshader`): Subtle animated noise, salt-and-pepper speckle
-  - **Fog wisps** (`assets/shaders/fx/fog_wisps.gdshader`): Animated mist with fbm noise, denser at night/dawn
-  - **Damage pulse** (`assets/shaders/fx/damage_pulse.gdshader`): Red vignette flash, triggered via `GrimdarkFX.trigger_damage_pulse()`
-  - **Combat atmosphere** (`assets/shaders/fx/combat_atmosphere.gdshader`): Desaturation + contrast + red shift during combat, uses screen texture. `GrimdarkFX.set_combat_mode(true/false)`
+- **GrimdarkFX** (`src/singletons/grimdark_fx.gd` + `scenes/grimdark_fx.tscn`): `GrimdarkFX` autoload, atmospheric shader system. Two layers: texture-based (applied to bg/fg) + overlay (CanvasLayer 200). Disabled in headless
+  - **World atmosphere** (`assets/shaders/fx/world_atmosphere.gdshader`): Applied directly to MainBackground and Foreground TextureRect via `register_world_textures()`. Time-of-day tinting (night=blue, dawn=amber, dusk=orange), desaturation, contrast boost, integrated fbm fog wisps. Auto-updates via `StrategyEventBus.hour_advanced`
+  - **Vignette** (`assets/shaders/fx/vignette.gdshader`): Dark radial edges overlay, intensifies at night
+  - **Film grain** (`assets/shaders/fx/film_grain.gdshader`): Subtle animated noise overlay, salt-and-pepper speckle
+  - **Damage pulse** (`assets/shaders/fx/damage_pulse.gdshader`): Red vignette flash overlay, triggered via `GrimdarkFX.trigger_damage_pulse()`
+  - **Combat atmosphere** (`assets/shaders/fx/combat_atmosphere.gdshader`): Desaturation + contrast + red shift overlay during combat, uses screen texture. `GrimdarkFX.set_combat_mode(true/false)`
 - **UIAnimations** (`src/utils/ui_animations.gd`): static class — `register_button()` (hover/press/SFX), `show_overlay/hide_overlay()`, `stagger_buttons()`, `slide_in/out_panel()`, `pulse()`, `animate_label_number()`
 - **Log** (`src/singletons/log.gd`): static `class_name Log`. Levels: TRACE/DEBUG/INFO/WARN/ERROR. `Log.info("Source", "msg")`, `Log.mute()`, `Log.set_level()`. Default: DEBUG
 - **Theme** (`resources/theme/condor_theme.tres`): EB Garamond font, multi-use styles via `theme_type_variation`, single-use via `theme_override_*` or standalone `.tres` in `resources/theme/styles/`. `ThemeConstants` (`src/utils/theme_constants.gd`) for GDScript color/size constants
@@ -215,4 +214,4 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - `resources/theme/` — condor_theme.tres, styles/, bold_font.tres
 - `scenes/demos/canvas/` — SVG drawing canvas: editable `.tscn` layouts + `svgs/` directory + `svgs/rig/<class>/` bone SVGs
 - `assets/shaders/canvas/` — canvas shader experiments
-- `assets/shaders/fx/` — grimdark post-processing shaders (time_of_day, vignette, film_grain, fog_wisps, damage_pulse, combat_atmosphere)
+- `assets/shaders/fx/` — grimdark shaders: world_atmosphere (texture-applied), vignette, film_grain, damage_pulse, combat_atmosphere (overlays)
