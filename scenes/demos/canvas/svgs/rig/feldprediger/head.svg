@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
+  <defs>
+    <radialGradient id="skinGrad" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#d0c0a0"/>
+      <stop offset="80%" stop-color="#b8a888"/>
+      <stop offset="100%" stop-color="#98886a"/>
+    </radialGradient>
+    <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffbe0"/>
+      <stop offset="100%" stop-color="#e8d8a0"/>
+    </radialGradient>
+  </defs>
+  <!-- Ears -->
+  <ellipse cx="8" cy="54" rx="7" ry="9" fill="#c0b090" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="8" cy="54" rx="4" ry="5" fill="#a89878" opacity="0.5"/>
+  <ellipse cx="80" cy="54" rx="7" ry="9" fill="#c0b090" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="80" cy="54" rx="4" ry="5" fill="#a89878" opacity="0.5"/>
+  <!-- Head shape - gaunt, angular chibi -->
+  <ellipse cx="44" cy="56" rx="36" ry="42" fill="url(#skinGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
+  <!-- Cheekbone shadows - gaunt hollows -->
+  <ellipse cx="26" cy="62" rx="10" ry="14" fill="#98886a" opacity="0.3"/>
+  <ellipse cx="62" cy="62" rx="10" ry="14" fill="#98886a" opacity="0.3"/>
+  <!-- Jaw shadow -->
+  <path d="M18 68 Q26 92 44 96 Q62 92 70 68" fill="#a08868" opacity="0.25"/>
+  <!-- Tonsure - shaved crown (pale scalp) -->
+  <ellipse cx="44" cy="18" rx="32" ry="18" fill="#c8b898" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Stubble on shaved crown -->
+  <circle cx="34" cy="12" r="1" fill="#4a3828" opacity="0.3"/>
+  <circle cx="44" cy="8" r="1" fill="#4a3828" opacity="0.3"/>
+  <circle cx="54" cy="12" r="1" fill="#4a3828" opacity="0.3"/>
+  <circle cx="38" cy="16" r="0.8" fill="#4a3828" opacity="0.2"/>
+  <circle cx="50" cy="16" r="0.8" fill="#4a3828" opacity="0.2"/>
+  <!-- Fringe of dark hair around sides -->
+  <path d="M8 30 Q6 18 14 10 Q20 6 22 14 Q18 24 12 32" fill="#1a1008" stroke="#0a0a0a" stroke-width="1.5"/>
+  <path d="M80 30 Q82 18 74 10 Q68 6 66 14 Q70 24 76 32" fill="#1a1008" stroke="#0a0a0a" stroke-width="1.5"/>
+  <path d="M12 32 Q10 40 10 46" stroke="#1a1008" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M76 32 Q78 40 78 46" stroke="#1a1008" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Wispy hair strands at back -->
+  <path d="M14 12 Q10 6 16 4" stroke="#1a1008" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M74 12 Q78 6 72 4" stroke="#1a1008" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <!-- Forehead brand/tattoo - small cross -->
+  <line x1="44" y1="28" x2="44" y2="36" stroke="#4a1018" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="31" x2="48" y2="31" stroke="#4a1018" stroke-width="2" stroke-linecap="round"/>
+  <!-- Scar tissue around brand -->
+  <circle cx="44" cy="32" r="6" fill="#b08878" opacity="0.15"/>
+  <!-- Dark circles under eyes - fasting/vigils -->
+  <ellipse cx="30" cy="54" rx="10" ry="6" fill="#584050" opacity="0.35"/>
+  <ellipse cx="58" cy="54" rx="10" ry="6" fill="#584050" opacity="0.35"/>
+  <!-- Eye sockets deep shadow -->
+  <ellipse cx="30" cy="50" rx="11" ry="8" fill="#3a2830" opacity="0.25"/>
+  <ellipse cx="58" cy="50" rx="11" ry="8" fill="#3a2830" opacity="0.25"/>
+  <!-- Eyes - wide, burning, wild -->
+  <ellipse cx="30" cy="49" rx="9" ry="7" fill="url(#eyeGlow)" stroke="#0a0a0a" stroke-width="1.5"/>
+  <ellipse cx="58" cy="49" rx="9" ry="7" fill="url(#eyeGlow)" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Irises - intense amber-gold -->
+  <circle cx="30" cy="49" r="5" fill="#8a6020"/>
+  <circle cx="58" cy="49" r="5" fill="#8a6020"/>
+  <!-- Pupils - dilated, fanatical -->
+  <circle cx="30" cy="49" r="3" fill="#0a0a0a"/>
+  <circle cx="58" cy="49" r="3" fill="#0a0a0a"/>
+  <!-- Pupil highlight -->
+  <circle cx="28" cy="47" r="1.5" fill="#fff" opacity="0.8"/>
+  <circle cx="56" cy="47" r="1.5" fill="#fff" opacity="0.8"/>
+  <!-- Lower eyelid stress lines -->
+  <path d="M22 54 Q30 58 38 54" stroke="#6a4848" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <path d="M50 54 Q58 58 66 54" stroke="#6a4848" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <!-- Eyebrows - expressive, angled up (zealous) -->
+  <path d="M18 40 Q24 34 38 38" stroke="#1a1008" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M50 38 Q64 34 70 40" stroke="#1a1008" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Nose - sharp, gaunt -->
+  <path d="M42 56 L40 68 Q44 72 48 68 L46 56" fill="#c0a880" opacity="0.4"/>
+  <path d="M40 68 Q44 72 48 68" stroke="#0a0a0a" stroke-width="1.5" fill="none"/>
+  <!-- Nostrils -->
+  <circle cx="41" cy="68" r="1.5" fill="#8a7060"/>
+  <circle cx="47" cy="68" r="1.5" fill="#8a7060"/>
+  <!-- Mouth - manic grin, slightly open -->
+  <path d="M30 78 Q36 74 44 76 Q52 74 58 78" stroke="#0a0a0a" stroke-width="2" fill="none"/>
+  <path d="M32 78 Q44 84 56 78" stroke="#0a0a0a" stroke-width="1.5" fill="#3a1018" opacity="0.7"/>
+  <!-- Teeth glimpse -->
+  <path d="M36 79 L38 79 L40 79 L42 79 L44 79 L46 79 L48 79 L50 79 L52 79" stroke="#d0c8b8" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Chin crease -->
+  <path d="M38 88 Q44 90 50 88" stroke="#a08868" stroke-width="1" fill="none" opacity="0.4"/>
+  <!-- Face shadow (right side - Darkest Dungeon style) -->
+  <path d="M56 20 Q80 40 76 70 Q72 90 56 96 Q44 98 44 56 Q44 20 56 20Z" fill="#0a0a0a" opacity="0.12"/>
+  <!-- Cross-hatch texture on shadow side -->
+  <line x1="60" y1="40" x2="64" y2="48" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
+  <line x1="64" y1="44" x2="68" y2="52" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
+  <line x1="62" y1="56" x2="66" y2="64" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
+  <line x1="58" y1="68" x2="62" y2="76" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
+</svg>

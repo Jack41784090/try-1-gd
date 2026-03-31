@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 48" width="96" height="48">
+  <defs>
+    <linearGradient id="sandalLeatherR" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3a2818"/>
+      <stop offset="40%" stop-color="#2e2014"/>
+      <stop offset="100%" stop-color="#1a1208"/>
+    </linearGradient>
+    <linearGradient id="soleGradR" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a1c10"/>
+      <stop offset="100%" stop-color="#181008"/>
+    </linearGradient>
+  </defs>
+  <!-- Sole base -->
+  <path d="M10 36 Q6 38 8 44 Q16 48 56 48 Q78 48 84 44 Q88 38 82 34 Q72 30 36 30 Q16 30 10 36 Z" fill="url(#soleGradR)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Sole wear texture -->
+  <line x1="24" y1="42" x2="44" y2="42" stroke="#241810" stroke-width="0.8" opacity="0.4"/>
+  <line x1="50" y1="44" x2="70" y2="44" stroke="#241810" stroke-width="0.8" opacity="0.4"/>
+  <!-- Foot/ankle area -->
+  <path d="M16 4 Q14 12 12 24 Q10 32 14 36 Q20 34 36 32 Q56 30 72 32 Q78 34 80 36 Q82 28 78 18 Q74 8 64 4 Q46 0 28 2 Q20 2 16 4 Z" fill="url(#sandalLeatherR)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Cross-straps -->
+  <path d="M18 8 Q36 18 74 10" stroke="#4a3420" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M18 8 Q36 18 74 10" stroke="#5a4428" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M22 18 Q42 26 72 20" stroke="#4a3420" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M22 18 Q42 26 72 20" stroke="#5a4428" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Diagonal cross strap -->
+  <path d="M26 6 Q34 20 30 30" stroke="#4a3420" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M56 6 Q50 18 52 28" stroke="#4a3420" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Strap buckle/knot -->
+  <circle cx="26" cy="6" r="2" fill="#3a2818" stroke="#0a0a0a" stroke-width="1"/>
+  <circle cx="56" cy="6" r="2" fill="#3a2818" stroke="#0a0a0a" stroke-width="1"/>
+  <!-- Worn leather texture -->
+  <line x1="36" y1="12" x2="40" y2="14" stroke="#1a1008" stroke-width="0.5" opacity="0.3"/>
+  <line x1="46" y1="14" x2="52" y2="16" stroke="#1a1008" stroke-width="0.5" opacity="0.3"/>
+  <line x1="62" y1="24" x2="68" y2="26" stroke="#1a1008" stroke-width="0.5" opacity="0.3"/>
+  <!-- Toes peek -->
+  <path d="M78 26 Q82 28 84 32" stroke="#c0b090" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <!-- Shadow (lighter side) -->
+  <path d="M78 30 Q82 36 80 42 Q74 38 64 36" fill="#0a0a0a" opacity="0.12"/>
+  <!-- Dust/wear -->
+  <circle cx="44" cy="38" r="3" fill="#3a2818" opacity="0.12"/>
+  <circle cx="66" cy="40" r="3.5" fill="#3a2818" opacity="0.1"/>
+  <!-- Small cross carved into strap -->
+  <line x1="40" y1="8" x2="40" y2="12" stroke="#1a1008" stroke-width="0.6" opacity="0.4"/>
+  <line x1="38" y1="10" x2="42" y2="10" stroke="#1a1008" stroke-width="0.6" opacity="0.4"/>
+</svg>

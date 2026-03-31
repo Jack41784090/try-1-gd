@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 104" width="48" height="104">
+  <defs>
+    <linearGradient id="forearmSleeveL" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#18102a"/>
+      <stop offset="50%" stop-color="#221636"/>
+      <stop offset="100%" stop-color="#140e22"/>
+    </linearGradient>
+    <linearGradient id="parchmentWrap" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c0b890"/>
+      <stop offset="100%" stop-color="#a89870"/>
+    </linearGradient>
+  </defs>
+  <!-- Vestment sleeve narrowing -->
+  <path d="M6 2 Q24 0 42 2 Q46 16 44 40 Q42 60 40 80 Q36 96 24 102 Q12 96 8 80 Q6 60 4 40 Q2 16 6 2 Z" fill="url(#forearmSleeveL)" stroke="#0a0a0a" stroke-width="2"/>
+  <!-- Fabric fold lines -->
+  <path d="M16 6 Q14 40 16 80" stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.2"/>
+  <path d="M32 6 Q34 40 32 80" stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.2"/>
+  <!-- Shadow side -->
+  <path d="M2 10 Q4 40 6 70 Q8 90 12 100 L8 96 Q4 80 4 50 Q2 30 2 10 Z" fill="#0a0a0a" opacity="0.2"/>
+  <!-- Prayer wrappings - parchment colored bandage strips -->
+  <path d="M8 44 Q24 40 40 44" stroke="url(#parchmentWrap)" stroke-width="5" fill="none"/>
+  <path d="M6 52 Q24 48 42 52" stroke="url(#parchmentWrap)" stroke-width="5" fill="none"/>
+  <path d="M8 60 Q24 56 40 60" stroke="url(#parchmentWrap)" stroke-width="5" fill="none"/>
+  <path d="M10 68 Q24 64 38 68" stroke="url(#parchmentWrap)" stroke-width="5" fill="none"/>
+  <path d="M12 76 Q24 72 36 76" stroke="url(#parchmentWrap)" stroke-width="4" fill="none"/>
+  <path d="M14 84 Q24 80 34 84" stroke="url(#parchmentWrap)" stroke-width="4" fill="none"/>
+  <!-- Wrapping outlines -->
+  <path d="M8 42 Q24 38 40 42" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M8 46 Q24 42 40 46" stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <path d="M6 50 Q24 46 42 50" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M6 54 Q24 50 42 54" stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <path d="M8 58 Q24 54 40 58" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M8 62 Q24 58 40 62" stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <!-- Holy text scratched into wrappings -->
+  <line x1="14" y1="46" x2="20" y2="45" stroke="#3a2818" stroke-width="0.6" opacity="0.5"/>
+  <line x1="22" y1="45" x2="28" y2="46" stroke="#3a2818" stroke-width="0.6" opacity="0.5"/>
+  <line x1="12" y1="54" x2="18" y2="53" stroke="#3a2818" stroke-width="0.6" opacity="0.5"/>
+  <line x1="20" y1="53" x2="30" y2="54" stroke="#3a2818" stroke-width="0.6" opacity="0.5"/>
+  <line x1="32" y1="53" x2="36" y2="54" stroke="#3a2818" stroke-width="0.6" opacity="0.4"/>
+  <line x1="14" y1="62" x2="22" y2="61" stroke="#3a2818" stroke-width="0.6" opacity="0.5"/>
+  <line x1="16" y1="70" x2="24" y2="69" stroke="#3a2818" stroke-width="0.6" opacity="0.4"/>
+  <!-- Small cross symbol in wrapping -->
+  <line x1="30" y1="68" x2="30" y2="74" stroke="#4a1018" stroke-width="0.8" opacity="0.6"/>
+  <line x1="28" y1="71" x2="32" y2="71" stroke="#4a1018" stroke-width="0.8" opacity="0.6"/>
+  <!-- Cross-hatch texture on sleeve area -->
+  <line x1="12" y1="10" x2="16" y2="18" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+  <line x1="28" y1="12" x2="32" y2="20" stroke="#0a0a0a" stroke-width="0.4" opacity="0.15"/>
+  <line x1="20" y1="16" x2="24" y2="24" stroke="#0a0a0a" stroke-width="0.4" opacity="0.12"/>
+</svg>
