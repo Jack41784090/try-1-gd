@@ -1,11 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://beiewkvbjg8rk"]
 
-[ext_resource type="Script" path="res://src/strategy/ui/scouting/view.gd" id="1_view"]
-[ext_resource type="Script" path="res://src/strategy/ui/scouting/presenter.gd" id="2_pres"]
+[ext_resource type="Script" uid="uid://drx2deebk8hc5" path="res://src/strategy/ui/scouting/view.gd" id="1_view"]
+[ext_resource type="Script" uid="uid://dr5yremilx6n" path="res://src/strategy/ui/scouting/presenter.gd" id="2_pres"]
 
-[node name="ScoutingView" type="Control"]
-visible = false
-layout_mode = 1
+[node name="ScoutingView" type="Control" unique_id=1425561674]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -13,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_view")
 
-[node name="OverlayPanel" type="PanelContainer" parent="."]
+[node name="OverlayPanel" type="PanelContainer" parent="." unique_id=2142239798]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -28,126 +27,126 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"OverlayPanel"
 
-[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel" unique_id=682264774]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer" unique_id=2128965760]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=949435605]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 text = "Scouting Report"
 horizontal_alignment = 1
 
-[node name="FocusSection" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="FocusSection" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=1087077182]
 layout_mode = 2
 theme_override_constants/separation = 3
 
-[node name="HeaderRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+[node name="HeaderRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection" unique_id=2074484419]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FocusTitle" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="FocusTitle" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=2147109773]
 layout_mode = 2
 theme_type_variation = &"MoneyLabel"
 text = "Scouting Focus"
 
-[node name="CoordinationLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="CoordinationLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=1626711575]
 layout_mode = 2
 theme_type_variation = &"MetaLabel"
 text = "(0%)"
 
-[node name="Spacer" type="Control" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="Spacer" type="Control" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=524034370]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="AggrButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="AggrButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=1997336221]
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Aggr"
 
-[node name="SuppButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="SuppButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=899264001]
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Supp"
 
-[node name="ClearButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow"]
+[node name="ClearButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/HeaderRow" unique_id=382602046]
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Clear"
 
-[node name="FilterRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+[node name="FilterRow" type="HBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection" unique_id=882670985]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CombatCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow"]
+[node name="CombatCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow" unique_id=1444687276]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "COMBAT"
 
-[node name="MerchantCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow"]
+[node name="MerchantCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow" unique_id=738476630]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "MERCHANT"
 
-[node name="ClassGrid" type="GridContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+[node name="ClassGrid" type="GridContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection" unique_id=1278905481]
 layout_mode = 2
-columns = 4
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 1
+columns = 4
 
-[node name="LandsknechCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="LandsknechCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=178717298]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Landsknecht"
 
-[node name="HealerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="HealerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=1160381438]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Healer"
 
-[node name="CrossbowmanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="CrossbowmanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=67666749]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Crossbowman"
 
-[node name="ArquebusierCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="ArquebusierCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=2001656022]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Arquebusier"
 
-[node name="PikemanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="PikemanCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=1534245888]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Pikeman"
 
-[node name="FeldpredigerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="FeldpredigerCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=1113104291]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Feldprediger"
 
-[node name="GelehrterCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid"]
+[node name="GelehrterCheck" type="CheckBox" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid" unique_id=1933473433]
 layout_mode = 2
 theme_type_variation = &"SmallCheckBox"
 text = "Gelehrter"
 
-[node name="FocusSeparator" type="HSeparator" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection"]
+[node name="FocusSeparator" type="HSeparator" parent="OverlayPanel/MarginContainer/VBoxContainer/FocusSection" unique_id=143282872]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="WarningContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="WarningContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=600824470]
 visible = false
 layout_mode = 2
 
-[node name="NoContactsLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="NoContactsLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=1875620593]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
@@ -155,19 +154,19 @@ theme_override_font_sizes/font_size = 16
 text = "No contacts detected"
 horizontal_alignment = 1
 
-[node name="ContactsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="ContactsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=1224598401]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ContactsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll"]
+[node name="ContactsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll" unique_id=1366355926]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="CloseButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer"]
+[node name="CloseButton" type="Button" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=1354231304]
 layout_mode = 2
 theme_type_variation = &"CloseButton"
 text = "Close"
 
-[node name="ScoutingPresenter" type="Node" parent="."]
+[node name="ScoutingPresenter" type="Node" parent="." unique_id=1894463514]
 script = ExtResource("2_pres")

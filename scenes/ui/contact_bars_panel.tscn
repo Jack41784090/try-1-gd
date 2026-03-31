@@ -1,86 +1,51 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://d3s8qxomwxjh5"]
 
 [ext_resource type="StyleBox" path="res://resources/theme/styles/contact_panel.tres" id="1_style"]
 [ext_resource type="PackedScene" path="res://scenes/ui/contact_mini_bar.tscn" id="2_mini_bar"]
 
-[node name="ContactBarsPanel" type="PanelContainer"]
-layout_mode = 1
+[node name="ContactBarsPanel" type="PanelContainer" unique_id=1217308725]
 anchors_preset = -1
 anchor_right = 0.5
-anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 0
 mouse_filter = 2
+theme_type_variation = &"TransparentPanel"
 theme_override_styles/panel = ExtResource("1_style")
 
-[node name="ContactMargin" type="MarginContainer" parent="."]
+[node name="ContactMargin" type="MarginContainer" parent="." unique_id=1107217984]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="ContactBars" type="VBoxContainer" parent="ContactMargin"]
+[node name="ContactBars" type="VBoxContainer" parent="ContactMargin" unique_id=607334421]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Bar1" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar1" parent="ContactMargin/ContactBars" unique_id=980399112 instance=ExtResource("2_mini_bar")]
 visible = true
 layout_mode = 2
 
-[node name="Symbol" parent="ContactMargin/ContactBars/Bar1" index="0"]
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 0.5)
-
-[node name="NameLabel" parent="ContactMargin/ContactBars/Bar1" index="1"]
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-text = "Swabian League"
-
-[node name="Fill" parent="ContactMargin/ContactBars/Bar1/BarBg" index="0"]
-anchor_right = 0.35
-color = Color(0.6, 0.6, 0.6, 0.8)
-
-[node name="PctLabel" parent="ContactMargin/ContactBars/Bar1" index="3"]
-text = "35%"
-
-[node name="Bar2" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar2" parent="ContactMargin/ContactBars" unique_id=2088942617 instance=ExtResource("2_mini_bar")]
 visible = true
 layout_mode = 2
 
-[node name="Symbol" parent="ContactMargin/ContactBars/Bar2" index="0"]
-text = "▲"
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
-
-[node name="NameLabel" parent="ContactMargin/ContactBars/Bar2" index="1"]
-theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
-text = "Imperial Guard"
-
-[node name="Fill" parent="ContactMargin/ContactBars/Bar2/BarBg" index="0"]
-anchor_right = 0.72
-color = Color(1, 0.9, 0.4, 0.8)
-
-[node name="PctLabel" parent="ContactMargin/ContactBars/Bar2" index="3"]
-text = "72%"
-
-[node name="DeltaLabel" parent="ContactMargin/ContactBars/Bar2" index="4"]
-visible = true
-text = "+5.2"
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
-
-[node name="Bar3" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar3" parent="ContactMargin/ContactBars" unique_id=1888361701 instance=ExtResource("2_mini_bar")]
 layout_mode = 2
 
-[node name="Bar4" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar4" parent="ContactMargin/ContactBars" unique_id=326141941 instance=ExtResource("2_mini_bar")]
 layout_mode = 2
 
-[node name="Bar5" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar5" parent="ContactMargin/ContactBars" unique_id=1449332188 instance=ExtResource("2_mini_bar")]
 layout_mode = 2
 
-[node name="Bar6" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar6" parent="ContactMargin/ContactBars" unique_id=1151563718 instance=ExtResource("2_mini_bar")]
 layout_mode = 2
 
-[node name="Bar7" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar7" parent="ContactMargin/ContactBars" unique_id=522665740 instance=ExtResource("2_mini_bar")]
 layout_mode = 2
 
-[node name="Bar8" parent="ContactMargin/ContactBars" instance=ExtResource("2_mini_bar")]
+[node name="Bar8" parent="ContactMargin/ContactBars" unique_id=270464217 instance=ExtResource("2_mini_bar")]
 layout_mode = 2

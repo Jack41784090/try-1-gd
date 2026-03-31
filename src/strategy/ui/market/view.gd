@@ -3,103 +3,26 @@ extends Control
 
 signal closed
 
+const GOODS_CARD_SCENE = preload("res://scenes/ui/market_goods_card.tscn")
+const LABEL_SCENE = preload("res://scenes/ui/styled_label.tscn")
+
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var presenter: Node = $MarketPresenter
-
-var _title_label: Label
-var _content_vbox: VBoxContainer
-var _goods_container: VBoxContainer
-var _production_label: Label
-var _pop_vbox: VBoxContainer
-var _rumors_vbox: VBoxContainer
+@onready var _title_label: Label = $OverlayPanel/MarginContainer/MainVBox/TitleLabel
+@onready var _goods_container: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox/GoodsContainer
+@onready var _production_label: Label = $OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox/ProductionLabel
+@onready var _pop_vbox: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox/PopulationVBox
+@onready var _rumors_vbox: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentScroll/ContentVBox/RumorsVBox
+@onready var _close_btn: Button = $OverlayPanel/MarginContainer/MainVBox/CloseButton
 
 
 func _ready() -> void:
 	visible = false
-	_rebuild_panel()
-
-
-func _rebuild_panel() -> void:
-	for child in overlay_panel.get_children():
-		overlay_panel.remove_child(child)
-		child.free()
-
-	var margin = MarginContainer.new()
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
-	overlay_panel.add_child(margin)
-
-	var main_vbox = VBoxContainer.new()
-	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_vbox.add_theme_constant_override("separation", 12)
-	margin.add_child(main_vbox)
-
-	var title = Label.new()
-	title.name = "TitleLabel"
-	title.text = "Market Board"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
-	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	main_vbox.add_child(title)
-	_title_label = title
-
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_vbox.add_child(scroll)
-
-	_content_vbox = VBoxContainer.new()
-	_content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content_vbox.add_theme_constant_override("separation", 16)
-	scroll.add_child(_content_vbox)
-
-	_build_goods_section()
-	_build_production_section()
-	_build_population_section()
-	_build_rumors_section()
-
-	var close_btn = Button.new()
-	close_btn.text = "Close"
-	close_btn.pressed.connect(func():
+	_close_btn.pressed.connect(func():
 		hide_market()
 		closed.emit()
 	)
-	main_vbox.add_child(close_btn)
 
-
-func _build_goods_section() -> void:
-	_add_section_header(_content_vbox, "Goods & Prices")
-	_goods_container = VBoxContainer.new()
-	_goods_container.add_theme_constant_override("separation", 6)
-	_content_vbox.add_child(_goods_container)
-
-
-func _build_production_section() -> void:
-	_add_section_header(_content_vbox, "Local Industry")
-	_production_label = Label.new()
-	_production_label.add_theme_font_size_override("font_size", 14)
-	_production_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	_production_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_content_vbox.add_child(_production_label)
-
-
-func _build_population_section() -> void:
-	_add_section_header(_content_vbox, "Townsfolk")
-	_pop_vbox = VBoxContainer.new()
-	_pop_vbox.add_theme_constant_override("separation", 4)
-	_content_vbox.add_child(_pop_vbox)
-
-
-func _build_rumors_section() -> void:
-	_add_section_header(_content_vbox, "Market Rumors")
-	_rumors_vbox = VBoxContainer.new()
-	_rumors_vbox.add_theme_constant_override("separation", 4)
-	_content_vbox.add_child(_rumors_vbox)
 
 
 #region Public API
@@ -142,78 +65,45 @@ func _display_goods(cards: Array[Dictionary]) -> void:
 
 
 func _create_goods_card(data: Dictionary) -> void:
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var card: HBoxContainer = GOODS_CARD_SCENE.instantiate()
+	var name_label: Label = card.get_node("NameLabel")
+	var stock_label: Label = card.get_node("StockLabel")
+	var price_label: Label = card.get_node("PriceLabel")
+	var abundance_bar: ProgressBar = card.get_node("AbundanceBar")
+	var abundance_label: Label = card.get_node("AbundanceLabel")
 
-	var name_label = Label.new()
 	name_label.text = data["name"]
-	name_label.add_theme_font_size_override("font_size", 15)
-	name_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.75))
-	name_label.custom_minimum_size = Vector2(80, 0)
-	hbox.add_child(name_label)
-
-	var stock_label = Label.new()
 	stock_label.text = "%.0f" % data["stock"]
-	stock_label.add_theme_font_size_override("font_size", 14)
-	stock_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	stock_label.custom_minimum_size = Vector2(40, 0)
-	stock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hbox.add_child(stock_label)
 
 	var price_ratio: float = data["price_ratio"]
-	var trend_text: String
-	var trend_color: Color
 	if price_ratio < 0.8:
-		trend_text = "%.2f ↓" % data["price"]
-		trend_color = Color(0.4, 1.0, 0.4)
+		price_label.text = "%.2f ↓" % data["price"]
+		price_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
 	elif price_ratio > 1.3:
-		trend_text = "%.2f ↑" % data["price"]
-		trend_color = Color(1.0, 0.4, 0.4)
+		price_label.text = "%.2f ↑" % data["price"]
+		price_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 	else:
-		trend_text = "%.2f →" % data["price"]
-		trend_color = Color(0.8, 0.8, 0.8)
-
-	var price_label = Label.new()
-	price_label.text = trend_text
-	price_label.add_theme_font_size_override("font_size", 14)
-	price_label.add_theme_color_override("font_color", trend_color)
-	price_label.custom_minimum_size = Vector2(70, 0)
-	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hbox.add_child(price_label)
+		price_label.text = "%.2f →" % data["price"]
+		price_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 
 	var abundance_ratio: float = data["abundance_ratio"]
-	var abundance_bar = ProgressBar.new()
-	abundance_bar.min_value = 0.0
-	abundance_bar.max_value = 100.0
 	abundance_bar.value = clampf(abundance_ratio * 25.0, 0.0, 100.0)
-	abundance_bar.custom_minimum_size = Vector2(100, 16)
-	abundance_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	abundance_bar.show_percentage = false
-	hbox.add_child(abundance_bar)
 
-	var abundance_text: String
 	if abundance_ratio < 0.5:
-		abundance_text = "Scarce"
+		abundance_label.text = "Scarce"
 		abundance_bar.modulate = Color(1.0, 0.4, 0.4)
 	elif abundance_ratio < 1.5:
-		abundance_text = "Moderate"
+		abundance_label.text = "Moderate"
 		abundance_bar.modulate = Color(1.0, 0.9, 0.4)
 	elif abundance_ratio < 3.0:
-		abundance_text = "Plentiful"
+		abundance_label.text = "Plentiful"
 		abundance_bar.modulate = Color(0.4, 1.0, 0.4)
 	else:
-		abundance_text = "Abundant"
+		abundance_label.text = "Abundant"
 		abundance_bar.modulate = Color(0.3, 0.8, 1.0)
 
-	var desc_label = Label.new()
-	desc_label.text = abundance_text
-	desc_label.add_theme_font_size_override("font_size", 13)
-	desc_label.add_theme_color_override("font_color", abundance_bar.modulate)
-	desc_label.custom_minimum_size = Vector2(70, 0)
-	hbox.add_child(desc_label)
-
-	_goods_container.add_child(hbox)
+	abundance_label.add_theme_color_override("font_color", abundance_bar.modulate)
+	_goods_container.add_child(card)
 
 
 func _display_production(production: Array[String]) -> void:
@@ -268,7 +158,7 @@ func _display_rumors(rumors: Array[String]) -> void:
 #region Helpers
 
 func _add_section_header(parent: VBoxContainer, text: String) -> void:
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
@@ -276,11 +166,10 @@ func _add_section_header(parent: VBoxContainer, text: String) -> void:
 
 
 func _add_detail(parent: VBoxContainer, text: String, color: Color) -> void:
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 13)
 	label.add_theme_color_override("font_color", color)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(label)
 
 

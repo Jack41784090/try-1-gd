@@ -4,142 +4,29 @@ extends Control
 signal closed
 signal mission_selected(mission: Mission)
 
+const ITEM_BUTTON_SCENE = preload("res://scenes/ui/mission_item_button.tscn")
+const LABEL_SCENE = preload("res://scenes/ui/styled_label.tscn")
+
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var presenter: MissionsPresenter = $MissionsPresenter
+@onready var active_list: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentHBox/LeftPanel/LeftMargin/LeftScroll/LeftVBox/ActiveList
+@onready var completed_list: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentHBox/LeftPanel/LeftMargin/LeftScroll/LeftVBox/CompletedList
+@onready var detail_vbox: VBoxContainer = $OverlayPanel/MarginContainer/MainVBox/ContentHBox/RightPanel/RightMargin/RightScroll/DetailVBox
+@onready var active_header: Label = $OverlayPanel/MarginContainer/MainVBox/ContentHBox/LeftPanel/LeftMargin/LeftScroll/LeftVBox/ActiveHeader
+@onready var completed_header: Label = $OverlayPanel/MarginContainer/MainVBox/ContentHBox/LeftPanel/LeftMargin/LeftScroll/LeftVBox/CompletedHeader
+@onready var _close_btn: Button = $OverlayPanel/MarginContainer/MainVBox/CloseButton
 
-var active_list: VBoxContainer
-var completed_list: VBoxContainer
-var detail_vbox: VBoxContainer
-var active_header: Label
-var completed_header: Label
 var _selected_button: Button = null
 var _mission_buttons: Array[Button] = []
 
 
 func _ready() -> void:
 	visible = false
-	_rebuild_panel()
-	presenter.bind_view(self)
-
-
-func _rebuild_panel() -> void:
-	for child in overlay_panel.get_children():
-		overlay_panel.remove_child(child)
-		child.free()
-
-	var margin = MarginContainer.new()
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
-	overlay_panel.add_child(margin)
-
-	var main_vbox = VBoxContainer.new()
-	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_vbox.add_theme_constant_override("separation", 12)
-	margin.add_child(main_vbox)
-
-	var title = Label.new()
-	title.text = "Missions"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
-	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	main_vbox.add_child(title)
-
-	var content = HBoxContainer.new()
-	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 12)
-	main_vbox.add_child(content)
-
-	_build_left_column(content)
-	_build_right_column(content)
-
-	var close_btn = Button.new()
-	close_btn.text = "Close"
-	close_btn.pressed.connect(func():
+	_close_btn.pressed.connect(func():
 		hide_missions()
 		closed.emit()
 	)
-	main_vbox.add_child(close_btn)
-
-
-func _build_left_column(parent: HBoxContainer) -> void:
-	var left_panel = PanelContainer.new()
-	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_panel.size_flags_stretch_ratio = 0.4
-	parent.add_child(left_panel)
-
-	var left_margin = MarginContainer.new()
-	left_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_margin.add_theme_constant_override("margin_left", 8)
-	left_margin.add_theme_constant_override("margin_right", 8)
-	left_margin.add_theme_constant_override("margin_top", 8)
-	left_margin.add_theme_constant_override("margin_bottom", 8)
-	left_panel.add_child(left_margin)
-
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_margin.add_child(scroll)
-
-	var left_vbox = VBoxContainer.new()
-	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_vbox.add_theme_constant_override("separation", 6)
-	scroll.add_child(left_vbox)
-
-	active_header = Label.new()
-	active_header.text = "Active"
-	active_header.add_theme_font_size_override("font_size", 16)
-	active_header.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	left_vbox.add_child(active_header)
-
-	active_list = VBoxContainer.new()
-	active_list.add_theme_constant_override("separation", 4)
-	left_vbox.add_child(active_list)
-
-	var sep = HSeparator.new()
-	sep.add_theme_constant_override("separation", 8)
-	left_vbox.add_child(sep)
-
-	completed_header = Label.new()
-	completed_header.text = "Completed"
-	completed_header.add_theme_font_size_override("font_size", 16)
-	completed_header.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-	left_vbox.add_child(completed_header)
-
-	completed_list = VBoxContainer.new()
-	completed_list.add_theme_constant_override("separation", 4)
-	left_vbox.add_child(completed_list)
-
-
-func _build_right_column(parent: HBoxContainer) -> void:
-	var right_panel = PanelContainer.new()
-	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_panel.size_flags_stretch_ratio = 0.6
-	parent.add_child(right_panel)
-
-	var right_margin = MarginContainer.new()
-	right_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right_margin.add_theme_constant_override("margin_left", 12)
-	right_margin.add_theme_constant_override("margin_right", 12)
-	right_margin.add_theme_constant_override("margin_top", 12)
-	right_margin.add_theme_constant_override("margin_bottom", 12)
-	right_panel.add_child(right_margin)
-
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right_margin.add_child(scroll)
-
-	detail_vbox = VBoxContainer.new()
-	detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	detail_vbox.add_theme_constant_override("separation", 8)
-	scroll.add_child(detail_vbox)
+	presenter.bind_view(self)
 
 
 #region Public API
@@ -182,11 +69,10 @@ func display_mission_details(mission: Mission) -> void:
 
 	_add_section_header(detail_vbox, "Details")
 
-	var desc = Label.new()
+	var desc: Label = LABEL_SCENE.instantiate()
 	desc.text = mission.description if not mission.description.is_empty() else "No description available."
 	desc.add_theme_font_size_override("font_size", 14)
 	desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_vbox.add_child(desc)
 
 	if not mission.conditions.is_empty():
@@ -194,7 +80,7 @@ func display_mission_details(mission: Mission) -> void:
 		for condition in mission.conditions:
 			_add_detail_line(detail_vbox, _describe_condition(condition), Color(0.75, 0.75, 0.75))
 
-	var sep = HSeparator.new()
+	var sep: HSeparator = HSeparator.new()
 	sep.add_theme_constant_override("separation", 12)
 	detail_vbox.add_child(sep)
 
@@ -204,7 +90,7 @@ func display_mission_details(mission: Mission) -> void:
 
 func clear_details() -> void:
 	_clear_container(detail_vbox)
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = "Select a mission to view details"
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
@@ -216,10 +102,8 @@ func clear_details() -> void:
 #region Mission List Items
 
 func _create_mission_item(parent: VBoxContainer, mission: Mission, is_active: bool) -> void:
-	var button = Button.new()
+	var button: Button = ITEM_BUTTON_SCENE.instantiate()
 	button.text = mission.mission_name
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.add_theme_font_size_override("font_size", 14)
 
 	var base_color: Color
 	if is_active:
@@ -356,7 +240,7 @@ func _describe_time_condition(params: Dictionary) -> String:
 #region Helpers
 
 func _add_section_header(parent: VBoxContainer, text: String) -> void:
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
@@ -364,7 +248,7 @@ func _add_section_header(parent: VBoxContainer, text: String) -> void:
 
 
 func _add_subsection_header(parent: VBoxContainer, text: String) -> void:
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
@@ -372,11 +256,10 @@ func _add_subsection_header(parent: VBoxContainer, text: String) -> void:
 
 
 func _add_detail_line(parent: VBoxContainer, text: String, color: Color) -> void:
-	var label = Label.new()
+	var label: Label = LABEL_SCENE.instantiate()
 	label.text = "  %s" % text
 	label.add_theme_font_size_override("font_size", 13)
 	label.add_theme_color_override("font_color", color)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(label)
 
 
