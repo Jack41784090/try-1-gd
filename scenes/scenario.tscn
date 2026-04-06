@@ -27,7 +27,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/recruitment_view.tscn" id="43_recruitment_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_intermission.tscn" id="44_combat_intermission"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_overlay.tscn" id="45_combat_overlay"]
-[ext_resource type="PackedScene" uid="uid://b3o4ax0t1f4db" path="res://scenes/ui/result_summary_overlay.tscn" id="46_result_summary"]
+[ext_resource type="PackedScene" uid="uid://csquadlogview1" path="res://scenes/ui/squad_log_view.tscn" id="47_squad_log"]
 [ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
 [ext_resource type="PackedScene" path="res://scenes/ui/clock_display.tscn" id="clock_display_scene"]
 
@@ -387,6 +387,9 @@ layout_mode = 1
 [node name="ScoutingView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 layout_mode = 1
 
+[node name="SquadLogView" parent="PanelContainer/MainVBox/MainScreenArea" instance=ExtResource("47_squad_log")]
+layout_mode = 1
+
 [node name="RestingBanner" type="CenterContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1756286128]
 visible = false
 layout_mode = 1
@@ -583,15 +586,6 @@ script = ExtResource("18_fleet")
 script = ExtResource("19_presenter")
 scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
 is_demo_scenario = false
-
-[node name="ResultSummaryOverlay" parent="." unique_id=197926067 instance=ExtResource("46_result_summary")]
-visible = false
-layout_mode = 0
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-grow_horizontal = 1
-grow_vertical = 1
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
 visible = false

@@ -150,6 +150,8 @@ func get_chain_completed_signal() -> Signal:
 
 func animate_stat_changes(_deltas: Dictionary): pass
 func show_result_summary(_stat_changes, _recruits): pass
+func log_squad_event(_text: String, _color = null): pass
+func log_squad_separator(): pass
 
 #endregion
 

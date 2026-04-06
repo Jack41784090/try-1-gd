@@ -29,6 +29,7 @@ extends Control
 @onready var manage_squad_page = $ManageSquadPage
 @onready var shop_view: ShopView = $ShopView
 @onready var scouting_view: ScoutingView = $PanelContainer/MainVBox/MainScreenArea/ScoutingView
+@onready var squad_log_view: SquadLogView = $PanelContainer/MainVBox/MainScreenArea/SquadLogView
 @onready var missions_view: MissionsView = $MissionsView
 @onready var market_view: MarketView = $MarketView
 @onready var resting_banner: CenterContainer = $PanelContainer/MainVBox/MainScreenArea/RestingBanner
@@ -62,9 +63,6 @@ var combat_overlay: CanvasLayer:
 @onready var notification_bar: NotificationBar = $PanelContainer/MainVBox/NotificationBar
 # @onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
 # @onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars
-@onready var _result_summary_overlay: ColorRect = $ResultSummaryOverlay
-@onready var _result_stats_container: VBoxContainer = $ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox/StatsContainer
-@onready var _result_continue_btn: Button = $ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox/ContinueButton
 @onready var _game_over_overlay: ColorRect = $GameOverOverlay
 @onready var _game_over_title: Label = $GameOverOverlay/GameOverVBox/TitleLabel
 @onready var _game_over_desc: Label = $GameOverOverlay/GameOverVBox/DescLabel
@@ -500,40 +498,15 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 
 #endregion
 
-#region Result Summary
+#region Squad Log
 
-func show_result_summary(stat_changes: Dictionary, recruits: Array[Warrior]) -> void:
-	for child in _result_stats_container.get_children():
-		child.queue_free()
+func log_squad_event(text: String, color: Color = Color(0.78, 0.75, 0.68)) -> void:
+	if squad_log_view:
+		squad_log_view.add_entry(text, color)
 
-	for stat_name in stat_changes:
-		var value: float = stat_changes[stat_name]
-		if abs(value) < 0.01:
-			continue
-		var line = Label.new()
-		line.add_theme_font_size_override("font_size", 18)
-		if value >= 0:
-			line.text = "+%.0f %s" % [value, stat_name.capitalize()]
-			line.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-		else:
-			line.text = "%.0f %s" % [value, stat_name.capitalize()]
-			line.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-		_result_stats_container.add_child(line)
-
-	for recruit in recruits:
-		var line = Label.new()
-		line.text = "New warrior: %s" % recruit.name
-		line.add_theme_font_size_override("font_size", 18)
-		line.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
-		_result_stats_container.add_child(line)
-
-	_result_summary_overlay.visible = true
-	_result_summary_overlay.modulate = Color(1, 1, 1, 0)
-	var tween = create_tween()
-	tween.tween_property(_result_summary_overlay, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
-
-	await _result_continue_btn.pressed
-	_result_summary_overlay.visible = false
+func log_squad_separator() -> void:
+	if squad_log_view:
+		squad_log_view.add_separator()
 
 #endregion
 

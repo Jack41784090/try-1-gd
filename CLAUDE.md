@@ -123,6 +123,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine
   - `ShopView/Presenter` — cart system with stock-aware purchasing from LocationInventory
   - `ScoutingView/Presenter` — hover slide-in panel from left edge. Tab peeks out, hover slides panel in with tween. Auto-refreshes contact data on open. `bind()` stores world/squad refs, called on setup and each tick
+  - `SquadLogView` (`src/strategy/ui/squad_log/view.gd`) — right-side slide-in chatbox panel. Logs real-time squad events: activity changes, stat deltas, combat results, travel, contacts, recruitment, purchases, missions. Tab peeks from right edge with hover/click/pin behavior (mirrors ScoutingView). Unread count badge on tab. Replaces old activity result popup overlay
   - `MissionsView/Presenter` — two-column: active/completed list + details
   - `MarketView/Presenter` — economy overlay: prices, production, population, trade rumors
   - `ManageSquadPage/Presenter` — tabbed: Tactics/Units/Formation/Recruitment/Inventory
@@ -243,7 +244,7 @@ func _ready():
 
 - `src/squad-battle/` — combat engine (data.gd model, presenter.gd, view_2d.gd, entity/, weapon/, armor/, clash/)
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable, shop, contact, activity handlers
-- `src/strategy/ui/` — View/Presenter per feature (stage/, vn/, travel/, shop/, scouting/, missions/, market/, manage_squad/, investigation/, recruitment/)
+- `src/strategy/ui/` — View/Presenter per feature (stage/, vn/, travel/, shop/, scouting/, squad_log/, missions/, market/, manage_squad/, investigation/, recruitment/)
 - `src/strategy/ui/actor/` — ActivityExecuteManager (!main.gd), ActivityRunner, AI executors
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, glances, actions, caravan brain
 - `src/animation/` — WarriorRig, configs, expressions, actions, controller

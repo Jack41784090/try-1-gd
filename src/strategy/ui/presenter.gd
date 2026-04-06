@@ -166,6 +166,8 @@ func set_ui_mode(mode: UIMode, trans_type: EventChain.TransitionType = EventChai
 #region User Action Handlers
 
 func on_activity_requested(type: StrategyTypes.ActivityType) -> void:
+	var type_name: String = StrategyTypes.ActivityType.keys()[type].capitalize()
+	view.log_squad_event("Activity set: %s" % type_name, Color(0.7, 0.7, 0.7))
 	actor.player_squad.current_activity_type = type
 	_update_activity_buttons()
 	view.update_resting_banner(type == StrategyTypes.ActivityType.REST)
@@ -224,6 +226,9 @@ func on_travel_confirmed(location_id: String) -> void:
 	view.set_travel_mode_autopilot()
 	_update_activity_buttons()
 	view.update_resting_banner(false)
+	var dest_loc := game_scenario.world.get_location_by_id(location_id)
+	if dest_loc:
+		view.log_squad_event("Departing for %s" % dest_loc.location_name, Color(0.5, 0.85, 1.0))
 
 
 func on_travel_cancelled() -> void:
@@ -236,6 +241,7 @@ func on_investigation_closed() -> void:
 
 func on_recruitment_completed(warrior: Warrior) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
+	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, EntityClasses.Types.keys()[warrior.entity_class]], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
 	_update_ui()
@@ -251,6 +257,10 @@ func on_manage_squad_closed() -> void:
 
 func on_purchase_completed(purchases: Dictionary) -> void:
 	Log.debug("Presenter", "Purchase completed: %s" % [purchases])
+	for item_name in purchases:
+		var qty: int = purchases[item_name]
+		if qty > 0:
+			view.log_squad_event("Bought %dx %s" % [qty, item_name], Color(0.85, 0.75, 0.55))
 	_update_ui()
 
 
@@ -485,7 +495,7 @@ func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[Gene
 
 func _vn_play_next_recurs():
 	if not view.has_queued_vn_chains():
-		await _show_pending_results()
+		_show_pending_results()
 		await set_ui_mode(UIMode.STRATEGY)
 		return
 	var trans_type = view.peek_next_vn_transition_type()
@@ -516,7 +526,17 @@ func _show_pending_results() -> void:
 	if aggregated_stats.is_empty() and recruits.is_empty():
 		return
 
-	await view.show_result_summary(aggregated_stats, recruits)
+	for stat_name in aggregated_stats:
+		var value: float = aggregated_stats[stat_name]
+		if abs(value) < 0.01:
+			continue
+		if value >= 0:
+			view.log_squad_event("+%.0f %s" % [value, stat_name.capitalize()], Color(0.3, 1.0, 0.3))
+		else:
+			view.log_squad_event("%.0f %s" % [value, stat_name.capitalize()], Color(1.0, 0.3, 0.3))
+
+	for recruit in recruits:
+		view.log_squad_event("New warrior: %s" % recruit.name, Color(0.3, 0.8, 1.0))
 
 
 func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]) -> void:
@@ -547,6 +567,9 @@ func _check_missions() -> void:
 		return
 	_last_mission_results = all_results
 	for r in all_results:
+		var completed_mission := _find_mission_by_id(r.mission_id)
+		if completed_mission:
+			view.log_squad_event("Mission completed: %s" % completed_mission.mission_name, Color(1.0, 0.85, 0.0))
 		for unlocked_id in r.unlocked_missions:
 			var unlocked_mission := _find_mission_by_id(unlocked_id)
 			if unlocked_mission:
@@ -576,6 +599,7 @@ func _find_mission_by_id(mission_id: String) -> Mission:
 func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
+	view.log_squad_event("⚔ Engaging %s! (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()], Color(1.0, 0.4, 0.4))
 
 	GrimdarkFX.set_combat_mode(true)
 
@@ -618,6 +642,31 @@ func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 		GrimdarkFX.trigger_damage_pulse()
 
 	var outcome = combat_orch.apply_result(result, actor.player_squad, actor.current_location, game_scenario.world, turn_log)
+
+	if result.victory:
+		view.log_squad_event("Victory!", Color(0.3, 1.0, 0.3))
+	elif result.fled:
+		view.log_squad_event("Escaped from battle", Color(1.0, 0.9, 0.3))
+	elif result.negotiated:
+		view.log_squad_event("Negotiated end to hostilities", Color(0.3, 0.9, 1.0))
+	else:
+		view.log_squad_event("Defeat!", Color(1.0, 0.3, 0.3))
+
+	if not result.player_casualties.is_empty():
+		for w_id in result.player_casualties:
+			view.log_squad_event("  Lost: %s" % w_id, Color(0.8, 0.3, 0.3))
+
+	if not result.escaped_warriors.is_empty():
+		for w_id in result.escaped_warriors:
+			view.log_squad_event("  Injured: %s (escaped)" % w_id, Color(1.0, 0.7, 0.3))
+
+	var morale_delta: float = outcome["morale_after"] - outcome["morale_before"]
+	if abs(morale_delta) >= 0.5:
+		if morale_delta >= 0:
+			view.log_squad_event("  Morale +%.0f" % morale_delta, Color(0.3, 1.0, 0.3))
+		else:
+			view.log_squad_event("  Morale %.0f" % morale_delta, Color(1.0, 0.3, 0.3))
+
 	await view.show_combat_result_overlay(result, outcome["morale_before"], outcome["morale_after"])
 
 	if outcome["game_over"]:
@@ -920,6 +969,12 @@ func _on_hour_tick(hour: int) -> void:
 	view.update_clock(hour)
 	view.disable_all_activity_buttons()
 
+	var day := hour / 24 + 1
+	var hour_of_day := hour % 24
+	view.log_squad_separator()
+	var activity_name: String = StrategyTypes.ActivityType.keys()[actor.player_squad.current_activity_type]
+	view.log_squad_event("Day %d, %02d:00 — %s" % [day, hour_of_day, activity_name.capitalize()], Color(0.85, 0.75, 0.55))
+
 	var activity := _resolve_player_activity()
 	var player_location_before := actor.player_squad.current_location_id
 	var ai_results := ai_fleet.prepare_ai_turns()
@@ -987,6 +1042,7 @@ func _log_turn_decisions(activity: Activity, player_location_before: String, ai_
 func _tick_world_systems(hour: int) -> void:
 	if hour % 24 == 0:
 		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+		view.log_squad_event("New day — economy cycle", Color(0.6, 0.6, 0.6))
 	for location in game_scenario.world.locations:
 		location.decay_clues()
 
@@ -1042,6 +1098,8 @@ func _process_contacts_and_engagements(
 			var before_name: String = StrategyTypes.ContactState.keys()[before_state]
 			var after_name: String = StrategyTypes.ContactState.keys()[after_state]
 			turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
+			var contact_color := Color(1.0, 0.85, 0.3) if after_state > before_state else Color(0.6, 0.6, 0.6)
+			view.log_squad_event("Contact: %s — %s → %s" % [target_name, before_name.capitalize(), after_name.capitalize()], contact_color)
 
 	var player_engagements: Array[Dictionary] = contact_result["engagements"]
 	for engagement in player_engagements:
@@ -1054,6 +1112,7 @@ func _finalize_tick(activity: Activity) -> void:
 	_collect_and_show_notifications()
 	if actor.player_squad.current_location_id not in visited_locations:
 		visited_locations.append(actor.player_squad.current_location_id)
+		view.log_squad_event("Arrived at %s" % actor.current_location.location_name, Color(0.5, 0.85, 1.0))
 	actor.advance_hour()
 
 	if activity.activity_type == StrategyTypes.ActivityType.RECRUIT:
