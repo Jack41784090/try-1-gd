@@ -9,6 +9,7 @@ var _current_hour_of_day: float = 12.0
 var _world_shader: Shader = preload("res://assets/shaders/fx/world_atmosphere.gdshader")
 var _bg_material: ShaderMaterial
 var _fg_material: ShaderMaterial
+var _enabled: bool = true
 
 
 func _ready() -> void:
@@ -71,6 +72,16 @@ func trigger_damage_pulse() -> void:
 		0.7, 0.0, 0.6
 	).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	tw.tween_callback(func() -> void: _damage_pulse.visible = false)
+
+
+func toggle() -> void:
+	_enabled = not _enabled
+	visible = _enabled
+	if _bg_material:
+		_bg_material.shader = _world_shader if _enabled else null
+	if _fg_material:
+		_fg_material.shader = _world_shader if _enabled else null
+	Log.info("GrimdarkFX", "FX %s" % ("ON" if _enabled else "OFF"))
 
 
 func set_combat_mode(active: bool) -> void:
