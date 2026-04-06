@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Mission" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Mission" format=3 uid="uid://ccmg52fi1n513"]
 
 [ext_resource type="Script" uid="uid://3686v40s4jn5" path="res://src/strategy/core/triggerable/mission/script.gd" id="1_mission"]
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="2_condition"]
@@ -15,16 +15,11 @@ metadata/_custom_type_script = "uid://bttrmws06n1o1"
 script = ExtResource("1_mission")
 mission_id = "g1_march_to_nuremberg"
 mission_name = "March to Nuremberg"
-description = "Confront the Bishop's officials at Nuremberg over the unjust forestry license fees. Travel to Nuremberg to make your case."
 prerequisite_mission_ids = Array[String](["g0_license_crisis"])
-conditions = Array[ExtResource("2_condition")]([SubResource("Resource_condition")])
 dialogue_scene_path = "res://resources/scenarios/goetz-official/event-chains/g1_confrontation_chain.tres"
-is_completed = false
-is_unlocked = false
-is_failed = false
 trigger_id = "g1_march_to_nuremberg"
 trigger_name = "March to Nuremberg"
+description = "Confront the Bishop's officials at Nuremberg over the unjust forestry license fees. Travel to Nuremberg to make your case."
+conditions = Array[ExtResource("2_condition")]([SubResource("Resource_condition")])
 repeats = 1
-emergency_priority = 0
-chance = 1.0
 metadata/_custom_type_script = "uid://3686v40s4jn5"

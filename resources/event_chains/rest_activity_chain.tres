@@ -1,9 +1,21 @@
-[gd_resource type="Resource" script_class="EventChain" load_steps=15 format=3 uid="uid://cmu6g4xlgkpki"]
+[gd_resource type="Resource" script_class="EventChain" format=3 uid="uid://cmu6g4xlgkpki"]
 
 [ext_resource type="Script" uid="uid://dui3bco6g4nk4" path="res://src/strategy/ui/vn/event_chain.gd" id="1_script_event_chain"]
-[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="2_script_dialogue_instruction"]
-[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="3_script_gate_instruction"]
-[ext_resource type="Script" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="4_script_stage_position"]
+[ext_resource type="Script" uid="uid://deeibdh2glf6b" path="res://src/strategy/ui/vn/instructions/dialogue_instruction.gd" id="2_script_dialogue_instruction"]
+[ext_resource type="Script" uid="uid://4lpu074be3h6" path="res://src/strategy/ui/vn/instructions/cinematic_instruction.gd" id="3_a5hrc"]
+[ext_resource type="Script" uid="uid://c7lc3q8y50u0i" path="res://src/strategy/ui/vn/instructions/gate_instruction.gd" id="3_script_gate_instruction"]
+[ext_resource type="Script" uid="uid://bpk7smfuihqx4" path="res://src/strategy/ui/vn/instructions/stage_position.gd" id="4_script_stage_position"]
+
+[sub_resource type="Resource" id="pos_9"]
+script = ExtResource("4_script_stage_position")
+character_id = "squad_leader"
+position = Vector2(-75, 50)
+
+[sub_resource type="Resource" id="pos_10"]
+script = ExtResource("4_script_stage_position")
+character_id = "veteran_soldier"
+position = Vector2(75, 50)
+face_direction = -1
 
 [sub_resource type="Resource" id="dlg_1"]
 script = ExtResource("2_script_dialogue_instruction")
@@ -12,7 +24,6 @@ line_spoken = "We've been marching for days. The men need rest."
 
 [sub_resource type="Resource" id="gate_2"]
 script = ExtResource("3_script_gate_instruction")
-wait_for_typewriter = true
 
 [sub_resource type="Resource" id="dlg_3"]
 script = ExtResource("2_script_dialogue_instruction")
@@ -21,7 +32,6 @@ line_spoken = "Aye, Captain. My legs feel like they're made of stone."
 
 [sub_resource type="Resource" id="gate_4"]
 script = ExtResource("3_script_gate_instruction")
-wait_for_typewriter = true
 
 [sub_resource type="Resource" id="dlg_5"]
 script = ExtResource("2_script_dialogue_instruction")
@@ -30,7 +40,6 @@ line_spoken = "Set up camp here. We rest until dawn. Post guards and light a fir
 
 [sub_resource type="Resource" id="gate_6"]
 script = ExtResource("3_script_gate_instruction")
-wait_for_typewriter = true
 
 [sub_resource type="Resource" id="dlg_7"]
 script = ExtResource("2_script_dialogue_instruction")
@@ -39,24 +48,11 @@ line_spoken = "Right away, sir. The men will be grateful for this."
 
 [sub_resource type="Resource" id="gate_8"]
 script = ExtResource("3_script_gate_instruction")
-wait_for_typewriter = true
-
-[sub_resource type="Resource" id="pos_9"]
-script = ExtResource("4_script_stage_position")
-character_id = "squad_leader"
-position = Vector2(-75.0, 50)
-face_direction = 1
-
-[sub_resource type="Resource" id="pos_10"]
-script = ExtResource("4_script_stage_position")
-character_id = "veteran_soldier"
-position = Vector2(75.0, 50)
-face_direction = -1
 
 [resource]
 script = ExtResource("1_script_event_chain")
 chain_id = "rest_activity_chain"
 chain_name = "Rest and Recovery"
 character_ids = Array[String](["squad_leader", "veteran_soldier"])
-setting = [SubResource("pos_9"), SubResource("pos_10")]
-timeline = [SubResource("dlg_1"), SubResource("gate_2"), SubResource("dlg_3"), SubResource("gate_4"), SubResource("dlg_5"), SubResource("gate_6"), SubResource("dlg_7"), SubResource("gate_8")]
+setting = Array[ExtResource("4_script_stage_position")]([SubResource("pos_9"), SubResource("pos_10")])
+timeline = Array[ExtResource("3_a5hrc")]([SubResource("dlg_1"), SubResource("gate_2"), SubResource("dlg_3"), SubResource("gate_4"), SubResource("dlg_5"), SubResource("gate_6"), SubResource("dlg_7"), SubResource("gate_8")])

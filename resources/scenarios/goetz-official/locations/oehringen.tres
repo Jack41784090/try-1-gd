@@ -1,16 +1,18 @@
-[gd_resource type="Resource" script_class="Location" load_steps=26 format=3]
+[gd_resource type="Resource" script_class="Location" format=3 uid="uid://ckc54qhmoih8x"]
 
 [ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="1_o3aq6"]
 [ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/cloth.tres" id="4_cloth"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/food.tres" id="5_food"]
-[ext_resource type="Script" path="res://src/economy/stock_entry.gd" id="6_se"]
+[ext_resource type="Script" uid="uid://c600uhd2rh4ps" path="res://src/economy/stock_entry.gd" id="6_se"]
 [ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="7_inv"]
+[ext_resource type="Script" uid="uid://c8huja3ryjk0f" path="res://src/economy/natural_resource.gd" id="8_rwlfs"]
 [ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="8_shop"]
 [ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="9_thing_script"]
-[ext_resource type="Script" path="res://src/economy/population_config.gd" id="10_popconfig"]
-[ext_resource type="Script" path="res://src/economy/population_group.gd" id="11_popgroup"]
+[ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="10_popconfig"]
+[ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="11_popgroup"]
 
 [sub_resource type="Resource" id="conn_oehringen_to_neckartal"]
 script = ExtResource("2_conn")
@@ -48,16 +50,9 @@ amount = 200.0
 script = ExtResource("7_inv")
 initial_stocks = Array[ExtResource("6_se")]([SubResource("se_oehringen_food"), SubResource("se_oehringen_cloth")])
 
-[sub_resource type="Resource" id="shop_oehringen"]
-script = ExtResource("8_shop")
-shop_name = "Öhringen Market"
-items = Array[ExtResource("9_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth")])
-
 [sub_resource type="Resource" id="popgroup_oehringen_0"]
 script = ExtResource("11_popgroup")
 count = 380
-social_class = 0
-job = 0
 starting_money = 1.0
 
 [sub_resource type="Resource" id="popgroup_oehringen_1"]
@@ -84,13 +79,17 @@ starting_money = 30.0
 [sub_resource type="Resource" id="popgroup_oehringen_4"]
 script = ExtResource("11_popgroup")
 count = 50
-social_class = 0
 job = 4
 starting_money = 1.0
 
 [sub_resource type="Resource" id="popconfig_oehringen"]
 script = ExtResource("10_popconfig")
 groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_oehringen_0"), SubResource("popgroup_oehringen_1"), SubResource("popgroup_oehringen_2"), SubResource("popgroup_oehringen_3"), SubResource("popgroup_oehringen_4")])
+
+[sub_resource type="Resource" id="shop_oehringen"]
+script = ExtResource("8_shop")
+shop_name = "Öhringen Market"
+items = Array[ExtResource("9_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth")])
 
 [resource]
 script = ExtResource("1_loc")

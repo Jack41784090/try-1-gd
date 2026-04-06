@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ArmorConfig" load_steps=6 format=3 uid="uid://bkwp3mnh5rxjd"]
+[gd_resource type="Resource" script_class="ArmorConfig" format=3 uid="uid://bkwp3mnh5rxjd"]
 
 [ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad-battle/armor/protection-tsl.gd" id="1_prot_tsl"]
 [ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad-battle/armor/_config-resource.gd" id="2_armor_cfg"]
