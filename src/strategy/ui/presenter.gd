@@ -130,6 +130,7 @@ func _setup_components() -> void:
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	vn_view.presenter.set_stage_presenter(stage_presenter)
+	_bind_scouting_data()
 	Log.info("Presenter", "Orchestrators initialized")
 	Log.info("Presenter", "AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
@@ -284,6 +285,11 @@ func on_scouting_requested() -> void:
 
 func on_scouting_closed() -> void:
 	pass
+
+
+func _bind_scouting_data() -> void:
+	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else { }
+	view.bind_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
 
 func on_missions_requested() -> void:
@@ -1082,6 +1088,7 @@ func _finalize_tick(activity: Activity) -> void:
 
 	is_executing_activity = false
 	_update_ui()
+	_bind_scouting_data()
 	tick_completed.emit()
 
 

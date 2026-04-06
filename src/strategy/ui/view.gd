@@ -35,7 +35,6 @@ extends Control
 
 @onready var skip_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/SkipButton
 @onready var short_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ShortButton
-@onready var scout_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/ScoutButton
 @onready var missions_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/MissionsButton
 @onready var market_button: Button = $PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent/MarketButton
 
@@ -61,12 +60,12 @@ var combat_overlay: CanvasLayer:
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
 @onready var notification_bar: NotificationBar = $PanelContainer/MainVBox/NotificationBar
-@onready var _travel_arrow_bar: PanelContainer = $TravelArrowBar
-@onready var _go_back_btn: Button = $TravelArrowBar/TravelArrowHBox/GoBackBtn
-@onready var _continue_btn: Button = $TravelArrowBar/TravelArrowHBox/ContinueBtn
-@onready var _travel_arrow_label: Label = $TravelArrowBar/TravelArrowHBox/TravelLabel
-@onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
-@onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars
+# @onready var _travel_arrow_bar: PanelContainer = $TravelArrowBar
+# @onready var _go_back_btn: Button = $TravelArrowBar/TravelArrowHBox/GoBackBtn
+# @onready var _continue_btn: Button = $TravelArrowBar/TravelArrowHBox/ContinueBtn
+# @onready var _travel_arrow_label: Label = $TravelArrowBar/TravelArrowHBox/TravelLabel
+# @onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
+# @onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars
 @onready var _result_summary_overlay: ColorRect = $ResultSummaryOverlay
 @onready var _result_stats_container: VBoxContainer = $ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox/StatsContainer
 @onready var _result_continue_btn: Button = $ResultSummaryOverlay/ResultPanel/ResultMargin/ResultVBox/ContinueButton
@@ -86,9 +85,9 @@ func _init() -> void:
 func _ready() -> void:
 	print(" --- Main gui is ready --- ")
 	combat_ui = CombatUI.create(self, combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
-	for child in _contact_bars_container.get_children():
-		_contact_bars.append(child as ContactMiniBar)
-		child.visible = false
+	# for child in _contact_bars_container.get_children():
+	# 	_contact_bars.append(child as ContactMiniBar)
+	# 	child.visible = false
 	rest_button.visible = false
 	_connect_signals()
 	_register_button_animations()
@@ -100,6 +99,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_SPACE:
 			presenter.on_pause_toggle()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_G:
+			GrimdarkFX.toggle()
 			get_viewport().set_input_as_handled()
 
 #endregion
@@ -122,7 +124,7 @@ func _register_button_animations() -> void:
 		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
 
-	var nav_btns: Array[Button] = [skip_button, short_button, scout_button, missions_button, market_button]
+	var nav_btns: Array[Button] = [skip_button, short_button, missions_button, market_button]
 	for btn in nav_btns:
 		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
@@ -146,7 +148,6 @@ func _connect_signals() -> void:
 
 	skip_button.pressed.connect(func(): presenter.on_skip_pressed())
 	short_button.pressed.connect(func(): presenter.on_summary_pressed())
-	scout_button.pressed.connect(func(): presenter.on_scouting_requested())
 	missions_button.pressed.connect(func(): presenter.on_missions_requested())
 	market_button.pressed.connect(func(): presenter.on_market_requested())
 
@@ -184,18 +185,6 @@ func _connect_signals() -> void:
 	if market_view:
 		market_view.closed.connect(func(): presenter.on_market_closed())
 
-	_go_back_btn.pressed.connect(
-		func():
-			_play_sfx("play_ui_cancel")
-			presenter.on_go_back_travel()
-	)
-	_continue_btn.pressed.connect(
-		func():
-			_play_sfx("play_ui_confirm")
-			presenter.on_continue_travel()
-	)
-	UIAnimations.register_button(_go_back_btn)
-	UIAnimations.register_button(_continue_btn)
 	_game_over_restart_btn.pressed.connect(func(): get_tree().reload_current_scene())
 
 	if shop_view:
@@ -268,7 +257,7 @@ func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
 				_active_contacts[tid] = bar
 				_animate_contact_appear(bar)
 
-	_contact_bars_panel.visible = not _active_contacts.is_empty()
+	# _contact_bars_panel.visible = not _active_contacts.is_empty()
 
 
 func update_stats(money: float, food: int, karma: float, stability: float, development: int) -> void:
@@ -300,7 +289,6 @@ func disable_all_activity_buttons() -> void:
 	attack_button.disabled = true
 	manage_squad_button.disabled = true
 	shop_button.disabled = true
-	hide_travel_arrows()
 
 
 func _get_activity_button(key: String) -> Button:
@@ -447,43 +435,6 @@ func hide_travel_menu() -> void:
 func set_travel_mode_autopilot() -> void:
 	travel_view.set_mode_autopilot()
 
-
-func show_travel_arrows(dest_name: String, from_name: String) -> void:
-	if not _travel_arrow_bar:
-		return
-	_travel_arrow_label.text = dest_name
-	_go_back_btn.text = "← %s" % from_name
-	_continue_btn.text = "%s →" % dest_name
-	if not _travel_arrow_bar.visible:
-		_travel_arrow_bar.visible = true
-		_travel_arrow_bar.modulate = Color(1, 1, 1, 0)
-		_travel_arrow_bar.offset_top = -46.0
-		var tw = create_tween().set_parallel(true)
-		tw.tween_property(_travel_arrow_bar, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-		tw.tween_property(_travel_arrow_bar, "offset_top", -66.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-
-
-func show_continue_travel_button(dest_name: String) -> void:
-	show_travel_arrows(dest_name, "")
-
-
-func hide_travel_arrows() -> void:
-	if not _travel_arrow_bar or not _travel_arrow_bar.visible:
-		return
-	var tw = create_tween().set_parallel(true)
-	tw.tween_property(_travel_arrow_bar, "modulate:a", 0.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
-	tw.tween_property(_travel_arrow_bar, "offset_top", -46.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
-	tw.chain().tween_callback(
-		func():
-			_travel_arrow_bar.visible = false
-			_travel_arrow_bar.offset_top = -66.0
-	)
-
-
-func hide_continue_travel_button() -> void:
-	hide_travel_arrows()
-
-
 func show_investigation_menu() -> void:
 	investigation_view.show_investigation_menu()
 
@@ -518,6 +469,10 @@ func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictiona
 
 func hide_scouting() -> void:
 	scouting_view.hide_scouting()
+
+
+func bind_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+	scouting_view.bind(world, player_squad, ai_decisions)
 
 
 func show_missions(factions: Array[Faction]) -> void:

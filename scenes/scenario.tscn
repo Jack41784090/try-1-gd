@@ -28,16 +28,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_intermission.tscn" id="44_combat_intermission"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_overlay.tscn" id="45_combat_overlay"]
 [ext_resource type="PackedScene" uid="uid://b3o4ax0t1f4db" path="res://scenes/ui/result_summary_overlay.tscn" id="46_result_summary"]
-[ext_resource type="PackedScene" uid="uid://d3s8qxomwxjh5" path="res://scenes/ui/contact_bars_panel.tscn" id="47_contact_bars"]
 [ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
 [ext_resource type="PackedScene" path="res://scenes/ui/clock_display.tscn" id="clock_display_scene"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_hover.tres" id="style_continue_hover"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_normal.tres" id="style_continue_normal"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/continue_btn_pressed.tres" id="style_continue_pressed"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_hover.tres" id="style_go_back_hover"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_normal.tres" id="style_go_back_normal"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/go_back_btn_pressed.tres" id="style_go_back_pressed"]
-[ext_resource type="StyleBox" path="res://resources/theme/styles/travel_arrow_bar.tres" id="style_travel_arrow_bar"]
 
 [sub_resource type="StyleBoxFlat" id="RestingBannerStyle"]
 content_margin_left = 24.0
@@ -94,7 +86,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("24_stage_view")
 
-[node name="BackgroundImage" type="TextureRect" parent="PanelContainer/Foreground/StageView"]
+[node name="BackgroundImage" type="TextureRect" parent="PanelContainer/Foreground/StageView" unique_id=683778455]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -392,8 +384,14 @@ expand_mode = 1
 [node name="VnView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=2087439437 instance=ExtResource("13_vn_view")]
 layout_mode = 1
 
-[node name="ContactBarsPanel" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1554300486 instance=ExtResource("47_contact_bars")]
+[node name="ScoutingView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="RestingBanner" type="CenterContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1756286128]
 visible = false
@@ -534,13 +532,6 @@ layout_mode = 2
 theme_type_variation = &"NavButton"
 text = "📋 Summary"
 
-[node name="ScoutButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=618072185]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-tooltip_text = "View scouting intelligence on enemy squads"
-theme_type_variation = &"NavButton"
-text = "Scout Report"
-
 [node name="MissionsButton" type="Button" parent="PanelContainer/MainVBox/BottomNavBar/NavMargin/NavContent" unique_id=1303347349]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
@@ -576,11 +567,6 @@ text = "☰ Menu"
 
 [node name="ShopView" parent="." unique_id=1736799284 instance=ExtResource("40_shop_scene")]
 
-[node name="ScoutingView" parent="." unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
-visible = false
-layout_mode = 1
-mouse_filter = 2
-
 [node name="MissionsView" parent="." unique_id=38974266 instance=ExtResource("28_missions_scene")]
 
 [node name="MarketView" parent="." unique_id=220318999 instance=ExtResource("31_market_scene")]
@@ -612,56 +598,6 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 grow_horizontal = 1
 grow_vertical = 1
-
-[node name="TravelArrowBar" type="PanelContainer" parent="." unique_id=2129960287]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.15
-anchor_top = 1.0
-anchor_right = 0.85
-anchor_bottom = 1.0
-offset_top = -66.0
-offset_bottom = -10.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/panel = ExtResource("style_travel_arrow_bar")
-
-[node name="TravelArrowHBox" type="HBoxContainer" parent="TravelArrowBar" unique_id=880799231]
-layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="GoBackBtn" type="Button" parent="TravelArrowBar/TravelArrowHBox" unique_id=2111811969]
-custom_minimum_size = Vector2(160, 40)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_colors/font_color = Color(0.9, 0.75, 0.55, 1)
-theme_override_colors/font_pressed_color = Color(0.7, 0.55, 0.4, 1)
-theme_override_colors/font_hover_color = Color(1, 0.9, 0.7, 1)
-theme_override_styles/normal = ExtResource("style_go_back_normal")
-theme_override_styles/pressed = ExtResource("style_go_back_pressed")
-theme_override_styles/hover = ExtResource("style_go_back_hover")
-text = "← Go Back"
-
-[node name="TravelLabel" type="Label" parent="TravelArrowBar/TravelArrowHBox" unique_id=923392913]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 0.8)
-theme_override_font_sizes/font_size = 15
-horizontal_alignment = 1
-
-[node name="ContinueBtn" type="Button" parent="TravelArrowBar/TravelArrowHBox" unique_id=1788876918]
-custom_minimum_size = Vector2(160, 40)
-layout_mode = 2
-size_flags_horizontal = 8
-theme_override_colors/font_color = Color(0.5, 0.9, 0.6, 1)
-theme_override_colors/font_pressed_color = Color(0.4, 0.7, 0.5, 1)
-theme_override_colors/font_hover_color = Color(0.6, 1, 0.7, 1)
-theme_override_styles/normal = ExtResource("style_continue_normal")
-theme_override_styles/pressed = ExtResource("style_continue_pressed")
-theme_override_styles/hover = ExtResource("style_continue_hover")
-text = "Continue →"
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]
 visible = false

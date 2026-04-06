@@ -5,8 +5,11 @@ signal closed
 
 const CONTACT_CARD_SCENE = preload("res://scenes/ui/scouting_contact_card.tscn")
 const LABEL_SCENE = preload("res://scenes/ui/styled_label.tscn")
+const PANEL_WIDTH := 405.0
+const SLIDE_DURATION := 0.3
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
+@onready var scout_tab: Button = $ScoutTab
 @onready var warning_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/WarningContainer
 @onready var no_contacts_label: Label = $OverlayPanel/MarginContainer/VBoxContainer/NoContactsLabel
 @onready var contacts_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/ContactsScroll/ContactsContainer
@@ -22,11 +25,21 @@ const LABEL_SCENE = preload("res://scenes/ui/styled_label.tscn")
 
 var _role_checkboxes: Dictionary = { }
 var _class_checkboxes: Dictionary = { }
+var _is_open := false
+var _tween: Tween
+var _world: World
+var _player_squad: SquadData
+var _ai_decisions: Dictionary = { }
+var _bound := false
 
 
 func _ready() -> void:
-	overlay_panel.visible = false
-	close_button.pressed.connect(_on_close)
+	visible = true
+	close_button.pressed.connect(_slide_out)
+	scout_tab.mouse_entered.connect(_on_hover_enter)
+	overlay_panel.mouse_entered.connect(_on_hover_enter)
+	scout_tab.mouse_exited.connect(_on_hover_exit)
+	overlay_panel.mouse_exited.connect(_on_hover_exit)
 	_connect_focus_signals()
 
 
@@ -51,17 +64,66 @@ func _connect_focus_signals() -> void:
 					break
 
 
+func bind(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+	_world = world
+	_player_squad = player_squad
+	_ai_decisions = ai_decisions
+	_bound = true
+
+
 func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
-	visible = true
-	overlay_panel.visible = true
-	presenter.refresh(world, player_squad, ai_decisions)
-	await UIAnimations.show_overlay(self, overlay_panel)
+	bind(world, player_squad, ai_decisions)
+	_slide_in()
 
 
 func hide_scouting() -> void:
-	await UIAnimations.hide_overlay(self, overlay_panel)
-	overlay_panel.visible = false
-	visible = false
+	_slide_out()
+
+
+func _on_hover_enter() -> void:
+	if not _bound:
+		return
+	_slide_in()
+
+
+func _on_hover_exit() -> void:
+	if not _is_open:
+		return
+	var panel_rect := overlay_panel.get_global_rect()
+	var tab_rect := scout_tab.get_global_rect()
+	var mouse_pos := get_global_mouse_position()
+	if panel_rect.has_point(mouse_pos) or tab_rect.has_point(mouse_pos):
+		return
+	_slide_out()
+
+
+func _slide_in() -> void:
+	if _is_open:
+		return
+	_is_open = true
+	if _bound:
+		presenter.refresh(_world, _player_squad, _ai_decisions)
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_tween = create_tween().set_parallel(true)
+	_tween.tween_property(overlay_panel, "offset_left", 0.0, SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(overlay_panel, "offset_right", PANEL_WIDTH, SLIDE_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+
+func _slide_out() -> void:
+	if not _is_open:
+		return
+	_is_open = false
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_tween = create_tween().set_parallel(true)
+	_tween.tween_property(overlay_panel, "offset_left", -PANEL_WIDTH, SLIDE_DURATION) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(overlay_panel, "offset_right", 0.0, SLIDE_DURATION) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	closed.emit()
 
 
 func display_contacts(contact_cards: Array[Dictionary]) -> void:
@@ -101,11 +163,6 @@ func update_focus_ui(focus, coordination: float) -> void:
 	for cls_key in _class_checkboxes:
 		var cb: CheckBox = _class_checkboxes[cls_key]
 		cb.set_pressed_no_signal(focus.selected_classes.has(cls_key))
-
-
-func _on_close() -> void:
-	hide_scouting()
-	closed.emit()
 
 
 func _clear_contacts() -> void:

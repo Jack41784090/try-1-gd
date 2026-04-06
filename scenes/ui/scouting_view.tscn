@@ -10,22 +10,36 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_view")
 
 [node name="OverlayPanel" type="PanelContainer" parent="." unique_id=2142239798]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = -405.0
+offset_right = 0.0
+grow_vertical = 2
+mouse_filter = 0
+theme_type_variation = &"OverlayPanel"
+
+[node name="ScoutTab" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 4
 anchor_top = 0.5
-anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
-grow_horizontal = 2
+offset_left = 0.0
+offset_top = -50.0
+offset_right = 28.0
+offset_bottom = 50.0
 grow_vertical = 2
 theme_type_variation = &"OverlayPanel"
+text = "⟫
+S
+C
+O
+U
+T"
 
 [node name="MarginContainer" type="MarginContainer" parent="OverlayPanel" unique_id=682264774]
 layout_mode = 2
@@ -39,12 +53,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
-
-[node name="TitleLabel" type="Label" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=949435605]
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-text = "Scouting Report"
-horizontal_alignment = 1
 
 [node name="FocusSection" type="VBoxContainer" parent="OverlayPanel/MarginContainer/VBoxContainer" unique_id=1087077182]
 layout_mode = 2

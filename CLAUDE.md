@@ -121,7 +121,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `StrategyView/Presenter` — top-level. Three orchestrators: `EconomyOrchestrator`, `CombatOrchestrator`, `ContactOrchestrator`. Unified turn pipeline in `_on_hour_tick()`
   - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine. Travel arrows for mid-journey navigation
   - `ShopView/Presenter` — cart system with stock-aware purchasing from LocationInventory
-  - `ScoutingView/Presenter` — progressive contact intel with focus filters
+  - `ScoutingView/Presenter` — hover slide-in panel from left edge. Tab peeks out, hover slides panel in with tween. Auto-refreshes contact data on open. `bind()` stores world/squad refs, called on setup and each tick
   - `MissionsView/Presenter` — two-column: active/completed list + details
   - `MarketView/Presenter` — economy overlay: prices, production, population, trade rumors
   - `ManageSquadPage/Presenter` — tabbed: Tactics/Units/Formation/Recruitment/Inventory
