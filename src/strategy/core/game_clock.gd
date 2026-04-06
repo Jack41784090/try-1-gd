@@ -35,6 +35,11 @@ func toggle_pause() -> void:
 	world.is_paused = not world.is_paused
 
 
+func force_tick() -> void:
+	world.current_hour += 1
+	hour_ticked.emit(world.current_hour)
+
+
 func set_speed(multiplier: float) -> void:
 	assert(multiplier > 0.0)
 	world.speed_multiplier = multiplier

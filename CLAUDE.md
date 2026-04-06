@@ -23,8 +23,10 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `cinematic_instruction_demo.tscn` — GroupPlayback, CinematicGroup, JSON chains. Headless-only
   - `ai_act_demo.tscn` — scripted game testing with assertions. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
   - `economy_demo.tscn` — 3-location supply chain, 20-turn simulation. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
+  - `economy_stress_test.tscn` — 8-location, ~25K population, 50-turn stress test with Gini, starvation, class mobility metrics. Usage: `godot-mono --headless --path . scenes/demos/economy_stress_test.tscn`
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
   - `contact_system_test.tscn` — contact system unit tests (40 assertions: state transitions, proximity, decay, focus, engagements). Usage: `godot --headless --path . scenes/demos/contact_system_test.tscn`
+  - `government_test.tscn` — government directive system unit tests (40 assertions: tax, plan, execute, hire workers, budget constraints, snapshots). Usage: `godot-mono --headless --path . scenes/demos/government_test.tscn`
   - `interactive_demo.tscn` — terminal game with stdin commands. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
   - `canvas_demo.tscn` — SVG drawing canvas with rig preview. Usage: `bash tools/start_canvas.sh`, then `bash tools/play.sh "info"`
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`
@@ -116,7 +118,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - **Patrol→Detect→Pursue**: patrol builds contact via ContactTracker → hunt-enemies/attack activate on detection
 - **AIAct Testing** (`src/strategy/ai/ai_act.gd`): `AIAct` Resource with activity + assertions. `HeadlessStrategyView` (src/demos/headless_strategy_view.gd) mocks UI for headless StrategyPresenter runs
 - **UI** (`src/strategy/ui/`): View/Presenter MVP. View calls `presenter.on_X()`, Presenter calls `view.update_X()`
-  - `StrategyView/Presenter` — top-level. Three orchestrators: `EconomyOrchestrator`, `CombatOrchestrator`, `ContactOrchestrator`. Unified turn pipeline in `_execute_activity_obj()`
+  - `StrategyView/Presenter` — top-level. Three orchestrators: `EconomyOrchestrator`, `CombatOrchestrator`, `ContactOrchestrator`. Unified turn pipeline in `_on_hour_tick()`
   - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine. Travel arrows for mid-journey navigation
   - `ShopView/Presenter` — cart system with stock-aware purchasing from LocationInventory
   - `ScoutingView/Presenter` — progressive contact intel with focus filters
@@ -136,8 +138,13 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - **Trade pipeline**: C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplies()` export to GDScript → `TradeMatcher` scores Supply→Demand pairs using `StrategicConsideration` system → `ApplyTradeMatches()` creates shipment dispatches → `EconomyOrchestrator` spawns caravans
   - **TradeMatcher** (`trade_matcher.gd`): Greedy matching engine. Creates `TradeSituation` per pair, scores via considerations or default `(margin * 0.4 + urgency * 0.6) * safety`
   - **RouteDangerCalculator** (`route_danger.gd`): Route safety (0-1) based on aggressive squads along connections. Per-edge safety = `1.0 / (1.0 + threats)`. Route = product of edges
-  - Features: input-based production chains, FIFO cost-basis tracking, elastic demand, dynamic population (starvation/birth), social mobility, central bank
-  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. Build: `dotnet build`. Run with `godot-mono`
+  - Features: input-based production chains, FIFO cost-basis tracking, elastic demand, dynamic population (starvation/birth), social mobility, central bank, food spoilage (5%/turn)
+  - **Market revenue**: Consumer purchases split 85% to producers (farmers+craftsmen), 15% merchant commission. Money-conserving — no revenue leakage
+  - **Food spoilage**: `PhaseSpoilage` decays 5% of food stocks per turn, preventing infinite accumulation
+  - **Population sync**: `SyncBackToGdScript()` uses PersonId-based matching to handle births/deaths correctly. `Population.remove_person()` for death sync
+  - **Bank metrics**: `engine.get_bank_info()` reads C# CsCentralBank state (printed/reserves/loans/debt). GDScript CentralBank is config-only
+  - **Government Directives** (`CsGovernment`, `CsDirective`, `GovernmentBrain`): Per-location government with treasury, tax collection, and AI-driven directives. 3 phases in tick: GovernmentTax (collect from people with >10 money), GovernmentPlan (`GovernmentBrain.Evaluate()` analyzes worker gaps in natural resources, creates HireWorkers directives within budget), GovernmentExecute (process directives: hire from unemployed/laborers, pay wages). `GovernmentConfig` Resource on Location configures push/pull weights, tax rate, starting treasury, priority goods. Auto-generated in `_setup_economy()` for locations without one
+  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. 22-phase tick lifecycle. Build: `dotnet build`. Run with `godot-mono`
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn
 
 ### Key Enums
@@ -149,7 +156,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole (COMBAT, MERCHANT)
 - Strategic AI: `src/strategy/ai/types.gd` — GlanceSubject (SQUAD, LOCATION, WORLD, FACTION, TRADE), SquadGlanceable, TradeGlanceable, DestinationStrategy, TargetStrategy
-- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType
+- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ### Unit Classes
@@ -208,7 +215,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - `assets/rig_textures/` — SVG bone textures per class (landsknecht, healer, crossbowman, arquebusier, pikeman, feldprediger, gelehrter)
 - `src/character/` — Warrior (social.gd), CombatEntity (combat.gd), classes enum
 - `src/squad/` — SquadData, CombatSquad, CargoManifest
-- `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge; `csharp/` for C# engine
+- `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge, government_config; `csharp/` for C# engine (CsDirective, CsGovernment, GovernmentBrain)
 - `src/singletons/` — event buses, SFX, Log
 - `resources/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
 - `resources/ai/strategic/` — AI behavior .tres files

@@ -5,7 +5,7 @@ extends Node
 ## but headless. One squad acts as "player" (driven by SquadBrain
 ## instead of human input), the rest managed by AIFleetManager.
 ##
-## Pipeline per turn (mirrors _execute_activity_obj):
+## Pipeline per turn (mirrors _on_hour_tick):
 ##   1. Player brain decides activity (replaces button press)
 ##   2. exec_before/exec_activity/exec_after (ActivityRunner)
 ##   3. AI fleet returns decisions (AIFleetManager)
@@ -84,7 +84,7 @@ func _initialize():
 
 #endregion
 
-#region Hour Pipeline (mirrors _execute_activity_obj)
+#region Hour Pipeline (mirrors _on_hour_tick)
 
 func _run_simulation():
 	var round_num = 0

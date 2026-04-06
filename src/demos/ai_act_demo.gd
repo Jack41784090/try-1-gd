@@ -146,26 +146,27 @@ func _execute_via_presenter(act: AIAct):
 	if act.activity_type == StrategyTypes.ActivityType.TRAVEL:
 		assert(not act.destination_id.is_empty(), "TRAVEL acts require destination_id")
 		presenter.on_activity_requested(StrategyTypes.ActivityType.TRAVEL)
-		await presenter.on_travel_confirmed(act.destination_id)
-		var travel_activity = presenter.actor.create_travel_activity(act.destination_id)
-		await presenter._execute_activity_obj(travel_activity)
+		presenter.on_travel_confirmed(act.destination_id)
+		presenter.game_clock.force_tick()
+		await presenter.tick_completed
 		while presenter.actor.walking_towards["location"] != null:
 			Log.debug("AIActDemo", "  Continuing travel towards %s..." % act.destination_id)
-			travel_activity = presenter.actor.create_travel_activity(act.destination_id)
-			await presenter._execute_activity_obj(travel_activity)
+			presenter.game_clock.force_tick()
+			await presenter.tick_completed
 	elif act.activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
 		assert(not act.destination_id.is_empty(), "FORCE_MARCH acts require destination_id")
 		presenter.on_activity_requested(StrategyTypes.ActivityType.FORCE_MARCH)
-		await presenter.on_travel_confirmed(act.destination_id)
-		var travel_activity = presenter.actor.create_travel_activity(act.destination_id)
-		await presenter._execute_activity_obj(travel_activity)
+		presenter.on_travel_confirmed(act.destination_id)
+		presenter.game_clock.force_tick()
+		await presenter.tick_completed
 		while presenter.actor.walking_towards["location"] != null:
 			Log.debug("AIActDemo", "  Continuing force march towards %s..." % act.destination_id)
-			travel_activity = presenter.actor.create_travel_activity(act.destination_id)
-			await presenter._execute_activity_obj(travel_activity)
+			presenter.game_clock.force_tick()
+			await presenter.tick_completed
 	else:
 		presenter.on_activity_requested(act.activity_type)
-		await presenter._execute_activity(act.activity_type)
+		presenter.game_clock.force_tick()
+		await presenter.tick_completed
 
 
 #region Assertions

@@ -37,6 +37,10 @@ class LocationSnapshot:
 	var peasant_count: int = 0
 	var bourgeois_count: int = 0
 	var noble_count: int = 0
+	var government_treasury: float = 0.0
+	var government_tax_collected: float = 0.0
+	var government_directives_count: int = 0
+	var government_workers_hired: int = 0
 
 	func _to_string() -> String:
 		var stock_parts: Array[String] = []

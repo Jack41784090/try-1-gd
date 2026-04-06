@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="GovernmentConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/economy/government_config.gd" id="1_gc"]
+
+[resource]
+script = ExtResource("1_gc")
+push_weight = 0.5
+pull_weight = 0.5
+max_budget_ratio = 0.2
+priority_goods = Array[String](["food"])
+tax_rate = 0.03
+starting_treasury = 50.0

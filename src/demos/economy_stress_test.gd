@@ -362,8 +362,9 @@ func _record_metrics(_turn: int) -> void:
 	for m in all_money:
 		total_money += m
 	_total_money_history.append(total_money)
-	_bank_printed_history.append(engine.bank.total_printed)
-	_bank_debt_history.append(engine.bank.get_total_outstanding())
+	var bank_info := engine.get_bank_info()
+	_bank_printed_history.append(bank_info.get("total_printed", 0.0))
+	_bank_debt_history.append(bank_info.get("outstanding", 0.0))
 
 	for loc in world.get_economy_locations():
 		var loc_id := loc.location_id
@@ -409,11 +410,12 @@ func _print_turn_report(turn: int, ms: float, _result: EconomyTickResult) -> voi
 		gini, starve_pct, _total_money_history[turn - 1],
 	])
 
+	var bank_info := engine.get_bank_info()
 	print("  Bank: printed=%.0f  reserves=%.0f  debt=%.0f  loans=%d" % [
-		engine.bank.total_printed,
-		engine.bank.reserves,
-		engine.bank.get_total_outstanding(),
-		engine.bank.active_loans.size(),
+		bank_info.get("total_printed", 0.0),
+		bank_info.get("reserves", 0.0),
+		bank_info.get("outstanding", 0.0),
+		bank_info.get("active_loans", 0),
 	])
 	print("  Contracts: active=%d  completed=%d" % [
 		engine.active_contracts_count,
@@ -512,10 +514,12 @@ func _print_final_analysis() -> void:
 
 	print("")
 	print("── MONETARY SYSTEM ──")
-	print("  Total printed: %.0f Scrip" % engine.bank.total_printed)
-	print("  Outstanding debt: %.0f Scrip" % engine.bank.get_total_outstanding())
-	print("  Interest collected: %.0f Scrip" % engine.bank.total_interest_collected)
-	print("  Bank reserves: %.0f Scrip" % engine.bank.reserves)
+	var final_bank := engine.get_bank_info()
+	print("  Total printed: %.0f Scrip" % final_bank.get("total_printed", 0.0))
+	print("  Outstanding debt: %.0f Scrip" % final_bank.get("outstanding", 0.0))
+	print("  Interest collected: %.0f Scrip" % final_bank.get("total_interest_collected", 0.0))
+	print("  Bank reserves: %.0f Scrip" % final_bank.get("reserves", 0.0))
+	print("  Active loans: %d" % final_bank.get("active_loans", 0))
 	print("  Money in circulation: %.0f → %.0f" % [
 		_total_money_history.front(), _total_money_history.back(),
 	])

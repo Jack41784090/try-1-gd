@@ -119,6 +119,8 @@ func _setup_economy() -> void:
 			loc.population = _create_population_for(loc)
 		if loc.natural_resources.is_empty():
 			loc.natural_resources = _create_natural_resources_for(loc, thing_map)
+		if loc.government_config == null and loc.type != StrategyTypes.LocationType.FORT:
+			loc.government_config = _create_government_config_for(loc)
 
 	var engine := EconomyEngine.new()
 	engine.world = world
@@ -237,6 +239,38 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 			pass
 
 	return resources
+
+
+func _create_government_config_for(loc: Location) -> GovernmentConfig:
+	var config := GovernmentConfig.new()
+	var pop_count := loc.population.size() if loc.population else 50
+	match loc.type:
+		StrategyTypes.LocationType.CITY:
+			config.push_weight = 0.8
+			config.pull_weight = 0.2
+			config.max_budget_ratio = 0.3
+			config.priority_goods = ["food", "cloth"]
+			config.tax_rate = 0.05
+			config.starting_treasury = pop_count * 0.2
+		StrategyTypes.LocationType.TOWN:
+			config.push_weight = 0.6
+			config.pull_weight = 0.4
+			config.max_budget_ratio = 0.25
+			config.priority_goods = ["food"]
+			config.tax_rate = 0.04
+			config.starting_treasury = pop_count * 0.15
+		StrategyTypes.LocationType.VILLAGE:
+			config.push_weight = 0.5
+			config.pull_weight = 0.5
+			config.max_budget_ratio = 0.2
+			config.priority_goods = ["food"]
+			config.tax_rate = 0.03
+			config.starting_treasury = pop_count * 0.1
+		_:
+			config.push_weight = 0.5
+			config.tax_rate = 0.03
+			config.starting_treasury = 20.0
+	return config
 
 
 func _get_connected_ids(loc: Location) -> Array[String]:

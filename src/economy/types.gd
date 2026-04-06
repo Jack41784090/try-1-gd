@@ -39,3 +39,9 @@ enum ThingType {
 	TOOLS,
 	LUXURY,
 }
+
+enum DirectiveType {
+	HIRE_WORKERS,
+	POST_BUY_ORDER,
+	SUBSIDIZE_PRODUCTION,
+}

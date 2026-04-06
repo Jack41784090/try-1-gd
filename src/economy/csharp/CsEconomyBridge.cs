@@ -169,6 +169,31 @@ public partial class CsEconomyBridge : Node
                 csRes.ThingIdx = _thingIdToIdx[resThingId];
                 csLoc.NaturalResources.Add(csRes);
             }
+
+            // Mirror government config
+            var govConfig = gdLoc.Get("government_config");
+            if (govConfig.VariantType != Variant.Type.Nil)
+            {
+                var gdGov = (Resource)govConfig;
+                var csGov = new CsGovernment
+                {
+                    LocationIndex = li,
+                    LocationId = csLoc.LocationId,
+                    TaxRate = (double)(float)gdGov.Get("tax_rate"),
+                    MaxBudgetRatio = (float)gdGov.Get("max_budget_ratio"),
+                    PushWeight = (float)gdGov.Get("push_weight"),
+                    PullWeight = (float)gdGov.Get("pull_weight"),
+                    Treasury = (double)(float)gdGov.Get("starting_treasury"),
+                };
+                var priorityGoods = (Godot.Collections.Array)gdGov.Get("priority_goods");
+                for (int gi = 0; gi < priorityGoods.Count; gi++)
+                {
+                    string goodId = (string)priorityGoods[gi];
+                    if (_thingIdToIdx.TryGetValue(goodId, out int goodIdx))
+                        csGov.PriorityGoodIndices.Add(goodIdx);
+                }
+                csLoc.Government = csGov;
+            }
         }
 
         // Create engine
@@ -362,26 +387,79 @@ public partial class CsEconomyBridge : Node
             var gdPop = (GodotObject)gdLoc.Get("population");
             var gdPeople = (Godot.Collections.Array)gdPop.Get("people");
             var csPeople = csLoc.Population.People;
-            for (int pi = 0; pi < csPeople.Count && pi < gdPeople.Count; pi++)
+
+            // Build lookup from PersonId → GDScript person
+            var gdById = new System.Collections.Generic.Dictionary<string, GodotObject>(gdPeople.Count);
+            for (int pi = 0; pi < gdPeople.Count; pi++)
             {
                 var gdPerson = (GodotObject)gdPeople[pi];
-                var csPerson = csPeople[pi];
-                gdPerson.Set("money", csPerson.Money);
-                gdPerson.Set("satisfaction", csPerson.Satisfaction);
-                gdPerson.Set("_fed_this_turn", csPerson.FedThisTurn);
-                gdPerson.Set("_comfort_this_turn", csPerson.ComfortThisTurn);
-                gdPerson.Set("social_class", (int)csPerson.SocialClass);
-                gdPerson.Set("job", (int)csPerson.Job);
+                string pid = (string)gdPerson.Get("person_id");
+                gdById[pid] = gdPerson;
+            }
 
-                var gdPersonInv = (Godot.Collections.Dictionary)gdPerson.Get("inventory");
-                for (int gi = 0; gi < _goods.Length; gi++)
+            // Track which GDScript people still exist in C#
+            var survivingIds = new HashSet<string>();
+
+            for (int pi = 0; pi < csPeople.Count; pi++)
+            {
+                var csPerson = csPeople[pi];
+                survivingIds.Add(csPerson.PersonId);
+
+                if (gdById.TryGetValue(csPerson.PersonId, out var gdPerson))
                 {
-                    float amt = csPerson.GetInventory(gi);
-                    if (amt > 0f)
-                        gdPersonInv[(Resource)gdGoods[gi]] = amt;
+                    // Update existing person
+                    gdPerson.Set("money", csPerson.Money);
+                    gdPerson.Set("satisfaction", csPerson.Satisfaction);
+                    gdPerson.Set("_fed_this_turn", csPerson.FedThisTurn);
+                    gdPerson.Set("_comfort_this_turn", csPerson.ComfortThisTurn);
+                    gdPerson.Set("social_class", (int)csPerson.SocialClass);
+                    gdPerson.Set("job", (int)csPerson.Job);
+
+                    var gdPersonInv = (Godot.Collections.Dictionary)gdPerson.Get("inventory");
+                    for (int gi = 0; gi < _goods.Length; gi++)
+                    {
+                        float amt = csPerson.GetInventory(gi);
+                        if (amt > 0f)
+                            gdPersonInv[(Resource)gdGoods[gi]] = amt;
+                    }
+                }
+                else
+                {
+                    // Birth: create new GDScript person
+                    var newGdPerson = CreateGdPerson(csPerson);
+                    gdPop.Call("add_person", newGdPerson);
                 }
             }
+
+            // Deaths: remove GDScript people not in C#
+            var toRemove = new List<GodotObject>();
+            for (int pi = 0; pi < gdPeople.Count; pi++)
+            {
+                var gdPerson = (GodotObject)gdPeople[pi];
+                string pid = (string)gdPerson.Get("person_id");
+                if (!survivingIds.Contains(pid))
+                    toRemove.Add(gdPerson);
+            }
+            foreach (var dead in toRemove)
+                gdPop.Call("remove_person", dead);
         }
+    }
+
+    private GodotObject CreateGdPerson(CsPerson csPerson)
+    {
+        var script = GD.Load<Script>("res://src/economy/person.gd");
+        var gdPerson = (GodotObject)script.Call("create",
+            csPerson.PersonId,
+            (int)csPerson.SocialClass,
+            (int)csPerson.Job,
+            csPerson.Money);
+        // Override the auto-generated person_id with the C# one
+        gdPerson.Set("person_id", csPerson.PersonId);
+        gdPerson.Set("person_name", csPerson.PersonId);
+        gdPerson.Set("satisfaction", csPerson.Satisfaction);
+        gdPerson.Set("_fed_this_turn", csPerson.FedThisTurn);
+        gdPerson.Set("_comfort_this_turn", csPerson.ComfortThisTurn);
+        return gdPerson;
     }
 
     /// <summary>
@@ -409,6 +487,28 @@ public partial class CsEconomyBridge : Node
             ["active_loans"] = bank.ActiveLoans.Count,
             ["outstanding"] = bank.GetTotalOutstanding(),
         };
+    }
+
+    public Godot.Collections.Array GetGovernmentInfo()
+    {
+        var result = new Godot.Collections.Array();
+        if (_engine == null) return result;
+        for (int li = 0; li < _engine.Locations.Length; li++)
+        {
+            var loc = _engine.Locations[li];
+            if (loc.Government == null) continue;
+            var gov = loc.Government;
+            result.Add(new Godot.Collections.Dictionary
+            {
+                ["location_id"] = loc.LocationId,
+                ["treasury"] = gov.Treasury,
+                ["tax_collected"] = gov.TaxCollectedLastTick,
+                ["active_directives"] = gov.ActiveDirectives.Count,
+                ["workers_hired"] = gov.WorkersHiredLastTick,
+                ["wages_paid"] = gov.WagesPaidLastTick,
+            });
+        }
+        return result;
     }
 
     private CsPerson MirrorPerson(GodotObject gdPerson)
@@ -462,6 +562,10 @@ public partial class CsEconomyBridge : Node
                 ["peasant_count"] = snap.PeasantCount,
                 ["bourgeois_count"] = snap.BourgeoisCount,
                 ["noble_count"] = snap.NobleCount,
+                ["government_treasury"] = snap.GovernmentTreasury,
+                ["government_tax_collected"] = snap.GovernmentTaxCollected,
+                ["government_directives_count"] = snap.GovernmentDirectivesCount,
+                ["government_workers_hired"] = snap.GovernmentWorkersHired,
             };
             var stocksDict = new Godot.Collections.Dictionary();
             var pricesDict = new Godot.Collections.Dictionary();

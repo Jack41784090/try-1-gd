@@ -32,6 +32,10 @@ public sealed class CsLocationSnapshot
     public int PeasantCount { get; set; }
     public int BourgeoisCount { get; set; }
     public int NobleCount { get; set; }
+    public float GovernmentTreasury { get; set; }
+    public float GovernmentTaxCollected { get; set; }
+    public int GovernmentDirectivesCount { get; set; }
+    public int GovernmentWorkersHired { get; set; }
 }
 
 public sealed class CsEconomyTickResult

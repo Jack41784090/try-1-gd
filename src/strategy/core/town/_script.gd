@@ -13,6 +13,7 @@ class_name Location
 @export var natural_resources: Array[NaturalResource] = []
 @export var inventory: LocationInventory
 @export var population_config: PopulationConfig
+@export var government_config: GovernmentConfig
 
 var population: Population
 

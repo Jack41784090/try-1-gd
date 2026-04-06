@@ -12,6 +12,14 @@ func add_person(person: EconPerson) -> void:
 	_index_person(person)
 	_sorted_dirty = true
 
+func remove_person(person: EconPerson) -> void:
+	people.erase(person)
+	if _by_class.has(person.social_class):
+		(_by_class[person.social_class] as Array[EconPerson]).erase(person)
+	if _by_job.has(person.job):
+		(_by_job[person.job] as Array[EconPerson]).erase(person)
+	_sorted_dirty = true
+
 func _index_person(person: EconPerson) -> void:
 	var cls := person.social_class
 	if not _by_class.has(cls):

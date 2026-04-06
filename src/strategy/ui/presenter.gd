@@ -8,6 +8,7 @@ enum UIMode {
 }
 
 signal encounter_resolved()
+signal tick_completed()
 
 @export var scenario_path: String
 @export var is_demo_scenario: bool = true
@@ -252,9 +253,9 @@ func on_investigation_closed() -> void:
 
 func on_recruitment_completed(warrior: Warrior) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
-	_update_ui()
 	stage_presenter.refresh_warriors(actor.player_squad)
-	await _execute_activity(StrategyTypes.ActivityType.RECRUIT)
+	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
+	_update_ui()
 
 
 func on_recruitment_closed() -> void:
@@ -376,109 +377,6 @@ func _get_active_battle_presenter():
 #endregion
 
 #region Activity Pipeline
-
-func _execute_activity(at: StrategyTypes.ActivityType) -> void:
-	# Shortcut: looks up the Activity resource by type and delegates to _execute_activity_obj
-	# e.g., _execute_activity(REST) → finds "rest" Activity from triggerable_manager → _execute_activity_obj(rest_activity)
-	var activity = actor.get_activity(at)
-	assert(activity is Activity)
-	await _execute_activity_obj(activity)
-
-
-func _execute_activity_obj(activity: Activity) -> void:
-	if is_executing_activity:
-		return
-	is_executing_activity = true
-	game_clock.pause()
-	view.disable_all_activity_buttons()
-	turn_log.clear()
-
-	var player_location_before = actor.player_squad.current_location_id
-	var activity_name: String = StrategyTypes.ActivityType.keys()[activity.activity_type]
-	turn_log.append("PLAYER %s at %s" % [activity_name, player_location_before])
-
-	var ai_results = ai_fleet.prepare_ai_turns()
-	var decisions = ai_results["decisions_this_turn"]
-	for squad_id in decisions:
-		var d = decisions[squad_id]
-		var sq_name: String = d["squad"].squad_name
-		var at_name: String = StrategyTypes.ActivityType.keys()[d["activity_type"]]
-		var sq_loc: String = d.get("location_at_decision", "")
-		var dest: String = d["context"].get("travel_destination", "")
-		if not dest.is_empty():
-			turn_log.append("AI %s %s at %s → %s" % [sq_name, at_name, sq_loc, dest])
-		else:
-			turn_log.append("AI %s %s at %s" % [sq_name, at_name, sq_loc])
-
-	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
-	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
-	var hour := game_scenario.world.current_hour
-	if hour % 24 == 0:
-		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
-	var turn_entries = _build_karma_sorted_entries(ai_results)
-
-	for entry in turn_entries:
-		if entry["is_player"]:
-			await _execute_story_triggerables(StrategyTypes.TriggerWhen.HOUR_START)
-		else:
-			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.HOUR_START)
-
-	for phase in ['before', 'activity', 'after']:
-		for entry in turn_entries:
-			if entry["is_player"]:
-				await _exec_play_animchanges_loop(activity, phase)
-			else:
-				var executor: ActivityExecuteManager = entry["executor"]
-				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
-				_resolve_ai_combat_from_results(results, entry["squad_id"])
-
-	ai_fleet.cleanup_defeated_squads()
-	turn_log.append_array(ai_fleet.combat_log)
-	ai_fleet.combat_log.clear()
-
-	if _check_game_over():
-		is_executing_activity = false
-		return
-
-	var contact_before_for_log := contact_before_states.duplicate()
-	var contact_result = contact_orch.update(
-		game_scenario.world,
-		actor.player_squad,
-		actor.walking_towards,
-		ai_fleet,
-		activity,
-		player_location_before,
-		contact_before_states,
-		_notification_collector,
-		squad_names_cache,
-	)
-	var contact_after_states: Dictionary = contact_result["contact_after"]
-	for key in contact_after_states:
-		var after_state: int = contact_after_states[key]
-		var before_state: int = contact_before_for_log.get(key, StrategyTypes.ContactState.NONE)
-		if after_state != before_state:
-			var parts: PackedStringArray = key.split("::")
-			var target_id: String = parts[1] if parts.size() > 1 else key
-			var target_name: String = squad_names_cache.get(target_id, target_id)
-			var before_name: String = StrategyTypes.ContactState.keys()[before_state]
-			var after_name: String = StrategyTypes.ContactState.keys()[after_state]
-			turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
-
-	var player_engagements: Array[Dictionary] = contact_result["engagements"]
-	for engagement in player_engagements:
-		await _handle_player_engagement(engagement)
-
-	if _check_game_over():
-		is_executing_activity = false
-		return
-
-	await _check_missions()
-	_collect_and_show_notifications()
-	if actor.player_squad.current_location_id not in visited_locations:
-		visited_locations.append(actor.player_squad.current_location_id)
-	actor.advance_hour()
-	is_executing_activity = false
-	_update_ui()
 
 
 func _build_karma_sorted_entries(ai_results: Dictionary) -> Array:
@@ -1069,12 +967,40 @@ func _on_hour_tick(hour: int) -> void:
 	is_executing_activity = true
 	StrategyEventBus.hour_advanced.emit(hour)
 	view.update_clock(hour)
+	view.disable_all_activity_buttons()
 
+	var activity := _resolve_player_activity()
+	var player_location_before := actor.player_squad.current_location_id
+	var ai_results := ai_fleet.prepare_ai_turns()
+
+	_log_turn_decisions(activity, player_location_before, ai_results)
+	_tick_world_systems(hour)
+
+	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
+	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
+
+	var turn_entries := _build_karma_sorted_entries(ai_results)
+	await _execute_all_activities(activity, turn_entries)
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
+
+	await _process_contacts_and_engagements(
+		activity, player_location_before,
+		contact_before_states, squad_names_cache,
+	)
+
+	if _check_game_over():
+		is_executing_activity = false
+		return
+
+	await _finalize_tick(activity)
+
+
+func _resolve_player_activity() -> Activity:
 	var player_activity_type := actor.player_squad.current_activity_type
-	var activity = actor.get_activity(player_activity_type)
-	if not activity:
-		activity = actor.get_activity(StrategyTypes.ActivityType.REST)
-	assert(activity != null)
+	var activity = actor.get_activity(player_activity_type) or actor.get_activity(StrategyTypes.ActivityType.REST)
 
 	if player_activity_type == StrategyTypes.ActivityType.TRAVEL:
 		var dest = actor.walking_towards
@@ -1084,33 +1010,45 @@ func _on_hour_tick(hour: int) -> void:
 			actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
 			activity = actor.get_activity(StrategyTypes.ActivityType.REST)
 
-	_capture_stat_snapshot()
+	return activity
 
+
+func _log_turn_decisions(activity: Activity, player_location_before: String, ai_results: Dictionary) -> void:
 	turn_log.clear()
-	var player_location_before = actor.player_squad.current_location_id
+	var activity_name: String = StrategyTypes.ActivityType.keys()[activity.activity_type]
+	turn_log.append("PLAYER %s at %s" % [activity_name, player_location_before])
 
-	var ai_results = ai_fleet.prepare_ai_turns()
+	var decisions = ai_results["decisions_this_turn"]
+	for squad_id in decisions:
+		var d = decisions[squad_id]
+		var sq_name: String = d["squad"].squad_name
+		var at_name: String = StrategyTypes.ActivityType.keys()[d["activity_type"]]
+		var sq_loc: String = d.get("location_at_decision", "")
+		var travel_dest: String = d["context"].get("travel_destination", "")
+		if not travel_dest.is_empty():
+			turn_log.append("AI %s %s at %s → %s" % [sq_name, at_name, sq_loc, travel_dest])
+		else:
+			turn_log.append("AI %s %s at %s" % [sq_name, at_name, sq_loc])
 
-	var is_new_day := (hour % 24 == 0)
-	if is_new_day:
+
+func _tick_world_systems(hour: int) -> void:
+	if hour % 24 == 0:
 		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
-
 	for location in game_scenario.world.locations:
 		location.decay_clues()
 
-	var contact_before_states := ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id)
-	var squad_names_cache := ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads)
-	var turn_entries = _build_karma_sorted_entries(ai_results)
 
+func _execute_all_activities(activity: Activity, turn_entries: Array) -> void:
 	for entry in turn_entries:
-		if not entry["is_player"]:
+		if entry["is_player"]:
+			await _execute_story_triggerables(StrategyTypes.TriggerWhen.HOUR_START)
+		else:
 			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(StrategyTypes.TriggerWhen.HOUR_START)
 
 	for phase in ['before', 'activity', 'after']:
 		for entry in turn_entries:
 			if entry["is_player"]:
-				var results = actor["exec_%s" % phase].call(activity)
-				_pending_results.append_array(results)
+				await _exec_play_animchanges_loop(activity, phase)
 			else:
 				var executor: ActivityExecuteManager = entry["executor"]
 				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
@@ -1120,10 +1058,14 @@ func _on_hour_tick(hour: int) -> void:
 	turn_log.append_array(ai_fleet.combat_log)
 	ai_fleet.combat_log.clear()
 
-	if _check_game_over():
-		is_executing_activity = false
-		return
 
+func _process_contacts_and_engagements(
+	activity: Activity,
+	player_location_before: String,
+	contact_before_states: Dictionary,
+	squad_names_cache: Dictionary,
+) -> void:
+	var contact_before_for_log := contact_before_states.duplicate()
 	var contact_result = contact_orch.update(
 		game_scenario.world,
 		actor.player_squad,
@@ -1136,22 +1078,39 @@ func _on_hour_tick(hour: int) -> void:
 		squad_names_cache,
 	)
 
+	var contact_after_states: Dictionary = contact_result["contact_after"]
+	for key in contact_after_states:
+		var after_state: int = contact_after_states[key]
+		var before_state: int = contact_before_for_log.get(key, StrategyTypes.ContactState.NONE)
+		if after_state != before_state:
+			var parts: PackedStringArray = key.split("::")
+			var target_id: String = parts[1] if parts.size() > 1 else key
+			var target_name: String = squad_names_cache.get(target_id, target_id)
+			var before_name: String = StrategyTypes.ContactState.keys()[before_state]
+			var after_name: String = StrategyTypes.ContactState.keys()[after_state]
+			turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
+
 	var player_engagements: Array[Dictionary] = contact_result["engagements"]
 	for engagement in player_engagements:
 		game_clock.pause()
 		await _handle_player_engagement(engagement)
 
-	if _check_game_over():
-		is_executing_activity = false
-		return
 
+func _finalize_tick(activity: Activity) -> void:
+	await _check_missions()
+	_collect_and_show_notifications()
 	if actor.player_squad.current_location_id not in visited_locations:
 		visited_locations.append(actor.player_squad.current_location_id)
+	actor.advance_hour()
 
-	_pending_results.clear()
+	if activity.activity_type == StrategyTypes.ActivityType.RECRUIT:
+		actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
+		game_clock.pause()
+		view.update_pause_state(true)
+
 	is_executing_activity = false
 	_update_ui()
-	_animate_stat_changes()
+	tick_completed.emit()
 
 
 func _on_hour_advanced(hour: int) -> void:

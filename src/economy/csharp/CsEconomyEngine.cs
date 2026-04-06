@@ -19,6 +19,7 @@ public sealed class CsLocationData
     public float[] Prices { get; set; }
 
     public List<CsNaturalResource> NaturalResources { get; } = new();
+    public CsGovernment Government { get; set; }
 
     // Per-good cost basis tracking (FIFO average)
     public float[] CostBasis { get; set; }
@@ -125,6 +126,7 @@ public sealed class CsEconomyEngine
         PhaseDemand();
         PhaseContracts();
         PhaseSupplyGeneration();
+        PhaseSpoilage();
         PhaseSubsistence();
         PhaseTradeAdvance(result);
         PhasePriceUpdate();
@@ -133,6 +135,9 @@ public sealed class CsEconomyEngine
         PhaseWages();
         PhaseHouseholdWages();
         PhaseRent();
+        PhaseGovernmentTax();
+        PhaseGovernmentPlan();
+        PhaseGovernmentExecute();
         PhaseLoanRepayment();
         PhaseGovernmentSpending();
         PhaseSatisfaction();
@@ -158,6 +163,13 @@ public sealed class CsEconomyEngine
                 BourgeoisCount = loc.Population.GetByClass(SocialClass.Bourgeois).Count,
                 NobleCount = loc.Population.GetByClass(SocialClass.Noble).Count,
             };
+            if (loc.Government != null)
+            {
+                snap.GovernmentTreasury = (float)loc.Government.Treasury;
+                snap.GovernmentTaxCollected = (float)loc.Government.TaxCollectedLastTick;
+                snap.GovernmentDirectivesCount = loc.Government.ActiveDirectives.Count;
+                snap.GovernmentWorkersHired = loc.Government.WorkersHiredLastTick;
+            }
             Array.Copy(loc.Stocks, snap.Stocks, _goodsCount);
             Array.Copy(loc.Prices, snap.Prices, _goodsCount);
             result.LocationSnapshots.Add(snap);
@@ -247,6 +259,23 @@ public sealed class CsEconomyEngine
         {
             float toConsume = input.Quantity * producedQty;
             loc.Consume(input.ThingIdx, toConsume);
+        }
+    }
+
+    private void PhaseSpoilage()
+    {
+        const float spoilageRate = 0.05f;
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            for (int gi = 0; gi < _goodsCount; gi++)
+            {
+                if (Goods[gi].ThingType != ThingType.Food) continue;
+                float stock = loc.GetAvailable(gi);
+                if (stock <= 0f) continue;
+                float spoiled = stock * spoilageRate;
+                loc.Consume(gi, spoiled);
+            }
         }
     }
 
@@ -456,11 +485,41 @@ public sealed class CsEconomyEngine
 
     private void DistributeRevenue(CsLocationData loc, float revenue)
     {
+        // Split revenue: 15% merchant commission, 85% to producers (farmers + craftsmen)
         var merchants = loc.Population.GetByJob(JobType.Merchant);
-        if (merchants.Count == 0) return;
-        float share = revenue * 0.5f / merchants.Count;
-        for (int i = 0; i < merchants.Count; i++)
-            merchants[i].Money += share;
+        var farmers = loc.Population.GetByJob(JobType.Farmer);
+        var craftsmen = loc.Population.GetByJob(JobType.Craftsman);
+        int producerCount = farmers.Count + craftsmen.Count;
+
+        float merchantCut = revenue * 0.15f;
+        float producerCut = revenue * 0.85f;
+
+        if (merchants.Count > 0)
+        {
+            float perMerchant = merchantCut / merchants.Count;
+            for (int i = 0; i < merchants.Count; i++)
+                merchants[i].Money += perMerchant;
+        }
+        else
+        {
+            producerCut += merchantCut;
+        }
+
+        if (producerCount > 0)
+        {
+            float perProducer = producerCut / producerCount;
+            for (int i = 0; i < farmers.Count; i++)
+                farmers[i].Money += perProducer;
+            for (int i = 0; i < craftsmen.Count; i++)
+                craftsmen[i].Money += perProducer;
+        }
+        else if (merchants.Count > 0)
+        {
+            float perMerchant = producerCut / merchants.Count;
+            for (int i = 0; i < merchants.Count; i++)
+                merchants[i].Money += perMerchant;
+        }
+        // If no merchants or producers, revenue is lost (shouldn't happen in practice)
     }
 
     private void PhaseConsumption()
@@ -699,6 +758,94 @@ public sealed class CsEconomyEngine
     private void PhaseLoanRepayment()
     {
         Bank?.CollectInterestAndRepayments();
+    }
+
+    private void PhaseGovernmentTax()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var gov = loc.Government;
+            if (gov == null) continue;
+            gov.TaxCollectedLastTick = 0;
+            gov.WorkersHiredLastTick = 0;
+            gov.WagesPaidLastTick = 0;
+            double taxCollected = 0;
+            var people = loc.Population.People;
+            for (int pi = 0; pi < people.Count; pi++)
+            {
+                var person = people[pi];
+                if (person.Money > 10f)
+                {
+                    float tax = person.Money * (float)gov.TaxRate;
+                    person.Money -= tax;
+                    taxCollected += tax;
+                }
+            }
+            gov.Treasury += taxCollected;
+            gov.TaxCollectedLastTick = taxCollected;
+        }
+    }
+
+    private void PhaseGovernmentPlan()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var gov = loc.Government;
+            if (gov == null) continue;
+            var newDirectives = GovernmentBrain.Evaluate(gov, loc, Goods, _goodsCount);
+            gov.ActiveDirectives.AddRange(newDirectives);
+        }
+    }
+
+    private void PhaseGovernmentExecute()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var gov = loc.Government;
+            if (gov == null) continue;
+            for (int di = gov.ActiveDirectives.Count - 1; di >= 0; di--)
+            {
+                var directive = gov.ActiveDirectives[di];
+                if (directive.Type == DirectiveType.HireWorkers)
+                    ExecuteHireWorkers(loc, gov, directive);
+                directive.AdvanceTurn();
+                if (directive.IsExpired)
+                    gov.ActiveDirectives.RemoveAt(di);
+            }
+        }
+    }
+
+    private void ExecuteHireWorkers(CsLocationData loc, CsGovernment gov, CsDirective directive)
+    {
+        int remaining = directive.Quantity - directive.WorkersHired;
+        if (remaining <= 0) return;
+        float budgetLeft = directive.BudgetAllocated - directive.BudgetSpent;
+        if (budgetLeft < directive.WageOffered) return;
+
+        var unemployed = loc.Population.GetByJob(JobType.Unemployed);
+        var laborers = loc.Population.GetByJob(JobType.Laborer);
+        var pool = new List<CsPerson>();
+        pool.AddRange(unemployed);
+        pool.AddRange(laborers);
+
+        int hiredThisTick = 0;
+        foreach (var person in pool)
+        {
+            if (hiredThisTick >= remaining) break;
+            if (budgetLeft < directive.WageOffered) break;
+            person.Job = directive.JobTarget;
+            person.Money += directive.WageOffered;
+            directive.BudgetSpent += directive.WageOffered;
+            budgetLeft -= directive.WageOffered;
+            gov.Treasury -= directive.WageOffered;
+            gov.WagesPaidLastTick += directive.WageOffered;
+            directive.WorkersHired++;
+            hiredThisTick++;
+        }
+        gov.WorkersHiredLastTick += hiredThisTick;
     }
 
     private void PhaseGovernmentSpending()

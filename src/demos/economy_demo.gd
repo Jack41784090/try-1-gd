@@ -84,6 +84,8 @@ func _setup_farmstead() -> void:
 		loc.population.add_person(p)
 	for p in Population.create_batch(2, "squire", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
 		loc.population.add_person(p)
+	for p in Population.create_batch(10, "idle", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.UNEMPLOYED, 0.0):
+		loc.population.add_person(p)
 
 	loc.inventory = LocationInventory.new()
 	loc.inventory.init_thing(food, 60.0)
@@ -96,7 +98,14 @@ func _setup_farmstead() -> void:
 		NaturalResource.create(iron_ore, 40.0),
 	]
 
-	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires) - food+wool+iron" % loc.population.size())
+	var gov := GovernmentConfig.new()
+	gov.push_weight = 0.7
+	gov.tax_rate = 0.03
+	gov.starting_treasury = 50.0
+	gov.priority_goods = ["food"]
+	loc.government_config = gov
+
+	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires, 10 unemployed) - food+wool+iron [GOV]" % loc.population.size())
 
 
 func _setup_market_town() -> void:
@@ -126,7 +135,14 @@ func _setup_market_town() -> void:
 		NaturalResource.create_craft(luxury, 20.0),
 	]
 
-	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - crafts" % loc.population.size())
+	var gov := GovernmentConfig.new()
+	gov.push_weight = 0.8
+	gov.tax_rate = 0.05
+	gov.starting_treasury = 200.0
+	gov.priority_goods = ["food", "cloth"]
+	loc.government_config = gov
+
+	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - crafts [GOV]" % loc.population.size())
 
 
 func _setup_castle() -> void:
@@ -220,6 +236,16 @@ func _print_detailed_snapshot(turn: int) -> void:
 		engine.active_contracts_count,
 		engine.completed_contracts_count,
 	])
+	var gov_info: Array = engine.get_government_info()
+	for g: Dictionary in gov_info:
+		Log.info("EconDemo", "  Gov[%s]: treasury=%.0f tax=%.1f directives=%d hired=%d wages=%.1f" % [
+			g.get("location_id", "?"),
+			g.get("treasury", 0.0),
+			g.get("tax_collected", 0.0),
+			g.get("active_directives", 0),
+			g.get("workers_hired", 0),
+			g.get("wages_paid", 0.0),
+		])
 	var total_money := _calc_total_money()
 	Log.info("EconDemo", "  Total Scrip in circulation: %.0f" % total_money)
 

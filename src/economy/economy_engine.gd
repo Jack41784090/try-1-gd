@@ -26,9 +26,19 @@ var completed_contracts_count: int:
 			return _cs_bridge.call("GetCompletedContractsCount") as int
 		return 0
 
+func get_bank_info() -> Dictionary:
+	if _cs_bridge == null:
+		return {}
+	return _cs_bridge.call("GetBankInfo") as Dictionary
+
 func sync_full() -> void:
 	assert(_cs_bridge != null, "C# bridge required")
 	_cs_bridge.call("SyncBackToGdScript")
+
+func get_government_info() -> Array:
+	if _cs_bridge == null:
+		return []
+	return _cs_bridge.call("GetGovernmentInfo") as Array
 
 func enable_csharp() -> void:
 	if _cs_bridge != null:
@@ -154,6 +164,10 @@ func _tick_csharp(turn: int) -> EconomyTickResult:
 		snap.peasant_count = snap_dict.get("peasant_count", 0)
 		snap.bourgeois_count = snap_dict.get("bourgeois_count", 0)
 		snap.noble_count = snap_dict.get("noble_count", 0)
+		snap.government_treasury = snap_dict.get("government_treasury", 0.0)
+		snap.government_tax_collected = snap_dict.get("government_tax_collected", 0.0)
+		snap.government_directives_count = snap_dict.get("government_directives_count", 0)
+		snap.government_workers_hired = snap_dict.get("government_workers_hired", 0)
 		var stocks_raw: Dictionary = snap_dict.get("stocks", {})
 		for thing_id: String in stocks_raw:
 			var thing := _find_thing_by_id(thing_id)
