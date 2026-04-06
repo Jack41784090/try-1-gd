@@ -82,7 +82,7 @@ func _track_starting_location() -> void:
 
 
 func _process(delta: float) -> void:
-	if game_clock:
+	if game_clock and not is_executing_activity:
 		game_clock.process(delta)
 	if combat_orch and combat_orch.is_in_encounter and encounter_timeout_timer > 0:
 		encounter_timeout_timer -= delta
@@ -969,15 +969,15 @@ func _on_hour_tick(hour: int) -> void:
 	view.update_clock(hour)
 	view.disable_all_activity_buttons()
 
-	var day := hour / 24 + 1
-	var hour_of_day := hour % 24
-	view.log_squad_separator()
-	var activity_name: String = StrategyTypes.ActivityType.keys()[actor.player_squad.current_activity_type]
-	view.log_squad_event("Day %d, %02d:00 — %s" % [day, hour_of_day, activity_name.capitalize()], Color(0.85, 0.75, 0.55))
-
 	var activity := _resolve_player_activity()
 	var player_location_before := actor.player_squad.current_location_id
 	var ai_results := ai_fleet.prepare_ai_turns()
+
+	var day := hour / 24 + 1
+	var hour_of_day := hour % 24
+	view.log_squad_separator()
+	var activity_name: String = StrategyTypes.ActivityType.keys()[activity.activity_type]
+	view.log_squad_event("Day %d, %02d:00 — %s" % [day, hour_of_day, activity_name.capitalize()], Color(0.85, 0.75, 0.55))
 
 	_log_turn_decisions(activity, player_location_before, ai_results)
 	_tick_world_systems(hour)
