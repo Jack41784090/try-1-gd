@@ -51,15 +51,6 @@ enum LogicalOperator {
 	OR,
 }
 
-enum GlobalModifier {
-	END,
-	METAL,
-	WOOD,
-	WATER,
-	FIRE,
-	EARTH,
-}
-
 enum WarriorAttribute {
 	DIPLOMACY,
 	SURVIVAL,

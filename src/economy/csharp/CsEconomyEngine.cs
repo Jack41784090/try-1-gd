@@ -142,6 +142,7 @@ public sealed class CsEconomyEngine
         PhaseGovernmentSpending();
         PhaseSatisfaction();
         PhaseStarvation(result);
+        PhaseResetTurnFlags();
         PhaseBirth(result);
         PhaseSocialMobility();
 
@@ -878,8 +879,6 @@ public sealed class CsEconomyEngine
                     person.Satisfaction = MathF.Max(person.Satisfaction - 15f, 0f);
                 float comfortBonus = person.ComfortThisTurn * 2f;
                 person.Satisfaction = MathF.Min(person.Satisfaction + comfortBonus, 100f);
-                person.FedThisTurn = false;
-                person.ComfortThisTurn = 0f;
             }
         }
     }
@@ -918,6 +917,19 @@ public sealed class CsEconomyEngine
             }
             if (toRemove.Count > 0)
                 result.Deaths += toRemove.Count;
+        }
+    }
+
+    private void PhaseResetTurnFlags()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var people = Locations[li].Population.People;
+            for (int pi = 0; pi < people.Count; pi++)
+            {
+                people[pi].FedThisTurn = false;
+                people[pi].ComfortThisTurn = 0f;
+            }
         }
     }
 

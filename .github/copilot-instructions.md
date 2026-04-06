@@ -23,7 +23,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `cinematic_instruction_demo.tscn` — GroupPlayback, CinematicGroup, JSON chains. Headless-only
   - `ai_act_demo.tscn` — scripted game testing with assertions. Usage: `godot --headless --path . scenes/demos/ai_act_demo.tscn`
   - `economy_demo.tscn` — 3-location supply chain, 20-turn simulation. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
-  - `economy_stress_test.tscn` — 8-location, ~25K population, 50-turn stress test with Gini, starvation, class mobility metrics. Usage: `godot-mono --headless --path . scenes/demos/economy_stress_test.tscn`
+  - `economy_stress_test.tscn` — 50-turn economy stress test using real game pipeline (HeadlessStrategyView + StrategyPresenter + goetz-official scenario). Gini, starvation, class mobility, bank metrics. Usage: `godot-mono --headless --path . scenes/demos/economy_stress_test.tscn`
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
   - `interactive_demo.tscn` — terminal game with stdin commands. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`
@@ -58,7 +58,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
    - **Forced retreat**: `order_retreat(ATTACKER)` mid-battle. Entities progress Front→Back→last stand→capitulate
 
 2. **Strategic Campaign** (`src/strategy/`) — **Hour-based real-time** with Paradox-style speed controls
-   - `GameScenario` (core/scenario.gd) — main orchestrator. `_setup_economy()` auto-initializes economy for worlds with `goods`/`inventory`
+   - `GameScenario` (core/scenario.gd) — main orchestrator. `_setup_economy()` asserts all non-FORT locations have inventory, validates shops require inventory
    - `World` (core/world.gd) — location graph, roaming squads, **hour counter** (`current_hour`), `is_paused`, `speed_multiplier`, `get_day()`, `get_hour_of_day()`, `get_clock_display()`
    - `GameClock` (core/game_clock.gd) — drives real-time hour progression. `process(delta)` accumulates time, emits `hour_ticked` signal. `pause()/unpause()/toggle_pause()/set_speed()`
    - **Hourly tick pipeline**: `GameClock.hour_ticked` → `StrategyPresenter._on_hour_tick()` runs player's current activity + all AI squads each hour. Economy ticks every 24 hours
@@ -118,7 +118,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - **Food spoilage**: `PhaseSpoilage` decays 5% of food stocks per turn, preventing infinite accumulation
   - **Population sync**: `SyncBackToGdScript()` uses PersonId-based matching to handle births/deaths correctly. `Population.remove_person()` for death sync
   - **Bank metrics**: `engine.get_bank_info()` reads C# CsCentralBank state (printed/reserves/loans/debt). GDScript CentralBank is config-only
-  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. Build: `dotnet build`. Run with `godot-mono`
+  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. 23-phase tick lifecycle (includes PhaseResetTurnFlags after starvation). Build: `dotnet build`. Run with `godot-mono`
+  - **Person sync via `sync_full()`**: `EconomyOrchestrator.tick_and_spawn_caravans()` calls `engine.sync_full()` after each tick to propagate person money/satisfaction/class from C# back to GDScript. Without this, GDScript-side readings remain stale
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn
 
 ### Key Enums
@@ -173,6 +174,38 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **Typed array assignment**: Never assign from `Dictionary.get()` to typed arrays. Iterate and append with type checks
 - **Squad positions**: `Front = 1`, `Middle = 2`, `Back = 3` (NOT zero-indexed). Forward = -1, retreat = +1
 - **Entity updates**: All combat state changes return `EntityUpdate` containing `EntityChange`
+- **Keep `src/` warning-clean** — avoid shadowing built-ins (e.g. `log`, `sign`), remove unused vars/signals/params, and avoid enum sentinel ints like `-1`
+
+## Testing Conventions
+
+### Mandatory: Use Real Game Pipeline
+- **All demo/test scenes MUST use `HeadlessStrategyView` + `StrategyPresenter`** — the same code path as the real game. Never hand-build World/EconomyEngine/Population manually in tests
+- **Load the real scenario**: `presenter.scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"`. Let `GameScenario._setup_economy()` initialize population, natural resources, government config, and the economy engine
+- **Drive time with `game_clock.force_tick()` + `await presenter.tick_completed`** — this runs the full hourly pipeline: AI turns, world systems (economy every 24h), contacts, activities, missions
+
+### Canonical Test Pattern (from `ai_act_demo.gd`)
+```
+const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
+var presenter: StrategyPresenter
+
+func _ready():
+    var mock_view = HeadlessView.new()
+    add_child(mock_view)
+    mock_view.setup_headless()
+    presenter = StrategyPresenter.new()
+    presenter.scenario_path = SCENARIO_PATH
+    presenter.is_demo_scenario = false
+    mock_view.add_child(presenter)
+    await presenter.bind_view(mock_view)
+    # Now drive ticks:
+    presenter.game_clock.force_tick()
+    await presenter.tick_completed
+```
+
+### Why This Matters
+- Hand-built tests bypass TradeMatcher, EconomyOrchestrator, CaravanBridge, GovernmentDirectives, and contact system — they test a different game
+- Economy parameters (base prices, bank config, population scale) diverge from the real scenario, producing misleading results
+- The HeadlessStrategyView provides no-op UI methods allowing the full presenter pipeline to run headlessly
 
 ## File Organization
 

@@ -145,13 +145,6 @@ func _display_rewards(mission: Mission) -> void:
 		_add_detail_line(detail_vbox, "%s%s %.0f" % [sign_str, _squad_stat_display(stat_key), absf(value)], Color(0.5, 1.0, 0.5))
 		has_rewards = true
 
-	var world_stats: Dictionary = mission.completion_effects.get("world_stats", {})
-	for stat_key in world_stats:
-		var value: float = world_stats[stat_key]
-		var sign_str := "+" if value >= 0 else ""
-		_add_detail_line(detail_vbox, "%s%s %.0f" % [sign_str, str(stat_key), absf(value)], Color(0.5, 1.0, 0.5))
-		has_rewards = true
-
 	var reputation: Dictionary = mission.completion_effects.get("reputation", {})
 	for faction_id in reputation:
 		var value: float = reputation[faction_id]

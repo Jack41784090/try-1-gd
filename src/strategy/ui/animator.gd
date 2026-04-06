@@ -95,7 +95,7 @@ func _spawn_floating_delta(ui_root: Control, anchor_label: Label, delta_value: f
 	
 	# Format text based on stat type
 	var formatted_text := ""
-	if stat_name in ["money", "karma", "morale", "end_progression"]:
+	if stat_name in ["money", "karma", "morale"]:
 		formatted_text = "%+.1f" % delta_value
 	else:
 		formatted_text = "%+d" % int(delta_value)

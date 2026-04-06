@@ -39,9 +39,7 @@ var world: World
 
 var _events_fired: Array[String] = []
 var _missions_completed: Array[String] = []
-var _awaiting_command := false
 var _initialized := false
-var _turn_number := 0
 var _command_queue: Array[String] = []
 
 var _stdin_thread: Thread
@@ -411,8 +409,8 @@ func _cmd_travel(destination: String):
 		_print_line("Connected locations:")
 		var loc := world.get_location_by_id(player_squad.current_location_id)
 		for conn in loc.connections.tt:
-			var to_loc := world.get_location_by_id(conn.to_location_id)
-			var to_name := to_loc.location_name if to_loc else conn.to_location_id
+			var connected_loc := world.get_location_by_id(conn.to_location_id)
+			var to_name := connected_loc.location_name if connected_loc else conn.to_location_id
 			_print_line("  %s — %s (%.0f km)" % [conn.to_location_id, to_name, conn.distance_km])
 		return
 
@@ -673,12 +671,14 @@ func _cmd_recruit(arg: String):
 		return
 
 	var class_keys := EntityClasses.Types.keys()
-	var class_enum: EntityClasses.Types = -1
+	var class_enum := EntityClasses.Types.Landsknecht
+	var class_found := false
 	for i in range(class_keys.size()):
 		if class_keys[i].to_lower() == arg.to_lower():
 			class_enum = i as EntityClasses.Types
+			class_found = true
 			break
-	if class_enum == -1:
+	if not class_found:
 		_print_line("Unknown class: '%s'. Type 'recruit' to see options." % arg)
 		return
 
@@ -865,9 +865,9 @@ func _print_stat_delta(label: String, before_val, after_val, fmt: String):
 	elif before_val == after_val:
 		return
 	var delta = after_val - before_val
-	var sign := "+" if delta > 0 else ""
+	var delta_sign := "+" if delta > 0 else ""
 	_print_line("%s: %s → %s (%s%s)" % [
-		label, fmt % before_val, fmt % after_val, sign, fmt % delta])
+		label, fmt % before_val, fmt % after_val, delta_sign, fmt % delta])
 
 #endregion
 

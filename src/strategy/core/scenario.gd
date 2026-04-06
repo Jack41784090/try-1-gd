@@ -99,12 +99,15 @@ func _setup(config: Dictionary) -> void:
 
 func _setup_economy() -> void:
 	assert(not world.goods.is_empty(), "World requires goods array to be populated for economy")
-	var has_any_inventory := false
+
 	for loc in world.locations:
-		if loc.inventory != null:
-			has_any_inventory = true
-			break
-	assert(has_any_inventory, "World requires at least one location with an inventory for economy")
+		if loc.type == StrategyTypes.LocationType.FORT:
+			continue
+		assert(loc.inventory != null, "Location '%s' (%s) requires inventory — economy is integral" % [loc.location_id, StrategyTypes.LocationType.keys()[loc.type]])
+
+	for loc in world.locations:
+		if loc.shop != null:
+			assert(loc.inventory != null, "Location '%s' has a shop but no inventory — shops require the economy system" % loc.location_id)
 
 	var thing_map: Dictionary = {}
 	for thing in world.goods:
@@ -125,7 +128,7 @@ func _setup_economy() -> void:
 	var engine := EconomyEngine.new()
 	engine.world = world
 	engine.bank = CentralBank.new()
-	engine.bank.loan_interest_rate = 0.08
+	engine.bank.loan_interest_rate = 0.01
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 500.0
@@ -204,7 +207,6 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 	var iron_ore: Thing = thing_map.get("iron_ore")
 	var cloth: Thing = thing_map.get("cloth")
 	var tools: Thing = thing_map.get("tools")
-	var luxury: Thing = thing_map.get("luxury")
 	var pop_count: int = loc.population.size() if loc.population else 50
 	var ps := maxf(1.0, float(pop_count) / 50.0)
 

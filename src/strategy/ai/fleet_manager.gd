@@ -65,7 +65,7 @@ func prepare_ai_turns() -> Dictionary:
 
 
 func _prepare_squad_decision(squad_id: String, directive: FactionDirective) -> Dictionary:
-	var brain: SquadBrain = squad_brains[squad_id]
+	var brain = squad_brains[squad_id]
 	var result: Dictionary = brain.decide(scenario.world, null, directive)
 
 	var activity_type: StrategyTypes.ActivityType = result["activity_type"]

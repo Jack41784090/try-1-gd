@@ -20,12 +20,6 @@ var population: Population
 func has_economy() -> bool:
 	return population != null and inventory != null
 
-func modify_stability(amount: float) -> void:
-	stability = clamp(stability + amount, 0.0, 200.0)
-
-func modify_development(amount: int) -> void:
-	development = clamp(development + amount, 0, 200)
-
 func is_connected_to(location_id_check: String) -> bool:
 	return get_connection_to(location_id_check) != null
 

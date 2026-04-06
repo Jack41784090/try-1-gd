@@ -27,8 +27,7 @@ static var DEFAULT_DEMO_VALUES: Dictionary = {
 		"starting_location_id": "test_city"
 	},
 	"world": {
-		"current_hour": 0,
-		"end_progression": 0.0
+		"current_hour": 0
 	}
 }
 
@@ -48,7 +47,7 @@ static func create_demo_scenario(demo_values: Dictionary = {}) -> GameScenario:
 static func _create_demo_world(demo_values: Dictionary) -> World:
 	var world_values = demo_values["world"]
 	var locations = _create_demo_locations(demo_values)
-	return _create_world(world_values["current_hour"], world_values["end_progression"], locations)
+	return _create_world(world_values["current_hour"], locations)
 
 static func _create_demo_locations(demo_values: Dictionary) -> Array[Location]:
 	var city_values = demo_values["city"]
@@ -152,10 +151,9 @@ static func _create_locations_with_connections(location_configs: Array[Dictionar
 				from_location[0].add_connection(to_id, dist)
 	return locations
 
-static func _create_world(start_hour: int, end_progression: float, locations: Array[Location]) -> World:
+static func _create_world(start_hour: int, locations: Array[Location]) -> World:
 	var world = World.new()
 	world.current_hour = start_hour
-	world.end_progression = end_progression
 
 	for location in locations:
 		world.add_location(location)

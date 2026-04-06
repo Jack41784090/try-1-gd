@@ -60,7 +60,6 @@ func _ready() -> void:
 		},
 		"world": {
 			"current_hour": 0,
-			"end_progression": 0.0,
 		},
 	}
 	await presenter.bind_view(mock_view)
@@ -90,7 +89,7 @@ func _setup_economy() -> void:
 	engine = EconomyEngine.new()
 	engine.world = world
 	engine.bank = CentralBank.new()
-	engine.bank.loan_interest_rate = 0.08
+	engine.bank.loan_interest_rate = 0.01
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 500.0

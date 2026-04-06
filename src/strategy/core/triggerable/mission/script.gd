@@ -50,7 +50,6 @@ func trigger(context: Dictionary) -> Array[MissionResult]:
 		"unlocked_missions": result.unlocked_missions,
 		"reputation_changes": result.reputation_changes,
 		"squad_stat_changes": result.squad_stat_changes,
-		"world_stat_changes": result.world_stat_changes,
 		"event_chain_path": result.event_chain_path
 	}
 	
@@ -78,9 +77,6 @@ func complete() -> MissionResult:
 	
 	for stat_name in completion_effects.get("squad_stats", {}):
 		result.modify_squad_stat(stat_name, completion_effects["squad_stats"][stat_name])
-	
-	for stat_name in completion_effects.get("world_stats", {}):
-		result.modify_world_stat(stat_name, completion_effects["world_stats"][stat_name])
 	
 	for faction_id in completion_effects.get("reputation", {}):
 		result.modify_faction_reputation(faction_id, completion_effects["reputation"][faction_id])

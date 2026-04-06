@@ -6,7 +6,7 @@ var total_printed: float = 0.0
 var total_interest_collected: float = 0.0
 var reserves: float = 0.0
 var active_loans: Array[Loan] = []
-var loan_interest_rate: float = 0.08
+var loan_interest_rate: float = 0.01
 var print_per_turn: float = 500.0
 
 func print_money(amount: float) -> float:

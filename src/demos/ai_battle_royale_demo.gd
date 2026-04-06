@@ -166,7 +166,7 @@ func _execute_one_hour():
 
 
 func _build_karma_sorted_entries(
-		player_activity: Activity,
+		_player_activity: Activity,
 		ai_results: Dictionary,
 ) -> Array:
 	var entries: Array = []
@@ -360,7 +360,7 @@ func _resolve_headless_combat(
 		loser = squad_a
 
 	var loser_living = loser.get_living_warriors()
-	var casualties = maxi(1, loser_living.size() / 2)
+	var casualties = maxi(1, int(loser_living.size() * 0.5))
 	for i in range(mini(casualties, loser_living.size())):
 		loser_living[i].is_dead = true
 

@@ -473,36 +473,6 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 
 func _collect_and_show_notifications() -> void:
 	return # Notifications disabled temporarily
-	var turn := game_scenario.world.current_hour
-
-	_notification_collector.collect_resource_notifications(actor.player_squad, turn)
-
-	if not _last_mission_results.is_empty():
-		_notification_collector.collect_mission_notifications(_last_mission_results, turn)
-		_last_mission_results.clear()
-
-	if not _last_unlocked_missions.is_empty():
-		_notification_collector.collect_mission_unlocked_notifications(_last_unlocked_missions, turn)
-		_last_unlocked_missions.clear()
-
-	var notifications := _notification_collector.get_notifications()
-	if notifications.size() > 0:
-		for n in notifications:
-			if n.type == NotificationData.NotificationType.CONTACT_DETECTED or n.type == NotificationData.NotificationType.CONTACT_DECAYING or n.type == NotificationData.NotificationType.CONTACT_LOST:
-				n.action = on_scouting_requested
-				n.action_label = "Open Scouting"
-			elif n.type == NotificationData.NotificationType.MISSION_UNLOCKED or n.type == NotificationData.NotificationType.MISSION_COMPLETED:
-				n.action = on_missions_requested
-				n.action_label = "Open Missions"
-			elif n.type == NotificationData.NotificationType.LOW_FOOD:
-				var loc = actor.current_location
-				if loc and loc.has_shop():
-					n.action = on_shop_requested
-					n.action_label = "Open Shop"
-		view.show_notifications(notifications)
-	else:
-		view.clear_notifications()
-	_notification_collector.clear()
 
 
 func _enter_combat_if_exists(activity: Activity, all_activity_result: Array[GenericResult]) -> bool:
@@ -1000,7 +970,9 @@ func _on_hour_tick(hour: int) -> void:
 
 func _resolve_player_activity() -> Activity:
 	var player_activity_type := actor.player_squad.current_activity_type
-	var activity = actor.get_activity(player_activity_type) or actor.get_activity(StrategyTypes.ActivityType.REST)
+	var activity := actor.get_activity(player_activity_type)
+	if activity == null:
+		activity = actor.get_activity(StrategyTypes.ActivityType.REST)
 
 	if player_activity_type == StrategyTypes.ActivityType.TRAVEL:
 		var dest = actor.walking_towards

@@ -84,8 +84,7 @@ func _apply_result(result: GenericResult) -> void:
 	# e.g., result = ActivityResult(location_changed="vienna", squad_stat_changes={MORALE: -5.0}, new_recruits=[Warrior("Otto")])
 	Log.trace("AEM", "_apply_result() called")
 	Log.trace("AEM", "Result type: %s" % result.get_class())
-	Log.trace("AEM", "CombatSquad changes: %s" % [result.squad_stat_changes])
-	Log.trace("AEM", "World changes: %s" % [result.world_stat_changes])
+	Log.trace("AEM", "Squad changes: %s" % [result.squad_stat_changes])
 
 	# 1. Apply location changes — if this is a TRAVEL/FORCE_MARCH result, move the squad
 	# e.g., result.location_changed = "vienna" → squad moves from "salzburg" to "vienna"
@@ -210,7 +209,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 		var triggered_results = triggerable.trigger(context)
 		scenario.triggerable_manager.triggerable_fired.emit(triggerable, triggered_results)
 		for r in triggered_results:
-			Log.trace("AEM", "Result: squad_changes=%s, world_changes=%s" % [r.squad_stat_changes, r.world_stat_changes])
+			Log.trace("AEM", "Result: squad_changes=%s" % [r.squad_stat_changes])
 			all_results.append(r)
 
 	Log.trace("AEM", "Returning %d result(s)" % all_results.size())

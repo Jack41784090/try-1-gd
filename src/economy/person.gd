@@ -11,8 +11,6 @@ var wants: Dictionary = {}
 var satisfaction: float = 50.0
 var income_per_turn: float = 0.0
 var employer_id: String = ""
-var _fed_this_turn: bool = false
-var _comfort_this_turn: float = 0.0
 
 static var _next_id: int = 0
 

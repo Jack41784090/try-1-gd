@@ -53,7 +53,7 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	
 	return []
 
-func _heuristic(from_id: String, to_id: String) -> int:
+func _heuristic(_from_id: String, _to_id: String) -> int:
 	# Simple heuristic: assume minimum travel time of 1 per connection
 	# In future could use euclidean distance if locations had coordinates
 	return 0

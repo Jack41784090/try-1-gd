@@ -10,7 +10,7 @@ public sealed class CsCentralBank
     public float TotalInterestCollected { get; set; }
     public float Reserves { get; set; }
     public List<CsLoan> ActiveLoans { get; } = new();
-    public float LoanInterestRate { get; set; } = 0.08f;
+    public float LoanInterestRate { get; set; } = 0.01f;
     public float PrintPerTurn { get; set; } = 500f;
 
     public float PrintMoney(float amount)
