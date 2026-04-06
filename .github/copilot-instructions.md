@@ -94,7 +94,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - **AIAct Testing** (`src/strategy/ai/ai_act.gd`): `AIAct` Resource with activity + assertions. `HeadlessStrategyView` (src/demos/headless_strategy_view.gd) mocks UI for headless StrategyPresenter runs
 - **UI** (`src/strategy/ui/`): View/Presenter MVP. View calls `presenter.on_X()`, Presenter calls `view.update_X()`
   - `StrategyView/Presenter` — top-level. Three orchestrators: `EconomyOrchestrator`, `CombatOrchestrator`, `ContactOrchestrator`. Unified turn pipeline in `_on_hour_tick()`
-  - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine. Travel arrows for mid-journey navigation
+  - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine
   - `ShopView/Presenter` — cart system with stock-aware purchasing from LocationInventory
   - `ScoutingView/Presenter` — hover slide-in panel from left edge. Tab peeks out, hover slides panel in with tween. Auto-refreshes contact data on open. `bind()` stores world/squad refs, called on setup and each tick
   - `MissionsView/Presenter` — two-column: active/completed list + details

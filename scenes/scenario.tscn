@@ -386,12 +386,6 @@ layout_mode = 1
 
 [node name="ScoutingView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="RestingBanner" type="CenterContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1756286128]
 visible = false

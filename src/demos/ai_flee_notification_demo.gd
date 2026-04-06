@@ -208,7 +208,8 @@ func _do_travel(destination: String) -> void:
 	await presenter.on_travel_confirmed(destination)
 	while presenter.actor.walking_towards["location"] != null:
 		Log.debug("FleeDmo", "  Continuing travel towards %s..." % destination)
-		await presenter.on_continue_travel()
+		presenter.game_clock.force_tick()
+		await presenter.tick_completed
 
 
 func _do_activity(activity_type: StrategyTypes.ActivityType) -> void:

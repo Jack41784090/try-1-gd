@@ -230,24 +230,6 @@ func on_travel_cancelled() -> void:
 	view.hide_travel_menu()
 
 
-func on_continue_travel() -> void:
-	var dest_location = actor.walking_towards["location"]
-	assert(dest_location != null, "Continue travel called but no destination set")
-	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
-	view.update_resting_banner(false)
-	_update_ui()
-
-
-func on_go_back_travel() -> void:
-	var from_location = actor.current_location
-	assert(from_location != null, "Go back called but no current location")
-	Log.info("Presenter", "Cancelling travel, staying at %s" % from_location.location_name)
-	actor.walking_towards = null
-	actor.player_squad.clear_travel()
-	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
-	_update_ui()
-
-
 func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
@@ -769,13 +751,6 @@ func _update_ui() -> void:
 		location.stability if location else 0.0,
 		location.development if location else 0,
 	)
-
-	walking = actor.walking_towards
-	if walking != null and walking["location"] != null:
-		var from_name: String = location.location_name if location else "Unknown"
-		view.show_travel_arrows(walking["location"].location_name, from_name)
-	else:
-		view.hide_travel_arrows()
 
 	_update_activity_buttons()
 

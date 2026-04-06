@@ -28,7 +28,7 @@ extends Control
 @onready var recruitment_view: RecruitmentView = $RecruitmentView
 @onready var manage_squad_page = $ManageSquadPage
 @onready var shop_view: ShopView = $ShopView
-@onready var scouting_view: ScoutingView = $ScoutingView
+@onready var scouting_view: ScoutingView = $PanelContainer/MainVBox/MainScreenArea/ScoutingView
 @onready var missions_view: MissionsView = $MissionsView
 @onready var market_view: MarketView = $MarketView
 @onready var resting_banner: CenterContainer = $PanelContainer/MainVBox/MainScreenArea/RestingBanner
@@ -60,10 +60,6 @@ var combat_overlay: CanvasLayer:
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AIFleetManager = $AIFleetManager
 @onready var notification_bar: NotificationBar = $PanelContainer/MainVBox/NotificationBar
-# @onready var _travel_arrow_bar: PanelContainer = $TravelArrowBar
-# @onready var _go_back_btn: Button = $TravelArrowBar/TravelArrowHBox/GoBackBtn
-# @onready var _continue_btn: Button = $TravelArrowBar/TravelArrowHBox/ContinueBtn
-# @onready var _travel_arrow_label: Label = $TravelArrowBar/TravelArrowHBox/TravelLabel
 # @onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
 # @onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars
 @onready var _result_summary_overlay: ColorRect = $ResultSummaryOverlay
@@ -434,6 +430,7 @@ func hide_travel_menu() -> void:
 
 func set_travel_mode_autopilot() -> void:
 	travel_view.set_mode_autopilot()
+
 
 func show_investigation_menu() -> void:
 	investigation_view.show_investigation_menu()

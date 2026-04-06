@@ -182,8 +182,7 @@ func hide_travel_menu(): pass
 func set_travel_mode_autopilot(): pass
 func show_continue_travel_button(_dest_name: String): pass
 func hide_continue_travel_button(): pass
-func show_travel_arrows(_dest_name: String, _from_name: String): pass
-func hide_travel_arrows(): pass
+
 func show_investigation_menu(): pass
 func hide_investigation_menu(): pass
 func show_recruitment_menu(): pass
