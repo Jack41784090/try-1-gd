@@ -26,6 +26,7 @@ const SLIDE_DURATION := 0.3
 var _role_checkboxes: Dictionary = { }
 var _class_checkboxes: Dictionary = { }
 var _is_open := false
+var _is_pinned := false
 var _tween: Tween
 var _world: World
 var _player_squad: SquadData
@@ -35,7 +36,8 @@ var _bound := false
 
 func _ready() -> void:
 	visible = true
-	close_button.pressed.connect(_slide_out)
+	close_button.pressed.connect(_unpin_and_close)
+	scout_tab.pressed.connect(_on_tab_clicked)
 	scout_tab.mouse_entered.connect(_on_hover_enter)
 	overlay_panel.mouse_entered.connect(_on_hover_enter)
 	scout_tab.mouse_exited.connect(_on_hover_exit)
@@ -80,14 +82,29 @@ func hide_scouting() -> void:
 	_slide_out()
 
 
-func _on_hover_enter() -> void:
+func _on_tab_clicked() -> void:
 	if not _bound:
+		return
+	if _is_pinned:
+		_unpin_and_close()
+	else:
+		_is_pinned = true
+		_slide_in()
+
+
+func _unpin_and_close() -> void:
+	_is_pinned = false
+	_slide_out()
+
+
+func _on_hover_enter() -> void:
+	if not _bound or _is_pinned:
 		return
 	_slide_in()
 
 
 func _on_hover_exit() -> void:
-	if not _is_open:
+	if not _is_open or _is_pinned:
 		return
 	var panel_rect := overlay_panel.get_global_rect()
 	var tab_rect := scout_tab.get_global_rect()
