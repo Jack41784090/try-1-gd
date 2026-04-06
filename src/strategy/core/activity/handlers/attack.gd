@@ -3,7 +3,8 @@ extends ActivityHandler
 
 
 func can_execute(activity, _squad: SquadData, location: Location) -> bool:
-	return location.stability < activity.min_stability_to_block_attack
+	assert(activity.attack_config, "AttackHandler requires attack_config on Activity")
+	return location.stability < activity.attack_config.min_stability_to_block
 
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:

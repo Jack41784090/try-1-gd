@@ -11,7 +11,9 @@ func can_execute(activity, squad: SquadData, location: Location) -> bool:
 	for w in squad.get_living_warriors():
 		var demand = w.get_demand()
 		total_demand += demand.get(StrategyTypes.SquadProperty.FOOD_SUPPLIES, 0.0)
-	var food_cost = int(ceil(total_demand * activity.force_march_supply_multiplier))
+	var config := activity.force_march_config as ForceMarchConfig
+	assert(config, "ForceMarchHandler requires force_march_config on Activity")
+	var food_cost = int(ceil(total_demand * config.supply_multiplier))
 	return squad.food >= food_cost
 
 
@@ -20,7 +22,8 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var squad = context.get("squad") as SquadData
 	var activity = context.get("activity")
 
-	squad.consume_supplies_by_demand(activity.force_march_supply_multiplier)
+	var config := activity.force_march_config as ForceMarchConfig
+	squad.consume_supplies_by_demand(config.supply_multiplier)
 	squad.apply_travel_morale_penalty(-4.0)
 
 	var old_location: String = squad.current_location_id
@@ -34,7 +37,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 			var path = world.travel_graph.find_path(activity.destination_id, activity.ultimate_destination_id)
 			if path.size() > 1:
 				var second_hop = path[1]
-				squad.consume_supplies_by_demand(activity.force_march_supply_multiplier)
+				squad.consume_supplies_by_demand(config.supply_multiplier)
 				var old_location2: String = squad.current_location_id
 				squad.set_location(second_hop)
 				StrategyEventBus.location_changed.emit(old_location2, second_hop)

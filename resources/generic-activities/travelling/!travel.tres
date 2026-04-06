@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Activity" load_steps=7 format=3 uid="uid://dwg60ymu20exh"]
+[gd_resource type="Resource" script_class="Activity" format=3 uid="uid://dwg60ymu20exh"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_by54q"]
 [ext_resource type="Resource" uid="uid://deki7xospn5wo" path="res://resources/generic-activities/travelling/result.tres" id="2_by54q"]
@@ -15,7 +15,6 @@ metadata/_custom_type_script = "uid://n8anhnv7t1lx"
 script = ExtResource("3_8qpoe")
 result = ExtResource("2_by54q")
 activity_type = 2
-min_stability_to_block_attack = 12.0
 trigger_id = "travel-generic"
-trigger_chains = Array[ExtResource("4_xu3di")]([SubResource("Resource_8dqmd")])
+trigger_chains = [SubResource("Resource_8dqmd")]
 metadata/_custom_type_script = "uid://bo18gilf28ttd"

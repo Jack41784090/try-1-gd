@@ -7,9 +7,8 @@ static var _registry
 @export var activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.CUSTOM
 @export var time_cost: int = 1
 @export var destination_id: String = ""
-@export var min_stability_to_block_attack: float = 80.0
-@export var force_march_supply_multiplier: float = 2.0
-@export var force_march_clue_multiplier: int = 2
+@export var attack_config: AttackConfig
+@export var force_march_config: ForceMarchConfig
 
 @export var custom_script: Script = null
 var ultimate_destination_id: String = ""
@@ -22,14 +21,11 @@ static func _get_registry():
 
 
 func _to_string() -> String:
-	return "Activity(Name: %s, Type: %s, Time Cost: %d, Destination: %s, Min Stability to Block Attack: %.1f, Force March Supply Multiplier: %.1f, Force March Clue Multiplier: %d, Custom Script: %s, Result: %s, %s)" % [
+	return "Activity(Name: %s, Type: %s, Time Cost: %d, Destination: %s, Custom Script: %s, Result: %s, %s)" % [
 		trigger_name,
 		StrategyTypes.ActivityType.keys()[activity_type],
 		time_cost,
 		destination_id,
-		min_stability_to_block_attack,
-		force_march_supply_multiplier,
-		force_march_clue_multiplier,
 		"custom_script" if custom_script else "None",
 		result,
 		super(),
