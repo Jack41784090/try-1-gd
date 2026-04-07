@@ -93,6 +93,14 @@ public sealed class CsPerson
                         _ => 0f,
                     };
                     break;
+                case ThingType.Weapons:
+                    baseWant = SocialClass switch
+                    {
+                        SocialClass.Noble => 0.4f,
+                        SocialClass.Bourgeois => 0.1f,
+                        _ => 0f,
+                    };
+                    break;
             }
 
             // Apply price elasticity if prices are available

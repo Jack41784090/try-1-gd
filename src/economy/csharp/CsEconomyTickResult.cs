@@ -36,6 +36,9 @@ public sealed class CsLocationSnapshot
     public float GovernmentTaxCollected { get; set; }
     public int GovernmentDirectivesCount { get; set; }
     public int GovernmentWorkersHired { get; set; }
+    public float GuildTreasury { get; set; }
+    public float GuildProduced { get; set; }
+    public int GuildWorkerCount { get; set; }
 }
 
 public sealed class CsEconomyTickResult

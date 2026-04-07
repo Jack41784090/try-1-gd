@@ -38,6 +38,7 @@ enum ThingType {
 	CLOTH,
 	TOOLS,
 	LUXURY,
+	WEAPONS,
 }
 
 enum DirectiveType {

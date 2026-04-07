@@ -194,6 +194,30 @@ public partial class CsEconomyBridge : Node
                 }
                 csLoc.Government = csGov;
             }
+
+            // Mirror guild config
+            var guildConfig = gdLoc.Get("guild_config");
+            if (guildConfig.VariantType != Variant.Type.Nil)
+            {
+                var gdGuild = (Resource)guildConfig;
+                var specThing = (Resource)gdGuild.Get("specialization");
+                string specThingId = (string)specThing.Get("thing_id");
+                if (_thingIdToIdx.TryGetValue(specThingId, out int specIdx))
+                {
+                    var csGuild = new CsGuild
+                    {
+                        LocationIndex = li,
+                        LocationId = csLoc.LocationId,
+                        GuildName = (string)gdGuild.Get("guild_name"),
+                        SpecializationIdx = specIdx,
+                        MaxWorkers = (int)gdGuild.Get("max_workers"),
+                        WagePerWorker = (float)gdGuild.Get("wage_per_worker"),
+                        Treasury = (double)(float)gdGuild.Get("starting_treasury"),
+                        RecruitmentRate = (int)gdGuild.Get("recruitment_rate"),
+                    };
+                    csLoc.Guild = csGuild;
+                }
+            }
         }
 
         // Create engine
@@ -511,6 +535,30 @@ public partial class CsEconomyBridge : Node
         return result;
     }
 
+    public Godot.Collections.Dictionary GetGuildInfo()
+    {
+        var result = new Godot.Collections.Dictionary();
+        if (_engine == null) return result;
+        for (int li = 0; li < _engine.Locations.Length; li++)
+        {
+            var loc = _engine.Locations[li];
+            if (loc.Guild == null) continue;
+            var guild = loc.Guild;
+            result[loc.LocationId] = new Godot.Collections.Dictionary
+            {
+                ["guild_name"] = guild.GuildName,
+                ["treasury"] = guild.Treasury,
+                ["worker_count"] = guild.WorkerCount,
+                ["max_workers"] = guild.MaxWorkers,
+                ["produced_last_tick"] = guild.ProducedLastTick,
+                ["recruited_last_tick"] = guild.RecruitedLastTick,
+                ["wages_paid_last_tick"] = guild.WagesPaidLastTick,
+                ["specialization_idx"] = guild.SpecializationIdx,
+            };
+        }
+        return result;
+    }
+
     private CsPerson MirrorPerson(GodotObject gdPerson)
     {
         int goodsCount = _goods.Length;
@@ -566,6 +614,9 @@ public partial class CsEconomyBridge : Node
                 ["government_tax_collected"] = snap.GovernmentTaxCollected,
                 ["government_directives_count"] = snap.GovernmentDirectivesCount,
                 ["government_workers_hired"] = snap.GovernmentWorkersHired,
+                ["guild_treasury"] = snap.GuildTreasury,
+                ["guild_produced"] = snap.GuildProduced,
+                ["guild_worker_count"] = snap.GuildWorkerCount,
             };
             var stocksDict = new Godot.Collections.Dictionary();
             var pricesDict = new Godot.Collections.Dictionary();

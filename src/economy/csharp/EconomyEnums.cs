@@ -42,6 +42,7 @@ public enum ThingType
     Cloth,
     Tools,
     Luxury,
+    Weapons,
 }
 
 public enum ContractType

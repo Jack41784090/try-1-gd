@@ -40,6 +40,11 @@ func get_government_info() -> Array:
 		return []
 	return _cs_bridge.call("GetGovernmentInfo") as Array
 
+func get_guild_info() -> Dictionary:
+	if _cs_bridge == null:
+		return {}
+	return _cs_bridge.call("GetGuildInfo") as Dictionary
+
 func enable_csharp() -> void:
 	if _cs_bridge != null:
 		return
@@ -168,6 +173,9 @@ func _tick_csharp(turn: int) -> EconomyTickResult:
 		snap.government_tax_collected = snap_dict.get("government_tax_collected", 0.0)
 		snap.government_directives_count = snap_dict.get("government_directives_count", 0)
 		snap.government_workers_hired = snap_dict.get("government_workers_hired", 0)
+		snap.guild_treasury = snap_dict.get("guild_treasury", 0.0)
+		snap.guild_produced = snap_dict.get("guild_produced", 0.0)
+		snap.guild_worker_count = snap_dict.get("guild_worker_count", 0)
 		var stocks_raw: Dictionary = snap_dict.get("stocks", {})
 		for thing_id: String in stocks_raw:
 			var thing := _find_thing_by_id(thing_id)

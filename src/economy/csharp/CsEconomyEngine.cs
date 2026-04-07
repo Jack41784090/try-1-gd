@@ -20,6 +20,7 @@ public sealed class CsLocationData
 
     public List<CsNaturalResource> NaturalResources { get; } = new();
     public CsGovernment Government { get; set; }
+    public CsGuild Guild { get; set; }
 
     // Per-good cost basis tracking (FIFO average)
     public float[] CostBasis { get; set; }
@@ -138,6 +139,8 @@ public sealed class CsEconomyEngine
         PhaseGovernmentTax();
         PhaseGovernmentPlan();
         PhaseGovernmentExecute();
+        PhaseGuildRecruit();
+        PhaseGuildProduce();
         PhaseLoanRepayment();
         PhaseGovernmentSpending();
         PhaseSatisfaction();
@@ -170,6 +173,12 @@ public sealed class CsEconomyEngine
                 snap.GovernmentTaxCollected = (float)loc.Government.TaxCollectedLastTick;
                 snap.GovernmentDirectivesCount = loc.Government.ActiveDirectives.Count;
                 snap.GovernmentWorkersHired = loc.Government.WorkersHiredLastTick;
+            }
+            if (loc.Guild != null)
+            {
+                snap.GuildTreasury = (float)loc.Guild.Treasury;
+                snap.GuildProduced = loc.Guild.ProducedLastTick;
+                snap.GuildWorkerCount = loc.Guild.WorkerCount;
             }
             Array.Copy(loc.Stocks, snap.Stocks, _goodsCount);
             Array.Copy(loc.Prices, snap.Prices, _goodsCount);
@@ -344,7 +353,8 @@ public sealed class CsEconomyEngine
                 float unmet = totalDemand - localSupply;
                 if (unmet <= 0f) continue;
 
-                float priority = Goods[gi].ThingType == ThingType.Food ? 10f : 1f;
+                float priority = Goods[gi].ThingType == ThingType.Food ? 10f :
+                                   Goods[gi].ThingType == ThingType.Weapons ? 3f : 1f;
                 demands.Add(new CsDemandExport
                 {
                     ThingIdx = gi,
@@ -862,6 +872,30 @@ public sealed class CsEconomyEngine
         float perWorker = spend / allWorkers.Count;
         for (int i = 0; i < allWorkers.Count; i++)
             allWorkers[i].Money += perWorker;
+    }
+
+    private void PhaseGuildRecruit()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var guild = loc.Guild;
+            if (guild == null) continue;
+            GuildBrain.Evaluate(guild, loc);
+        }
+    }
+
+    private void PhaseGuildProduce()
+    {
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var guild = loc.Guild;
+            if (guild == null) continue;
+            guild.Produce(loc, Goods);
+            guild.PayWages(loc);
+            guild.CollectRevenue(loc, Goods);
+        }
     }
 
     private void PhaseSatisfaction()

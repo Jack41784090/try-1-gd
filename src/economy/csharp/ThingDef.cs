@@ -37,6 +37,7 @@ public sealed class ThingDef
         ThingType.Cloth => 0.4f,
         ThingType.Tools => 0.3f,
         ThingType.Luxury => 0.8f,
+        ThingType.Weapons => 0.5f,
         _ => 0.3f,
     };
 

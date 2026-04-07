@@ -205,6 +205,8 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 	var food: Thing = thing_map.get("food")
 	var wool: Thing = thing_map.get("wool")
 	var iron_ore: Thing = thing_map.get("iron_ore")
+	var iron: Thing = thing_map.get("iron")
+	var wood: Thing = thing_map.get("wood")
 	var cloth: Thing = thing_map.get("cloth")
 	var tools: Thing = thing_map.get("tools")
 	var pop_count: int = loc.population.size() if loc.population else 50
@@ -218,6 +220,10 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 				resources.append(NaturalResource.create_craft(cloth, 12.0 * ps))
 			if tools:
 				resources.append(NaturalResource.create_craft(tools, 8.0 * ps))
+			if iron:
+				resources.append(NaturalResource.create(iron, 15.0 * ps))
+			if wood:
+				resources.append(NaturalResource.create(wood, 20.0 * ps))
 
 		StrategyTypes.LocationType.TOWN:
 			if food:
@@ -228,6 +234,10 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 				resources.append(NaturalResource.create(iron_ore, 10.0 * ps))
 			if cloth:
 				resources.append(NaturalResource.create_craft(cloth, 5.0 * ps))
+			if iron:
+				resources.append(NaturalResource.create(iron, 8.0 * ps))
+			if wood:
+				resources.append(NaturalResource.create(wood, 25.0 * ps))
 
 		StrategyTypes.LocationType.VILLAGE:
 			if food:
@@ -236,6 +246,8 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 				resources.append(NaturalResource.create(wool, 15.0 * ps))
 			if iron_ore:
 				resources.append(NaturalResource.create(iron_ore, 8.0 * ps))
+			if wood:
+				resources.append(NaturalResource.create(wood, 15.0 * ps))
 
 		StrategyTypes.LocationType.FORT:
 			pass

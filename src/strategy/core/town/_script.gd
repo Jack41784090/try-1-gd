@@ -14,6 +14,7 @@ class_name Location
 @export var inventory: LocationInventory
 @export var population_config: PopulationConfig
 @export var government_config: GovernmentConfig
+@export var guild_config: GuildConfig
 
 var population: Population
 

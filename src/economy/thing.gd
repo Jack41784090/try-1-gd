@@ -32,6 +32,8 @@ func get_elasticity() -> float:
 			return 0.3
 		EconomyTypes.ThingType.LUXURY:
 			return 0.8
+		EconomyTypes.ThingType.WEAPONS:
+			return 0.5
 	return 0.3
 
 func get_label() -> String:
