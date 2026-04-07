@@ -27,6 +27,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
   - `contact_system_test.tscn` — contact system unit tests (40 assertions: state transitions, proximity, decay, focus, engagements). Usage: `godot --headless --path . scenes/demos/contact_system_test.tscn`
   - `government_test.tscn` — government directive system unit tests (40 assertions: tax, plan, execute, hire workers, budget constraints, snapshots). Usage: `godot-mono --headless --path . scenes/demos/government_test.tscn`
+  - `guild_test.tscn` — guild system unit tests (10 tests: recruitment, production, wages, revenue, snapshots, real pipeline integration). Usage: `godot-mono --headless --path . scenes/demos/guild_test.tscn`
   - `interactive_demo.tscn` — terminal game with stdin commands. Usage: `godot-mono --headless --path . scenes/demos/interactive_demo.tscn`
   - `canvas_demo.tscn` — SVG drawing canvas with rig preview. Usage: `bash tools/start_canvas.sh`, then `bash tools/play.sh "info"`
 - **Autoload singletons** (`project.godot`): `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`
@@ -144,7 +145,8 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - **Population sync**: `SyncBackToGdScript()` uses PersonId-based matching to handle births/deaths correctly. `Population.remove_person()` for death sync
   - **Bank metrics**: `engine.get_bank_info()` reads C# CsCentralBank state (printed/reserves/loans/debt). GDScript CentralBank is config-only
   - **Government Directives** (`CsGovernment`, `CsDirective`, `GovernmentBrain`): Per-location government with treasury, tax collection, and AI-driven directives. 3 phases in tick: GovernmentTax (collect from people with >10 money), GovernmentPlan (`GovernmentBrain.Evaluate()` analyzes worker gaps in natural resources, creates HireWorkers directives within budget), GovernmentExecute (process directives: hire from unemployed/laborers, pay wages). `GovernmentConfig` Resource on Location configures push/pull weights, tax rate, starting treasury, priority goods. Auto-generated in `_setup_economy()` for locations without one
-  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. 23-phase tick lifecycle (includes PhaseResetTurnFlags after starvation). Build: `dotnet build`. Run with `godot-mono`
+  - **Guild System** (`CsGuild`, `GuildBrain`, `GuildConfig`): Per-location crafting guilds that recruit workers, produce high-value goods, and feed into the trade pipeline. 2 phases in tick (after GovernmentExecute): PhaseGuildRecruit (hire unemployed/laborers as craftsmen via GuildBrain), PhaseGuildProduce (consume inputs, output goods, pay wages, collect 10% revenue commission). `GuildConfig` Resource on Location configures guild_name, specialization (Thing), max_workers, wage_per_worker, starting_treasury, recruitment_rate. First guild: Nürnberg Smithing Guild (swords from 2 iron + 1 wood). Guild-produced goods flow into LocationInventory → TradeMatcher → merchant caravans automatically
+  - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. 25-phase tick lifecycle (includes PhaseResetTurnFlags after starvation, PhaseGuildRecruit/Produce after government). Build: `dotnet build`. Run with `godot-mono`
   - **Person sync via `sync_full()`**: `EconomyOrchestrator.tick_and_spawn_caravans()` calls `engine.sync_full()` after each tick to propagate person money/satisfaction/class from C# back to GDScript. Without this, GDScript-side readings remain stale
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn
 
@@ -157,7 +159,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole (COMBAT, MERCHANT)
 - Strategic AI: `src/strategy/ai/types.gd` — GlanceSubject (SQUAD, LOCATION, WORLD, FACTION, TRADE), SquadGlanceable, TradeGlanceable, DestinationStrategy, TargetStrategy
-- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType
+- Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType (FOOD, CLOTH, LUXURY, TOOLS, WEAPONS), DirectiveType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ### Unit Classes
@@ -248,7 +250,7 @@ func _ready():
 - `assets/rig_textures/` — SVG bone textures per class (landsknecht, healer, crossbowman, arquebusier, pikeman, feldprediger, gelehrter)
 - `src/character/` — Warrior (social.gd), CombatEntity (combat.gd), classes enum
 - `src/squad/` — SquadData, CombatSquad, CargoManifest
-- `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge, government_config; `csharp/` for C# engine (CsDirective, CsGovernment, GovernmentBrain)
+- `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge, government_config, guild_config; `csharp/` for C# engine (CsDirective, CsGovernment, GovernmentBrain, CsGuild, GuildBrain)
 - `src/singletons/` — event buses, SFX, Log
 - `resources/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
 - `resources/ai/strategic/` — AI behavior .tres files
