@@ -30,6 +30,7 @@ enum LocationGlanceable {
 	HAS_ACTIVITY,
 	TYPE,
 	HAS_SHOP,
+	MERCHANT_COUNT,
 }
 
 enum WorldGlanceable {
@@ -50,6 +51,7 @@ enum DestinationStrategy {
 	CLUE_DESTINATION,
 	DIRECTIVE_LOCATION,
 	AWAY_FROM_ENEMY,
+	NEAREST_MERCHANT,
 }
 
 enum TargetStrategy {

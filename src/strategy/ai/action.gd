@@ -87,6 +87,9 @@ func _resolve_destination(situation: StrategicSituation) -> String:
 				return situation.directive.target_location_id
 		StrategicAITypes.DestinationStrategy.AWAY_FROM_ENEMY:
 			return _resolve_away_from_enemy(situation)
+		StrategicAITypes.DestinationStrategy.NEAREST_MERCHANT:
+			if situation.nearest_merchant_location != null:
+				return situation.nearest_merchant_location.location_id
 	return ""
 
 

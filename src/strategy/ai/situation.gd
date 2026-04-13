@@ -96,6 +96,27 @@ var weakest_tracked_enemy_warriors: int:
 			_weakest_tracked_enemy_warriors_computed = true
 		return _weakest_tracked_enemy_warriors
 
+var merchants_here: Array[SquadData]:
+	get:
+		if not _merchants_here_computed:
+			_merchants_here = _find_merchants_here()
+			_merchants_here_computed = true
+		return _merchants_here
+
+var merchants_adjacent: Array[SquadData]:
+	get:
+		if not _merchants_adjacent_computed:
+			_merchants_adjacent = _find_merchants_adjacent()
+			_merchants_adjacent_computed = true
+		return _merchants_adjacent
+
+var nearest_merchant_location: Location:
+	get:
+		if not _nearest_merchant_location_computed:
+			_nearest_merchant_location = _find_nearest_merchant_location()
+			_nearest_merchant_location_computed = true
+		return _nearest_merchant_location
+
 var _enemies_here: Array[SquadData] = []
 var _enemies_here_computed: bool = false
 var _adjacent_enemies: Array[SquadData] = []
@@ -120,6 +141,12 @@ var _ambush_target_id: String = ""
 var _ambush_target_computed: bool = false
 var _weakest_tracked_enemy_warriors: int = 0
 var _weakest_tracked_enemy_warriors_computed: bool = false
+var _merchants_here: Array[SquadData] = []
+var _merchants_here_computed: bool = false
+var _merchants_adjacent: Array[SquadData] = []
+var _merchants_adjacent_computed: bool = false
+var _nearest_merchant_location: Location = null
+var _nearest_merchant_location_computed: bool = false
 
 
 func _init(p_squad: SquadData, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
@@ -296,4 +323,52 @@ func _find_squad_by_id(target_id: String) -> SquadData:
 	for s in world.roaming_squads:
 		if s.squad_id == target_id:
 			return s
+	return null
+
+
+func _find_merchants_here() -> Array[SquadData]:
+	var result: Array[SquadData] = []
+	var squads_at_loc = world.get_squads_at_location(location.location_id)
+	for s in squads_at_loc:
+		if s.squad_id == squad.squad_id:
+			continue
+		if s.squad_role == StrategyTypes.SquadRole.MERCHANT:
+			result.append(s)
+	return result
+
+
+func _find_merchants_adjacent() -> Array[SquadData]:
+	var result: Array[SquadData] = []
+	var adjacent = world.get_adjacent_squads(location.location_id)
+	for s in adjacent:
+		if s.squad_id == squad.squad_id:
+			continue
+		if s.squad_role == StrategyTypes.SquadRole.MERCHANT:
+			result.append(s)
+	return result
+
+
+func _find_nearest_merchant_location() -> Location:
+	if not merchants_here.is_empty():
+		return location
+	if not merchants_adjacent.is_empty():
+		var first_merchant := merchants_adjacent[0]
+		return world.get_location_by_id(first_merchant.current_location_id)
+	var visited: Dictionary = {}
+	var queue: Array = [location.location_id]
+	visited[location.location_id] = true
+	while queue.size() > 0:
+		var current_id = queue.pop_front()
+		if current_id != location.location_id:
+			var squads_at := world.get_squads_at_location(current_id)
+			for s in squads_at:
+				if s.squad_role == StrategyTypes.SquadRole.MERCHANT:
+					return world.get_location_by_id(current_id)
+		var current_loc = world.get_location_by_id(current_id)
+		if current_loc and current_loc.connections:
+			for connection in current_loc.connections.tt:
+				var neighbor_id = connection.to_location_id
+				if not visited.has(neighbor_id):
+					visited[neighbor_id] = true
+					queue.append(neighbor_id)
 	return null

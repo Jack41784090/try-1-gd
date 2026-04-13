@@ -92,9 +92,23 @@ func _setup(config: Dictionary) -> void:
 		starting_location_id = config.get("starting_location_id", "")
 	starting_player_squad.set_location(starting_location_id)
 
+	_setup_bandit_faction()
 	_setup_economy()
 
 	# triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
+
+
+func _setup_bandit_faction() -> void:
+	for faction in factions:
+		if faction.faction_id == "bandits":
+			return
+	var bandit_faction := Faction.new()
+	bandit_faction.faction_id = "bandits"
+	bandit_faction.faction_name = "Bandits"
+	bandit_faction.description = "Desperate outlaws driven to banditry by poverty and starvation."
+	bandit_faction.reputation = -50.0
+	factions.append(bandit_faction)
+	Log.info("Scenario", "Bandit faction created")
 
 
 func _setup_economy() -> void:

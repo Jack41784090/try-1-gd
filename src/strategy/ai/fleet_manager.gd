@@ -321,3 +321,23 @@ func unregister_caravan(squad_id: String) -> void:
 	decisions_this_turn.erase(squad_id)
 	scenario.world.contact_tracker.clear_contacts_for(squad_id)
 	Log.debug("Fleet", "Unregistered caravan: %s" % squad_id)
+
+
+func register_bandit(squad: SquadData, profile_path: String) -> void:
+	assert(squad.squad_role == StrategyTypes.SquadRole.BANDIT, "register_bandit requires a bandit squad")
+	_ensure_unique_warriors(squad)
+	var profile = AIProfileFactory.get_squad_profile(profile_path)
+	var brain = SquadBrain.new(squad, profile)
+	squad_brains[squad.squad_id] = brain
+	var executor = ActivityExecuteManager.new(true)
+	executor.setup(scenario, {"squad": squad})
+	squad_executors[squad.squad_id] = executor
+	Log.debug("Fleet", "Registered bandit brain: %s" % squad.squad_name)
+
+
+func unregister_squad(squad_id: String) -> void:
+	squad_brains.erase(squad_id)
+	squad_executors.erase(squad_id)
+	decisions_this_turn.erase(squad_id)
+	scenario.world.contact_tracker.clear_contacts_for(squad_id)
+	Log.debug("Fleet", "Unregistered squad: %s" % squad_id)

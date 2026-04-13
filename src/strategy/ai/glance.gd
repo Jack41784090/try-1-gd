@@ -135,6 +135,8 @@ func _get_location_value(situation: StrategicSituation) -> float:
 			return 1.0 if situation.location.type == location_type_filter else 0.0
 		StrategicAITypes.LocationGlanceable.HAS_SHOP:
 			return 1.0 if situation.location.has_shop() else 0.0
+		StrategicAITypes.LocationGlanceable.MERCHANT_COUNT:
+			return float(situation.merchants_here.size() + situation.merchants_adjacent.size())
 		_:
 			assert(false, "Unknown LocationGlanceable: %s" % location_property)
 			return 0.0

@@ -58,4 +58,7 @@ func _squad_threat(squad: SquadData) -> float:
 	if squad.squad_role == StrategyTypes.SquadRole.MERCHANT:
 		return 0.0
 	var warrior_count := squad.get_living_warriors().size()
-	return float(warrior_count) / MAX_SQUAD_SIZE
+	var base_threat := float(warrior_count) / MAX_SQUAD_SIZE
+	if squad.squad_role == StrategyTypes.SquadRole.BANDIT:
+		base_threat *= 1.5
+	return base_threat

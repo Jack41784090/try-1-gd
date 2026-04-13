@@ -3,6 +3,8 @@ extends RefCounted
 
 var _active_shipments: Dictionary = {}
 var _trade_matcher: TradeMatcher
+var _bandit_spawner: BanditSpawner
+var _mercenary_demand: MercenaryDemandCalculator
 
 var active_shipment_count: int:
 	get: return _active_shipments.size()
@@ -10,6 +12,8 @@ var active_shipment_count: int:
 
 func _init() -> void:
 	_trade_matcher = TradeMatcher.new()
+	_bandit_spawner = BanditSpawner.new()
+	_mercenary_demand = MercenaryDemandCalculator.new()
 
 
 func tick_and_spawn_caravans(game_scenario: GameScenario, ai_fleet: AIFleetManager) -> Array[String]:
@@ -43,6 +47,10 @@ func tick_and_spawn_caravans(game_scenario: GameScenario, ai_fleet: AIFleetManag
 	_reassign_idle_caravans(Bridge, idle_caravans, pending_dispatches, event_log)
 	_spawn_new_caravans(Bridge, pending_dispatches, game_scenario, ai_fleet, event_log)
 	_despawn_excess_caravans(idle_caravans, game_scenario, ai_fleet, event_log)
+
+	_tick_bandits(game_scenario, ai_fleet, event_log)
+	_tick_mercenary_demand(game_scenario.world)
+
 	return event_log
 
 
@@ -96,6 +104,34 @@ func _despawn_excess_caravans(idle_caravans: Array[SquadData], game_scenario: Ga
 		Log.info("Economy", "Retiring idle caravan: %s" % squad.squad_name)
 		game_scenario.world.remove_roaming_squad(squad.squad_id)
 		ai_fleet.unregister_caravan(squad.squad_id)
+
+
+func _tick_bandits(game_scenario: GameScenario, ai_fleet: AIFleetManager, event_log: Array[String]) -> void:
+	var bandit_faction := _get_bandit_faction(game_scenario)
+	if bandit_faction == null:
+		return
+	var cleanup_log := _bandit_spawner.tick_cleanup(game_scenario.world, bandit_faction, ai_fleet)
+	event_log.append_array(cleanup_log)
+	var spawn_log := _bandit_spawner.tick_spawning(game_scenario.world, bandit_faction, ai_fleet)
+	event_log.append_array(spawn_log)
+
+
+func _tick_mercenary_demand(world: World) -> void:
+	for loc in world.locations:
+		if loc.type == StrategyTypes.LocationType.FORT:
+			continue
+		var demand := _mercenary_demand.calculate_demand(loc, world)
+		if demand > MercenaryDemandCalculator.DEMAND_THRESHOLD:
+			loc.add_activity_type(StrategyTypes.ActivityType.MERCENARY_WORK)
+		elif _bandit_spawner.count_bandits_at_location(loc.location_id, world) == 0:
+			loc.available_activity_types.erase(StrategyTypes.ActivityType.MERCENARY_WORK)
+
+
+func _get_bandit_faction(game_scenario: GameScenario) -> Faction:
+	for faction in game_scenario.factions:
+		if faction.faction_id == "bandits":
+			return faction
+	return null
 
 
 func handle_caravan_defeated(caravan: SquadData, attacker: SquadData) -> Dictionary:

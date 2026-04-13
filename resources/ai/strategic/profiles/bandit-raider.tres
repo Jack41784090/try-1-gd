@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/attack-weak-enemy.tres" id="3_attack"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/hunt-merchants.tres" id="4_hunt_merchants"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="5_patrol"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/forage-when-hungry.tres" id="6_forage"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/rest-when-exhausted.tres" id="7_rest"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/patrol.tres" id="8_fallback"]
+
+[resource]
+script = ExtResource("1_script")
+profile_name = "bandit-raider"
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_attack"), ExtResource("4_hunt_merchants"), ExtResource("5_patrol"), ExtResource("6_forage"), ExtResource("7_rest")])
+fallback_action = ExtResource("8_fallback")

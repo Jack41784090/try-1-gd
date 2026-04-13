@@ -4,7 +4,37 @@ extends ActivityHandler
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var squad = context.get("squad") as SquadData
+	var world = context.get("world") as World
 
+	if squad.get_living_warriors().is_empty():
+		return result
+
+	if world == null:
+		return _execute_legacy(squad, result)
+
+	var demand_calc := MercenaryDemandCalculator.new()
+	var location := world.get_location_by_id(squad.current_location_id)
+	if location == null:
+		return _execute_legacy(squad, result)
+
+	var bandit := demand_calc.find_nearest_bandit(location, world)
+	if bandit == null:
+		Log.info("MercenaryWorkHandler", "MERCENARY_WORK: no bandits found — uneventful patrol")
+		return result
+
+	result.requires_combat = true
+	result.combat_target_squad_id = bandit.squad_id
+
+	var bounty := demand_calc.get_bounty(bandit)
+	squad.gain_money(bounty)
+
+	Log.info("MercenaryWorkHandler", "MERCENARY_WORK: targeting bandit %s — bounty %.0f gold" % [
+		bandit.squad_name, bounty])
+
+	return result
+
+
+func _execute_legacy(squad: SquadData, result: ActivityResult) -> ActivityResult:
 	var monster_count = randi_range(2, 4)
 	var base_pay_per_kill := 15.0
 	var squad_warriors = squad.get_living_warriors()

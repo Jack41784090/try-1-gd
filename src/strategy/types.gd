@@ -118,6 +118,7 @@ enum SquadProperty {
 enum SquadRole {
 	COMBAT,
 	MERCHANT,
+	BANDIT,
 }
 
 enum ContactState {
