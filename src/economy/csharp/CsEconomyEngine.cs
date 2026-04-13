@@ -188,6 +188,7 @@ public sealed class CsEconomyEngine
         return result;
     }
 
+    /// <summary>Each person computes wants for all goods based on prices.</summary>
     private void PhaseDemand()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -199,6 +200,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Natural resources produce goods using workers; input-chain crafting consumes ingredients.</summary>
     private void PhaseSupplyGeneration()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -272,6 +274,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>5% of food stocks decay each turn to prevent infinite accumulation.</summary>
     private void PhaseSpoilage()
     {
         const float spoilageRate = 0.05f;
@@ -289,6 +292,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Farmers take 1 food from local stock into personal inventory (pre-market self-feeding).</summary>
     private void PhaseSubsistence()
     {
         int foodIdx = -1;
@@ -314,6 +318,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>In-transit trade shipments advance one step; arrivals deposit goods at destination.</summary>
     private void PhaseTradeAdvance(CsEconomyTickResult result)
     {
         var stillActive = new List<CsEconomyMove>();
@@ -448,6 +453,7 @@ public sealed class CsEconomyEngine
     internal Dictionary<string, int> _locationIdToIdx;
     internal Dictionary<string, int> _thingIdToIdx;
 
+    /// <summary>Prices adjust toward demand/supply ratio, clamped to 0.5x-3x base price.</summary>
     private void PhasePriceUpdate()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -463,6 +469,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>People buy goods from local market (wealthiest first); revenue splits to producers/merchants.</summary>
     private void PhaseMarket()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -533,6 +540,7 @@ public sealed class CsEconomyEngine
         // If no merchants or producers, revenue is lost (shouldn't happen in practice)
     }
 
+    /// <summary>People consume food (1 unit) and comfort goods from personal inventory.</summary>
     private void PhaseConsumption()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -561,6 +569,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Bank issues loans to nobles below wealth threshold.</summary>
     private void PhaseBankLending()
     {
         if (Bank == null) return;
@@ -575,6 +584,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Nobles commission contracts; workers/merchants are assigned; active contracts progress.</summary>
     private void PhaseContracts()
     {
         var newCompleted = new List<CsContract>();
@@ -661,6 +671,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Contract patrons pay wages to assigned workers and merchant fees.</summary>
     private void PhaseWages()
     {
         bool anyPaid = false;
@@ -697,6 +708,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Nobles pay household servants a flat wage.</summary>
     private void PhaseHouseholdWages()
     {
         const float servantWage = 0.5f;
@@ -727,6 +739,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Peasants/bourgeois pay 8%/4% rent to nobles (wealth redistribution upward).</summary>
     private void PhaseRent()
     {
         const float rentRate = 0.08f;
@@ -766,11 +779,13 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Bank collects interest and principal repayments on outstanding loans.</summary>
     private void PhaseLoanRepayment()
     {
         Bank?.CollectInterestAndRepayments();
     }
 
+    /// <summary>Government collects income tax from people with >10 money.</summary>
     private void PhaseGovernmentTax()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -798,6 +813,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Government AI evaluates worker gaps and creates HireWorkers directives within budget.</summary>
     private void PhaseGovernmentPlan()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -810,6 +826,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Government executes directives: hires unemployed/laborers, pays wages from treasury.</summary>
     private void PhaseGovernmentExecute()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -859,6 +876,7 @@ public sealed class CsEconomyEngine
         gov.WorkersHiredLastTick += hiredThisTick;
     }
 
+    /// <summary>Central bank spends 10% of reserves as stimulus distributed to all peasants.</summary>
     private void PhaseGovernmentSpending()
     {
         if (Bank == null) return;
@@ -917,6 +935,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Unfed people with low satisfaction accumulate starvation; 3+ consecutive turns = death.</summary>
     private void PhaseStarvation(CsEconomyTickResult result)
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -954,6 +973,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Clear per-turn flags (FedThisTurn, ComfortThisTurn) for next tick.</summary>
     private void PhaseResetTurnFlags()
     {
         for (int li = 0; li < Locations.Length; li++)
@@ -967,9 +987,9 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>2% birth chance per satisfied person if food surplus exists at location.</summary>
     private void PhaseBirth(CsEconomyTickResult result)
     {
-        // Growth: ~2% chance per person per turn if satisfaction > 70 and food surplus
         int foodIdx = -1;
         for (int i = 0; i < _goodsCount; i++)
         {
@@ -1012,6 +1032,7 @@ public sealed class CsEconomyEngine
         }
     }
 
+    /// <summary>Wealthy satisfied peasants have 10% chance to promote to bourgeois/merchant.</summary>
     private void PhaseSocialMobility()
     {
         for (int li = 0; li < Locations.Length; li++)
