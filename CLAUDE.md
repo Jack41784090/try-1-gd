@@ -212,6 +212,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 ### Terminal / File Operations
 - **Never use `cat` heredoc** for GDScript files (strips tabs). Use Python `with open()` or `replace_string_in_file`
 - Commit after each code update. Only add+commit your own changes
+- **Sprint logging**: After committing, append commit summary to the current week's sprint file at `~/Documents/schwarzwagen/CONDOR/Sprints/2026/Q2/April/W<N>.md` (or the appropriate quarter/month). Use ISO week numbers (W14=Mar 30, W15=Apr 7, W16=Apr 14, W17=Apr 21). Add commit messages under a `## Commits` section. If the sprint file has only YAML frontmatter, add a summary section and commits block
 
 ### Critical Pitfalls
 - **Typed array assignment**: Never assign from `Dictionary.get()` to typed arrays. Iterate and append with type checks
