@@ -39,6 +39,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - `economy_demo.tscn` — 3-location supply chain, 20-turn simulation. Usage: `godot --headless --path . scenes/demos/economy_demo.tscn`
   - `economy_stress_test.tscn` — 50-turn economy stress test using real game pipeline (HeadlessStrategyView + StrategyPresenter + goetz-official scenario). Gini, starvation, class mobility, bank metrics. Usage: `godot-mono --headless --path . scenes/demos/economy_stress_test.tscn`
   - `caravan_demo.tscn` — economy→strategy caravan bridge. Usage: `godot --headless --path . scenes/demos/caravan_demo.tscn`
+  - `bandit_demo.tscn` — bandit spawning system tests (faction setup, pressure calculation, forced spawn, route danger, mercenary demand, lifecycle/disband). Usage: `godot-mono --headless --path . scenes/demos/bandit_demo.tscn`
   - `contact_system_test.tscn` — contact system unit tests (40 assertions: state transitions, proximity, decay, focus, engagements). Usage: `godot --headless --path . scenes/demos/contact_system_test.tscn`
   - `government_test.tscn` — government directive system unit tests (40 assertions: tax, plan, execute, hire workers, budget constraints, snapshots). Usage: `godot-mono --headless --path . scenes/demos/government_test.tscn`
   - `guild_test.tscn` — guild system unit tests (10 tests: recruitment, production, wages, revenue, snapshots, real pipeline integration). Usage: `godot-mono --headless --path . scenes/demos/guild_test.tscn`
@@ -164,6 +165,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
   - C# engine (`src/economy/csharp/`): `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`. 25-phase tick lifecycle (includes PhaseResetTurnFlags after starvation, PhaseGuildRecruit/Produce after government). Build: `dotnet build`. Run with `godot-mono`
   - **Person sync via `sync_full()`**: `EconomyOrchestrator.tick_and_spawn_caravans()` calls `engine.sync_full()` after each tick to propagate person money/satisfaction/class from C# back to GDScript. Without this, GDScript-side readings remain stale
 - **Caravan Bridge** (`src/economy/caravan_bridge.gd`): `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn
+  - **Bandit System** (`src/strategy/ai/bandit_spawner.gd`, `src/economy/mercenary_demand.gd`): Desperation-driven bandit spawning. `BanditSpawner.calculate_pressure(location)` reads population satisfaction + peasant ratio → spawns BANDIT squads near distressed locations. Bandit AI brain (`bandit-raider.tres`) hunts merchants, attacks weak enemies, patrols. `RouteDangerCalculator` applies 1.5× threat for BANDIT role. `MercenaryDemandCalculator` computes trade loss vs hire cost, dynamically adds/removes MERCENARY_WORK at locations. `MercenaryWorkHandler` targets real bandits with bounty rewards. Lifecycle: pressure→spawn→roam→attack merchants→disband (low morale/all injured). `EconomyOrchestrator._tick_bandits()` runs spawn+cleanup each economy tick. Bandit faction auto-created in `GameScenario._setup()`
 
 ### Key Enums
 
@@ -172,7 +174,7 @@ CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDS
 - Armor: `src/squad-battle/armor/_factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
 - Logic: `src/squad-battle/entity/logic/_factory.gd` — Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster
 - Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
-- Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole (COMBAT, MERCHANT)
+- Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole (COMBAT, MERCHANT, BANDIT)
 - Strategic AI: `src/strategy/ai/types.gd` — GlanceSubject (SQUAD, LOCATION, WORLD, FACTION, TRADE), SquadGlanceable, TradeGlanceable, DestinationStrategy, TargetStrategy
 - Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType (FOOD, CLOTH, LUXURY, TOOLS, WEAPONS), DirectiveType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
