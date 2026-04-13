@@ -8,6 +8,15 @@ Run main scene: F5 (`scenario.tscn`). Demo scenes in `scenes/demos/` — run wit
 
 For detailed architecture of each subsystem, see file-specific instructions (auto-loaded when editing relevant files). For testing, interactive play, and animation workflows, use the `/condor-testing`, `/condor-play`, and `/condor-animation` skills.
 
+## Customization Workflow
+
+- Do not default to directly editing existing instruction files for every change.
+- Choose customization type dynamically based on scope:
+	- Add or update a skill (`.github/skills/<name>/SKILL.md`) for reusable multi-step workflows.
+	- Create new directories under `.github/skills/` or `.github/instructions/` when introducing a new domain or workflow.
+	- Edit an existing instruction file directly only when the rule belongs to that file's current scope.
+- Prefer modular additions over growing a single monolithic instruction file.
+
 ## GDScript Conventions
 
 ### Class Hierarchy

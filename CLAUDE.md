@@ -10,6 +10,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > - `skills/condor-testing/` — `/condor-testing` slash command for test workflows
 > - `skills/condor-play/` — `/condor-play` slash command for interactive play
 > - `skills/condor-animation/` — `/condor-animation` slash command for animation/VN/FX
+>
+> Customization policy for Copilot:
+> - Do not default to editing existing instruction files for every request.
+> - Choose action dynamically by scope: add/update skills for reusable workflows, create new skill/instruction directories for new domains, or edit an instruction file directly when the rule matches its existing scope.
+> - Prefer modular additions over expanding one monolithic instruction file.
 
 ## Project
 
