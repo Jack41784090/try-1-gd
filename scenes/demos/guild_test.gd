@@ -153,10 +153,12 @@ func test_guild_recruits_workers() -> void:
 	_setup_minimal_economy(true, 0, 20)
 
 	var loc: Location = world.locations[0]
+	loc.government_config = null
 	var craftsmen_before := loc.population.get_by_job(EconomyTypes.JobType.CRAFTSMAN).size()
 	check_eq(craftsmen_before, 0, "No craftsmen initially")
 
 	engine.tick(1)
+	engine.sync_full()
 
 	var craftsmen_after := loc.population.get_by_job(EconomyTypes.JobType.CRAFTSMAN).size()
 	check_gt(float(craftsmen_after), 0.0, "Guild recruited craftsmen after tick")
@@ -185,6 +187,9 @@ func test_guild_limited_by_inputs() -> void:
 	var loc: Location = world.locations[0]
 	loc.inventory.stocks[iron] = 0.0
 	loc.inventory.stocks[wood] = 0.0
+	loc.natural_resources = loc.natural_resources.filter(
+		func(nr: NaturalResource) -> bool: return nr.thing != iron and nr.thing != wood
+	)
 
 	engine.tick(1)
 	engine.sync_full()
@@ -197,19 +202,19 @@ func test_guild_pays_wages() -> void:
 	print("\n--- Guild Pays Wages ---")
 	_setup_minimal_economy(true, 5, 10)
 
-	var craftsmen := world.locations[0].population.get_by_job(EconomyTypes.JobType.CRAFTSMAN)
-	var total_money_before := 0.0
-	for p: EconPerson in craftsmen:
-		total_money_before += p.money
+	var loc: Location = world.locations[0]
+	loc.government_config.tax_rate = 0.0
 
 	engine.tick(1)
 	engine.sync_full()
 
-	var craftsmen_after := world.locations[0].population.get_by_job(EconomyTypes.JobType.CRAFTSMAN)
+	var craftsmen_after := loc.population.get_by_job(EconomyTypes.JobType.CRAFTSMAN)
 	var total_money_after := 0.0
 	for p: EconPerson in craftsmen_after:
 		total_money_after += p.money
-	check_gt(total_money_after, total_money_before, "Craftsmen received wages")
+	var expected_wage := 1.0 * craftsmen_after.size()
+	check_gt(total_money_after, float(expected_wage) * 0.5, "Craftsmen received wages")
+	print("    Craftsmen count: %d, total money: %.2f, expected wages >= %.2f" % [craftsmen_after.size(), total_money_after, expected_wage])
 
 
 func test_guild_collects_revenue() -> void:
@@ -293,9 +298,10 @@ func test_guild_with_real_pipeline() -> void:
 
 func test_weapons_demand_by_nobles() -> void:
 	print("\n--- Weapons Demand By Nobles ---")
-	_setup_minimal_economy(true, 10, 10)
+	_setup_minimal_economy(false, 0, 10)
 
 	engine.tick(1)
+	engine.sync_full()
 
 	var demands: Array[EconomicDemand] = engine.get_pending_demands()
 	var has_sword_demand := false

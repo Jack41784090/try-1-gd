@@ -19,6 +19,7 @@ public sealed class CsPerson
     public float ComfortThisTurn { get; set; }
     public int StarvationCounter { get; set; }
     public int TurnsAlive { get; set; }
+    public int LastLoanTurn { get; set; } = -10;
 
     // Inventory: indexed by ThingDef.Id
     private readonly float[] _inventory;

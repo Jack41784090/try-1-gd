@@ -41,9 +41,12 @@ public sealed class CsGuild
         {
             if (hired >= toRecruit) break;
             if (Treasury < costPerRecruit) break;
+            var oldClass = person.SocialClass;
+            var oldJob = person.Job;
             person.Job = JobType.Craftsman;
             person.Money += (float)costPerRecruit;
             Treasury -= costPerRecruit;
+            loc.Population.NotifyClassChanged(person, oldClass, oldJob);
             hired++;
         }
         RecruitedLastTick = hired;

@@ -131,7 +131,7 @@ func _setup_economy() -> void:
 	engine.bank.loan_interest_rate = 0.01
 	engine.bank.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
-	engine.loan_amount = 500.0
+	engine.loan_amount = 200.0
 	engine.enable_csharp()  # asserts on failure — godot-mono required
 	world.economy_engine = engine
 	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
@@ -215,7 +215,7 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 	match loc.type:
 		StrategyTypes.LocationType.CITY:
 			if food:
-				resources.append(NaturalResource.create(food, 30.0 * ps))
+				resources.append(NaturalResource.create(food, 50.0 * ps))
 			if cloth:
 				resources.append(NaturalResource.create_craft(cloth, 12.0 * ps))
 			if tools:
@@ -250,7 +250,8 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 				resources.append(NaturalResource.create(wood, 15.0 * ps))
 
 		StrategyTypes.LocationType.FORT:
-			pass
+			if food:
+				resources.append(NaturalResource.create(food, 30.0 * ps))
 
 	return resources
 

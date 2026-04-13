@@ -19,13 +19,14 @@ public sealed class CsCentralBank
         return amount;
     }
 
-    public CsLoan IssueLoan(CsPerson debtor, float amount)
+    public CsLoan IssueLoan(CsPerson debtor, float amount, int currentTurn)
     {
         float fromReserves = MathF.Min(Reserves, amount);
         float toPrint = amount - fromReserves;
         Reserves -= fromReserves;
         if (toPrint > 0f) PrintMoney(toPrint);
         debtor.Money += amount;
+        debtor.LastLoanTurn = currentTurn;
         var loan = CsLoan.Create(debtor, amount, LoanInterestRate);
         ActiveLoans.Add(loan);
         return loan;
@@ -60,8 +61,8 @@ public sealed class CsCentralBank
         return total;
     }
 
-    public bool ShouldIssueLoan(CsPerson noble, float minThreshold)
-        => noble.Money < minThreshold;
+    public bool ShouldIssueLoan(CsPerson noble, float minThreshold, int currentTurn, int cooldown = 5)
+        => noble.Money < minThreshold && (currentTurn - noble.LastLoanTurn) >= cooldown;
 
     public override string ToString()
         => $"CentralBank[printed={TotalPrinted:F0} reserves={Reserves:F0} interest={TotalInterestCollected:F0} loans={ActiveLoans.Count} outstanding={GetTotalOutstanding():F0}]";

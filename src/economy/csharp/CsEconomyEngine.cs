@@ -123,7 +123,7 @@ public sealed class CsEconomyEngine
     {
         var result = new CsEconomyTickResult { Turn = turn };
 
-        PhaseBankLending();
+        PhaseBankLending(turn);
         PhaseDemand();
         PhaseContracts();
         PhaseSupplyGeneration();
@@ -570,7 +570,7 @@ public sealed class CsEconomyEngine
     }
 
     /// <summary>Bank issues loans to nobles below wealth threshold.</summary>
-    private void PhaseBankLending()
+    private void PhaseBankLending(int turn)
     {
         if (Bank == null) return;
         for (int li = 0; li < Locations.Length; li++)
@@ -578,8 +578,8 @@ public sealed class CsEconomyEngine
             var nobles = Locations[li].Population.GetByClass(SocialClass.Noble);
             for (int ni = 0; ni < nobles.Count; ni++)
             {
-                if (Bank.ShouldIssueLoan(nobles[ni], NobleLoanThreshold))
-                    Bank.IssueLoan(nobles[ni], LoanAmount);
+                if (Bank.ShouldIssueLoan(nobles[ni], NobleLoanThreshold, turn))
+                    Bank.IssueLoan(nobles[ni], LoanAmount, turn);
             }
         }
     }
@@ -864,8 +864,11 @@ public sealed class CsEconomyEngine
         {
             if (hiredThisTick >= remaining) break;
             if (budgetLeft < directive.WageOffered) break;
+            var oldClass = person.SocialClass;
+            var oldJob = person.Job;
             person.Job = directive.JobTarget;
             person.Money += directive.WageOffered;
+            loc.Population.NotifyClassChanged(person, oldClass, oldJob);
             directive.BudgetSpent += directive.WageOffered;
             budgetLeft -= directive.WageOffered;
             gov.Treasury -= directive.WageOffered;
@@ -949,13 +952,13 @@ public sealed class CsEconomyEngine
                 if (person.Satisfaction <= 0f && person.StarvationCounter > 0)
                 {
                     person.StarvationCounter++;
-                    if (person.StarvationCounter >= 3)
+                    if (person.StarvationCounter >= 5)
                         toRemove.Add(person);
                 }
                 else if (!person.FedThisTurn && person.Satisfaction < 20f)
                 {
                     person.StarvationCounter++;
-                    if (person.StarvationCounter >= 3)
+                    if (person.StarvationCounter >= 5)
                         toRemove.Add(person);
                 }
                 else

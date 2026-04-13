@@ -431,6 +431,11 @@ public partial class CsEconomyBridge : Node
 
                 if (gdById.TryGetValue(csPerson.PersonId, out var gdPerson))
                 {
+                    // Detect class/job changes for index update
+                    var oldClass = (int)gdPerson.Get("social_class");
+                    var oldJob = (int)gdPerson.Get("job");
+                    bool classChanged = oldClass != (int)csPerson.SocialClass || oldJob != (int)csPerson.Job;
+
                     // Update existing person
                     gdPerson.Set("money", csPerson.Money);
                     gdPerson.Set("satisfaction", csPerson.Satisfaction);
@@ -438,6 +443,9 @@ public partial class CsEconomyBridge : Node
                     gdPerson.Set("_comfort_this_turn", csPerson.ComfortThisTurn);
                     gdPerson.Set("social_class", (int)csPerson.SocialClass);
                     gdPerson.Set("job", (int)csPerson.Job);
+
+                    if (classChanged)
+                        gdPop.Call("notify_class_changed", gdPerson, oldClass, oldJob);
 
                     var gdPersonInv = (Godot.Collections.Dictionary)gdPerson.Get("inventory");
                     for (int gi = 0; gi < _goods.Length; gi++)

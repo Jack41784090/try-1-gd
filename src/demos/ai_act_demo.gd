@@ -147,26 +147,26 @@ func _execute_via_presenter(act: AIAct):
 		assert(not act.destination_id.is_empty(), "TRAVEL acts require destination_id")
 		presenter.on_activity_requested(StrategyTypes.ActivityType.TRAVEL)
 		presenter.on_travel_confirmed(act.destination_id)
-		presenter.game_clock.force_tick()
-		await presenter.tick_completed
+		await _force_tick_and_wait()
 		while presenter.actor.walking_towards["location"] != null:
 			Log.debug("AIActDemo", "  Continuing travel towards %s..." % act.destination_id)
-			presenter.game_clock.force_tick()
-			await presenter.tick_completed
+			await _force_tick_and_wait()
 	elif act.activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
 		assert(not act.destination_id.is_empty(), "FORCE_MARCH acts require destination_id")
 		presenter.on_activity_requested(StrategyTypes.ActivityType.FORCE_MARCH)
 		presenter.on_travel_confirmed(act.destination_id)
-		presenter.game_clock.force_tick()
-		await presenter.tick_completed
+		await _force_tick_and_wait()
 		while presenter.actor.walking_towards["location"] != null:
 			Log.debug("AIActDemo", "  Continuing force march towards %s..." % act.destination_id)
-			presenter.game_clock.force_tick()
-			await presenter.tick_completed
+			await _force_tick_and_wait()
 	else:
 		presenter.on_activity_requested(act.activity_type)
-		presenter.game_clock.force_tick()
-		await presenter.tick_completed
+		await _force_tick_and_wait()
+
+
+func _force_tick_and_wait():
+	presenter.game_clock.force_tick.call_deferred()
+	await presenter.tick_completed
 
 
 #region Assertions

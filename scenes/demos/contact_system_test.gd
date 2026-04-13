@@ -256,46 +256,48 @@ func test_engagement_classification() -> void:
 
 	var tracker := ContactTracker.new()
 
+	var combat_b := _make_squad("test_combat_b", StrategyTypes.SquadRole.COMBAT, EntityClasses.Types.Crossbowman)
+
 	var connected = _find_connected_pair()
 	var shared_loc: Location = connected[0]
 	squad_a.current_location_id = shared_loc.location_id
-	squad_b.current_location_id = shared_loc.location_id
+	combat_b.current_location_id = shared_loc.location_id
 
-	var contact_ab = tracker.get_or_create_contact(squad_a.squad_id, squad_b.squad_id)
-	var contact_ba = tracker.get_or_create_contact(squad_b.squad_id, squad_a.squad_id)
+	var contact_ab = tracker.get_or_create_contact(squad_a.squad_id, combat_b.squad_id)
+	var contact_ba = tracker.get_or_create_contact(combat_b.squad_id, squad_a.squad_id)
 
 	contact_ab.apply_delta(100.0, 1)
 	contact_ba.apply_delta(0.0, 1)
 	check(contact_ab.get_state() == StrategyTypes.ContactState.LOCKED, "A→B is LOCKED")
 	check(contact_ba.get_state() == StrategyTypes.ContactState.NONE, "B→A is NONE")
 
-	var all_squads: Array = [squad_a, squad_b]
+	var all_squads: Array = [squad_a, combat_b]
 	var engagements := tracker.check_engagements(world, all_squads)
 	check(engagements.size() == 1, "One engagement found", "got %d" % engagements.size())
 	if engagements.size() > 0:
 		check(engagements[0]["type"] == StrategyTypes.EngagementType.AMBUSH, "LOCKED vs NONE → AMBUSH")
 		check(engagements[0]["attacker_id"] == squad_a.squad_id, "Attacker is the LOCKED side")
 
-	var eng_type := tracker.classify_engagement(squad_a.squad_id, squad_b.squad_id)
+	var eng_type := tracker.classify_engagement(squad_a.squad_id, combat_b.squad_id)
 	check(eng_type == StrategyTypes.EngagementType.AMBUSH, "classify_engagement → AMBUSH")
 
 	contact_ba.apply_delta(100.0, 2)
 	check(contact_ba.get_state() == StrategyTypes.ContactState.LOCKED, "B→A now LOCKED")
 
 	var tracker2 := ContactTracker.new()
-	var c_ab = tracker2.get_or_create_contact(squad_a.squad_id, squad_b.squad_id)
-	var c_ba = tracker2.get_or_create_contact(squad_b.squad_id, squad_a.squad_id)
+	var c_ab = tracker2.get_or_create_contact(squad_a.squad_id, combat_b.squad_id)
+	var c_ba = tracker2.get_or_create_contact(combat_b.squad_id, squad_a.squad_id)
 	c_ab.apply_delta(100.0, 1)
 	c_ba.apply_delta(100.0, 1)
 	squad_a.current_location_id = shared_loc.location_id
-	squad_b.current_location_id = shared_loc.location_id
+	combat_b.current_location_id = shared_loc.location_id
 
 	var eng2 := tracker2.check_engagements(world, all_squads)
 	check(eng2.size() == 1, "One SET_PIECE engagement found", "got %d" % eng2.size())
 	if eng2.size() > 0:
 		check(eng2[0]["type"] == StrategyTypes.EngagementType.SET_PIECE, "Both LOCKED → SET_PIECE")
 
-	var eng_type2 := tracker2.classify_engagement(squad_a.squad_id, squad_b.squad_id)
+	var eng_type2 := tracker2.classify_engagement(squad_a.squad_id, combat_b.squad_id)
 	check(eng_type2 == StrategyTypes.EngagementType.SET_PIECE, "classify_engagement → SET_PIECE")
 
 #endregion

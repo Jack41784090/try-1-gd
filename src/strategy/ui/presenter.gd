@@ -990,6 +990,7 @@ func _on_hour_tick(hour: int) -> void:
 
 	if _check_game_over():
 		is_executing_activity = false
+		tick_completed.emit()
 		return
 
 	await _process_contacts_and_engagements(
@@ -999,6 +1000,7 @@ func _on_hour_tick(hour: int) -> void:
 
 	if _check_game_over():
 		is_executing_activity = false
+		tick_completed.emit()
 		return
 
 	await _finalize_tick(activity)

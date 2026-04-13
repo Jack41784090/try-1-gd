@@ -1,309 +1,155 @@
 extends Node
+## Economy Demo — Uses the real StrategyPresenter + HeadlessStrategyView pipeline.
+##
+## Loads the goetz-official scenario through the same code path as the actual game.
+## Usage: godot-mono --headless --path . scenes/demos/economy_demo.tscn
 
+const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
+
+const MAX_ECONOMY_TURNS := 20
+const HOURS_PER_ECONOMY_TURN := 24
+
+var presenter: StrategyPresenter
 var world: World
 var engine: EconomyEngine
-var food: Thing
-var wool: Thing
-var iron_ore: Thing
-var cloth: Thing
-var tools: Thing
-var luxury: Thing
+
+var _food_thing: Thing
+
 
 func _ready() -> void:
-	Log.set_level(Log.Level.DEBUG)
-	Log.info("EconDemo", "=== ECONOMY SIMULATION: MONEY FLOW DEMO ===")
-	Log.info("EconDemo", "Central Bank prints Imperial Scrip -> loans to Nobles -> contracts -> wages to workers")
-	Log.info("EconDemo", "")
+	Log.set_level(Log.Level.WARN)
+	print("\n" + "=".repeat(60))
+	print("  ECONOMY DEMO — Real Pipeline (goetz-official)")
+	print("=".repeat(60) + "\n")
 
-	_setup_world()
-	_run_simulation()
-
-
-func _setup_world() -> void:
-	world = World.new()
-
-	food = Thing.create("food", "Food", EconomyTypes.ThingType.FOOD, 1.0)
-	wool = Thing.create("wool", "Wool", EconomyTypes.ThingType.CLOTH, 1.5)
-	iron_ore = Thing.create("iron_ore", "Iron Ore", EconomyTypes.ThingType.TOOLS, 2.0)
-	cloth = Thing.create("cloth", "Cloth", EconomyTypes.ThingType.CLOTH, 3.0, "", [ThingInput.create(wool, 2.0)])
-	tools = Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 5.0, "", [ThingInput.create(iron_ore, 1.5)])
-	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0, "", [ThingInput.create(cloth, 0.5), ThingInput.create(tools, 0.3)])
-	world.goods = [food, wool, iron_ore, cloth, tools, luxury]
-
-	_setup_farmstead()
-	_setup_market_town()
-	_setup_castle()
-
-	_connect_locations("farmstead", "market_town", 1)
-	_connect_locations("market_town", "castle", 1)
-	_connect_locations("farmstead", "castle", 2)
-
-	engine = EconomyEngine.new()
-	engine.world = world
-	engine.bank = CentralBank.new()
-	engine.bank.loan_interest_rate = 0.01
-	engine.bank.print_per_turn = 500.0
-	engine.noble_loan_threshold = 100.0
-	engine.loan_amount = 500.0
-	engine.enable_csharp()
-	world.economy_engine = engine
-
-	Log.info("EconDemo", "World: 3 locations, %d total people" % _total_population())
-	Log.info("EconDemo", "Bank: rate=%.0f%% loan_size=%.0f threshold=%.0f" % [
-		engine.bank.loan_interest_rate * 100.0,
-		engine.loan_amount,
-		engine.noble_loan_threshold,
-	])
+	await _setup_presenter()
+	_resolve_food()
+	_print_world_summary()
+	await _run_simulation()
 
 
-func _connect_locations(from_id: String, to_id: String, time: int) -> void:
-	var from_loc := world.get_location_by_id(from_id)
-	var to_loc := world.get_location_by_id(to_id)
-	from_loc.add_connection(to_id, time)
-	to_loc.add_connection(from_id, time)
+func _setup_presenter() -> void:
+	var mock_view := HeadlessView.new()
+	add_child(mock_view)
+	mock_view.setup_headless()
+
+	presenter = StrategyPresenter.new()
+	presenter.scenario_path = SCENARIO_PATH
+	presenter.is_demo_scenario = false
+	mock_view.add_child(presenter)
+
+	await presenter.bind_view(mock_view)
+
+	world = presenter.game_scenario.world
+	engine = world.economy_engine
+	assert(engine != null, "Economy engine not initialized")
+	print("Scenario loaded: %d locations with economy\n" % world.get_economy_locations().size())
 
 
-func _create_location(loc_id: String, loc_name: String, loc_type: StrategyTypes.LocationType) -> Location:
-	var loc := Location.new()
-	loc.location_id = loc_id
-	loc.location_name = loc_name
-	loc.type = loc_type
-	loc.development = 50
-	loc.stability = 100.0
-	world.add_location(loc)
-	return loc
+func _resolve_food() -> void:
+	for thing: Thing in world.goods:
+		if thing.thing_id == "food":
+			_food_thing = thing
+			break
 
 
-func _setup_farmstead() -> void:
-	var loc := _create_location("farmstead", "Farmstead", StrategyTypes.LocationType.VILLAGE)
-
-	loc.population = Population.new()
-	for p in Population.create_batch(50, "farmer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(5, "trader", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(2, "squire", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(10, "idle", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.UNEMPLOYED, 0.0):
-		loc.population.add_person(p)
-
-	loc.inventory = LocationInventory.new()
-	loc.inventory.init_thing(food, 60.0)
-	loc.inventory.init_thing(wool, 20.0)
-	loc.inventory.init_thing(iron_ore, 10.0)
-
-	loc.natural_resources = [
-		NaturalResource.create(food, 250.0),
-		NaturalResource.create(wool, 80.0),
-		NaturalResource.create(iron_ore, 40.0),
-	]
-
-	var gov := GovernmentConfig.new()
-	gov.push_weight = 0.7
-	gov.tax_rate = 0.03
-	gov.starting_treasury = 50.0
-	gov.priority_goods = ["food"]
-	loc.government_config = gov
-
-	Log.info("EconDemo", "Farmstead: %d people (50 farmers, 5 merchants, 2 squires, 10 unemployed) - food+wool+iron [GOV]" % loc.population.size())
-
-
-func _setup_market_town() -> void:
-	var loc := _create_location("market_town", "Market Town", StrategyTypes.LocationType.CITY)
-
-	loc.population = Population.new()
-	for p in Population.create_batch(10, "laborer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 5.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(15, "craftsman", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.CRAFTSMAN, 5.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(25, "merchant", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(10, "lord", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		loc.population.add_person(p)
-
-	loc.inventory = LocationInventory.new()
-	loc.inventory.init_thing(food, 60.0)
-	loc.inventory.init_thing(wool, 10.0)
-	loc.inventory.init_thing(iron_ore, 5.0)
-	loc.inventory.init_thing(cloth, 5.0)
-	loc.inventory.init_thing(tools, 5.0)
-	loc.inventory.init_thing(luxury, 2.0)
-
-	loc.natural_resources = [
-		NaturalResource.create_craft(cloth, 15.0),
-		NaturalResource.create_craft(tools, 25.0),
-		NaturalResource.create_craft(luxury, 20.0),
-	]
-
-	var gov := GovernmentConfig.new()
-	gov.push_weight = 0.8
-	gov.tax_rate = 0.05
-	gov.starting_treasury = 200.0
-	gov.priority_goods = ["food", "cloth"]
-	loc.government_config = gov
-
-	Log.info("EconDemo", "Market Town: %d people (10 laborers, 15 craftsmen, 25 merchants, 10 lords) - crafts [GOV]" % loc.population.size())
-
-
-func _setup_castle() -> void:
-	var loc := _create_location("castle", "Castle", StrategyTypes.LocationType.CITY)
-
-	loc.population = Population.new()
-	for p in Population.create_batch(10, "servant", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 5.0):
-		loc.population.add_person(p)
-	for p in Population.create_batch(5, "baron", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		loc.population.add_person(p)
-
-	loc.inventory = LocationInventory.new()
-	loc.inventory.init_thing(food, 20.0)
-	loc.inventory.init_thing(cloth, 3.0)
-	loc.inventory.init_thing(tools, 2.0)
-	loc.inventory.init_thing(luxury, 1.0)
-
-	loc.natural_resources = []
-
-	Log.info("EconDemo", "Castle: %d people (10 servants, 5 barons)" % loc.population.size())
+func _print_world_summary() -> void:
+	var total_pop := 0
+	for loc in world.get_economy_locations():
+		var pop := loc.population.size()
+		total_pop += pop
+		print("  [%s] pop=%d  food=%.0f" % [loc.location_name, pop, loc.inventory.get_available(_food_thing) if _food_thing else 0.0])
+	print("  Total population: %d\n" % total_pop)
 
 
 func _run_simulation() -> void:
-	var max_turns := 40
-	Log.info("EconDemo", "Running %d turns..." % max_turns)
-	Log.info("EconDemo", "")
+	print("Running %d economy turns (%d hourly ticks)...\n" % [MAX_ECONOMY_TURNS, MAX_ECONOMY_TURNS * HOURS_PER_ECONOMY_TURN])
 
-	var matcher := TradeMatcher.new()
+	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
 
-	for turn in range(1, max_turns + 1):
-		var result := engine.tick(turn)
+	var economy_turn := 0
+	var total_hours := MAX_ECONOMY_TURNS * HOURS_PER_ECONOMY_TURN
 
-		var demands := engine.get_pending_demands()
-		var supplies := engine.get_available_supplies()
-		var matches := matcher.match_trades(demands, supplies, world)
-		if not matches.is_empty():
-			engine.apply_trade_matches(matches)
+	for hour_idx in range(total_hours):
+		presenter.game_clock.force_tick()
+		if presenter.is_executing_activity:
+			await presenter.tick_completed
 
-		result.log_to_console()
+		if world.current_hour % HOURS_PER_ECONOMY_TURN == 0:
+			economy_turn += 1
+			engine.sync_full()
 
-		if turn <= 3 or turn % 5 == 0 or turn == max_turns:
-			_print_detailed_snapshot(turn)
+			if economy_turn == 1 or economy_turn % 5 == 0 or economy_turn == MAX_ECONOMY_TURNS:
+				_print_turn_report(economy_turn)
 
-	Log.info("EconDemo", "")
+	print("")
 	_print_final_summary()
 
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		get_tree().quit()
-	else:
-		await get_tree().create_timer(2.0).timeout
-		get_tree().quit()
+	get_tree().quit()
 
 
-func _print_detailed_snapshot(turn: int) -> void:
-	engine.sync_full()
-	Log.info("EconDemo", "--- Detailed Snapshot (Turn %d) ---" % turn)
+func _print_turn_report(turn: int) -> void:
+	print("--- Economy Turn %d (Hour %d) ---" % [turn, world.current_hour])
+
 	for loc in world.get_economy_locations():
 		var peasants := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT)
 		var bourgeois := loc.population.get_by_class(EconomyTypes.SocialClass.BOURGEOIS)
 		var nobles := loc.population.get_by_class(EconomyTypes.SocialClass.NOBLE)
-
-		Log.info("EconDemo", "  [%s] Food=%.0f@%.2f Wool=%.0f@%.2f Iron=%.0f@%.2f Cloth=%.0f@%.2f Tools=%.0f@%.2f Lux=%.0f@%.2f" % [
+		print("  [%s] pop=%d (P=%d B=%d N=%d) avg_sat=%.0f avg_money=%.1f food=%.0f@%.2f" % [
 			loc.location_name,
-			loc.inventory.get_available(food), loc.inventory.get_price(food),
-			loc.inventory.get_available(wool), loc.inventory.get_price(wool),
-			loc.inventory.get_available(iron_ore), loc.inventory.get_price(iron_ore),
-			loc.inventory.get_available(cloth), loc.inventory.get_price(cloth),
-			loc.inventory.get_available(tools), loc.inventory.get_price(tools),
-			loc.inventory.get_available(luxury), loc.inventory.get_price(luxury),
+			loc.population.size(),
+			peasants.size(), bourgeois.size(), nobles.size(),
+			loc.population.get_average_satisfaction(),
+			loc.population.get_average_money(),
+			loc.inventory.get_available(_food_thing) if _food_thing else 0.0,
+			loc.inventory.get_price(_food_thing) if _food_thing else 0.0,
 		])
-		if not peasants.is_empty():
-			Log.info("EconDemo", "    Peasants(%d): avg_money=%.1f avg_sat=%.0f" % [
-				peasants.size(), _avg_money(peasants), _avg_satisfaction(peasants),
-			])
-		if not bourgeois.is_empty():
-			Log.info("EconDemo", "    Bourgeois(%d): avg_money=%.1f avg_sat=%.0f" % [
-				bourgeois.size(), _avg_money(bourgeois), _avg_satisfaction(bourgeois),
-			])
-		if not nobles.is_empty():
-			Log.info("EconDemo", "    Nobles(%d): avg_money=%.1f avg_sat=%.0f" % [
-				nobles.size(), _avg_money(nobles), _avg_satisfaction(nobles),
-			])
 
-	Log.info("EconDemo", "  Bank: printed=%.0f reserves=%.0f outstanding=%.0f interest=%.0f" % [
-		engine.bank.total_printed,
-		engine.bank.reserves,
-		engine.bank.get_total_outstanding(),
-		engine.bank.total_interest_collected,
+	var bank_info := engine.get_bank_info()
+	print("  Bank: printed=%.0f reserves=%.0f debt=%.0f loans=%d" % [
+		bank_info.get("total_printed", 0.0),
+		bank_info.get("reserves", 0.0),
+		bank_info.get("outstanding", 0.0),
+		bank_info.get("active_loans", 0),
 	])
-	Log.info("EconDemo", "  Contracts: active=%d completed=%d" % [
-		engine.active_contracts_count,
-		engine.completed_contracts_count,
-	])
-	var gov_info: Array = engine.get_government_info()
-	for g: Dictionary in gov_info:
-		Log.info("EconDemo", "  Gov[%s]: treasury=%.0f tax=%.1f directives=%d hired=%d wages=%.1f" % [
-			g.get("location_id", "?"),
-			g.get("treasury", 0.0),
-			g.get("tax_collected", 0.0),
-			g.get("active_directives", 0),
-			g.get("workers_hired", 0),
-			g.get("wages_paid", 0.0),
-		])
+
 	var total_money := _calc_total_money()
-	Log.info("EconDemo", "  Total Scrip in circulation: %.0f" % total_money)
+	print("  Total money: %.0f  Deaths: %d  Births: %d  Promotions: %d" % [
+		total_money, engine.total_deaths, engine.total_births, engine.total_promotions,
+	])
+	print("")
 
 
 func _print_final_summary() -> void:
 	engine.sync_full()
-	Log.info("EconDemo", "=== FINAL SUMMARY ===")
+	print("=".repeat(60))
+	print("  FINAL SUMMARY")
+	print("=".repeat(60))
+
+	var total_pop := 0
 	for loc in world.get_economy_locations():
-		Log.info("EconDemo", "[%s] pop=%d avg_sat=%.0f avg_money=%.1f" % [
+		total_pop += loc.population.size()
+		print("  [%s] pop=%d avg_sat=%.0f avg_money=%.1f" % [
 			loc.location_name,
 			loc.population.size(),
 			loc.population.get_average_satisfaction(),
 			loc.population.get_average_money(),
 		])
-		Log.info("EconDemo", "  Goods: Food=%.0f Wool=%.0f Iron=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
-			loc.inventory.get_available(food), loc.inventory.get_available(wool),
-			loc.inventory.get_available(iron_ore), loc.inventory.get_available(cloth),
-			loc.inventory.get_available(tools), loc.inventory.get_available(luxury),
-		])
-		var peasant_count := loc.population.get_by_class(EconomyTypes.SocialClass.PEASANT).size()
-		var bourgeois_count := loc.population.get_by_class(EconomyTypes.SocialClass.BOURGEOIS).size()
-		var noble_count := loc.population.get_by_class(EconomyTypes.SocialClass.NOBLE).size()
-		Log.info("EconDemo", "  Classes: Peasants=%d Bourgeois=%d Nobles=%d" % [
-			peasant_count, bourgeois_count, noble_count,
-		])
 
-	Log.info("EconDemo", "")
-	Log.info("EconDemo", "=== MONEY FLOW ANALYSIS ===")
-	Log.info("EconDemo", "Total Scrip printed: %.0f" % engine.bank.total_printed)
-	Log.info("EconDemo", "Outstanding debt: %.0f" % engine.bank.get_total_outstanding())
-	Log.info("EconDemo", "Interest collected: %.0f" % engine.bank.total_interest_collected)
-	Log.info("EconDemo", "Active loans: %d" % engine.bank.active_loans.size())
-	Log.info("EconDemo", "Contracts completed: %d" % engine.completed_contracts_count)
-	Log.info("EconDemo", "Total deaths: %d" % engine.total_deaths)
-	Log.info("EconDemo", "Total births: %d" % engine.total_births)
-	Log.info("EconDemo", "Peasants promoted to Bourgeois: %d" % engine.total_promotions)
-
-	var noble_money := 0.0
-	var merchant_money := 0.0
-	var worker_money := 0.0
-	var total := 0.0
-	for loc in world.get_economy_locations():
-		for p in loc.population.people:
-			total += p.money
-			match p.social_class:
-				EconomyTypes.SocialClass.NOBLE:
-					noble_money += p.money
-				EconomyTypes.SocialClass.BOURGEOIS:
-					merchant_money += p.money
-				EconomyTypes.SocialClass.PEASANT:
-					worker_money += p.money
-
-	Log.info("EconDemo", "")
-	Log.info("EconDemo", "=== WEALTH DISTRIBUTION ===")
-	Log.info("EconDemo", "Nobles hold: %.0f Scrip (%.0f%%)" % [noble_money, noble_money / maxf(total, 1.0) * 100.0])
-	Log.info("EconDemo", "Merchants hold: %.0f Scrip (%.0f%%)" % [merchant_money, merchant_money / maxf(total, 1.0) * 100.0])
-	Log.info("EconDemo", "Workers hold: %.0f Scrip (%.0f%%)" % [worker_money, worker_money / maxf(total, 1.0) * 100.0])
-	Log.info("EconDemo", "Total circulating: %.0f Scrip" % total)
+	print("")
+	print("  Total population: %d" % total_pop)
+	print("  Deaths: %d  Births: %d  Promotions: %d" % [
+		engine.total_deaths, engine.total_births, engine.total_promotions,
+	])
+	var bank_info := engine.get_bank_info()
+	print("  Bank: printed=%.0f debt=%.0f reserves=%.0f" % [
+		bank_info.get("total_printed", 0.0),
+		bank_info.get("outstanding", 0.0),
+		bank_info.get("reserves", 0.0),
+	])
+	print("  Total money in circulation: %.0f" % _calc_total_money())
+	print("=".repeat(60))
 
 
 func _calc_total_money() -> float:
@@ -312,28 +158,3 @@ func _calc_total_money() -> float:
 		for p in loc.population.people:
 			total += p.money
 	return total
-
-
-func _total_population() -> int:
-	var total := 0
-	for loc in world.get_economy_locations():
-		total += loc.population.size()
-	return total
-
-
-func _avg_money(people: Array[EconPerson]) -> float:
-	if people.is_empty():
-		return 0.0
-	var total := 0.0
-	for p in people:
-		total += p.money
-	return total / people.size()
-
-
-func _avg_satisfaction(people: Array[EconPerson]) -> float:
-	if people.is_empty():
-		return 0.0
-	var total := 0.0
-	for p in people:
-		total += p.satisfaction
-	return total / people.size()
