@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. Every time when you make changes to the project, modify this file to reflect the changes made.
 
+> **Copilot users**: This content is modularized for VS Code Copilot in `.github/`:
+> - `copilot-instructions.md` — slim always-loaded workspace instructions
+> - `instructions/combat.instructions.md` — auto-loaded for `src/squad-battle/**`
+> - `instructions/strategy.instructions.md` — auto-loaded for `src/strategy/**`
+> - `instructions/economy.instructions.md` — auto-loaded for `src/economy/**`
+> - `skills/condor-testing/` — `/condor-testing` slash command for test workflows
+> - `skills/condor-play/` — `/condor-play` slash command for interactive play
+> - `skills/condor-animation/` — `/condor-animation` slash command for animation/VN/FX
+
 ## Project
 
 CONDOR — a squad-based narrative strategy game built with **Godot 4.5**, **GDScript**, and **C#**. Requires `godot-mono` and `dotnet build` for the C# economy engine (`try1.csproj`, Godot.NET.Sdk/4.6.0, net8.0).
