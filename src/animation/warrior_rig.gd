@@ -43,6 +43,18 @@ const BONE_OFFSETS: Dictionary = {
 	"RightFoot": Vector2(0, 0),
 }
 
+## Draw order back-to-front for right-facing character:
+## Right* = far (profile edge), Left* = near (viewer side)
+const BONE_DRAW_ORDER: Array[String] = [
+	"RightArm", "RightForearm", "RightHand",
+	"RightLeg", "RightShin", "RightFoot",
+	"Hips",
+	"LeftLeg", "LeftShin", "LeftFoot",
+	"Torso",
+	"Head",
+	"LeftArm", "LeftForearm", "LeftHand",
+]
+
 var class_id: EntityClasses.Types
 var character_id: String = ""
 var facing: int = 1
@@ -90,8 +102,9 @@ func apply_config(config: WarriorRigConfig) -> void:
 
 func _apply_config_internal(config: WarriorRigConfig) -> void:
 	var bone_textures := config.get_bone_textures()
-	for bone_name in bone_textures:
-		_replace_limb(bone_name, bone_textures[bone_name])
+	for bone_name in BONE_DRAW_ORDER:
+		if bone_textures.has(bone_name):
+			_replace_limb(bone_name, bone_textures[bone_name])
 	if config.eye_spritesheet and eyes:
 		eyes.texture = config.eye_spritesheet
 	if config.mouth_spritesheet and mouth:
@@ -155,36 +168,37 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 
 func _build_placeholder_body() -> void:
 	var p := _get_class_palette()
-	## Z-order: back-to-front for SD character
+	## Z-order: back-to-front for right-facing SD character
+	## Left side = NEAR (viewer side), Right side = FAR (profile edge)
 	# Far arm (behind body)
-	_add_part("LeftArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
-	_add_part("LeftForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
-	_add_part("LeftHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
-	# Far leg
-	_add_part("LeftLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
-	_add_part("LeftShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
-	_add_part("LeftFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
-	# Hips
-	_add_part("Hips", _make_rect(Vector2(0, 0), 18, 5), p.hips)
-	# Near leg (in front of hips)
-	_add_part("RightLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
-	_add_part("RightShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
-	_add_part("RightFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
-	# Torso (on top of legs)
-	_add_part("Torso", _make_rect(Vector2(0, 6), 21, 18), p.torso)
-	_add_part("Torso", _make_rect(Vector2(0, -4), 18, 5), p.torso_accent)
-	# Head — oversized for SD
-	_add_part("Head", _make_oval(Vector2(0, 6), 15, 17), SKIN_COLOR)
-	_add_part("Head", _make_oval(Vector2(0, -2), 16, 8), HAIR_COLOR)
-	_add_part("Head", _make_circle(Vector2(-5, 5), 3.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(5, 5), 3.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(-5, 5), 2.0), EYE_PUPIL)
-	_add_part("Head", _make_circle(Vector2(5, 5), 2.0), EYE_PUPIL)
-	_add_part("Head", _make_rect(Vector2(0, 14), 4, 1.5), MOUTH_COLOR)
-	# Near arm (on top of everything)
 	_add_part("RightArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
 	_add_part("RightForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
 	_add_part("RightHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
+	# Far leg
+	_add_part("RightLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
+	_add_part("RightShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
+	_add_part("RightFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
+	# Hips
+	_add_part("Hips", _make_rect(Vector2(0, 0), 18, 5), p.hips)
+	# Near leg (in front of hips)
+	_add_part("LeftLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
+	_add_part("LeftShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
+	_add_part("LeftFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
+	# Torso (on top of legs)
+	_add_part("Torso", _make_rect(Vector2(0, 6), 21, 18), p.torso)
+	_add_part("Torso", _make_rect(Vector2(0, -4), 18, 5), p.torso_accent)
+	# Head — oversized for SD, 3/4 profile (big eye on left/near side)
+	_add_part("Head", _make_oval(Vector2(0, 6), 15, 17), SKIN_COLOR)
+	_add_part("Head", _make_oval(Vector2(0, -2), 16, 8), HAIR_COLOR)
+	_add_part("Head", _make_circle(Vector2(-5, 5), 3.5), EYE_WHITE)
+	_add_part("Head", _make_circle(Vector2(5, 6), 2.5), EYE_WHITE)
+	_add_part("Head", _make_circle(Vector2(-5, 5), 2.0), EYE_PUPIL)
+	_add_part("Head", _make_circle(Vector2(5, 6), 1.5), EYE_PUPIL)
+	_add_part("Head", _make_rect(Vector2(-2, 14), 4, 1.5), MOUTH_COLOR)
+	# Near arm (on top of everything)
+	_add_part("LeftArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
+	_add_part("LeftForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
+	_add_part("LeftHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
 
 func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) -> void:
 	var bone := _find_bone_recursive(skeleton, bone_name)

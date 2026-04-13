@@ -255,35 +255,35 @@ def gen_head(pal):
         hair_dk, sw=SW
     )
 
-    # Face shape — rounded 3/4 profile
+    # Face shape — 3/4 profile with sharp jawline
     s += path(
         f"M 50,70 Q 48,50 65,38 Q 85,28 108,32 "  # forehead
         f"Q 132,38 142,58 "                          # temple
-        f"Q 150,78 148,100 "                          # cheek
-        f"Q 145,118 135,130 "                         # jaw
-        f"Q 120,148 98,150 "                          # chin
-        f"Q 75,148 60,130 "                           # other jaw
-        f"Q 48,110 50,70 Z",
+        f"Q 150,78 148,98 "                          # cheek
+        f"Q 146,112 136,125 "                        # sharp jaw angle
+        f"L 118,143 Q 108,148 98,148 "               # chin line
+        f"Q 88,148 68,143 L 58,125 "                 # other jaw
+        f"Q 50,112 50,70 Z",
         skin, sw=SW
     )
 
-    # Far eye (left, smaller, partially hidden)
-    s += anime_eye(72, 90, iris, size=0.55)
-    # Near eye (right, larger)
-    s += anime_eye(118, 88, iris, size=0.85)
+    # Near eye (left, larger — closer to viewer for right-facing)
+    s += anime_eye(62, 88, iris, size=0.85)
+    # Far eye (right, smaller — farther from viewer)
+    s += anime_eye(112, 90, iris, size=0.55)
 
-    # Nose — small triangle bump on right profile
+    # Nose — small triangle bump on right profile edge
     s += path(
         f"M 135,100 Q 142,108 138,116",
         "none", pal["skin_shadow"], SW_INNER
     )
 
-    # Mouth — small line
-    s += line(108, 128, 126, 128, pal["skin_shadow"], SW_INNER)
+    # Mouth — slightly left of center (near side)
+    s += line(80, 128, 100, 128, pal["skin_shadow"], SW_INNER)
 
     # Eyebrows
-    s += path(f"M 60,76 Q 72,70 84,74", "none", hair_dk, SW_INNER + 2)
-    s += path(f"M 104,72 Q 118,66 132,72", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 46,74 Q 60,66 76,72", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 98,76 Q 112,70 126,76", "none", hair_dk, SW_INNER + 2)
 
     # Front hair — voluminous with strands
     s += path(
@@ -314,7 +314,7 @@ def gen_head(pal):
 def gen_torso(pal):
     """136×112 torso — compact body with clothing."""
     w, h = 136, 112
-    cx = 70  # slightly right for 3/4
+    cx = 66  # slightly left for 3/4 (near side is left for right-facing)
     s = svg_start(w, h)
 
     main = pal["cloth_main"]
@@ -328,24 +328,24 @@ def gen_torso(pal):
         main, sw=SW
     )
 
-    # 3/4 depth shadow on far side
+    # 3/4 depth shadow on far side (right, for right-facing character)
     s += path(
-        f"M 28,8 L 25,90 Q 28,105 40,108 L 52,108 L 48,8 Z",
+        f"M 112,8 L 115,90 Q 112,105 100,108 L 88,108 L 92,8 Z",
         dark, sw=0
     )
 
     # Collar / neckline
     s += path(
-        f"M 48,2 Q 55,12 70,14 Q 85,12 92,2",
+        f"M 42,2 Q 50,12 66,14 Q 82,12 90,2",
         "none", accent, SW_INNER
     )
 
     # Center seam
-    s += line(72, 14, 72, 108, dark, SW_INNER)
+    s += line(66, 14, 66, 108, dark, SW_INNER)
 
     # Clothing fold lines
     s += line(45, 35, 50, 65, dark, SW_INNER)
-    s += line(95, 35, 90, 65, dark, SW_INNER)
+    s += line(90, 35, 86, 65, dark, SW_INNER)
 
     s += svg_end()
     return s
@@ -547,28 +547,29 @@ def gen_head_landsknecht(pal):
         hair_dk, sw=SW
     )
 
-    # Face — angular jaw for warrior
+    # Face — sharp angular jaw for warrior
     s += path(
         f"M 48,72 Q 45,48 62,36 Q 82,24 110,28 "
-        f"Q 138,34 148,58 Q 155,80 152,102 "
-        f"Q 148,122 138,134 Q 122,150 100,152 "
-        f"Q 78,150 62,134 Q 46,114 48,72 Z",
+        f"Q 138,34 148,58 Q 155,80 152,98 "
+        f"Q 150,112 140,124 L 122,142 "
+        f"Q 110,150 100,150 Q 90,150 78,142 "
+        f"L 62,124 Q 48,112 48,72 Z",
         skin, sw=SW
     )
 
-    # Eyes
-    s += anime_eye(74, 92, iris, size=0.55)
-    s += anime_eye(120, 90, iris, size=0.85)
+    # Eyes — near (left, big) and far (right, small)
+    s += anime_eye(64, 90, iris, size=0.85)
+    s += anime_eye(114, 92, iris, size=0.55)
 
     # Nose
     s += path(f"M 140,102 Q 148,110 144,120", "none", pal["skin_shadow"], SW_INNER)
 
     # Mouth — slight grin
-    s += path(f"M 110,132 Q 122,138 132,132", "none", pal["skin_shadow"], SW_INNER)
+    s += path(f"M 82,132 Q 94,138 106,132", "none", pal["skin_shadow"], SW_INNER)
 
     # Eyebrows — thick, determined
-    s += path(f"M 58,78 Q 72,70 86,76", "none", hair_dk, SW + 2)
-    s += path(f"M 106,74 Q 122,66 138,74", "none", hair_dk, SW + 2)
+    s += path(f"M 48,76 Q 62,68 78,74", "none", hair_dk, SW + 2)
+    s += path(f"M 100,78 Q 114,72 130,78", "none", hair_dk, SW + 2)
 
     # Front hair — messy spikes
     s += path(
@@ -604,26 +605,27 @@ def gen_head_healer(pal):
         hood, sw=SW
     )
 
-    # Face
+    # Face — sharp jaw
     s += path(
         f"M 50,75 Q 48,52 65,40 Q 85,28 108,32 "
-        f"Q 132,38 142,58 Q 150,78 148,100 "
-        f"Q 145,120 135,132 Q 120,148 100,150 "
-        f"Q 78,148 62,132 Q 48,112 50,75 Z",
+        f"Q 132,38 142,58 Q 150,78 148,98 "
+        f"Q 146,112 136,124 L 120,142 "
+        f"Q 110,148 100,148 Q 90,148 78,142 "
+        f"L 62,124 Q 50,112 50,75 Z",
         skin, sw=SW
     )
 
-    # Gentle eyes
-    s += anime_eye(72, 90, iris, size=0.5)
-    s += anime_eye(118, 88, iris, size=0.8)
+    # Gentle eyes — near (left, big) and far (right, small)
+    s += anime_eye(62, 88, iris, size=0.8)
+    s += anime_eye(112, 90, iris, size=0.5)
 
     # Soft nose and mouth
     s += path(f"M 136,102 Q 142,108 138,116", "none", pal["skin_shadow"], SW_INNER)
-    s += line(110, 130, 125, 130, pal["skin_shadow"], SW_INNER)
+    s += line(80, 130, 98, 130, pal["skin_shadow"], SW_INNER)
 
     # Gentle eyebrows
-    s += path(f"M 60,78 Q 72,74 84,78", "none", hair_dk, SW_INNER + 2)
-    s += path(f"M 106,76 Q 118,72 130,76", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 46,74 Q 60,70 76,74", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 98,76 Q 112,72 126,76", "none", hair_dk, SW_INNER + 2)
 
     # Hood front — draping over forehead
     s += path(
@@ -662,25 +664,26 @@ def gen_head_crossbowman(pal):
         hair_dk, sw=SW
     )
 
-    # Face
+    # Face — sharp jaw
     s += path(
         f"M 50,72 Q 48,50 65,38 Q 85,26 108,30 "
-        f"Q 132,36 142,56 Q 150,76 148,98 "
-        f"Q 145,118 135,130 Q 120,146 100,148 "
-        f"Q 78,146 62,130 Q 48,110 50,72 Z",
+        f"Q 132,36 142,56 Q 150,76 148,96 "
+        f"Q 146,112 136,124 L 120,140 "
+        f"Q 110,146 100,146 Q 90,146 78,140 "
+        f"L 62,124 Q 50,110 50,72 Z",
         skin, sw=SW
     )
 
-    # Eyes — focused, slightly narrowed
-    s += anime_eye(72, 88, iris, size=0.5)
-    s += anime_eye(118, 86, iris, size=0.78)
+    # Eyes — near (left, big), far (right, small)
+    s += anime_eye(62, 86, iris, size=0.78)
+    s += anime_eye(112, 88, iris, size=0.5)
 
     s += path(f"M 138,100 Q 144,106 140,114", "none", pal["skin_shadow"], SW_INNER)
-    s += line(108, 128, 124, 128, pal["skin_shadow"], SW_INNER)
+    s += line(80, 128, 98, 128, pal["skin_shadow"], SW_INNER)
 
     # Eyebrows — focused
-    s += path(f"M 58,76 Q 72,68 86,74", "none", hair_dk, SW + 2)
-    s += path(f"M 106,72 Q 122,64 136,72", "none", hair_dk, SW + 2)
+    s += path(f"M 46,72 Q 60,64 76,70", "none", hair_dk, SW + 2)
+    s += path(f"M 98,74 Q 112,68 128,74", "none", hair_dk, SW + 2)
 
     # Front hair — short and practical
     s += path(
@@ -720,25 +723,26 @@ def gen_head_arquebusier(pal):
         hair_dk, sw=SW
     )
 
-    # Face — harder angles
+    # Face — harder angles, sharp jaw
     s += path(
         f"M 50,70 Q 48,48 65,36 Q 85,24 110,28 "
-        f"Q 135,34 145,55 Q 152,75 150,98 "
-        f"Q 146,118 136,130 Q 122,148 100,150 "
-        f"Q 78,148 62,130 Q 48,110 50,70 Z",
+        f"Q 135,34 145,55 Q 152,75 150,96 "
+        f"Q 148,110 138,122 L 122,140 "
+        f"Q 112,148 100,148 Q 88,148 78,140 "
+        f"L 62,122 Q 50,110 50,70 Z",
         skin, sw=SW
     )
 
-    # Eyes — narrow, stern
-    s += anime_eye(72, 88, iris, size=0.48)
-    s += anime_eye(118, 86, iris, size=0.75)
+    # Eyes — near (left, big), far (right, small)
+    s += anime_eye(62, 86, iris, size=0.75)
+    s += anime_eye(112, 88, iris, size=0.48)
 
     s += path(f"M 138,100 Q 144,106 140,114", "none", pal["skin_shadow"], SW_INNER)
-    s += line(112, 130, 128, 126, pal["skin_shadow"], SW_INNER)
+    s += line(82, 130, 100, 126, pal["skin_shadow"], SW_INNER)
 
     # Thick stern eyebrows
-    s += path(f"M 56,74 Q 72,66 88,72", "none", hair_dk, SW + 4)
-    s += path(f"M 104,70 Q 122,62 140,70", "none", hair_dk, SW + 4)
+    s += path(f"M 46,72 Q 62,64 78,70", "none", hair_dk, SW + 4)
+    s += path(f"M 96,74 Q 112,66 130,74", "none", hair_dk, SW + 4)
 
     # Front hair — very short crop
     s += path(
@@ -781,25 +785,26 @@ def gen_head_pikeman(pal):
         hair_dk, sw=SW
     )
 
-    # Face
+    # Face — sharp jaw
     s += path(
         f"M 50,72 Q 48,50 65,38 Q 85,26 108,30 "
-        f"Q 132,36 142,56 Q 150,76 148,98 "
-        f"Q 145,118 135,130 Q 120,146 100,148 "
-        f"Q 78,146 62,130 Q 48,110 50,72 Z",
+        f"Q 132,36 142,56 Q 150,76 148,96 "
+        f"Q 146,112 136,124 L 120,140 "
+        f"Q 110,146 100,146 Q 90,146 78,140 "
+        f"L 62,124 Q 50,110 50,72 Z",
         skin, sw=SW
     )
 
-    # Eyes — steady
-    s += anime_eye(72, 88, iris, size=0.5)
-    s += anime_eye(118, 86, iris, size=0.8)
+    # Eyes — near (left, big), far (right, small)
+    s += anime_eye(62, 86, iris, size=0.8)
+    s += anime_eye(112, 88, iris, size=0.5)
 
     s += path(f"M 138,100 Q 144,106 140,114", "none", pal["skin_shadow"], SW_INNER)
-    s += line(108, 128, 124, 128, pal["skin_shadow"], SW_INNER)
+    s += line(80, 128, 98, 128, pal["skin_shadow"], SW_INNER)
 
     # Eyebrows
-    s += path(f"M 58,76 Q 72,70 86,76", "none", hair_dk, SW + 2)
-    s += path(f"M 106,74 Q 122,68 136,74", "none", hair_dk, SW + 2)
+    s += path(f"M 46,72 Q 60,66 76,72", "none", hair_dk, SW + 2)
+    s += path(f"M 98,74 Q 112,68 128,74", "none", hair_dk, SW + 2)
 
     # Helmet — dome shape over head
     s += path(
@@ -851,25 +856,26 @@ def gen_head_feldprediger(pal):
         hair_dk, sw=SW
     )
 
-    # Face — gentle, rounded
+    # Face — gentle with sharp jaw
     s += path(
         f"M 50,72 Q 48,50 65,38 Q 85,28 108,32 "
-        f"Q 132,38 142,58 Q 150,78 148,100 "
-        f"Q 145,118 135,130 Q 120,148 100,150 "
-        f"Q 78,148 62,130 Q 48,110 50,72 Z",
+        f"Q 132,38 142,58 Q 150,78 148,98 "
+        f"Q 146,112 136,124 L 120,142 "
+        f"Q 110,148 100,148 Q 90,148 78,142 "
+        f"L 62,124 Q 50,112 50,72 Z",
         skin, sw=SW
     )
 
-    # Eyes — wise, gentle
-    s += anime_eye(72, 90, iris, size=0.5)
-    s += anime_eye(118, 88, iris, size=0.78)
+    # Eyes — near (left, big), far (right, small)
+    s += anime_eye(62, 88, iris, size=0.78)
+    s += anime_eye(112, 90, iris, size=0.5)
 
     s += path(f"M 136,102 Q 142,108 138,116", "none", pal["skin_shadow"], SW_INNER)
-    s += line(108, 130, 122, 130, pal["skin_shadow"], SW_INNER)
+    s += line(80, 130, 96, 130, pal["skin_shadow"], SW_INNER)
 
     # Gentle eyebrows
-    s += path(f"M 60,78 Q 72,74 84,78", "none", hair_dk, SW_INNER + 2)
-    s += path(f"M 106,76 Q 118,72 130,76", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 46,74 Q 60,70 76,74", "none", hair_dk, SW_INNER + 2)
+    s += path(f"M 98,76 Q 112,72 126,76", "none", hair_dk, SW_INNER + 2)
 
     # Front hair — receding/tonsure, neat sides
     s += path(
@@ -912,25 +918,26 @@ def gen_head_gelehrter(pal):
         hair_dk, sw=SW
     )
 
-    # Face
+    # Face — sharp scholarly jaw
     s += path(
         f"M 50,72 Q 48,50 65,38 Q 85,28 108,32 "
-        f"Q 132,38 142,58 Q 150,78 148,100 "
-        f"Q 145,118 135,130 Q 120,148 100,150 "
-        f"Q 78,148 62,130 Q 48,110 50,72 Z",
+        f"Q 132,38 142,58 Q 150,78 148,98 "
+        f"Q 146,112 136,124 L 120,142 "
+        f"Q 110,148 100,148 Q 90,148 78,142 "
+        f"L 62,124 Q 50,112 50,72 Z",
         skin, sw=SW
     )
 
-    # Eyes — sharp, intelligent
-    s += anime_eye(72, 90, iris, size=0.52)
-    s += anime_eye(118, 88, iris, size=0.82)
+    # Eyes — near (left, big), far (right, small)
+    s += anime_eye(62, 88, iris, size=0.82)
+    s += anime_eye(112, 90, iris, size=0.52)
 
     s += path(f"M 138,102 Q 144,108 140,116", "none", pal["skin_shadow"], SW_INNER)
-    s += path(f"M 108,130 Q 118,134 128,130", "none", pal["skin_shadow"], SW_INNER)
+    s += path(f"M 80,130 Q 90,134 100,130", "none", pal["skin_shadow"], SW_INNER)
 
     # Sharp eyebrows
-    s += path(f"M 58,76 Q 72,68 86,74", "none", hair_dk, SW + 2)
-    s += path(f"M 106,72 Q 122,64 138,72", "none", hair_dk, SW + 2)
+    s += path(f"M 46,74 Q 60,68 78,74", "none", hair_dk, SW + 2)
+    s += path(f"M 98,72 Q 112,64 128,72", "none", hair_dk, SW + 2)
 
     # Front hair — longer, swept back with strands
     s += path(
