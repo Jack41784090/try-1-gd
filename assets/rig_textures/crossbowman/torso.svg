@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 144" width="168" height="144">
-  <rect x="6" y="6" width="156" height="132" rx="14" fill="#3a6030" stroke="#0a0a0a" stroke-width="2"/>
-  <rect x="6" y="6" width="156" height="36" rx="14" fill="#2a4820" stroke="#0a0a0a" stroke-width="2"/>
-  <path d="M60 6 Q84 20 108 6" fill="#d9a880" stroke="#0a0a0a" stroke-width="2"/>
-  <line x1="84" y1="42" x2="84" y2="138" stroke="#5a4828" stroke-width="1"/>
-  <rect x="6" y="100" width="156" height="14" rx="4" fill="#5c4030" stroke="#0a0a0a" stroke-width="2"/>
-  <rect x="76" y="100" width="16" height="14" rx="2" fill="#c0a040" stroke="#0a0a0a" stroke-width="2"/>
-  <rect x="6" y="124" width="156" height="14" rx="6" fill="#4a3820" stroke="#0a0a0a" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 112" width="136" height="112">
+  <path d="M 28,8 Q 24,4 40,2 L 100,2 Q 116,4 112,8 L 115,90 Q 112,105 100,108 L 40,108 Q 28,105 25,90 Z" fill="#447744" stroke="#0a0a0a" stroke-width="8"/>
+  <path d="M 28,8 L 25,90 Q 28,105 40,108 L 52,108 L 48,8 Z" fill="#335533" stroke="#0a0a0a" stroke-width="8"/>
+  <path d="M 48,2 Q 55,12 70,14 Q 85,12 92,2" fill="none" stroke="#ccbb88" stroke-width="4"/>
+  <line x1="72" y1="14" x2="72" y2="108" stroke="#335533" stroke-width="4"/>
+  <line x1="45" y1="35" x2="50" y2="65" stroke="#335533" stroke-width="4"/>
+  <line x1="95" y1="35" x2="90" y2="65" stroke="#335533" stroke-width="4"/>
 </svg>

@@ -747,70 +747,70 @@ script = ExtResource("1_rig")
 rest = Transform2D(1, 0, 0, 1, 0, 0)
 
 [node name="Hips" type="Bone2D" parent="Skeleton2D/Root"]
-position = Vector2(0, -20)
-rest = Transform2D(1, 0, 0, 1, 0, -20)
+position = Vector2(0, -14)
+rest = Transform2D(1, 0, 0, 1, 0, -14)
 
 [node name="Torso" type="Bone2D" parent="Skeleton2D/Root/Hips"]
-position = Vector2(0, -25)
-rest = Transform2D(1, 0, 0, 1, 0, -25)
+position = Vector2(0, -18)
+rest = Transform2D(1, 0, 0, 1, 0, -18)
 
 [node name="LeftArm" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso"]
-position = Vector2(-15, -5)
-rest = Transform2D(1, 0, 0, 1, -15, -5)
+position = Vector2(-12, -6)
+rest = Transform2D(1, 0, 0, 1, -12, -6)
 
 [node name="LeftForearm" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso/LeftArm"]
-position = Vector2(0, 20)
-rest = Transform2D(1, 0, 0, 1, 0, 20)
+position = Vector2(0, 12)
+rest = Transform2D(1, 0, 0, 1, 0, 12)
 
 [node name="LeftHand" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso/LeftArm/LeftForearm"]
-position = Vector2(0, 15)
-rest = Transform2D(1, 0, 0, 1, 0, 15)
+position = Vector2(0, 10)
+rest = Transform2D(1, 0, 0, 1, 0, 10)
 
 [node name="RightArm" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso"]
-position = Vector2(15, -5)
-rest = Transform2D(1, 0, 0, 1, 15, -5)
+position = Vector2(12, -6)
+rest = Transform2D(1, 0, 0, 1, 12, -6)
 
 [node name="RightForearm" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso/RightArm"]
-position = Vector2(0, 20)
-rest = Transform2D(1, 0, 0, 1, 0, 20)
+position = Vector2(0, 12)
+rest = Transform2D(1, 0, 0, 1, 0, 12)
 
 [node name="RightHand" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso/RightArm/RightForearm"]
-position = Vector2(0, 15)
-rest = Transform2D(1, 0, 0, 1, 0, 15)
+position = Vector2(0, 10)
+rest = Transform2D(1, 0, 0, 1, 0, 10)
 
 [node name="Head" type="Bone2D" parent="Skeleton2D/Root/Hips/Torso"]
-position = Vector2(0, -25)
-rest = Transform2D(1, 0, 0, 1, 0, -25)
+position = Vector2(0, -22)
+rest = Transform2D(1, 0, 0, 1, 0, -22)
 
 [node name="HeadRemote" type="RemoteTransform2D" parent="Skeleton2D/Root/Hips/Torso/Head"]
 remote_path = NodePath("../../../../../../Face")
 
 [node name="LeftLeg" type="Bone2D" parent="Skeleton2D/Root/Hips"]
-position = Vector2(-8, 0)
-rest = Transform2D(1, 0, 0, 1, -8, 0)
+position = Vector2(-6, 2)
+rest = Transform2D(1, 0, 0, 1, -6, 2)
 
 [node name="LeftShin" type="Bone2D" parent="Skeleton2D/Root/Hips/LeftLeg"]
-position = Vector2(0, 25)
-rest = Transform2D(1, 0, 0, 1, 0, 25)
+position = Vector2(0, 14)
+rest = Transform2D(1, 0, 0, 1, 0, 14)
 
 [node name="LeftFoot" type="Bone2D" parent="Skeleton2D/Root/Hips/LeftLeg/LeftShin"]
-position = Vector2(0, 20)
-rest = Transform2D(1, 0, 0, 1, 0, 20)
+position = Vector2(0, 12)
+rest = Transform2D(1, 0, 0, 1, 0, 12)
 
 [node name="RightLeg" type="Bone2D" parent="Skeleton2D/Root/Hips"]
-position = Vector2(8, 0)
-rest = Transform2D(1, 0, 0, 1, 8, 0)
+position = Vector2(6, 2)
+rest = Transform2D(1, 0, 0, 1, 6, 2)
 
 [node name="RightShin" type="Bone2D" parent="Skeleton2D/Root/Hips/RightLeg"]
-position = Vector2(0, 25)
-rest = Transform2D(1, 0, 0, 1, 0, 25)
+position = Vector2(0, 14)
+rest = Transform2D(1, 0, 0, 1, 0, 14)
 
 [node name="RightFoot" type="Bone2D" parent="Skeleton2D/Root/Hips/RightLeg/RightShin"]
-position = Vector2(0, 20)
-rest = Transform2D(1, 0, 0, 1, 0, 20)
+position = Vector2(0, 12)
+rest = Transform2D(1, 0, 0, 1, 0, 12)
 
 [node name="Face" type="Node2D" parent="."]
-position = Vector2(0, -70)
+position = Vector2(0, -54)
 
 [node name="Eyes" type="Sprite2D" parent="Face"]
 position = Vector2(0, -5)

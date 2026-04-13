@@ -25,6 +25,10 @@ nohup bash -c "tail -f '$INPUT_FILE' | godot-mono --path . scenes/demos/canvas_d
 CANVAS_PID=$!
 disown
 
+# Write PID file so play.sh won't start a competing instance
+PID_FILE="/tmp/condor_pid_${SESSION}"
+echo "$CANVAS_PID" > "$PID_FILE"
+
 echo "Canvas starting (session: $SESSION, PID: $CANVAS_PID)..."
 echo "Wait ~10 seconds for initialization, then use:"
 echo "  CONDOR_SESSION=$SESSION bash tools/play.sh \"info\""
