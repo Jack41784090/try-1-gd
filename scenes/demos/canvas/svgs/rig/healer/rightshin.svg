@@ -1,40 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="rsGrad" x1="0" y1="0" x2="1" y2="0.2">
-      <stop offset="0%" stop-color="#1a2a4a"/>
-      <stop offset="60%" stop-color="#182840"/>
-      <stop offset="100%" stop-color="#0e1830"/>
-    </linearGradient>
-    <linearGradient id="rsShadow" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
-    </linearGradient>
-    <pattern id="rsHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(48)">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a1020" stroke-width="0.5" opacity="0.2"/>
-    </pattern>
-  </defs>
-  <!-- Lower robe — right shin -->
-  <path d="M6 4 Q14 0 28 0 Q42 0 50 4 L52 35 Q54 70 52 105 L48 132 Q42 144 28 144 Q14 144 6 132 L4 105 Q2 70 4 35 Z" fill="url(#rsGrad)" stroke="#0a0a0a" stroke-width="2"/>
-  <!-- Cross-hatching on right -->
-  <path d="M28 0 Q42 0 50 4 L52 35 Q54 70 52 105 L48 132 Q42 144 28 144 Z" fill="url(#rsHatch)" opacity="0.35"/>
-  <!-- Shadow overlay right -->
-  <path d="M42 0 Q42 0 50 4 L52 35 Q54 70 52 105 L48 132 Q42 144 42 144 Z" fill="url(#rsShadow)"/>
-  <!-- Vertical fold lines -->
-  <path d="M12 6 Q10 35 12 70 Q14 105 12 138" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.3"/>
-  <path d="M20 4 Q18 35 20 70 Q22 105 20 142" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
-  <path d="M32 4 Q30 35 32 70 Q34 105 32 142" stroke="#0e1830" stroke-width="0.8" fill="none" opacity="0.35"/>
-  <path d="M42 6 Q40 35 42 70 Q44 105 42 138" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.45"/>
-  <!-- Horizontal drape -->
-  <path d="M6 35 Q16 32 30 34 Q44 36 50 38" stroke="#0e1830" stroke-width="0.5" fill="none" opacity="0.25"/>
-  <path d="M6 75 Q16 72 30 74 Q44 76 50 78" stroke="#0e1830" stroke-width="0.5" fill="none" opacity="0.2"/>
-  <!-- Cloth wrapping at bottom -->
-  <path d="M8 120 Q14 118 28 118 Q42 118 48 120" stroke="#243660" stroke-width="0.8" fill="none" opacity="0.4"/>
-  <path d="M10 126 Q14 124 28 124 Q42 124 46 126" stroke="#243660" stroke-width="0.8" fill="none" opacity="0.35"/>
-  <path d="M12 132 Q18 130 28 130 Q38 130 44 132" stroke="#243660" stroke-width="0.6" fill="none" opacity="0.3"/>
-  <!-- Wrapping band -->
-  <path d="M8 118 Q14 114 28 114 Q42 114 48 118 L48 124 Q42 120 28 120 Q14 120 8 124 Z" fill="#1e3050" stroke="#0a0a0a" stroke-width="1" opacity="0.5"/>
-  <!-- Light highlight near side -->
-  <path d="M10 10 Q8 40 10 80 Q12 110 10 136" stroke="#243660" stroke-width="0.5" fill="none" opacity="0.3"/>
-  <!-- Outline reinforcement -->
-  <path d="M6 4 Q14 0 28 0 Q42 0 50 4 L52 35 Q54 70 52 105 L48 132 Q42 144 28 144 Q14 144 6 132 L4 105 Q2 70 4 35 Z" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="8" fill="#38261a" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="2" y="4" width="44" height="16" rx="6" fill="#38261a" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="14" y1="40" x2="34" y2="40" stroke="#2a1a10" stroke-width="1"/>
+  <line x1="14" y1="60" x2="34" y2="60" stroke="#2a1a10" stroke-width="1"/>
 </svg>

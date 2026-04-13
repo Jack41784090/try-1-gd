@@ -29,7 +29,7 @@ description: "CONDOR animation system: WarriorRig, skeletal animations, art styl
 
 ### Rig Art Style
 
-Darkest Dungeon × chibi — heavy black outlines, gradient shadows, cross-hatching, muted dark palettes. SVG textures in `assets/rig_textures/<class>/` (15 bones × 7 classes = 105 SVGs). Canvas demo copies in `scenes/demos/canvas/svgs/rig/<class>/`.
+2D anime SD (super deformed) flat vector — clean 2px black outlines, solid color fills, no gradients or cross-hatching, 1:2.5 head-to-body ratio. SVG textures in `assets/rig_textures/<class>/` (15 bones × 7 classes = 105 SVGs). Canvas demo copies in `scenes/demos/canvas/svgs/rig/<class>/`. Generator: `python3 tools/generate_sd_svgs.py`.
 
 ## Warrior Stage
 

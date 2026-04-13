@@ -1,47 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="lshin-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2a0a10"/>
-      <stop offset="100%" stop-color="#1a0608"/>
-    </linearGradient>
-    <linearGradient id="lshin-shadow" x1="1" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0406" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#0a0406" stop-opacity="0.4"/>
-    </linearGradient>
-  </defs>
-  <!-- Lower robe section -->
-  <path d="M6 0 Q2 4 2 12 L0 100 Q0 120 6 130 L6 140 L50 140 L50 130 Q56 120 56 100 L54 12 Q54 4 50 0Z" fill="url(#lshin-grad)" stroke="#0a0a0a" stroke-width="2"/>
-  <!-- Robe fabric folds -->
-  <path d="M14 4 Q18 40 12 80" fill="none" stroke="#0a0406" stroke-width="1.2" opacity="0.4"/>
-  <path d="M36 4 Q40 50 34 90" fill="none" stroke="#0a0406" stroke-width="1" opacity="0.35"/>
-  <!-- Leg binding wrappings (puttees) -->
-  <path d="M4 80 Q28 74 52 80" fill="none" stroke="#6a5a40" stroke-width="3" opacity="0.5"/>
-  <path d="M4 88 Q28 82 52 88" fill="none" stroke="#6a5a40" stroke-width="3" opacity="0.45"/>
-  <path d="M4 96 Q28 90 52 96" fill="none" stroke="#6a5a40" stroke-width="3" opacity="0.4"/>
-  <path d="M4 104 Q28 98 52 104" fill="none" stroke="#6a5a40" stroke-width="3" opacity="0.38"/>
-  <path d="M6 112 Q28 106 50 112" fill="none" stroke="#6a5a40" stroke-width="2.5" opacity="0.35"/>
-  <path d="M6 120 Q28 114 50 120" fill="none" stroke="#6a5a40" stroke-width="2.5" opacity="0.32"/>
-  <path d="M8 128 Q28 122 48 128" fill="none" stroke="#6a5a40" stroke-width="2" opacity="0.3"/>
-  <!-- Binding cross-lines -->
-  <line x1="16" y1="78" x2="20" y2="128" stroke="#5a4a30" stroke-width="0.6" opacity="0.25"/>
-  <line x1="30" y1="76" x2="32" y2="126" stroke="#5a4a30" stroke-width="0.6" opacity="0.25"/>
-  <line x1="42" y1="78" x2="40" y2="128" stroke="#5a4a30" stroke-width="0.6" opacity="0.25"/>
-  <!-- Chemical stains on bindings -->
-  <ellipse cx="22" cy="96" rx="6" ry="5" fill="#8a9060" opacity="0.25"/>
-  <ellipse cx="38" cy="108" rx="5" ry="4" fill="#6a8040" opacity="0.2"/>
-  <ellipse cx="14" cy="118" rx="4" ry="3" fill="#4a6a30" opacity="0.18"/>
-  <!-- Arcane mark on upper robe -->
-  <circle cx="28" cy="30" r="6" fill="none" stroke="#5a3850" stroke-width="0.6" opacity="0.25"/>
-  <polygon points="28,24 32,34 24,34" fill="none" stroke="#5a3850" stroke-width="0.5" opacity="0.2"/>
-  <!-- Stain on robe section -->
-  <ellipse cx="40" cy="50" rx="6" ry="8" fill="#2a4a20" opacity="0.14"/>
-  <!-- Cross-hatching upper area -->
-  <g opacity="0.12" stroke="#0a0a0a" stroke-width="0.5">
-    <line x1="6" y1="50" x2="10" y2="70"/>
-    <line x1="10" y1="48" x2="14" y2="68"/>
-    <line x1="44" y1="50" x2="48" y2="70"/>
-    <line x1="48" y1="48" x2="52" y2="68"/>
-  </g>
-  <!-- Shadow -->
-  <path d="M6 0 Q2 4 2 12 L0 100 Q0 120 6 130 L6 140 L50 140 L50 130 Q56 120 56 100 L54 12 Q54 4 50 0Z" fill="url(#lshin-shadow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="8" fill="#2e1a14" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="2" y="4" width="44" height="16" rx="6" fill="#2e1a14" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="14" y1="40" x2="34" y2="40" stroke="#1a1010" stroke-width="1"/>
+  <line x1="14" y1="60" x2="34" y2="60" stroke="#1a1010" stroke-width="1"/>
 </svg>

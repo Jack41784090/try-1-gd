@@ -1,36 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="laSleeve" x1="0" y1="0" x2="1" y2="0.3">
-      <stop offset="0%" stop-color="#0e1830"/>
-      <stop offset="50%" stop-color="#1a2a4a"/>
-      <stop offset="100%" stop-color="#152240"/>
-    </linearGradient>
-    <linearGradient id="laShadow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#0a1020" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#0a1020" stop-opacity="0"/>
-    </linearGradient>
-    <pattern id="laHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(50)">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a1020" stroke-width="0.5" opacity="0.25"/>
-    </pattern>
-  </defs>
-  <!-- Wide robe sleeve -->
-  <path d="M6 4 Q14 0 28 0 Q42 0 50 4 L54 40 Q56 80 54 120 L50 138 Q42 144 28 144 Q14 144 6 138 L2 120 Q0 80 2 40 Z" fill="url(#laSleeve)" stroke="#0a0a0a" stroke-width="2"/>
-  <!-- Cross-hatching on shadow side -->
-  <path d="M6 4 Q14 0 28 0 L28 144 Q14 144 6 138 L2 120 Q0 80 2 40 Z" fill="url(#laHatch)" opacity="0.4"/>
-  <!-- Shadow gradient on left side -->
-  <path d="M6 4 L2 40 Q0 80 2 120 L6 138 Q10 142 18 144 L18 0 Q14 0 6 4 Z" fill="url(#laShadow)"/>
-  <!-- Cloth fold lines -->
-  <path d="M14 10 Q16 40 14 80 Q12 110 14 138" stroke="#0e1830" stroke-width="1.2" fill="none" opacity="0.5"/>
-  <path d="M24 6 Q26 50 24 100 Q22 130 24 142" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.4"/>
-  <path d="M38 6 Q40 50 38 100 Q36 130 38 142" stroke="#0e1830" stroke-width="1" fill="none" opacity="0.35"/>
-  <!-- Flowing fabric wave -->
-  <path d="M44 20 Q46 30 44 40" stroke="#243660" stroke-width="0.8" fill="none" opacity="0.4"/>
-  <path d="M44 60 Q46 70 44 80" stroke="#243660" stroke-width="0.8" fill="none" opacity="0.4"/>
-  <!-- Cream lining peeking at wrist -->
-  <path d="M10 130 Q14 136 28 140 Q42 136 46 130 L46 138 Q42 144 28 144 Q14 144 10 138 Z" fill="#d0c8b0" stroke="#0a0a0a" stroke-width="1.5"/>
-  <path d="M12 132 Q16 136 28 138 Q40 136 44 132" stroke="#b0a890" stroke-width="0.6" fill="none" opacity="0.5"/>
-  <!-- Sleeve opening shadow -->
-  <path d="M10 130 Q18 126 28 125 Q38 126 46 130" stroke="#0a1020" stroke-width="1" fill="none" opacity="0.4"/>
-  <!-- Outer outline reinforcement -->
-  <path d="M6 4 Q14 0 28 0 Q42 0 50 4 L54 40 Q56 80 54 120 L50 138 Q42 144 28 144 Q14 144 6 138 L2 120 Q0 80 2 40 Z" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="10" fill="#2e4878" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M4 4 Q24 -4 44 4 L44 28 Q24 34 4 28 Z" fill="#2e4878" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="14" y1="50" x2="14" y2="80" stroke="#1e3060" stroke-width="1"/>
+  <rect x="4" y="94" width="40" height="14" rx="6" fill="#e8e0d0" stroke="#0a0a0a" stroke-width="2"/>
 </svg>

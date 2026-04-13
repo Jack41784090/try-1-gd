@@ -1,41 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="sleeveGradR" x1="100%" y1="0%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#18102a"/>
-      <stop offset="30%" stop-color="#2a1e40"/>
-      <stop offset="100%" stop-color="#241838"/>
-    </linearGradient>
-    <pattern id="sleeveCrossHatchR" patternUnits="userSpaceOnUse" width="6" height="6">
-      <line x1="0" y1="0" x2="6" y2="6" stroke="#0a0a0a" stroke-width="0.4" opacity="0.12"/>
-      <line x1="6" y1="0" x2="0" y2="6" stroke="#0a0a0a" stroke-width="0.3" opacity="0.08"/>
-    </pattern>
-  </defs>
-  <!-- Wide vestment sleeve - more lit -->
-  <path d="M8 4 Q28 0 48 4 Q54 20 52 60 Q50 100 48 130 Q40 140 28 142 Q16 140 10 130 Q8 100 6 60 Q4 20 8 4 Z" fill="url(#sleeveGradR)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Lighter fabric texture -->
-  <path d="M8 4 Q28 0 48 4 Q54 20 52 60 Q50 100 48 130 Q40 140 28 142 Q16 140 10 130 Q8 100 6 60 Q4 20 8 4 Z" fill="url(#sleeveCrossHatchR)"/>
-  <!-- Padded armor bulge underneath -->
-  <ellipse cx="36" cy="40" rx="10" ry="20" fill="#2a1828" opacity="0.2"/>
-  <path d="M42 24 Q44 40 42 56" stroke="#3a2830" stroke-width="2" fill="none" opacity="0.2"/>
-  <!-- Deep fabric folds -->
-  <path d="M20 10 Q18 50 20 100 Q20 120 22 138" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.2"/>
-  <path d="M36 10 Q38 50 36 100 Q36 120 34 138" stroke="#0a0a0a" stroke-width="1.2" fill="none" opacity="0.22"/>
-  <!-- Highlight on lit side -->
-  <path d="M38 16 Q42 50 40 100 Q38 130 36 140" stroke="#342848" stroke-width="2" fill="none" opacity="0.15"/>
-  <!-- Gold embroidered border at cuff -->
-  <path d="M10 128 Q28 134 46 128" stroke="#9a8030" stroke-width="3" fill="none"/>
-  <path d="M12 132 Q28 138 44 132" stroke="#b09040" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
-  <!-- Gold cuff detail dots -->
-  <circle cx="18" cy="130" r="1.2" fill="#b09040" opacity="0.7"/>
-  <circle cx="28" cy="132" r="1.2" fill="#b09040" opacity="0.7"/>
-  <circle cx="38" cy="130" r="1.2" fill="#b09040" opacity="0.7"/>
-  <!-- Embroidered cross on upper arm -->
-  <line x1="28" y1="22" x2="28" y2="38" stroke="#9a8030" stroke-width="1.5" opacity="0.5"/>
-  <line x1="22" y1="30" x2="34" y2="30" stroke="#9a8030" stroke-width="1.5" opacity="0.5"/>
-  <!-- Light shadow on far side -->
-  <path d="M48 20 Q50 60 50 100 Q48 130 46 140 L40 142 Q46 130 48 100 Q50 60 48 20 Z" fill="#0a0a0a" opacity="0.12"/>
-  <!-- Holy text marks on sleeve -->
-  <line x1="24" y1="70" x2="32" y2="70" stroke="#9a8030" stroke-width="0.5" opacity="0.3"/>
-  <line x1="22" y1="74" x2="34" y2="74" stroke="#9a8030" stroke-width="0.5" opacity="0.3"/>
-  <line x1="26" y1="78" x2="30" y2="78" stroke="#9a8030" stroke-width="0.5" opacity="0.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="10" fill="#3a2058" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M4 4 Q24 -4 44 4 L44 28 Q24 34 4 28 Z" fill="#3a2058" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="14" y1="50" x2="14" y2="80" stroke="#2a1848" stroke-width="1"/>
+  <rect x="4" y="94" width="40" height="14" rx="6" fill="#e8e0d0" stroke="#0a0a0a" stroke-width="2"/>
 </svg>

@@ -48,7 +48,7 @@ Each agent gets a dedicated game instance via `CONDOR_SESSION`:
 6. Rig animations: `bash tools/play.sh "anim idle"` / `walk` / `attack` / `defend` / `hurt` / `die`
 7. Camera: `zoom 3.0`, `zoom_in`, `zoom_out`, `pan 500 300`, `center`
 8. Other: `grid` (toggle), `bg #1a1a2e` (background), `tree` (node dump), `sizes` (bone dimensions), `shader <node> <param> <value>`
-9. SVG viewBox sizes (base ×4): Head=88×104, Torso=192×176, Hips=160×48, Arm=56×144, Forearm=48×104, Hand=40×40, Leg=64×192, Shin=56×144, Foot=96×48
+9. SVG viewBox sizes (base ×4): Head=120×136, Torso=168×144, Hips=144×40, Arm=48×112, Forearm=40×88, Hand=32×32, Leg=56×136, Shin=48×112, Foot=80×40
 10. Shaders: put `.gdshader` files in `assets/shaders/canvas/`, reference from canvas `.tscn` as ShaderMaterial — auto-reloads on edit
 
 ## Concurrency

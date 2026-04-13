@@ -1,67 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
-  <defs>
-    <linearGradient id="helmSteel" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4a4a52"/>
-      <stop offset="40%" stop-color="#3a3a42"/>
-      <stop offset="100%" stop-color="#2a2a30"/>
-    </linearGradient>
-    <linearGradient id="helmSheen" x1="0.2" y1="0" x2="0.8" y2="1">
-      <stop offset="0%" stop-color="#72727a" stop-opacity="0.6"/>
-      <stop offset="50%" stop-color="#606068" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#2a2a30" stop-opacity="0"/>
-    </linearGradient>
-    <pattern id="helmHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#1a1a2a" stroke-width="0.5" opacity="0.3"/>
-    </pattern>
-  </defs>
-  <!-- Helm base shape - sallet style -->
-  <path d="M12 48 Q12 8 44 4 Q76 8 76 48 L78 68 Q78 80 68 88 L60 96 Q44 102 28 96 L20 88 Q10 80 10 68Z" fill="url(#helmSteel)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Hatching texture overlay -->
-  <path d="M12 48 Q12 8 44 4 Q76 8 76 48 L78 68 Q78 80 68 88 L60 96 Q44 102 28 96 L20 88 Q10 80 10 68Z" fill="url(#helmHatch)" opacity="0.4"/>
-  <!-- Metal sheen highlight on right edge -->
-  <path d="M56 8 Q72 14 74 48 L76 66 Q76 76 68 84" stroke="#72727a" stroke-width="2" fill="none" opacity="0.5"/>
-  <path d="M60 10 Q70 16 72 44" stroke="#8a8a92" stroke-width="1" fill="none" opacity="0.3"/>
-  <!-- Helm crest/ridge along top -->
-  <path d="M30 6 Q44 0 58 6" stroke="#0a0a0a" stroke-width="3" fill="none"/>
-  <path d="M32 4 Q44 -1 56 4" stroke="#606068" stroke-width="1.5" fill="none"/>
-  <path d="M34 6 Q44 2 54 6" stroke="#4a4a52" stroke-width="1" fill="none"/>
-  <!-- Visor slit - dark and menacing -->
-  <rect x="16" y="46" width="56" height="8" rx="2" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="1.5"/>
-  <rect x="18" y="47" width="52" height="6" rx="1" fill="#050508"/>
-  <!-- Eye glints in visor -->
-  <circle cx="32" cy="50" r="1.5" fill="#c83030" opacity="0.7"/>
-  <circle cx="56" cy="50" r="1.5" fill="#c83030" opacity="0.7"/>
-  <circle cx="32.8" cy="49.2" r="0.6" fill="#ff6060" opacity="0.5"/>
-  <circle cx="56.8" cy="49.2" r="0.6" fill="#ff6060" opacity="0.5"/>
-  <!-- Visor plate above slit -->
-  <path d="M14 46 Q14 32 44 28 Q74 32 74 46" fill="url(#helmSteel)" stroke="#0a0a0a" stroke-width="2" opacity="0.9"/>
-  <path d="M16 44 Q16 34 44 30 Q72 34 72 44" fill="url(#helmHatch)" opacity="0.3"/>
-  <!-- Bevor / chin guard below visor -->
-  <path d="M14 54 L14 70 Q14 82 24 90 Q44 98 64 90 Q74 82 74 70 L74 54" fill="url(#helmSteel)" stroke="#0a0a0a" stroke-width="2"/>
-  <path d="M14 54 L14 70 Q14 82 24 90 Q44 98 64 90 Q74 82 74 70 L74 54" fill="url(#helmHatch)" opacity="0.3"/>
-  <!-- Articulated bevor plates -->
-  <path d="M16 62 Q44 66 72 62" stroke="#1a1a2a" stroke-width="1.5" fill="none"/>
-  <path d="M18 72 Q44 76 70 72" stroke="#1a1a2a" stroke-width="1.2" fill="none"/>
-  <path d="M22 82 Q44 86 66 82" stroke="#1a1a2a" stroke-width="1" fill="none"/>
-  <!-- Battle dents -->
-  <ellipse cx="60" cy="28" rx="5" ry="3" fill="#1a1a2a" opacity="0.25"/>
-  <ellipse cx="22" cy="36" rx="4" ry="2.5" fill="#1a1a2a" opacity="0.2"/>
-  <ellipse cx="52" cy="74" rx="3" ry="4" fill="#1a1a2a" opacity="0.2"/>
-  <!-- Scratches -->
-  <line x1="48" y1="18" x2="56" y2="30" stroke="#606068" stroke-width="0.7" opacity="0.5"/>
-  <line x1="26" y1="22" x2="30" y2="34" stroke="#606068" stroke-width="0.6" opacity="0.4"/>
-  <line x1="64" y1="60" x2="68" y2="72" stroke="#606068" stroke-width="0.5" opacity="0.4"/>
-  <!-- Rivets -->
-  <circle cx="16" cy="56" r="1.8" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.8"/>
-  <circle cx="72" cy="56" r="1.8" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.8"/>
-  <circle cx="20" cy="68" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
-  <circle cx="68" cy="68" r="1.5" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.7"/>
-  <circle cx="16" cy="46" r="1.5" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <circle cx="72" cy="46" r="1.5" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <!-- Left shadow overlay -->
-  <path d="M12 48 Q12 8 44 4 L44 102 Q28 96 20 88 Q10 80 10 68Z" fill="#0a0a0a" opacity="0.2"/>
-  <!-- Rust spots -->
-  <circle cx="24" cy="76" r="2.5" fill="#6a3a20" opacity="0.3"/>
-  <circle cx="62" cy="86" r="2" fill="#6a3a20" opacity="0.25"/>
-  <circle cx="18" cy="40" r="1.5" fill="#6a3a20" opacity="0.2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 136" width="120" height="136">
+  <path d="M12 64 Q10 16 60 8 Q110 16 108 64 Z" fill="#4a4e58" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="60" cy="76" rx="36" ry="42" fill="#d9a880" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M12 64 Q16 92 24 108 L30 82 Z" fill="#4a4e58" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M108 64 Q104 92 96 108 L90 82 Z" fill="#4a4e58" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M20 62 Q60 54 100 62" fill="none" stroke="#3a3e48" stroke-width="3"/>
+  <ellipse cx="42" cy="88" rx="8" ry="6" fill="#c49268"/>
+  <ellipse cx="78" cy="88" rx="8" ry="6" fill="#c49268"/>
+  <ellipse cx="46" cy="70" rx="9" ry="10" fill="#f0ece8" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="74" cy="70" rx="9" ry="10" fill="#f0ece8" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="46" cy="72" rx="6" ry="7" fill="#607050" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="74" cy="72" rx="6" ry="7" fill="#607050" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="46" cy="73" r="3.5" fill="#1a1a18" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="74" cy="73" r="3.5" fill="#1a1a18" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="49" cy="68" r="2" fill="#ffffff"/>
+  <circle cx="77" cy="68" r="2" fill="#ffffff"/>
+  <path d="M34 58 Q46 52 56 58" fill="none" stroke="#0a0a0a" stroke-width="3"/>
+  <path d="M64 58 Q74 52 86 58" fill="none" stroke="#0a0a0a" stroke-width="3"/>
+  <line x1="54" y1="94" x2="66" y2="94" stroke="#a05040" stroke-width="1.5"/>
+  <path d="M60 8 Q64 4 60 0 Q56 4 60 8" fill="#c0a040" stroke="#0a0a0a" stroke-width="2"/>
 </svg>

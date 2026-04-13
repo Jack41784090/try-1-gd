@@ -1,81 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 176" width="192" height="176">
-  <defs>
-    <linearGradient id="vestmentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#241838"/>
-      <stop offset="50%" stop-color="#1e1430"/>
-      <stop offset="100%" stop-color="#18102a"/>
-    </linearGradient>
-    <linearGradient id="goldThread" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#b09040"/>
-      <stop offset="50%" stop-color="#9a8030"/>
-      <stop offset="100%" stop-color="#807020"/>
-    </linearGradient>
-    <pattern id="fabricHatch" patternUnits="userSpaceOnUse" width="8" height="8">
-      <line x1="0" y1="0" x2="8" y2="8" stroke="#0a0a0a" stroke-width="0.4" opacity="0.2"/>
-      <line x1="4" y1="0" x2="12" y2="8" stroke="#0a0a0a" stroke-width="0.3" opacity="0.12"/>
-    </pattern>
-    <pattern id="crossHatch" patternUnits="userSpaceOnUse" width="6" height="6">
-      <line x1="0" y1="0" x2="6" y2="6" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
-      <line x1="6" y1="0" x2="0" y2="6" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
-    </pattern>
-  </defs>
-  <!-- Body shape - padded underneath -->
-  <path d="M32 8 Q40 2 96 2 Q152 2 160 8 L168 26 Q172 60 170 100 Q168 140 164 168 L28 168 Q24 140 22 100 Q20 60 24 26 Z" fill="url(#vestmentGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Fabric texture overlay -->
-  <path d="M32 8 Q40 2 96 2 Q152 2 160 8 L168 26 Q172 60 170 100 Q168 140 164 168 L28 168 Q24 140 22 100 Q20 60 24 26 Z" fill="url(#fabricHatch)"/>
-  <!-- Padded armor visible at sides -->
-  <path d="M24 26 Q20 40 22 70 Q24 90 26 100" stroke="#3a2828" stroke-width="4" fill="none" opacity="0.5"/>
-  <path d="M168 26 Q172 40 170 70 Q168 90 166 100" stroke="#3a2828" stroke-width="4" fill="none" opacity="0.5"/>
-  <!-- Side padding bumps -->
-  <ellipse cx="28" cy="50" rx="6" ry="14" fill="#2a1820" opacity="0.4"/>
-  <ellipse cx="164" cy="50" rx="6" ry="14" fill="#2a1820" opacity="0.4"/>
-  <!-- Collar / neckline -->
-  <path d="M60 4 Q76 12 96 14 Q116 12 132 4" fill="#1a1028" stroke="#0a0a0a" stroke-width="2"/>
-  <path d="M64 6 Q80 14 96 16 Q112 14 128 6" fill="#241838" stroke="#9a8030" stroke-width="1"/>
-  <!-- Central golden cross - embroidered -->
-  <line x1="96" y1="30" x2="96" y2="100" stroke="url(#goldThread)" stroke-width="5" stroke-linecap="round"/>
-  <line x1="66" y1="56" x2="126" y2="56" stroke="url(#goldThread)" stroke-width="5" stroke-linecap="round"/>
-  <!-- Cross embroidery detail stitches -->
-  <line x1="94" y1="32" x2="94" y2="98" stroke="#807020" stroke-width="0.8" opacity="0.5" stroke-dasharray="3,2"/>
-  <line x1="98" y1="32" x2="98" y2="98" stroke="#c0a840" stroke-width="0.5" opacity="0.4" stroke-dasharray="2,3"/>
-  <line x1="68" y1="54" x2="124" y2="54" stroke="#807020" stroke-width="0.8" opacity="0.5" stroke-dasharray="3,2"/>
-  <line x1="68" y1="58" x2="124" y2="58" stroke="#c0a840" stroke-width="0.5" opacity="0.4" stroke-dasharray="2,3"/>
-  <!-- Cross center jewel -->
-  <circle cx="96" cy="56" r="5" fill="#4a1018" stroke="#9a8030" stroke-width="1.5"/>
-  <circle cx="96" cy="56" r="2" fill="#6a2028" opacity="0.8"/>
-  <circle cx="94" cy="54" r="1" fill="#fff" opacity="0.4"/>
-  <!-- Holy symbols embroidered on chest -->
-  <circle cx="60" cy="40" r="4" fill="none" stroke="#9a8030" stroke-width="1" opacity="0.6"/>
-  <line x1="60" y1="36" x2="60" y2="44" stroke="#9a8030" stroke-width="0.8" opacity="0.6"/>
-  <circle cx="132" cy="40" r="4" fill="none" stroke="#9a8030" stroke-width="1" opacity="0.6"/>
-  <line x1="132" y1="36" x2="132" y2="44" stroke="#9a8030" stroke-width="0.8" opacity="0.6"/>
-  <!-- Deep fabric folds -->
-  <path d="M50 20 Q48 80 46 140 Q44 156 42 168" stroke="#0a0a0a" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <path d="M70 16 Q68 70 72 130 Q74 150 74 168" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.25"/>
-  <path d="M120 16 Q122 70 118 130 Q116 150 116 168" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.25"/>
-  <path d="M142 20 Q144 80 146 140 Q148 156 150 168" stroke="#0a0a0a" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <!-- Secondary fold shadows -->
-  <path d="M56 40 Q54 90 56 140" stroke="#10081a" stroke-width="3" fill="none" opacity="0.15"/>
-  <path d="M136 40 Q138 90 136 140" stroke="#10081a" stroke-width="3" fill="none" opacity="0.15"/>
-  <!-- Gold trim at hem -->
-  <path d="M28 162 L164 162" stroke="#9a8030" stroke-width="3"/>
-  <path d="M28 166 L164 166" stroke="#807020" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <!-- Gold trim detail dots -->
-  <circle cx="48" cy="164" r="1.5" fill="#b09040" opacity="0.7"/>
-  <circle cx="72" cy="164" r="1.5" fill="#b09040" opacity="0.7"/>
-  <circle cx="96" cy="164" r="1.5" fill="#b09040" opacity="0.7"/>
-  <circle cx="120" cy="164" r="1.5" fill="#b09040" opacity="0.7"/>
-  <circle cx="144" cy="164" r="1.5" fill="#b09040" opacity="0.7"/>
-  <!-- Prayer scroll edges peeking at waist -->
-  <path d="M56 156 Q54 162 56 170" fill="#c0b890" stroke="#0a0a0a" stroke-width="1" opacity="0.8"/>
-  <path d="M54 158 L58 158" stroke="#3a2818" stroke-width="0.5" opacity="0.5"/>
-  <path d="M54 162" stroke="#3a2818" stroke-width="0.5" opacity="0.5"/>
-  <path d="M130 154 Q132 162 130 170" fill="#c0b890" stroke="#0a0a0a" stroke-width="1" opacity="0.7"/>
-  <!-- Candle wax drips on shoulder -->
-  <path d="M48 14 Q47 20 48 28 Q49 24 48 14" fill="#d0c8a0" opacity="0.4"/>
-  <path d="M140 18 Q141 26 140 32" stroke="#c8c090" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <!-- Shadow overlay - right side darker -->
-  <path d="M96 2 Q152 2 160 8 L168 26 Q172 60 170 100 Q168 140 164 168 L96 168 Z" fill="#0a0a0a" opacity="0.1"/>
-  <!-- Cross-hatch on shadow side -->
-  <rect x="100" y="20" width="60" height="140" fill="url(#crossHatch)" opacity="0.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 144" width="168" height="144">
+  <rect x="6" y="6" width="156" height="132" rx="14" fill="#3a2058" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M54 6 Q64 20 84 26 Q104 20 114 6" fill="#e8e0d0" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="68" y="26" width="32" height="112" rx="4" fill="#4a2e6a" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="80" y="44" width="8" height="28" rx="1" fill="#e8e0d0" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="72" y="52" width="24" height="8" rx="1" fill="#e8e0d0" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M20 100 Q84 108 148 100" fill="none" stroke="#5c4838" stroke-width="4"/>
+  <rect x="6" y="124" width="156" height="14" rx="6" fill="#4a2e6a" stroke="#0a0a0a" stroke-width="2"/>
 </svg>

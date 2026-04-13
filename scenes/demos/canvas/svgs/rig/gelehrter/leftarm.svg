@@ -1,42 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="larm-grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#3a1018"/>
-      <stop offset="100%" stop-color="#2a0a10"/>
-    </linearGradient>
-    <linearGradient id="larm-shadow" x1="1" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0406" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#0a0406" stop-opacity="0.4"/>
-    </linearGradient>
-  </defs>
-  <!-- Wide robe sleeve -->
-  <path d="M8 4 Q2 4 2 16 L0 100 Q0 136 12 140 L44 140 Q54 136 54 100 L52 16 Q52 4 46 4Z" fill="url(#larm-grad)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Sleeve opening flare -->
-  <path d="M2 100 Q0 120 4 136" fill="none" stroke="#1a0608" stroke-width="1.5" opacity="0.4"/>
-  <path d="M52 100 Q54 120 50 136" fill="none" stroke="#1a0608" stroke-width="1.5" opacity="0.4"/>
-  <!-- Fabric folds -->
-  <path d="M16 10 Q20 50 14 90" fill="none" stroke="#1a0608" stroke-width="1.2" opacity="0.4"/>
-  <path d="M34 10 Q38 60 32 100" fill="none" stroke="#1a0608" stroke-width="1" opacity="0.35"/>
-  <path d="M24 30 Q28 70 22 110" fill="none" stroke="#1a0608" stroke-width="0.8" opacity="0.3"/>
-  <!-- Arcane symbols along sleeve -->
-  <circle cx="28" cy="30" r="8" fill="none" stroke="#6a3050" stroke-width="0.8" opacity="0.3"/>
-  <polygon points="28,22 33,34 23,34" fill="none" stroke="#6a3050" stroke-width="0.6" opacity="0.25"/>
-  <circle cx="24" cy="70" r="5" fill="none" stroke="#5a3850" stroke-width="0.6" opacity="0.25"/>
-  <line x1="19" y1="70" x2="29" y2="70" stroke="#5a3850" stroke-width="0.5" opacity="0.2"/>
-  <line x1="24" y1="65" x2="24" y2="75" stroke="#5a3850" stroke-width="0.5" opacity="0.2"/>
-  <!-- Small arcane mark -->
-  <polygon points="32,100 35,108 29,108" fill="none" stroke="#5a3850" stroke-width="0.5" opacity="0.2"/>
-  <!-- Alchemical stain -->
-  <ellipse cx="18" cy="50" rx="7" ry="10" fill="#2a4a20" opacity="0.18"/>
-  <ellipse cx="36" cy="90" rx="5" ry="8" fill="#3a4a28" opacity="0.12"/>
-  <!-- Cross-hatching -->
-  <g opacity="0.15" stroke="#0a0a0a" stroke-width="0.5">
-    <line x1="6" y1="110" x2="10" y2="130"/>
-    <line x1="10" y1="108" x2="14" y2="128"/>
-    <line x1="14" y1="106" x2="18" y2="126"/>
-    <line x1="40" y1="110" x2="44" y2="130"/>
-    <line x1="44" y1="108" x2="48" y2="128"/>
-  </g>
-  <!-- Shadow overlay -->
-  <path d="M8 4 Q2 4 2 16 L0 100 Q0 136 12 140 L44 140 Q54 136 54 100 L52 16 Q52 4 46 4Z" fill="url(#larm-shadow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="10" fill="#4c1420" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M4 4 Q24 -4 44 4 L44 28 Q24 34 4 28 Z" fill="#4c1420" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="14" y1="50" x2="14" y2="80" stroke="#2a0a12" stroke-width="1"/>
+  <rect x="4" y="94" width="40" height="14" rx="6" fill="#c0a040" stroke="#0a0a0a" stroke-width="2"/>
 </svg>

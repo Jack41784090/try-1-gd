@@ -1,35 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 192" width="64" height="192">
-  <defs>
-    <linearGradient id="robeGradL" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#140e22"/>
-      <stop offset="40%" stop-color="#1e1430"/>
-      <stop offset="100%" stop-color="#18102a"/>
-    </linearGradient>
-    <pattern id="robeHatchL" patternUnits="userSpaceOnUse" width="8" height="8">
-      <line x1="0" y1="0" x2="8" y2="8" stroke="#0a0a0a" stroke-width="0.4" opacity="0.18"/>
-    </pattern>
-  </defs>
-  <!-- Cassock/robe lower portion -->
-  <path d="M8 2 Q32 0 56 2 Q60 30 58 80 Q56 130 54 170 Q48 186 32 190 Q16 186 10 170 Q8 130 6 80 Q4 30 8 2 Z" fill="url(#robeGradL)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Fabric texture -->
-  <path d="M8 2 Q32 0 56 2 Q60 30 58 80 Q56 130 54 170 Q48 186 32 190 Q16 186 10 170 Q8 130 6 80 Q4 30 8 2 Z" fill="url(#robeHatchL)"/>
-  <!-- Deep fabric folds - austere cassock -->
-  <path d="M20 4 Q18 60 20 120 Q20 160 22 188" stroke="#0a0a0a" stroke-width="1.2" fill="none" opacity="0.25"/>
-  <path d="M38 4 Q40 60 38 120 Q38 160 36 188" stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.2"/>
-  <path d="M50 10 Q52 60 50 120 Q48 160 46 184" stroke="#0a0a0a" stroke-width="1.2" fill="none" opacity="0.22"/>
-  <!-- Fold shadow bands -->
-  <path d="M12 10 Q10 60 12 120 Q12 160 14 186" stroke="#0a0608" stroke-width="4" fill="none" opacity="0.12"/>
-  <path d="M44 8 Q46 60 44 120 Q44 160 42 186" stroke="#0a0608" stroke-width="3" fill="none" opacity="0.1"/>
-  <!-- Shadow side (left/far) -->
-  <path d="M4 10 Q6 60 6 120 Q8 160 10 186 L16 190 Q12 170 10 120 Q8 60 8 10 Z" fill="#0a0a0a" opacity="0.2"/>
-  <!-- Hem fraying detail -->
-  <path d="M12 182 Q16 188 20 184" stroke="#18102a" stroke-width="1" fill="none" opacity="0.3"/>
-  <path d="M36 184 Q40 190 44 184" stroke="#18102a" stroke-width="1" fill="none" opacity="0.3"/>
-  <!-- Subtle gold trim at side seam -->
-  <path d="M8 4 Q6 60 6 120 Q8 160 10 186" stroke="#9a8030" stroke-width="0.8" fill="none" opacity="0.3"/>
-  <!-- Cross-hatch deep shadow area -->
-  <line x1="10" y1="40" x2="14" y2="50" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
-  <line x1="12" y1="80" x2="16" y2="90" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
-  <line x1="10" y1="120" x2="14" y2="130" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
-  <line x1="12" y1="150" x2="16" y2="160" stroke="#0a0a0a" stroke-width="0.5" opacity="0.15"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 136" width="56" height="136">
+  <rect x="6" y="4" width="44" height="128" rx="10" fill="#3a2058" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="18" y1="40" x2="16" y2="90" stroke="#2a1848" stroke-width="1"/>
 </svg>

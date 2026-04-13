@@ -1,76 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 104" width="88" height="104">
-  <defs>
-    <linearGradient id="hoodGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a3018"/>
-      <stop offset="100%" stop-color="#0f1e0d"/>
-    </linearGradient>
-    <linearGradient id="hoodShadow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0.5"/>
-      <stop offset="60%" stop-color="#000000" stop-opacity="0.1"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-    </linearGradient>
-    <pattern id="hoodHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#0a0a0a" stroke-width="0.5" opacity="0.2"/>
-    </pattern>
-  </defs>
-  <!-- Hood outer shape -->
-  <path d="M8 104 Q2 60 10 30 Q18 6 44 2 Q70 6 78 30 Q86 60 80 104Z" fill="url(#hoodGrad)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <!-- Hood drape folds -->
-  <path d="M14 40 Q20 36 24 50" stroke="#0f1e0d" stroke-width="2" fill="none" opacity="0.6"/>
-  <path d="M18 55 Q22 48 28 60" stroke="#0f1e0d" stroke-width="1.5" fill="none" opacity="0.5"/>
-  <path d="M64 50 Q68 36 74 40" stroke="#0f1e0d" stroke-width="2" fill="none" opacity="0.5"/>
-  <path d="M60 60 Q66 48 70 55" stroke="#0f1e0d" stroke-width="1.5" fill="none" opacity="0.4"/>
-  <!-- Hood cross-hatch texture -->
-  <path d="M8 104 Q2 60 10 30 Q18 6 44 2 Q70 6 78 30 Q86 60 80 104Z" fill="url(#hoodHatch)"/>
-  <!-- Deep hood shadow over face -->
-  <path d="M16 30 Q22 20 44 18 Q66 20 72 30 Q72 55 44 52 Q16 55 16 30Z" fill="url(#hoodShadow)"/>
-  <!-- Face opening — recessed in shadow -->
-  <ellipse cx="44" cy="62" rx="24" ry="28" fill="#a07858"/>
-  <!-- Face shadow from hood -->
-  <path d="M20 44 Q44 38 68 44 Q68 52 44 50 Q20 52 20 44Z" fill="#0a0a0a" opacity="0.35"/>
-  <!-- Cheek hollow shadows -->
-  <ellipse cx="28" cy="68" rx="6" ry="10" fill="#8a6040" opacity="0.3"/>
-  <ellipse cx="60" cy="68" rx="6" ry="10" fill="#8a6040" opacity="0.3"/>
-  <!-- Eyes — narrow, calculating hunter's gaze -->
-  <path d="M30 56 Q36 52 42 56 Q36 58 30 56Z" fill="#f0ece4"/>
-  <path d="M46 56 Q52 52 58 56 Q52 58 46 56Z" fill="#f0ece4"/>
-  <!-- Irises — sharp green -->
-  <circle cx="36" cy="55.5" r="2.8" fill="#3a5530"/>
-  <circle cx="52" cy="55.5" r="2.8" fill="#3a5530"/>
-  <!-- Pupils -->
-  <circle cx="36" cy="55.5" r="1.4" fill="#0a0a0a"/>
-  <circle cx="52" cy="55.5" r="1.4" fill="#0a0a0a"/>
-  <!-- Eye highlights -->
-  <circle cx="37.5" cy="54.5" r="0.8" fill="white" opacity="0.7"/>
-  <circle cx="53.5" cy="54.5" r="0.8" fill="white" opacity="0.7"/>
-  <!-- Heavy brow line under hood -->
-  <path d="M26 52 Q34 48 42 52" stroke="#0a0a0a" stroke-width="2" fill="none"/>
-  <path d="M46 52 Q54 48 62 52" stroke="#0a0a0a" stroke-width="2" fill="none"/>
-  <!-- Nose — angular, sharp -->
-  <path d="M44 58 L42 68 Q40 72 38 71" stroke="#7a5838" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M44 68 Q48 72 50 71" stroke="#7a5838" stroke-width="1" fill="none" stroke-linecap="round"/>
-  <!-- Mouth — thin, grim line -->
-  <path d="M35 78 Q44 80 53 78" stroke="#5a3020" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  <!-- Chin shadow -->
-  <ellipse cx="44" cy="86" rx="14" ry="6" fill="#7a5838" opacity="0.25"/>
-  <!-- Stubble texture -->
-  <path d="M32 80 L33 82 M36 81 L37 83 M40 82 L41 84 M48 82 L49 84 M52 81 L53 83 M56 80 L57 82" stroke="#4a3020" stroke-width="0.6" opacity="0.4"/>
-  <!-- Leather chin strap -->
-  <path d="M22 76 Q28 92 44 96 Q60 92 66 76" stroke="#3a2818" stroke-width="2.5" fill="none"/>
-  <path d="M22 76 Q28 92 44 96 Q60 92 66 76" stroke="#4e3620" stroke-width="1.2" fill="none"/>
-  <!-- Chin strap buckle (left side) -->
-  <circle cx="22" cy="74" r="2.5" fill="#8a7a40" stroke="#0a0a0a" stroke-width="0.8"/>
-  <circle cx="22" cy="74" r="1" fill="#6a5a30"/>
-  <!-- Hood edge detail — thick leather trim -->
-  <path d="M16 30 Q22 20 44 18 Q66 20 72 30" stroke="#3a2818" stroke-width="3" fill="none"/>
-  <path d="M16 30 Q22 20 44 18 Q66 20 72 30" stroke="#4e3620" stroke-width="1.5" fill="none"/>
-  <!-- Face outline -->
-  <ellipse cx="44" cy="62" rx="24" ry="28" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
-  <!-- Hood left side deep shadow -->
-  <path d="M8 104 Q2 60 10 30 Q18 6 28 4 L24 10 Q14 30 10 60 Q8 80 12 104Z" fill="#0a0a0a" opacity="0.25"/>
-  <!-- Stitch detail on hood -->
-  <path d="M44 2 L44 18" stroke="#2a4422" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
-  <!-- Weathering marks -->
-  <path d="M60 70 L64 72" stroke="#c0a080" stroke-width="0.5" opacity="0.3"/>
-  <path d="M24 65 L28 64" stroke="#c0a080" stroke-width="0.5" opacity="0.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 136" width="120" height="136">
+  <path d="M10 58 Q8 20 38 10 Q60 4 82 10 Q112 20 110 58 Z" fill="#2a1a08" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="60" cy="72" rx="44" ry="50" fill="#d9a880" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="36" cy="86" rx="10" ry="7" fill="#c49268"/>
+  <ellipse cx="84" cy="86" rx="10" ry="7" fill="#c49268"/>
+  <path d="M12 56 Q20 22 36 14 L42 42 L48 10 Q60 6 72 10 L78 42 L84 14 Q100 22 108 56 Q90 62 60 60 Q30 62 12 56 Z" fill="#2a1a08" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="44" cy="68" rx="10" ry="12" fill="#f0ece8" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="76" cy="68" rx="10" ry="12" fill="#f0ece8" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="44" cy="70" rx="7" ry="9" fill="#408040" stroke="#0a0a0a" stroke-width="2"/>
+  <ellipse cx="76" cy="70" rx="7" ry="9" fill="#408040" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="44" cy="71" r="4" fill="#1a1a18" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="76" cy="71" r="4" fill="#1a1a18" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="47" cy="66" r="2.5" fill="#ffffff"/>
+  <circle cx="79" cy="66" r="2.5" fill="#ffffff"/>
+  <path d="M32 54 Q44 48 54 54" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M66 54 Q76 48 88 54" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M54 92 Q60 96 66 92" fill="none" stroke="#c06050" stroke-width="1.5"/>
 </svg>

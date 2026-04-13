@@ -1,48 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 144" width="56" height="144">
-  <defs>
-    <linearGradient id="laSteel" x1="0" y1="0" x2="1" y2="0.5">
-      <stop offset="0%" stop-color="#2a2a30"/>
-      <stop offset="50%" stop-color="#3a3a42"/>
-      <stop offset="100%" stop-color="#2a2a30"/>
-    </linearGradient>
-    <pattern id="laHatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(30)">
-      <line x1="0" y1="0" x2="0" y2="5" stroke="#1a1a2a" stroke-width="0.4" opacity="0.3"/>
-    </pattern>
-  </defs>
-  <!-- Leather strap underneath -->
-  <rect x="16" y="30" width="24" height="110" rx="6" fill="#2a1a10" stroke="#1a0f08" stroke-width="1"/>
-  <!-- Upper arm vambrace -->
-  <path d="M8 36 Q8 32 12 30 L44 30 Q48 32 48 36 L50 130 Q50 138 44 140 L12 140 Q6 138 6 130Z" fill="url(#laSteel)" stroke="#0a0a0a" stroke-width="2"/>
-  <path d="M8 36 Q8 32 12 30 L44 30 Q48 32 48 36 L50 130 Q50 138 44 140 L12 140 Q6 138 6 130Z" fill="url(#laHatch)"/>
-  <!-- Pauldron - large rounded plate at top -->
-  <path d="M-2 8 Q-2 -4 28 -4 Q58 -4 58 8 L56 40 Q56 48 44 48 L12 48 Q0 48 0 40Z" fill="url(#laSteel)" stroke="#0a0a0a" stroke-width="2.5"/>
-  <path d="M-2 8 Q-2 -4 28 -4 Q58 -4 58 8 L56 40 Q56 48 44 48 L12 48 Q0 48 0 40Z" fill="url(#laHatch)"/>
-  <!-- Pauldron ridges -->
-  <path d="M2 16 Q28 20 54 16" stroke="#1a1a2a" stroke-width="1.2" fill="none"/>
-  <path d="M4 28 Q28 32 52 28" stroke="#1a1a2a" stroke-width="1" fill="none"/>
-  <path d="M2 40 Q28 44 54 40" stroke="#1a1a2a" stroke-width="1" fill="none"/>
-  <!-- Sheen on right edge -->
-  <path d="M46 0 Q54 4 54 16 L52 36" stroke="#72727a" stroke-width="1.5" fill="none" opacity="0.4"/>
-  <!-- Rivets on pauldron -->
-  <circle cx="10" cy="10" r="1.5" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <circle cx="28" cy="8" r="1.5" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <circle cx="46" cy="10" r="1.5" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <!-- Rivets on vambrace -->
-  <circle cx="12" cy="60" r="1.3" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.6"/>
-  <circle cx="12" cy="90" r="1.3" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.6"/>
-  <circle cx="12" cy="120" r="1.3" fill="#3a3a42" stroke="#0a0a0a" stroke-width="0.6"/>
-  <!-- Leather strap visible -->
-  <rect x="10" y="55" width="36" height="5" rx="1" fill="#2a1a10" stroke="#1a0f08" stroke-width="0.8"/>
-  <rect x="10" y="95" width="36" height="5" rx="1" fill="#2a1a10" stroke="#1a0f08" stroke-width="0.8"/>
-  <!-- Buckle on strap -->
-  <rect x="38" y="54" width="6" height="7" rx="1" fill="#4a4a52" stroke="#0a0a0a" stroke-width="0.7"/>
-  <!-- Shadow on far side -->
-  <rect x="6" y="30" width="18" height="112" rx="4" fill="#0a0a0a" opacity="0.18"/>
-  <!-- Battle dent -->
-  <ellipse cx="34" cy="80" rx="4" ry="3" fill="#1a1a2a" opacity="0.2"/>
-  <!-- Scratches -->
-  <line x1="20" y1="68" x2="30" y2="78" stroke="#606068" stroke-width="0.5" opacity="0.4"/>
-  <line x1="36" y1="110" x2="40" y2="120" stroke="#606068" stroke-width="0.5" opacity="0.35"/>
-  <!-- Rust -->
-  <circle cx="40" cy="42" r="1.8" fill="#6a3a20" opacity="0.25"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 112" width="48" height="112">
+  <rect x="4" y="4" width="40" height="104" rx="10" fill="#4a4e58" stroke="#0a0a0a" stroke-width="2"/>
+  <path d="M2 2 Q24 -6 46 2 L46 30 Q24 36 2 30 Z" fill="#3a3e48" stroke="#0a0a0a" stroke-width="2"/>
+  <circle cx="24" cy="16" r="3" fill="#c0a040" stroke="#0a0a0a" stroke-width="2"/>
+  <line x1="8" y1="50" x2="40" y2="50" stroke="#3a3e48" stroke-width="1"/>
 </svg>

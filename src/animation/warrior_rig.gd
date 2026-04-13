@@ -1,45 +1,46 @@
 class_name WarriorRig extends Node2D
 
-const SKIN_COLOR := Color(0.72, 0.55, 0.42)
-const EYE_WHITE := Color(0.88, 0.85, 0.80)
-const EYE_PUPIL := Color(0.08, 0.06, 0.05)
-const MOUTH_COLOR := Color(0.40, 0.18, 0.15)
-const HAIR_COLOR := Color(0.10, 0.07, 0.05)
+## SD / chibi flat-vector style — 1:2.5 head-to-body ratio
+const SKIN_COLOR := Color(0.85, 0.68, 0.55)
+const EYE_WHITE := Color(0.95, 0.93, 0.90)
+const EYE_PUPIL := Color(0.12, 0.10, 0.10)
+const MOUTH_COLOR := Color(0.75, 0.35, 0.30)
+const HAIR_COLOR := Color(0.15, 0.10, 0.08)
 
 const BONE_DISPLAY_SIZES: Dictionary = {
-	"Head": Vector2(22, 26),
-	"Torso": Vector2(48, 44),
-	"Hips": Vector2(40, 12),
-	"LeftArm": Vector2(14, 36),
-	"LeftForearm": Vector2(12, 26),
-	"LeftHand": Vector2(10, 10),
-	"RightArm": Vector2(14, 36),
-	"RightForearm": Vector2(12, 26),
-	"RightHand": Vector2(10, 10),
-	"LeftLeg": Vector2(16, 48),
-	"LeftShin": Vector2(14, 36),
-	"LeftFoot": Vector2(24, 12),
-	"RightLeg": Vector2(16, 48),
-	"RightShin": Vector2(14, 36),
-	"RightFoot": Vector2(24, 12),
+	"Head": Vector2(30, 34),
+	"Torso": Vector2(42, 36),
+	"Hips": Vector2(36, 10),
+	"LeftArm": Vector2(12, 28),
+	"LeftForearm": Vector2(10, 22),
+	"LeftHand": Vector2(8, 8),
+	"RightArm": Vector2(12, 28),
+	"RightForearm": Vector2(10, 22),
+	"RightHand": Vector2(8, 8),
+	"LeftLeg": Vector2(14, 34),
+	"LeftShin": Vector2(12, 28),
+	"LeftFoot": Vector2(20, 10),
+	"RightLeg": Vector2(14, 34),
+	"RightShin": Vector2(12, 28),
+	"RightFoot": Vector2(20, 10),
 }
 
 const BONE_OFFSETS: Dictionary = {
-	"Head": Vector2(0, -4),
-	"Torso": Vector2(0, 10),
+	"Head": Vector2(0, -6),
+	"Torso": Vector2(0, 8),
 	"Hips": Vector2(0, -2),
-	"LeftArm": Vector2(0, 9),
-	"LeftForearm": Vector2(0, 6),
-	"LeftHand": Vector2(0, 3),
-	"RightArm": Vector2(0, 9),
-	"RightForearm": Vector2(0, 6),
-	"RightHand": Vector2(0, 3),
-	"LeftLeg": Vector2(0, 12),
-	"LeftShin": Vector2(0, 9),
-	"LeftFoot": Vector2(2, 3),
-	"RightLeg": Vector2(0, 12),
-	"RightShin": Vector2(0, 9),
-	"RightFoot": Vector2(2, 3),
+	"LeftArm": Vector2(0, 7),
+	"LeftForearm": Vector2(0, 5),
+	"LeftHand": Vector2(0, 2),
+	"RightArm": Vector2(0, 7),
+	"RightForearm": Vector2(0, 5),
+	"RightHand": Vector2(0, 2),
+	"LeftLeg": Vector2(0, 9),
+	"LeftShin": Vector2(0, 7),
+	"LeftFoot": Vector2(2, 2),
+	"RightLeg": Vector2(0, 9),
+	"RightShin": Vector2(0, 7),
+	"RightFoot": Vector2(2, 2),
 }
 
 var class_id: EntityClasses.Types
@@ -154,36 +155,36 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 
 func _build_placeholder_body() -> void:
 	var p := _get_class_palette()
-	## Z-order: back-to-front for side-facing character
+	## Z-order: back-to-front for SD character
 	# Far arm (behind body)
-	_add_part("LeftArm", _make_rect(Vector2(0, 9), 7, 18), p.arms)
-	_add_part("LeftForearm", _make_rect(Vector2(0, 6), 6, 13), p.arms)
-	_add_part("LeftHand", _make_circle(Vector2(0, 3), 4), SKIN_COLOR)
+	_add_part("LeftArm", _make_rect(Vector2(0, 7), 6, 14), p.arms)
+	_add_part("LeftForearm", _make_rect(Vector2(0, 5), 5, 11), p.arms)
+	_add_part("LeftHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
 	# Far leg
-	_add_part("LeftLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
-	_add_part("LeftShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
-	_add_part("LeftFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
+	_add_part("LeftLeg", _make_rect(Vector2(0, 9), 7, 17), p.legs)
+	_add_part("LeftShin", _make_rect(Vector2(0, 7), 6, 14), p.boots)
+	_add_part("LeftFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
 	# Hips
-	_add_part("Hips", _make_rect(Vector2(0, -2), 20, 6), p.hips)
+	_add_part("Hips", _make_rect(Vector2(0, -2), 18, 5), p.hips)
 	# Near leg (in front of hips)
-	_add_part("RightLeg", _make_rect(Vector2(0, 12), 8, 24), p.legs)
-	_add_part("RightShin", _make_rect(Vector2(0, 9), 7, 18), p.boots)
-	_add_part("RightFoot", _make_rect(Vector2(2, 3), 12, 6), p.boots)
+	_add_part("RightLeg", _make_rect(Vector2(0, 9), 7, 17), p.legs)
+	_add_part("RightShin", _make_rect(Vector2(0, 7), 6, 14), p.boots)
+	_add_part("RightFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
 	# Torso (on top of legs)
-	_add_part("Torso", _make_rect(Vector2(0, 10), 24, 22), p.torso)
-	_add_part("Torso", _make_rect(Vector2(0, -2), 20, 6), p.torso_accent)
-	# Head
-	_add_part("Head", _make_oval(Vector2(0, -4), 11, 13), SKIN_COLOR)
-	_add_part("Head", _make_oval(Vector2(0, -12), 12, 6), HAIR_COLOR)
-	_add_part("Head", _make_circle(Vector2(-4, -5), 2.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(4, -5), 2.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(-4, -5), 1.2), EYE_PUPIL)
-	_add_part("Head", _make_circle(Vector2(4, -5), 1.2), EYE_PUPIL)
-	_add_part("Head", _make_rect(Vector2(0, 2), 5, 1.5), MOUTH_COLOR)
+	_add_part("Torso", _make_rect(Vector2(0, 8), 21, 18), p.torso)
+	_add_part("Torso", _make_rect(Vector2(0, -2), 18, 5), p.torso_accent)
+	# Head — oversized for SD
+	_add_part("Head", _make_oval(Vector2(0, -6), 15, 17), SKIN_COLOR)
+	_add_part("Head", _make_oval(Vector2(0, -14), 16, 8), HAIR_COLOR)
+	_add_part("Head", _make_circle(Vector2(-5, -7), 3.5), EYE_WHITE)
+	_add_part("Head", _make_circle(Vector2(5, -7), 3.5), EYE_WHITE)
+	_add_part("Head", _make_circle(Vector2(-5, -7), 2.0), EYE_PUPIL)
+	_add_part("Head", _make_circle(Vector2(5, -7), 2.0), EYE_PUPIL)
+	_add_part("Head", _make_rect(Vector2(0, 2), 4, 1.5), MOUTH_COLOR)
 	# Near arm (on top of everything)
-	_add_part("RightArm", _make_rect(Vector2(0, 9), 7, 18), p.arms)
-	_add_part("RightForearm", _make_rect(Vector2(0, 6), 6, 13), p.arms)
-	_add_part("RightHand", _make_circle(Vector2(0, 3), 4), SKIN_COLOR)
+	_add_part("RightArm", _make_rect(Vector2(0, 7), 6, 14), p.arms)
+	_add_part("RightForearm", _make_rect(Vector2(0, 5), 5, 11), p.arms)
+	_add_part("RightHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
 
 func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) -> void:
 	var bone := _find_bone_recursive(skeleton, bone_name)
@@ -203,66 +204,66 @@ func _get_class_palette() -> Dictionary:
 	match class_id:
 		EntityClasses.Types.Healer:
 			return {
-				"torso": Color(0.10, 0.16, 0.29),
-				"torso_accent": Color(0.14, 0.20, 0.35),
-				"arms": Color(0.12, 0.18, 0.30),
-				"hips": Color(0.15, 0.14, 0.22),
-				"legs": Color(0.09, 0.13, 0.24),
-				"boots": Color(0.14, 0.10, 0.08),
+				"torso": Color(0.18, 0.28, 0.52),
+				"torso_accent": Color(0.24, 0.34, 0.58),
+				"arms": Color(0.20, 0.30, 0.50),
+				"hips": Color(0.25, 0.22, 0.38),
+				"legs": Color(0.16, 0.24, 0.42),
+				"boots": Color(0.22, 0.16, 0.12),
 			}
 		EntityClasses.Types.Crossbowman:
 			return {
-				"torso": Color(0.10, 0.19, 0.09),
-				"torso_accent": Color(0.08, 0.14, 0.06),
-				"arms": Color(0.12, 0.18, 0.10),
-				"hips": Color(0.23, 0.16, 0.10),
-				"legs": Color(0.18, 0.13, 0.08),
-				"boots": Color(0.15, 0.10, 0.06),
+				"torso": Color(0.20, 0.36, 0.18),
+				"torso_accent": Color(0.16, 0.28, 0.14),
+				"arms": Color(0.22, 0.34, 0.20),
+				"hips": Color(0.38, 0.28, 0.18),
+				"legs": Color(0.32, 0.24, 0.16),
+				"boots": Color(0.26, 0.18, 0.12),
 			}
 		EntityClasses.Types.Arquebusier:
 			return {
-				"torso": Color(0.10, 0.08, 0.07),
-				"torso_accent": Color(0.08, 0.06, 0.05),
-				"arms": Color(0.12, 0.10, 0.08),
-				"hips": Color(0.16, 0.11, 0.07),
-				"legs": Color(0.13, 0.10, 0.07),
-				"boots": Color(0.09, 0.06, 0.04),
+				"torso": Color(0.20, 0.18, 0.16),
+				"torso_accent": Color(0.16, 0.14, 0.12),
+				"arms": Color(0.22, 0.20, 0.18),
+				"hips": Color(0.28, 0.22, 0.16),
+				"legs": Color(0.24, 0.20, 0.16),
+				"boots": Color(0.18, 0.14, 0.10),
 			}
 		EntityClasses.Types.Pikeman:
 			return {
-				"torso": Color(0.17, 0.17, 0.19),
-				"torso_accent": Color(0.22, 0.22, 0.26),
-				"arms": Color(0.20, 0.20, 0.23),
-				"hips": Color(0.20, 0.20, 0.23),
-				"legs": Color(0.18, 0.18, 0.21),
-				"boots": Color(0.13, 0.10, 0.06),
+				"torso": Color(0.32, 0.34, 0.38),
+				"torso_accent": Color(0.40, 0.42, 0.46),
+				"arms": Color(0.36, 0.38, 0.42),
+				"hips": Color(0.36, 0.36, 0.40),
+				"legs": Color(0.30, 0.32, 0.36),
+				"boots": Color(0.22, 0.18, 0.12),
 			}
 		EntityClasses.Types.Feldprediger:
 			return {
-				"torso": Color(0.09, 0.06, 0.16),
-				"torso_accent": Color(0.14, 0.09, 0.22),
-				"arms": Color(0.15, 0.10, 0.24),
-				"hips": Color(0.15, 0.10, 0.24),
-				"legs": Color(0.12, 0.08, 0.20),
-				"boots": Color(0.12, 0.08, 0.05),
+				"torso": Color(0.18, 0.12, 0.30),
+				"torso_accent": Color(0.26, 0.18, 0.40),
+				"arms": Color(0.28, 0.20, 0.42),
+				"hips": Color(0.28, 0.20, 0.42),
+				"legs": Color(0.22, 0.16, 0.36),
+				"boots": Color(0.22, 0.16, 0.10),
 			}
 		EntityClasses.Types.Gelehrter:
 			return {
-				"torso": Color(0.16, 0.04, 0.06),
-				"torso_accent": Color(0.12, 0.03, 0.05),
-				"arms": Color(0.20, 0.06, 0.10),
-				"hips": Color(0.10, 0.08, 0.08),
-				"legs": Color(0.09, 0.06, 0.06),
-				"boots": Color(0.08, 0.05, 0.05),
+				"torso": Color(0.30, 0.10, 0.14),
+				"torso_accent": Color(0.24, 0.08, 0.12),
+				"arms": Color(0.36, 0.14, 0.20),
+				"hips": Color(0.20, 0.16, 0.16),
+				"legs": Color(0.18, 0.14, 0.14),
+				"boots": Color(0.16, 0.12, 0.10),
 			}
 		_:
 			return {
-				"torso": Color(0.42, 0.10, 0.10),
-				"torso_accent": Color(0.34, 0.08, 0.08),
-				"arms": Color(0.34, 0.08, 0.08),
-				"hips": Color(0.23, 0.15, 0.10),
-				"legs": Color(0.20, 0.13, 0.09),
-				"boots": Color(0.14, 0.09, 0.06),
+				"torso": Color(0.58, 0.18, 0.18),
+				"torso_accent": Color(0.48, 0.14, 0.14),
+				"arms": Color(0.48, 0.14, 0.14),
+				"hips": Color(0.38, 0.26, 0.18),
+				"legs": Color(0.34, 0.24, 0.16),
+				"boots": Color(0.24, 0.16, 0.10),
 			}
 
 func _make_rect(center: Vector2, w: float, h: float) -> PackedVector2Array:
