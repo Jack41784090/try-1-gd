@@ -1,8 +1,8 @@
 class_name BanditSpawner
 extends RefCounted
 
-const SPAWN_THRESHOLD := 0.5
-const SPAWN_RATE := 0.3
+const SPAWN_THRESHOLD := 0.3
+const SPAWN_RATE := 0.5
 const MAX_BANDITS_PER_LOCATION := 2
 const DISBAND_MORALE_THRESHOLD := 15.0
 const BANDIT_PROFILE_PATH := "res://resources/ai/strategic/profiles/bandit-raider.tres"
@@ -32,7 +32,7 @@ func calculate_pressure(location: Location) -> float:
 
 	var avg_satisfaction := total_satisfaction / float(people.size())
 	var peasant_ratio := float(peasant_count) / float(people.size())
-	var population_scale := clampf(float(people.size()) / 1000.0, 0.1, 2.0)
+	var population_scale := clampf(sqrt(float(people.size()) / 200.0), 0.5, 2.0)
 
 	var pressure := (100.0 - avg_satisfaction) / 100.0 * peasant_ratio * population_scale
 	return pressure

@@ -24,6 +24,10 @@ var _wealth_by_class_history: Array[Dictionary] = []
 var _total_money_history: Array[float] = []
 var _bank_printed_history: Array[float] = []
 var _bank_debt_history: Array[float] = []
+var _bandit_count_history: Array[int] = []
+var _bandit_pressure_history: Array[Dictionary] = []
+var _route_safety_history: Array[float] = []
+var _mercenary_locations_history: Array[int] = []
 
 const MAX_ECONOMY_TURNS := 50
 const LOG_INTERVAL := 5
@@ -198,6 +202,37 @@ func _record_metrics(_turn: int) -> void:
 				_food_price_history[loc_id] = []
 			(_food_price_history[loc_id] as Array).append(loc.inventory.get_price(_food_thing))
 
+	var bandit_count := 0
+	for squad in world.roaming_squads:
+		if squad.squad_role == StrategyTypes.SquadRole.BANDIT:
+			bandit_count += 1
+	_bandit_count_history.append(bandit_count)
+
+	var spawner := BanditSpawner.new()
+	var pressures: Dictionary = {}
+	for loc in world.get_economy_locations():
+		pressures[loc.location_name] = spawner.calculate_pressure(loc)
+	_bandit_pressure_history.append(pressures)
+
+	var danger_calc := RouteDangerCalculator.new()
+	var total_safety := 0.0
+	var route_count := 0
+	for loc in world.get_economy_locations():
+		if loc.connections == null:
+			continue
+		for conn in loc.connections.tt:
+			var route: Array[String] = [loc.location_id, conn.to_location_id]
+			total_safety += danger_calc.calculate_route_safety(route, world)
+			route_count += 1
+	var avg_safety := total_safety / maxf(float(route_count), 1.0)
+	_route_safety_history.append(avg_safety)
+
+	var merc_locs := 0
+	for loc in world.get_economy_locations():
+		if loc.has_activity_type(StrategyTypes.ActivityType.MERCENARY_WORK):
+			merc_locs += 1
+	_mercenary_locations_history.append(merc_locs)
+
 
 func _calculate_gini(values: Array[float]) -> float:
 	if values.is_empty():
@@ -260,6 +295,20 @@ func _print_turn_report(turn: int, ms: float) -> void:
 		print(stock_line)
 
 	print("  Moves in transit: %d" % engine.active_moves.size())
+
+	var bandit_n := _bandit_count_history[turn - 1]
+	var safety_n := _route_safety_history[turn - 1]
+	var merc_n := _mercenary_locations_history[turn - 1]
+	var pressure_dict: Dictionary = _bandit_pressure_history[turn - 1]
+	var max_pressure := 0.0
+	var max_pressure_loc := ""
+	for loc_name: String in pressure_dict:
+		var p: float = pressure_dict[loc_name]
+		if p > max_pressure:
+			max_pressure = p
+			max_pressure_loc = loc_name
+	print("  Bandits: %d  Avg Route Safety: %.3f  Merc Locations: %d  Max Pressure: %s(%.3f)" % [
+		bandit_n, safety_n, merc_n, max_pressure_loc.left(10), max_pressure])
 
 	var worst_loc := ""
 	var worst_sat := 100.0
@@ -365,6 +414,35 @@ func _print_final_analysis() -> void:
 			peak_starve_turn = i + 1
 	print("  Peak distress: %.1f%% at turn %d" % [peak_starve, peak_starve_turn])
 	print("  Final distress: %.1f%%" % _starvation_history.back())
+
+	print("")
+	print("── BANDIT SYSTEM ──")
+	var peak_bandits := 0
+	var peak_bandits_turn := 0
+	for i in range(_bandit_count_history.size()):
+		if _bandit_count_history[i] > peak_bandits:
+			peak_bandits = _bandit_count_history[i]
+			peak_bandits_turn = i + 1
+	print("  Peak bandits: %d at turn %d" % [peak_bandits, peak_bandits_turn])
+	print("  Final bandits: %d" % _bandit_count_history.back())
+	print("  Route safety: %.3f → %.3f" % [_route_safety_history.front(), _route_safety_history.back()])
+	var peak_merc := 0
+	for m in _mercenary_locations_history:
+		peak_merc = maxi(peak_merc, m)
+	print("  Peak mercenary locations: %d" % peak_merc)
+	print("  Final mercenary locations: %d" % _mercenary_locations_history.back())
+	var peak_pressure := 0.0
+	var peak_pressure_loc := ""
+	var peak_pressure_turn := 0
+	for i in range(_bandit_pressure_history.size()):
+		var pdict: Dictionary = _bandit_pressure_history[i]
+		for loc_name: String in pdict:
+			var p: float = pdict[loc_name]
+			if p > peak_pressure:
+				peak_pressure = p
+				peak_pressure_loc = loc_name
+				peak_pressure_turn = i + 1
+	print("  Peak pressure: %.3f at %s (turn %d)" % [peak_pressure, peak_pressure_loc, peak_pressure_turn])
 
 	print("")
 	print("── FOOD PRICES (turn 1 → %d) ──" % MAX_ECONOMY_TURNS)
@@ -487,3 +565,13 @@ func _detect_phenomena() -> void:
 		late_gini_trend = recent.back() - recent.front()
 		if absf(late_gini_trend) < 0.01:
 			print("  ○ EQUILIBRIUM: Gini stabilized in last %d turns (Δ%.4f)" % [window, late_gini_trend])
+
+	var peak_b := 0
+	for b in _bandit_count_history:
+		peak_b = maxi(peak_b, b)
+	if peak_b > 0:
+		print("  ⚔ BANDIT ACTIVITY: peak %d gangs roaming trade routes" % peak_b)
+		if _route_safety_history.back() < 0.8:
+			print("  ⚠ TRADE ROUTES UNSAFE: avg safety %.3f — bandits suppressing commerce" % _route_safety_history.back())
+	else:
+		print("  ○ NO BANDITS: desperation pressure never exceeded spawn threshold")

@@ -227,10 +227,12 @@ func _test_economy_tick_integration() -> void:
 
 
 func _get_first_economy_location() -> Location:
+	var best: Location = null
 	for loc in world.locations:
 		if loc.population != null and loc.population.size() > 0:
-			return loc
-	return null
+			if best == null or loc.population.size() > best.population.size():
+				best = loc
+	return best
 
 
 func _get_bandit_faction() -> Faction:
