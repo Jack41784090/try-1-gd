@@ -582,6 +582,11 @@ public partial class CsEconomyBridge : Node
             EmployerId = (string)gdPerson.Get("employer_id"),
         };
 
+        // Assign brain based on social class
+        csPerson.Brain = csPerson.SocialClass == SocialClass.Noble
+            ? new NobleBrain()
+            : CommonBrain.Instance;
+
         // Mirror inventory
         var gdInv = (Godot.Collections.Dictionary)gdPerson.Get("inventory");
         foreach (var kv in gdInv)

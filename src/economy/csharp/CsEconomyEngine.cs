@@ -25,11 +25,17 @@ public sealed class CsLocationData
     // Per-good cost basis tracking (FIFO average)
     public float[] CostBasis { get; set; }
 
+    // Price adjustment tracking: previous tick's demand/supply for gradual pricing
+    public float[] LastDemand { get; set; }
+    public float[] LastSupply { get; set; }
+
     public CsLocationData(int goodsCount)
     {
         Stocks = new float[goodsCount];
         Prices = new float[goodsCount];
         CostBasis = new float[goodsCount];
+        LastDemand = new float[goodsCount];
+        LastSupply = new float[goodsCount];
     }
 
     public float GetAvailable(int thingIdx) => Stocks[thingIdx];
@@ -77,6 +83,7 @@ public sealed class CsEconomyEngine
     private int _shipmentCounter;
     private int _goodsCount;
     private Random _rng = new();
+    private EconomyContext _brainCtx;
 
     // Travel time callback — set by the bridge to delegate to GDScript World
     public Func<int, int, int> GetTravelTimeFunc { get; set; }
@@ -86,6 +93,14 @@ public sealed class CsEconomyEngine
         Goods = goods;
         Locations = locations;
         _goodsCount = goods.Length;
+        _brainCtx = new EconomyContext
+        {
+            Bank = Bank,
+            Goods = goods,
+            NobleLoanThreshold = NobleLoanThreshold,
+            LoanAmount = LoanAmount,
+            Rng = _rng,
+        };
     }
 
     private int GetTravelTime(int fromIdx, int toIdx)
@@ -123,7 +138,7 @@ public sealed class CsEconomyEngine
     {
         var result = new CsEconomyTickResult { Turn = turn };
 
-        PhaseBankLending(turn);
+        PhasePersonDecisions(turn);
         PhaseDemand();
         PhaseContracts();
         PhaseSupplyGeneration();
@@ -454,8 +469,18 @@ public sealed class CsEconomyEngine
     internal Dictionary<string, int> _thingIdToIdx;
 
     /// <summary>Prices adjust toward demand/supply ratio, clamped to 0.5x-3x base price.</summary>
+    /// <summary>
+    /// Prices adjust gradually based on supply/demand imbalance.
+    /// When demand exceeds supply, prices creep up. When supply exceeds demand,
+    /// prices creep down. This models sticky prices — inflation lingers and
+    /// disproportionately hurts lower classes who can't stockpile.
+    /// </summary>
     private void PhasePriceUpdate()
     {
+        const float adjustRate = 0.15f;  // Max 15% price change per tick
+        const float minPriceRatio = 0.5f;
+        const float maxPriceRatio = 3.0f;
+
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
@@ -463,18 +488,56 @@ public sealed class CsEconomyEngine
             {
                 float demand = loc.Population.GetTotalDemand(gi);
                 float supply = MathF.Max(loc.Stocks[gi], 0.01f);
-                float ratio = demand / supply;
-                loc.Prices[gi] = Goods[gi].BasePrice * Math.Clamp(ratio, 0.5f, 3.0f);
+
+                // Record for next tick's history
+                loc.LastDemand[gi] = demand;
+                loc.LastSupply[gi] = supply;
+
+                float basePrice = Goods[gi].BasePrice;
+                float currentPrice = loc.Prices[gi];
+                if (currentPrice <= 0f) currentPrice = basePrice;
+
+                // Imbalance: positive = demand exceeds supply (price pressure up)
+                //            negative = supply exceeds demand (price pressure down)
+                float imbalance = (demand - supply) / MathF.Max(demand + supply, 1f);
+
+                // Goods-specific stickiness: essentials (food) adjust faster,
+                // luxuries are stickier (merchants hold prices)
+                float stickiness = Goods[gi].ThingType switch
+                {
+                    ThingType.Food => 1.2f,    // Food prices respond faster to shortage
+                    ThingType.Weapons => 0.6f, // Arms dealers hold prices
+                    ThingType.Luxury => 0.5f,  // Luxury market moves slowly
+                    _ => 1.0f,
+                };
+
+                // Gradual adjustment: price moves toward equilibrium but doesn't snap
+                float adjustment = imbalance * adjustRate * stickiness;
+                float newPrice = currentPrice * (1f + adjustment);
+
+                // Clamp within bounds relative to base price
+                float floor = basePrice * minPriceRatio;
+                float ceiling = basePrice * maxPriceRatio;
+                loc.Prices[gi] = Math.Clamp(newPrice, floor, ceiling);
             }
         }
     }
 
-    /// <summary>People buy goods from local market (wealthiest first); revenue splits to producers/merchants.</summary>
+    /// <summary>
+    /// People buy goods from local market (wealthiest first); revenue splits to producers/merchants.
+    /// Scarcity markup: as stock depletes within a tick, remaining buyers face higher effective prices.
+    /// This naturally penalizes the poor — wealthy buyers purchase at base price, late (poor) buyers
+    /// hit scarcity-inflated prices. Models how inflation disproportionately affects lower classes.
+    /// </summary>
     private void PhaseMarket()
     {
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
+            // Snapshot starting stock to calculate depletion ratio
+            float[] startingStock = new float[_goodsCount];
+            Array.Copy(loc.Stocks, startingStock, _goodsCount);
+
             var buyers = loc.Population.SortedByWealthDesc();
             for (int bi = 0; bi < buyers.Length; bi++)
             {
@@ -486,15 +549,26 @@ public sealed class CsEconomyEngine
                     float need = MathF.Max(wantQty - held, 0f);
                     if (need <= 0f) continue;
 
-                    float price = loc.GetPrice(gi);
                     float marketAvailable = loc.GetAvailable(gi);
+                    if (marketAvailable <= 0f) continue;
+
+                    // Scarcity markup: price rises as stock depletes within this tick
+                    float baseTickPrice = loc.GetPrice(gi);
+                    float depletionRatio = startingStock[gi] > 0f
+                        ? 1f - (marketAvailable / startingStock[gi])
+                        : 0f;
+                    // Up to 50% markup at full depletion, scaled by depletion squared
+                    // (gentle at first, steep when nearly empty)
+                    float scarcityMarkup = depletionRatio * depletionRatio * 0.5f;
+                    float effectivePrice = baseTickPrice * (1f + scarcityMarkup);
+
                     float buyQty = MathF.Min(need, marketAvailable);
-                    buyQty = person.CanAfford(price, buyQty);
+                    buyQty = person.CanAfford(effectivePrice, buyQty);
                     if (buyQty <= 0f) continue;
 
-                    person.Buy(gi, buyQty, price);
+                    person.Buy(gi, buyQty, effectivePrice);
                     loc.Consume(gi, buyQty);
-                    DistributeRevenue(loc, buyQty * price);
+                    DistributeRevenue(loc, buyQty * effectivePrice);
                 }
             }
             loc.Population.MarkWealthDirty();
@@ -569,17 +643,21 @@ public sealed class CsEconomyEngine
         }
     }
 
-    /// <summary>Bank issues loans to nobles below wealth threshold.</summary>
-    private void PhaseBankLending(int turn)
+    /// <summary>Each person with a brain runs their Think() — nobles evaluate loans, etc.</summary>
+    private void PhasePersonDecisions(int turn)
     {
-        if (Bank == null) return;
+        _brainCtx.CurrentTurn = turn;
+        _brainCtx.Bank = Bank;
+        _brainCtx.NobleLoanThreshold = NobleLoanThreshold;
+        _brainCtx.LoanAmount = LoanAmount;
         for (int li = 0; li < Locations.Length; li++)
         {
-            var nobles = Locations[li].Population.GetByClass(SocialClass.Noble);
-            for (int ni = 0; ni < nobles.Count; ni++)
+            var loc = Locations[li];
+            var people = loc.Population.People;
+            for (int pi = 0; pi < people.Count; pi++)
             {
-                if (Bank.ShouldIssueLoan(nobles[ni], NobleLoanThreshold, turn))
-                    Bank.IssueLoan(nobles[ni], LoanAmount, turn);
+                var person = people[pi];
+                person.Brain?.Think(person, loc, _brainCtx);
             }
         }
     }
@@ -1027,6 +1105,7 @@ public sealed class CsEconomyEngine
                     $"{loc.LocationId}_born_{TotalBirths}",
                     newClass, newJob, 0f, _goodsCount);
                 newPerson.Satisfaction = 50f;
+                newPerson.Brain = CommonBrain.Instance;
                 loc.Population.AddPerson(newPerson);
                 TotalBirths++;
             }
@@ -1056,6 +1135,7 @@ public sealed class CsEconomyEngine
                 var oldJob = p.Job;
                 p.SocialClass = SocialClass.Bourgeois;
                 p.Job = JobType.Merchant;
+                p.Brain = CommonBrain.Instance;
                 loc.Population.NotifyClassChanged(p, oldClass, oldJob);
                 TotalPromotions++;
             }

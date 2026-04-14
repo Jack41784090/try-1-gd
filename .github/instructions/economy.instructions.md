@@ -24,7 +24,26 @@ C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplie
 
 `src/economy/csharp/`: `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`.
 
-**25-phase tick lifecycle** (includes PhaseResetTurnFlags after starvation, PhaseGuildRecruit/Produce after government).
+**25-phase tick lifecycle** (PhasePersonDecisions at start, PhaseResetTurnFlags after starvation, PhaseGuildRecruit/Produce after government).
+
+## PersonBrain System
+
+`PersonBrain`, `NobleBrain`, `CommonBrain` — lightweight per-person decision-making:
+- Each `CsPerson` has nullable `Brain` field. `PhasePersonDecisions` runs all brains at tick start
+- **NobleBrain**: evaluates loan applications via weighted scoring (desperation 0.4, satisfaction 0.25, food prices 0.15, debt penalty -0.3, per-person risk tolerance from InternalId hash)
+- **CommonBrain**: shared singleton no-op for non-nobles (extensible for future peasant/merchant decisions)
+- Brains assigned on creation (factory methods, `MirrorPerson` bridge, birth) and updated on social mobility
+
+## Gradual Pricing
+
+`PhasePriceUpdate` adjusts prices incrementally (max 15%/tick) based on supply/demand imbalance:
+- Goods-specific stickiness: food 1.2× (responds faster), weapons 0.6×, luxury 0.5×
+- Location tracks `LastDemand[]`/`LastSupply[]` per good
+- Prices linger at high levels during shortages, compounding lower-class suffering
+
+## Scarcity Markup
+
+`PhaseMarket` — as stock depletes within a tick (wealthiest buy first), remaining buyers face quadratic scarcity markup (up to 50% at full depletion). Rich buyers get base price, poor buyers hit inflated prices.
 
 ## Features
 

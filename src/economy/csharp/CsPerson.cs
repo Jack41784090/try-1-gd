@@ -20,6 +20,7 @@ public sealed class CsPerson
     public int StarvationCounter { get; set; }
     public int TurnsAlive { get; set; }
     public int LastLoanTurn { get; set; } = -10;
+    public PersonBrain Brain { get; set; }
 
     // Inventory: indexed by ThingDef.Id
     private readonly float[] _inventory;
@@ -159,13 +160,25 @@ public sealed class CsPerson
     }
 
     public static CsPerson CreatePeasant(string name, int goodsCount, JobType job = JobType.Farmer)
-        => Create(name, SocialClass.Peasant, job, 5f, goodsCount);
+    {
+        var p = Create(name, SocialClass.Peasant, job, 5f, goodsCount);
+        p.Brain = CommonBrain.Instance;
+        return p;
+    }
 
     public static CsPerson CreateBourgeois(string name, int goodsCount, JobType job = JobType.Merchant)
-        => Create(name, SocialClass.Bourgeois, job, 50f, goodsCount);
+    {
+        var p = Create(name, SocialClass.Bourgeois, job, 50f, goodsCount);
+        p.Brain = CommonBrain.Instance;
+        return p;
+    }
 
     public static CsPerson CreateNoble(string name, int goodsCount)
-        => Create(name, SocialClass.Noble, JobType.Landlord, 200f, goodsCount);
+    {
+        var p = Create(name, SocialClass.Noble, JobType.Landlord, 200f, goodsCount);
+        p.Brain = new NobleBrain();
+        return p;
+    }
 
     public override string ToString()
         => $"{PersonName} ({SocialClass}, {Job})";
