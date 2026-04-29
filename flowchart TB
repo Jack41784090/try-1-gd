@@ -1,0 +1,100 @@
+flowchart TB
+    subgraph TRIGGER["⏰ Tick Trigger (every 24 game-hours)"]
+        GC["GameClock.hour_ticked"]
+        SP["StrategyPresenter._on_hour_tick()"]
+        EO["EconomyOrchestrator.tick_and_spawn_caravans()"]
+        GC --> SP -->|"hour % 24 == 0"| EO
+    end
+
+    subgraph ENGINE["C# Engine — CsEconomyEngine.Tick() — 25 Phases"]
+        direction TB
+
+        subgraph FINANCE["💰 Finance & Contracts"]
+            P1["1. PhaseBankLending\n(nobles ≤ threshold get loans)"]
+            P3["3. PhaseContracts\n(nobles commission merchants+workers)"]
+            P11["11. PhaseWages\n(contract workers paid)"]
+            P12["12. PhaseHouseholdWages\n(servants paid by nobles)"]
+            P13["13. PhaseRent\n(peasants 8%, bourgeois 4% → nobles)"]
+            P19["19. PhaseLoanRepayment\n(bank collects interest)"]
+            P20["20. PhaseGovernmentSpending\n(bank → 10% reserves → peasants)"]
+        end
+
+        subgraph PRODUCTION["⚒️ Production & Trade"]
+            P2["2. PhaseDemand\n(all persons ComputeWants)"]
+            P4["4. PhaseSupplyGeneration\n(workers produce goods)"]
+            P5["5. PhaseSpoilage\n(food decays 5%/turn)"]
+            P6["6. PhaseSubsistence\n(farmers take 1 food)"]
+            P7["7. PhaseTradeAdvance\n(in-transit shipments move)"]
+            P8["8. PhasePriceUpdate\n(location prices adjust)"]
+            P9["9. PhaseMarket\n(persons buy goods, sorted by wealth)"]
+        end
+
+        subgraph GOVERNMENT["🏛️ Government & Guilds"]
+            P14["14. PhaseGovernmentTax\n(people >10💰 pay tax%)"]
+            P15["15. PhaseGovernmentPlan\n(GovernmentBrain creates directives)"]
+            P16["16. PhaseGovernmentExecute\n(hire workers, pay wages)"]
+            P17["17. PhaseGuildRecruit\n(GuildBrain hires craftsmen)"]
+            P18["18. PhaseGuildProduce\n(consume inputs → output goods)"]
+        end
+
+        subgraph LIFECYCLE["🧬 Person Lifecycle"]
+            P10["10. PhaseConsumption\n(eat food, consume comfort goods)"]
+            P21["21. PhaseSatisfaction\n(fed: +5, hungry: -15, comfort: +2×)"]
+            P22["22. PhaseStarvation\n(5+ unfed ticks → death)"]
+            P23["23. PhaseResetTurnFlags"]
+            P24["24. PhaseBirth\n(2% if satisfaction ≥70)"]
+            P25["25. PhaseSocialMobility\n(10% peasant→bourgeois if 💰≥100)"]
+        end
+
+        P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9
+        P9 --> P10 --> P11 --> P12 --> P13 --> P14 --> P15 --> P16
+        P16 --> P17 --> P18 --> P19 --> P20 --> P21 --> P22 --> P23 --> P24 --> P25
+    end
+
+    subgraph TRADE_BRIDGE["🐫 Trade & Caravan Bridge"]
+        PD["GetPendingDemands()"]
+        AS["GetAvailableSupplies()"]
+        TM["TradeMatcher\n(greedy scoring:\nmargin×0.4 + urgency×0.6 × safety)"]
+        ATM["ApplyTradeMatches()"]
+        CB["CaravanBridge\n(spawn MERCHANT squads)"]
+        CBR["CaravanBrain\n(pathfind → deliver → idle)"]
+        RDC["RouteDangerCalculator\n(bandits reduce safety 0-1)"]
+
+        PD --> TM
+        AS --> TM
+        RDC -.->|"safety score"| TM
+        TM --> ATM --> CB --> CBR
+    end
+
+    subgraph DATA["📦 Per-Location Data"]
+        LI["LocationInventory\n(stock[6] + prices[6])"]
+        NR["NaturalResource\n(production capacity)"]
+        POP["Population\n(~7,420 persons total)"]
+        GOV["CsGovernment\n(treasury, tax_rate, directives)"]
+        GLD["CsGuild\n(specialization, workers, treasury)"]
+        SHOP["Shop\n(player-facing store)"]
+    end
+
+    subgraph PERSON["👤 CsPerson (×7,420)"]
+        direction LR
+        PS["State: money, satisfaction\nclass, job, starvationCounter"]
+        PI["inventory[6 goods]"]
+        PW["wants[6 goods]\n(recomputed each tick)"]
+    end
+
+    EO --> ENGINE
+    ENGINE -->|"exports demands/supplies"| TRADE_BRIDGE
+    TRADE_BRIDGE -->|"spawns caravans into"| WORLD
+    ENGINE -->|"SyncInventories()\nSyncBackToGdScript()"| SYNC["GDScript ↔ C# Sync"]
+
+    WORLD["World\n(locations, roaming squads,\ncontact tracker)"]
+
+    subgraph BANDITS["🏴 Bandit System"]
+        BSP["BanditSpawner\n(pressure from low satisfaction)"]
+        MD["MercenaryDemandCalculator\n(trade loss vs hire cost)"]
+        BSP -->|"spawns BANDIT squads"| WORLD
+        MD -->|"creates MERCENARY_WORK"| WORLD
+    end
+
+    ENGINE -->|"satisfaction data"| BANDITS
+    POP --> PERSON

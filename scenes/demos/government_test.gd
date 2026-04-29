@@ -112,9 +112,8 @@ func _setup_minimal_economy(with_government: bool = true, unemployed_count: int 
 
 	engine = EconomyEngine.new()
 	engine.world = world
-	engine.bank = CentralBank.new()
-	engine.bank.loan_interest_rate = 0.01
-	engine.bank.print_per_turn = 100.0
+	engine.loan_interest_rate = 0.01
+	engine.print_per_turn = 100.0
 	engine.enable_csharp()
 	world.economy_engine = engine
 
@@ -216,8 +215,7 @@ func test_budget_constraint() -> void:
 
 	engine = EconomyEngine.new()
 	engine.world = world
-	engine.bank = CentralBank.new()
-	engine.bank.print_per_turn = 100.0
+	engine.print_per_turn = 100.0
 	engine.enable_csharp()
 	world.economy_engine = engine
 

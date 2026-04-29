@@ -155,9 +155,8 @@ func _setup_economy() -> void:
 
 	var engine := EconomyEngine.new()
 	engine.world = world
-	engine.bank = CentralBank.new()
-	engine.bank.loan_interest_rate = 0.01
-	engine.bank.print_per_turn = 500.0
+	engine.loan_interest_rate = 0.01
+	engine.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 200.0
 	engine.enable_csharp()  # asserts on failure — godot-mono required

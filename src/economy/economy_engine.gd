@@ -3,7 +3,9 @@ class_name EconomyEngine
 
 var world: World
 var active_moves: Array[EconomyMove] = []
-var bank: CentralBank = null
+## Imperial bank parameters — forwarded to C# CsGovernment.IsImperial via SetupBank.
+var loan_interest_rate: float = 0.0
+var print_per_turn: float = 0.0
 var noble_loan_threshold: float = 100.0
 var loan_amount: float = 500.0
 var total_promotions: int = 0
@@ -74,8 +76,8 @@ func _setup_cs_bridge() -> void:
 	if _cs_initialized:
 		return
 	_cs_bridge.call("Setup", world)
-	if bank != null:
-		_cs_bridge.call("SetupBank", bank.loan_interest_rate, bank.print_per_turn, noble_loan_threshold, loan_amount)
+	if print_per_turn > 0.0 or loan_interest_rate > 0.0:
+		_cs_bridge.call("SetupBank", loan_interest_rate, print_per_turn, noble_loan_threshold, loan_amount)
 	_cs_initialized = true
 	Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [
 		world.get_economy_locations().size(), world.goods.size(),
