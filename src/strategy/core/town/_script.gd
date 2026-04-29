@@ -19,9 +19,6 @@ class_name Location
 
 var population: Population
 
-func has_economy() -> bool:
-	return population != null and inventory != null
-
 func is_connected_to(location_id_check: String) -> bool:
 	return get_connection_to(location_id_check) != null
 
@@ -58,9 +55,6 @@ func get_connection_to(location_id_check: String) -> TownConnection:
 			return conn
 	return null
 
-func has_shop() -> bool:
-	return shop != null and shop.items.size() > 0
-
 func has_activity_type(activity_type: StrategyTypes.ActivityType) -> bool:
 	return activity_type in available_activity_types
 
@@ -71,6 +65,18 @@ func add_activity_type(activity_type: StrategyTypes.ActivityType) -> void:
 func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
 	available_activity_types.clear()
 	available_activity_types.append_array(types)
+
+
+func has_shop() -> bool:
+	if shop == null:
+		return false
+	assert(inventory != null, "Location '%s' has a shop but no inventory — shops require economy" % location_id)
+	return true
+
+
+func has_economy() -> bool:
+	assert(inventory != null, "Location '%s' (%s) is missing inventory but economy is mandatory" % [location_id, StrategyTypes.LocationType.keys()[type]])
+	return true
 
 func add_connection(location_id_to_connect: String, _dist: float = 10.0) -> void:
 	if connections == null:

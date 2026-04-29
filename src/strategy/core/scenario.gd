@@ -115,8 +115,6 @@ func _setup_economy() -> void:
 	assert(not world.goods.is_empty(), "World requires goods array to be populated for economy")
 
 	for loc in world.locations:
-		if loc.type == StrategyTypes.LocationType.FORT:
-			continue
 		assert(loc.inventory != null, "Location '%s' (%s) requires inventory — economy is integral" % [loc.location_id, StrategyTypes.LocationType.keys()[loc.type]])
 
 	for loc in world.locations:
@@ -128,8 +126,7 @@ func _setup_economy() -> void:
 		thing_map[thing.thing_id] = thing
 
 	for loc in world.locations:
-		if loc.inventory == null:
-			continue
+		assert(loc.inventory != null, "Location '%s' (%s) requires inventory — economy is integral" % [loc.location_id, StrategyTypes.LocationType.keys()[loc.type]])
 		if loc.population_config != null:
 			loc.population = loc.population_config.build_population(loc.location_id)
 		else:

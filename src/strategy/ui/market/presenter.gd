@@ -18,11 +18,12 @@ func refresh(world: World, location: Location, visited_location_ids: Array[Strin
 
 func _build_goods_cards(world: World, location: Location) -> Array[Dictionary]:
 	var cards: Array[Dictionary] = []
-	if not location.has_economy():
-		return cards
+	assert(location.has_economy(), "Market requested for location '%s' without economy" % location.location_id)
 
 	var inv := location.inventory
+	assert(inv != null, "Market requested for location '%s' without inventory" % location.location_id)
 	var pop := location.population
+	assert(pop != null, "Market requested for location '%s' without population" % location.location_id)
 
 	for thing in world.goods:
 		var stock := inv.get_available(thing)
@@ -51,9 +52,9 @@ func _get_local_production(location: Location) -> Array[String]:
 
 
 func _build_population_data(location: Location) -> Dictionary:
-	if not location.has_economy():
-		return {}
+	assert(location.has_economy(), "Market population requested for location '%s' without economy" % location.location_id)
 	var pop := location.population
+	assert(pop != null, "Market population requested for location '%s' without population" % location.location_id)
 	return {
 		"total": pop.size(),
 		"peasants": pop.get_by_class(EconomyTypes.SocialClass.PEASANT).size(),
@@ -66,16 +67,16 @@ func _build_population_data(location: Location) -> Dictionary:
 
 func _build_rumors(world: World, current_loc: Location, visited_ids: Array[String]) -> Array[String]:
 	var rumors: Array[String] = []
-	if not current_loc.has_economy():
-		return rumors
+	assert(current_loc.has_economy(), "Market rumors requested for location '%s' without economy" % current_loc.location_id)
 
 	var diffs: Array[Dictionary] = []
 	for loc_id in visited_ids:
 		if loc_id == current_loc.location_id:
 			continue
 		var loc := world.get_location_by_id(loc_id)
-		if not loc or not loc.has_economy():
+		if loc == null:
 			continue
+		assert(loc.has_economy(), "Visited location '%s' has no economy but was used for market rumors" % loc.location_id)
 
 		for thing in world.goods:
 			var here_price := current_loc.inventory.get_price(thing)

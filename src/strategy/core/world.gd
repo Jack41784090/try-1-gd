@@ -23,8 +23,8 @@ func get_clock_display() -> String:
 func get_economy_locations() -> Array[Location]:
 	var result: Array[Location] = []
 	for loc in locations:
-		if loc.has_economy():
-			result.append(loc)
+		assert(loc.inventory != null, "Location '%s' (%s) is missing inventory but economy is mandatory" % [loc.location_id, StrategyTypes.LocationType.keys()[loc.type]])
+		result.append(loc)
 	return result
 
 var contact_tracker:

@@ -61,8 +61,9 @@ func _deliver_arrived_caravans(Bridge, idle_caravans: Array[SquadData], game_sce
 		if not squad.has_reached_destination():
 			continue
 		var dest_loc := game_scenario.world.get_location_by_id(squad.cargo.destination_id)
-		if dest_loc and dest_loc.has_economy():
-			Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
+		assert(dest_loc != null, "Caravan destination '%s' not found" % squad.cargo.destination_id)
+		assert(dest_loc.inventory != null, "Caravan destination '%s' has no inventory but economy is mandatory" % dest_loc.location_id)
+		Bridge.apply_delivery(squad, dest_loc.inventory, game_scenario.world.goods)
 		for shipment_id in _active_shipments:
 			if _active_shipments[shipment_id] == squad.squad_id:
 				_active_shipments.erase(shipment_id)

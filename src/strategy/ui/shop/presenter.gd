@@ -20,6 +20,10 @@ func bind_view(v: ShopView) -> void:
 func open(shop: Shop, _squad: SquadData, location: Location = null) -> void:
 	assert(shop != null)
 	assert(_squad != null)
+	assert(location != null, "Shop opened without location context")
+	assert(location.has_shop(), "Shop opened at location '%s' without shop" % location.location_id)
+	assert(location.inventory != null, "Shop opened at location '%s' without inventory" % location.location_id)
+	assert(location.shop == shop, "Shop opened with mismatched location shop at '%s'" % location.location_id)
 	current_shop = shop
 	squad = _squad
 	_location = location
@@ -124,9 +128,9 @@ func _get_max_affordable(thing: Thing) -> int:
 
 
 func _get_effective_price(thing: Thing) -> float:
-	if _location == null or not _location.has_economy():
-		return thing.base_price
+	assert(_location != null, "Shop presenter has no bound location")
 	var inv := _location.inventory
+	assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
 	if thing in inv.prices:
 		return inv.prices[thing]
 	return thing.base_price
@@ -149,9 +153,9 @@ func _apply_thing_effect(thing: Thing, quantity: int) -> void:
 
 
 func _consume_from_economy(thing: Thing, quantity: int) -> void:
-	if _location == null or not _location.has_economy():
-		return
+	assert(_location != null, "Shop presenter has no bound location")
 	var inv := _location.inventory
+	assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
 	inv.consume(thing, float(quantity))
 	Log.debug("Shop", "Consumed %.1f %s from economy at %s" % [float(quantity), thing.thing_name, _location.location_id])
 
@@ -164,9 +168,9 @@ func _find_thing(thing_id: String) -> Thing:
 
 
 func _get_available_stock(thing: Thing) -> int:
-	if _location == null or not _location.has_economy():
-		return 999
+	assert(_location != null, "Shop presenter has no bound location")
 	var inv := _location.inventory
+	assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
 	var in_cart: int = cart.get(thing.thing_id, 0)
 	var available := inv.get_available(thing)
 	return maxi(int(available) - in_cart, 0)

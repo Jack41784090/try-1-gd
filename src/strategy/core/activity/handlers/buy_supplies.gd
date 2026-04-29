@@ -6,14 +6,13 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var squad = context.get("squad") as SquadData
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
-
-	if not location or not location.has_shop():
-		return result
+	assert(location != null, "BUY_SUPPLIES location not found for squad '%s'" % squad.squad_id)
+	assert(location.has_shop(), "BUY_SUPPLIES at '%s' requires shop" % location.location_id)
+	assert(location.inventory != null, "BUY_SUPPLIES at '%s' requires inventory-backed economy" % location.location_id)
 
 	var shop = location.shop
 	var supply_thing: Thing = shop.get_thing_by_type(EconomyTypes.ThingType.FOOD)
-	if not supply_thing:
-		return result
+	assert(supply_thing != null, "Shop at '%s' must provide FOOD for BUY_SUPPLIES" % location.location_id)
 
 	var price: float = supply_thing.base_price
 	var desired_amount := 5
