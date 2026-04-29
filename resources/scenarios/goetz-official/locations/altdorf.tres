@@ -10,6 +10,8 @@
 [ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="8_inv"]
 [ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="10_popconfig"]
 [ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="11_popgroup"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="12_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="13_thing_script"]
 
 [sub_resource type="Resource" id="conn_altdorf_to_rothenburg"]
 script = ExtResource("2_conn")
@@ -59,13 +61,20 @@ starting_money = 5.0
 script = ExtResource("10_popconfig")
 groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_altdorf_0"), SubResource("popgroup_altdorf_1"), SubResource("popgroup_altdorf_2")])
 
+[sub_resource type="Resource" id="shop_altdorf"]
+script = ExtResource("12_shop")
+shop_name = "Altdorf Provisioner"
+items = Array[ExtResource("13_thing_script")]([ExtResource("5_food")])
+
 [resource]
 script = ExtResource("1_loc")
 location_id = "altdorf"
 location_name = "Altdorf"
+type = 2
 development = 30
 stability = 75.0
 connections = SubResource("conns_altdorf")
-available_activity_types = Array[int]([0, 3, 7])
+available_activity_types = Array[int]([0, 3, 7, 14])
+shop = SubResource("shop_altdorf")
 inventory = SubResource("inv_altdorf")
 population_config = SubResource("popconfig_altdorf")

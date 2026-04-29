@@ -10,6 +10,8 @@
 [ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="8_inv"]
 [ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="10_popconfig"]
 [ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="11_popgroup"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="12_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="13_thing_script"]
 
 [sub_resource type="Resource" id="conn_frankenhoehe_to_schwaebisch_hall"]
 script = ExtResource("2_conn")
@@ -52,13 +54,20 @@ starting_money = 20.0
 script = ExtResource("10_popconfig")
 groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_frankenhoehe_0"), SubResource("popgroup_frankenhoehe_1")])
 
+[sub_resource type="Resource" id="shop_frankenhoehe"]
+script = ExtResource("12_shop")
+shop_name = "Frankenhoehe Provisioner"
+items = Array[ExtResource("13_thing_script")]([ExtResource("5_food")])
+
 [resource]
 script = ExtResource("1_loc")
 location_id = "frankenhoehe"
 location_name = "Frankenhöhe"
+type = 2
 development = 25
 stability = 80.0
 connections = SubResource("conns_frankenhoehe")
-available_activity_types = Array[int]([0, 3, 7])
+available_activity_types = Array[int]([0, 3, 7, 14])
+shop = SubResource("shop_frankenhoehe")
 inventory = SubResource("inv_frankenhoehe")
 population_config = SubResource("popconfig_frankenhoehe")

@@ -10,6 +10,8 @@
 [ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="8_inv"]
 [ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="10_popconfig"]
 [ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="11_popgroup"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="12_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="13_thing_script"]
 
 [sub_resource type="Resource" id="conn_neckartal_to_hornberg_castle"]
 script = ExtResource("2_conn")
@@ -52,13 +54,20 @@ starting_money = 20.0
 script = ExtResource("10_popconfig")
 groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_neckartal_0"), SubResource("popgroup_neckartal_1")])
 
+[sub_resource type="Resource" id="shop_neckartal"]
+script = ExtResource("12_shop")
+shop_name = "Neckartal Provisioner"
+items = Array[ExtResource("13_thing_script")]([ExtResource("5_food")])
+
 [resource]
 script = ExtResource("1_loc")
 location_id = "neckartal"
 location_name = "Neckartal"
+type = 2
 development = 20
 stability = 70.0
 connections = SubResource("conns_neckartal")
-available_activity_types = Array[int]([0, 3, 7])
+available_activity_types = Array[int]([0, 3, 7, 14])
+shop = SubResource("shop_neckartal")
 inventory = SubResource("inv_neckartal")
 population_config = SubResource("popconfig_neckartal")
