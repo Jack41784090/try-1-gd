@@ -139,6 +139,20 @@ func _setup_economy() -> void:
 		if loc.government_config == null and loc.type != StrategyTypes.LocationType.FORT:
 			loc.government_config = _create_government_config_for(loc)
 
+	# Ensure exactly one location is flagged imperial (folded central bank lives here).
+	var imperial_count := 0
+	for loc in world.locations:
+		if loc.is_imperial:
+			imperial_count += 1
+	if imperial_count == 0:
+		for loc in world.locations:
+			if loc.type == StrategyTypes.LocationType.CITY:
+				loc.is_imperial = true
+				Log.info("Scenario", "No imperial location flagged; promoting %s (CITY) to imperial" % loc.location_id)
+				imperial_count = 1
+				break
+	assert(imperial_count == 1, "Expected exactly one imperial location, found %d" % imperial_count)
+
 	var engine := EconomyEngine.new()
 	engine.world = world
 	engine.bank = CentralBank.new()

@@ -53,6 +53,29 @@ public sealed class CsGuild
         WorkerCount = loc.Population.GetByJob(JobType.Craftsman).Count;
     }
 
+    /// <summary>
+    /// Folded GuildBrain.Evaluate. Emits Labor demand orders (one per recruitment
+    /// slot) when the guild has budget and a worker gap, then performs the actual
+    /// recruitment. Future versions can defer the recruit step to PhaseExecute and
+    /// rely purely on the matcher; for now the side-effect is applied directly to
+    /// preserve test parity.
+    /// </summary>
+    public void GenerateOrders(CsLocationData loc, EconomyContext ctx)
+    {
+        int currentWorkers = loc.Population.GetByJob(JobType.Craftsman).Count;
+        int gap = MaxWorkers - currentWorkers;
+        if (gap <= 0) return;
+        double costToRecruit = RecruitmentRate * WagePerWorker;
+        if (Treasury < costToRecruit) return;
+
+        loc.Demands.Add(CsOrder.Demand(
+            loc.Idx, ServiceType.Labor, RecruitmentRate,
+            priority: 7f, guildActor: this,
+            unitPrice: WagePerWorker, tag: "guild_recruit"));
+
+        Recruit(loc);
+    }
+
     public void Produce(CsLocationData loc, ThingDef[] goods)
     {
         ProducedLastTick = 0f;
@@ -134,14 +157,3 @@ public sealed class CsGuild
     }
 }
 
-public static class GuildBrain
-{
-    public static void Evaluate(CsGuild guild, CsLocationData loc)
-    {
-        int currentWorkers = loc.Population.GetByJob(JobType.Craftsman).Count;
-        if (currentWorkers >= guild.MaxWorkers) return;
-        double costToRecruit = guild.RecruitmentRate * guild.WagePerWorker;
-        if (guild.Treasury < costToRecruit) return;
-        guild.Recruit(loc);
-    }
-}

@@ -15,6 +15,7 @@ class_name Location
 @export var population_config: PopulationConfig
 @export var government_config: GovernmentConfig
 @export var guild_config: GuildConfig
+@export var is_imperial: bool = false
 
 var population: Population
 

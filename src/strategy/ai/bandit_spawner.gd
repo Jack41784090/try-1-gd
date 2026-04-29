@@ -16,7 +16,13 @@ static var _bandit_names: Array[String] = [
 ]
 
 
-func calculate_pressure(location: Location) -> float:
+func calculate_pressure(location: Location, world: World = null) -> float:
+	# Prefer C# Geist desperation when engine is online (post-tick).
+	if world != null and world.economy_engine != null:
+		var pressure_cs := world.economy_engine.get_bandit_pressure(location.location_id)
+		if pressure_cs > 0.0:
+			return pressure_cs
+
 	if location.population == null:
 		return 0.0
 	var people := location.population.people
@@ -130,7 +136,7 @@ func tick_spawning(world: World, bandit_faction: Faction, ai_fleet: AIFleetManag
 		if count_bandits_at_location(loc.location_id, world) >= MAX_BANDITS_PER_LOCATION:
 			continue
 
-		var pressure := calculate_pressure(loc)
+		var pressure := calculate_pressure(loc, world)
 		if not should_spawn(pressure):
 			continue
 

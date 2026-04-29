@@ -6,6 +6,12 @@ const BOUNTY_PER_WARRIOR := 25.0
 
 
 func calculate_demand(location: Location, world: World) -> float:
+	# Prefer C# government demand (computed during PhaseGenerateOrders).
+	if world != null and world.economy_engine != null:
+		var demand_cs := world.economy_engine.get_mercenary_demand(location.location_id)
+		if demand_cs > 0.0:
+			return demand_cs
+
 	var danger_calc := RouteDangerCalculator.new()
 	var trade_loss := 0.0
 

@@ -39,6 +39,9 @@ public sealed class CsLocationSnapshot
     public float GuildTreasury { get; set; }
     public float GuildProduced { get; set; }
     public int GuildWorkerCount { get; set; }
+    public float GeistDesperation { get; set; }
+    public int GeistBanditPool { get; set; }
+    public float GeistBanditSlotsEmitted { get; set; }
 }
 
 public sealed class CsEconomyTickResult

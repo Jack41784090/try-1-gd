@@ -28,7 +28,7 @@ public partial class CsEconomyBridge : Node
     // Stored reference to GDScript world for travel time queries
     private GodotObject _world;
 
-    // Bank config
+    // Bank config (now applied to the imperial government)
     private float _bankInterestRate = 0.08f;
     private float _bankPrintPerTurn = 500f;
     private float _nobleLoanThreshold = 100f;
@@ -170,8 +170,12 @@ public partial class CsEconomyBridge : Node
                 csLoc.NaturalResources.Add(csRes);
             }
 
-            // Mirror government config
+            // Mirror government config; flag imperial location based on Location.is_imperial
             var govConfig = gdLoc.Get("government_config");
+            bool isImperial = false;
+            var imperialField = gdLoc.Get("is_imperial");
+            if (imperialField.VariantType != Variant.Type.Nil)
+                isImperial = (bool)imperialField;
             if (govConfig.VariantType != Variant.Type.Nil)
             {
                 var gdGov = (Resource)govConfig;
@@ -184,6 +188,7 @@ public partial class CsEconomyBridge : Node
                     PushWeight = (float)gdGov.Get("push_weight"),
                     PullWeight = (float)gdGov.Get("pull_weight"),
                     Treasury = (double)(float)gdGov.Get("starting_treasury"),
+                    IsImperial = isImperial,
                 };
                 var priorityGoods = (Godot.Collections.Array)gdGov.Get("priority_goods");
                 for (int gi = 0; gi < priorityGoods.Count; gi++)
@@ -193,6 +198,16 @@ public partial class CsEconomyBridge : Node
                         csGov.PriorityGoodIndices.Add(goodIdx);
                 }
                 csLoc.Government = csGov;
+            }
+            else if (isImperial)
+            {
+                // Location flagged imperial but no GovernmentConfig.tres — synthesize one.
+                csLoc.Government = new CsGovernment
+                {
+                    LocationIndex = li,
+                    LocationId = csLoc.LocationId,
+                    IsImperial = true,
+                };
             }
 
             // Mirror guild config
@@ -238,7 +253,10 @@ public partial class CsEconomyBridge : Node
     }
 
     /// <summary>
-    /// Configure and enable the central bank.
+    /// Configure imperial-bank parameters. Applies them to the engine's
+    /// imperial government (the location flagged is_imperial). If no imperial
+    /// government has been declared, falls back to the first government found —
+    /// preserves legacy single-bank semantics for tests built on the old API.
     /// </summary>
     public void SetupBank(float interestRate = 0.08f, float printPerTurn = 500f,
         float nobleLoanThreshold = 100f, float loanAmount = 500f)
@@ -249,17 +267,29 @@ public partial class CsEconomyBridge : Node
         _loanAmount = loanAmount;
         _usesBank = true;
 
-        if (_engine != null)
+        if (_engine == null) return;
+
+        var imperial = _engine.ImperialGovernment;
+        if (imperial == null)
         {
-            var bank = new CsCentralBank
+            // Legacy fallback: promote first government to imperial.
+            for (int li = 0; li < _engine.Locations.Length; li++)
             {
-                LoanInterestRate = interestRate,
-                PrintPerTurn = printPerTurn,
-            };
-            _engine.Bank = bank;
-            _engine.NobleLoanThreshold = nobleLoanThreshold;
-            _engine.LoanAmount = loanAmount;
+                if (_engine.Locations[li].Government != null)
+                {
+                    _engine.Locations[li].Government.IsImperial = true;
+                    imperial = _engine.Locations[li].Government;
+                    break;
+                }
+            }
         }
+        if (imperial != null)
+        {
+            imperial.LoanInterestRate = interestRate;
+            imperial.PrintPerTurn = printPerTurn;
+        }
+        _engine.NobleLoanThreshold = nobleLoanThreshold;
+        _engine.LoanAmount = loanAmount;
     }
 
     /// <summary>
@@ -505,20 +535,68 @@ public partial class CsEconomyBridge : Node
     public int GetTotalBirths() => _engine?.TotalBirths ?? 0;
 
     /// <summary>
-    /// Get bank info as a Dictionary.
+    /// Get imperial-bank info as a Dictionary. Reads from the imperial
+    /// government's bank fields (folded from the deleted CsCentralBank).
     /// </summary>
     public Godot.Collections.Dictionary GetBankInfo()
     {
-        if (_engine?.Bank == null) return new Godot.Collections.Dictionary();
-        var bank = _engine.Bank;
+        var imperial = _engine?.ImperialGovernment;
+        if (imperial == null) return new Godot.Collections.Dictionary();
         return new Godot.Collections.Dictionary
         {
-            ["total_printed"] = bank.TotalPrinted,
-            ["reserves"] = bank.Reserves,
-            ["total_interest_collected"] = bank.TotalInterestCollected,
-            ["active_loans"] = bank.ActiveLoans.Count,
-            ["outstanding"] = bank.GetTotalOutstanding(),
+            ["total_printed"] = imperial.TotalPrinted,
+            ["reserves"] = imperial.Reserves,
+            ["total_interest_collected"] = imperial.TotalInterestCollected,
+            ["active_loans"] = imperial.ActiveLoans.Count,
+            ["outstanding"] = imperial.GetTotalOutstanding(),
+            ["imperial_location_id"] = imperial.LocationId,
         };
+    }
+
+    /// <summary>
+    /// Geist info per location: desperation, bandit pool, last emission.
+    /// GDScript bandit_spawner reads this for spawn pressure.
+    /// </summary>
+    public Godot.Collections.Dictionary GetGeistInfo(string locationId)
+    {
+        if (_engine == null) return new Godot.Collections.Dictionary();
+        if (!_locationIdToIdx.TryGetValue(locationId, out int idx)) return new Godot.Collections.Dictionary();
+        var geist = _engine.Locations[idx].Geist;
+        if (geist == null) return new Godot.Collections.Dictionary();
+        return new Godot.Collections.Dictionary
+        {
+            ["desperation"] = geist.Desperation,
+            ["smoothed_desperation"] = geist.SmoothedDesperation,
+            ["bandit_pool_size"] = geist.BanditPoolSize,
+            ["bandit_affinity"] = geist.BanditAffinity,
+            ["cultural_cohesion"] = geist.CulturalCohesion,
+            ["last_bandit_slots_emitted"] = geist.LastBanditSlotsEmitted,
+            ["last_spawn_recommendation"] = geist.LastSpawnRecommendation,
+        };
+    }
+
+    /// <summary>
+    /// Bandit pressure (0..1) for the given location, derived from Geist desperation.
+    /// Replaces GDScript BanditSpawner.calculate_pressure for the pre-spawn check.
+    /// </summary>
+    public float GetBanditPressure(string locationId)
+    {
+        if (_engine == null) return 0f;
+        if (!_locationIdToIdx.TryGetValue(locationId, out int idx)) return 0f;
+        var geist = _engine.Locations[idx].Geist;
+        return geist?.Desperation ?? 0f;
+    }
+
+    /// <summary>
+    /// Mercenary-work demand scalar for the given location, derived from
+    /// the government's last GenerateOrders pass.
+    /// </summary>
+    public float GetMercenaryDemand(string locationId)
+    {
+        if (_engine == null) return 0f;
+        if (!_locationIdToIdx.TryGetValue(locationId, out int idx)) return 0f;
+        var gov = _engine.Locations[idx].Government;
+        return gov?.LastMercenaryDemand ?? 0f;
     }
 
     public Godot.Collections.Array GetGovernmentInfo()
@@ -582,10 +660,7 @@ public partial class CsEconomyBridge : Node
             EmployerId = (string)gdPerson.Get("employer_id"),
         };
 
-        // Assign brain based on social class
-        csPerson.Brain = csPerson.SocialClass == SocialClass.Noble
-            ? new NobleBrain()
-            : CommonBrain.Instance;
+        // (Brain field removed: per-class decision logic now lives on CsPerson directly.)
 
         // Mirror inventory
         var gdInv = (Godot.Collections.Dictionary)gdPerson.Get("inventory");
@@ -630,6 +705,9 @@ public partial class CsEconomyBridge : Node
                 ["guild_treasury"] = snap.GuildTreasury,
                 ["guild_produced"] = snap.GuildProduced,
                 ["guild_worker_count"] = snap.GuildWorkerCount,
+                ["geist_desperation"] = snap.GeistDesperation,
+                ["geist_bandit_pool"] = snap.GeistBanditPool,
+                ["geist_bandit_slots_emitted"] = snap.GeistBanditSlotsEmitted,
             };
             var stocksDict = new Godot.Collections.Dictionary();
             var pricesDict = new Godot.Collections.Dictionary();

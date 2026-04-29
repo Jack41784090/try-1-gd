@@ -45,6 +45,21 @@ func get_guild_info() -> Dictionary:
 		return {}
 	return _cs_bridge.call("GetGuildInfo") as Dictionary
 
+func get_geist_info(location_id: String) -> Dictionary:
+	if _cs_bridge == null:
+		return {}
+	return _cs_bridge.call("GetGeistInfo", location_id) as Dictionary
+
+func get_bandit_pressure(location_id: String) -> float:
+	if _cs_bridge == null:
+		return 0.0
+	return _cs_bridge.call("GetBanditPressure", location_id) as float
+
+func get_mercenary_demand(location_id: String) -> float:
+	if _cs_bridge == null:
+		return 0.0
+	return _cs_bridge.call("GetMercenaryDemand", location_id) as float
+
 func enable_csharp() -> void:
 	if _cs_bridge != null:
 		return

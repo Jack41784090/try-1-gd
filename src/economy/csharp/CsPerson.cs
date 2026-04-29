@@ -2,6 +2,24 @@ using System;
 
 namespace Condor.Economy;
 
+/// <summary>
+/// Shared context passed to actor.GenerateOrders during PhaseGenerateOrders.
+/// Carries engine-wide state without exposing the entire engine to actors.
+/// </summary>
+public sealed class EconomyContext
+{
+    public int CurrentTurn { get; set; }
+    public CsGovernment ImperialGovernment { get; set; }
+    public ThingDef[] Goods { get; set; }
+    public float NobleLoanThreshold { get; set; }
+    public float LoanAmount { get; set; }
+    public Random Rng { get; set; }
+}
+
+/// <summary>
+/// A person in the economy. Folds the previous PersonBrain hierarchy into
+/// per-class GenerateOrders methods on this type — no separate brain factory.
+/// </summary>
 public sealed class CsPerson
 {
     private static int _nextId;
@@ -20,7 +38,6 @@ public sealed class CsPerson
     public int StarvationCounter { get; set; }
     public int TurnsAlive { get; set; }
     public int LastLoanTurn { get; set; } = -10;
-    public PersonBrain Brain { get; set; }
 
     // Inventory: indexed by ThingDef.Id
     private readonly float[] _inventory;
@@ -105,7 +122,6 @@ public sealed class CsPerson
                     break;
             }
 
-            // Apply price elasticity if prices are available
             if (locationPrices != null && baseWant > 0f && thing.BasePrice > 0f)
             {
                 float currentPrice = locationPrices[i];
@@ -145,6 +161,96 @@ public sealed class CsPerson
         return affordable;
     }
 
+    /// <summary>
+    /// Per-tick decision-making, dispatched by social class. Replaces the
+    /// previous PersonBrain hierarchy. Emits intangible-service orders into
+    /// the location order book (loc.Demands / loc.Supplies).
+    /// </summary>
+    public void GenerateOrders(CsLocationData loc, EconomyContext ctx)
+    {
+        switch (SocialClass)
+        {
+            case SocialClass.Noble:
+                GenerateNobleOrders(loc, ctx);
+                break;
+            case SocialClass.Peasant:
+                GeneratePeasantOrders(loc, ctx);
+                break;
+            // Bourgeois currently has no service orders.
+        }
+    }
+
+    /// <summary>
+    /// Folded NobleBrain.EvaluateLoanApplication. Emits a Loan demand order
+    /// when scoring exceeds the noble's stable risk threshold.
+    /// </summary>
+    private void GenerateNobleOrders(CsLocationData loc, EconomyContext ctx)
+    {
+        if (ctx.ImperialGovernment == null) return;
+
+        const int LoanCooldownTurns = 5;
+        if (ctx.CurrentTurn - LastLoanTurn < LoanCooldownTurns) return;
+
+        float moneyRatio = Money / MathF.Max(ctx.NobleLoanThreshold, 1f);
+        if (moneyRatio >= 1.5f) return;
+
+        float score = 0f;
+        float desperation = 1f - Math.Clamp(moneyRatio, 0f, 1f);
+        score += desperation * 0.4f;
+
+        float satisfactionPressure = 1f - Math.Clamp(Satisfaction / 100f, 0f, 1f);
+        score += satisfactionPressure * 0.25f;
+
+        float foodPressure = 0f;
+        for (int gi = 0; gi < ctx.Goods.Length; gi++)
+        {
+            if (ctx.Goods[gi].ThingType != ThingType.Food) continue;
+            float priceRatio = loc.Prices[gi] / MathF.Max(ctx.Goods[gi].BasePrice, 0.01f);
+            foodPressure = Math.Clamp((priceRatio - 1f) * 0.5f, 0f, 1f);
+            break;
+        }
+        score += foodPressure * 0.15f;
+
+        float existingDebt = 0f;
+        foreach (var loan in ctx.ImperialGovernment.ActiveLoans)
+        {
+            if (loan.Debtor.InternalId == InternalId)
+                existingDebt += loan.TotalOwed;
+        }
+        float debtPenalty = Math.Clamp(existingDebt / (ctx.LoanAmount * 2f), 0f, 1f);
+        score -= debtPenalty * 0.3f;
+
+        // Stable per-person risk tolerance (deterministic from id)
+        float riskTolerance = ((InternalId * 2654435761u) & 0xFF) / 255f;
+        float threshold = 0.3f + (1f - riskTolerance) * 0.3f;
+
+        if (score >= threshold)
+        {
+            loc.Demands.Add(CsOrder.Demand(
+                loc.Idx, ServiceType.Loan, ctx.LoanAmount,
+                priority: 3f, personActor: this,
+                unitPrice: ctx.ImperialGovernment.LoanInterestRate,
+                tag: "noble_loan_application"));
+        }
+    }
+
+    /// <summary>
+    /// Desperate peasants emit BanditSlot demand (willing to abandon the local
+    /// economy and join banditry). Materialization happens via Geist's pool
+    /// growth — this signal mostly aggregates to BanditPoolSize during execute.
+    /// </summary>
+    private void GeneratePeasantOrders(CsLocationData loc, EconomyContext ctx)
+    {
+        if (Satisfaction > 30f) return;
+        if (loc.Geist == null) return;
+
+        // Single slot demand per desperate peasant
+        loc.Demands.Add(CsOrder.Demand(
+            loc.Idx, ServiceType.BanditSlot, 1f,
+            priority: 3f, personActor: this,
+            tag: "peasant_to_bandit"));
+    }
+
     public static CsPerson Create(string name, SocialClass socialClass, JobType job, float money, int goodsCount)
     {
         var p = new CsPerson(goodsCount)
@@ -160,25 +266,13 @@ public sealed class CsPerson
     }
 
     public static CsPerson CreatePeasant(string name, int goodsCount, JobType job = JobType.Farmer)
-    {
-        var p = Create(name, SocialClass.Peasant, job, 5f, goodsCount);
-        p.Brain = CommonBrain.Instance;
-        return p;
-    }
+        => Create(name, SocialClass.Peasant, job, 5f, goodsCount);
 
     public static CsPerson CreateBourgeois(string name, int goodsCount, JobType job = JobType.Merchant)
-    {
-        var p = Create(name, SocialClass.Bourgeois, job, 50f, goodsCount);
-        p.Brain = CommonBrain.Instance;
-        return p;
-    }
+        => Create(name, SocialClass.Bourgeois, job, 50f, goodsCount);
 
     public static CsPerson CreateNoble(string name, int goodsCount)
-    {
-        var p = Create(name, SocialClass.Noble, JobType.Landlord, 200f, goodsCount);
-        p.Brain = new NobleBrain();
-        return p;
-    }
+        => Create(name, SocialClass.Noble, JobType.Landlord, 200f, goodsCount);
 
     public override string ToString()
         => $"{PersonName} ({SocialClass}, {Job})";

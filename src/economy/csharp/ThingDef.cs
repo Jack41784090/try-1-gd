@@ -20,6 +20,7 @@ public sealed class ThingDef
     public float BasePrice { get; }
     public RecipeInput[] Inputs { get; set; } = System.Array.Empty<RecipeInput>();
     public float Elasticity { get; set; }
+    public ThingCategory Category { get; set; } = ThingCategory.Good;
 
     public ThingDef(int id, string thingId, string thingName, ThingType thingType, float basePrice)
     {
