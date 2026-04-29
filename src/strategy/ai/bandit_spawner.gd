@@ -17,11 +17,11 @@ static var _bandit_names: Array[String] = [
 
 
 func calculate_pressure(location: Location, world: World = null) -> float:
-	# Prefer C# Geist desperation when engine is online (post-tick).
-	if world != null and world.economy_engine != null:
-		var pressure_cs := world.economy_engine.get_bandit_pressure(location.location_id)
-		if pressure_cs > 0.0:
-			return pressure_cs
+	assert(world != null, "Bandit pressure calculation requires world context")
+	assert(world.economy_engine != null, "Bandit pressure calculation requires initialized economy engine")
+	var pressure_cs := world.economy_engine.get_bandit_pressure(location.location_id)
+	if pressure_cs > 0.0:
+		return pressure_cs
 
 	if location.population == null:
 		return 0.0
