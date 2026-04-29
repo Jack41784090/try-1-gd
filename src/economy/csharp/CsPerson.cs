@@ -163,11 +163,14 @@ public sealed class CsPerson
 
     /// <summary>
     /// Per-tick decision-making, dispatched by social class. Replaces the
-    /// previous PersonBrain hierarchy. Emits intangible-service orders into
-    /// the location order book (loc.Demands / loc.Supplies).
+    /// previous PersonBrain hierarchy. Recomputes price-elastic wants first
+    /// (the brain owns its own want-formation), then emits intangible-service
+    /// orders into the location order book (loc.Demands / loc.Supplies).
     /// </summary>
     public void GenerateOrders(CsLocationData loc, EconomyContext ctx)
     {
+        ComputeWants(ctx.Goods, loc.Prices);
+
         switch (SocialClass)
         {
             case SocialClass.Noble:

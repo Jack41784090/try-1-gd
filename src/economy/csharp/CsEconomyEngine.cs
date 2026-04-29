@@ -78,15 +78,8 @@ public sealed class CsNaturalResource
 /// High-performance C# economy engine. All hot-path computation uses flat
 /// arrays indexed by ThingDef.Id and location index, avoiding Dictionary overhead.
 ///
-/// Tick pipeline (5 named phases, replacing the old 25-method ordering):
-///   1. PhaseSystem        — TradeAdvance, Spoilage, PriceUpdate, ClearOrderBook
-///   2. PhaseGenerateOrders — Person/Government/Geist/Guild emit Supply/Demand;
-///                            NaturalResource production also runs here
-///   3. PhaseMatchOrders    — Subsistence first, then priority-sorted services;
-///                            goods continue through the legacy market path
-///   4. PhaseExecute        — Goods market (wealth-sorted), consumption, wages
-///   5. PhasePostUpdate     — Satisfaction, Starvation, ResetTurnFlags, Births,
-///                            SocialMobility, Geist.UpdateState
+/// Tick pipeline (flat — no wrapper phases). Each step runs once per tick
+/// in this order. Service-order matching is delegated to CsOrderMatcher.
 /// </summary>
 public sealed class CsEconomyEngine
 {
@@ -106,6 +99,7 @@ public sealed class CsEconomyEngine
     private int _goodsCount;
     private Random _rng = new();
     private EconomyContext _ctx;
+    private readonly CsOrderMatcher _orderMatcher = new();
 
     public Func<int, int, int> GetTravelTimeFunc { get; set; }
 
@@ -182,30 +176,62 @@ public sealed class CsEconomyEngine
         _ctx.LoanAmount = LoanAmount;
         _ctx.ImperialGovernment = ImperialGovernment;
 
-        PhaseSystem(result);
-        PhaseGenerateOrders(turn);
-        PhaseMatchOrders(result);
-        PhaseExecute(result);
-        PhasePostUpdate(result);
+        // === System: trade advance, spoilage, price update, order-book clear ===
+        AdvanceTradeMoves(result);
+        SpoilFood();
+        UpdatePrices();
+        for (int li = 0; li < Locations.Length; li++)
+            Locations[li].ClearOrderBook();
+
+        // === GenerateOrders: actors emit Supply/Demand; production runs ===
+        for (int li = 0; li < Locations.Length; li++)
+        {
+            var loc = Locations[li];
+            var people = loc.Population.People;
+            for (int pi = 0; pi < people.Count; pi++)
+                people[pi].GenerateOrders(loc, _ctx);
+            loc.Government?.GenerateOrders(loc, _ctx);
+            loc.Guild?.GenerateOrders(loc, _ctx);
+            loc.Geist?.GenerateOrders(loc, _ctx);
+            ProduceFromNaturalResources(loc);
+        }
+
+        // === MatchOrders: subsistence then priority-sorted service matching ===
+        PhaseSubsistence();
+        for (int li = 0; li < Locations.Length; li++)
+            _orderMatcher.Match(Locations[li], _ctx);
+
+        // === Execute: goods market, consumption, wages, government, guild, bank ===
+        PhaseContracts();
+        PhaseMarket();
+        PhaseConsumption();
+        PhaseWages();
+        PhaseHouseholdWages();
+        PhaseRent();
+        PhaseGovernmentTax();
+        PhaseGovernmentExecuteDirectives();
+        PhaseGuildProduce();
+        ImperialGovernment?.CollectInterestAndRepayments();
+        PhaseImperialSpending();
+
+        // === PostUpdate: satisfaction, deaths, births, mobility, geist ===
+        PhaseSatisfaction();
+        PhaseStarvation(result);
+        PhaseResetTurnFlags();
+        PhaseBirth(result);
+        PhaseSocialMobility();
+        for (int li = 0; li < Locations.Length; li++)
+            Locations[li].Geist?.UpdateState(Locations[li], Goods);
 
         BuildSnapshots(result);
         return result;
     }
 
     // -----------------------------------------------------------------------
-    // PHASE 1: System — trade advance, spoilage, price update, order-book clear
+    // System helpers
     // -----------------------------------------------------------------------
 
-    private void PhaseSystem(CsEconomyTickResult result)
-    {
-        PhaseTradeAdvance(result);
-        PhaseSpoilage();
-        PhasePriceUpdate();
-        for (int li = 0; li < Locations.Length; li++)
-            Locations[li].ClearOrderBook();
-    }
-
-    private void PhaseTradeAdvance(CsEconomyTickResult result)
+    private void AdvanceTradeMoves(CsEconomyTickResult result)
     {
         var stillActive = new List<CsEconomyMove>();
         for (int i = 0; i < ActiveMoves.Count; i++)
@@ -226,7 +252,7 @@ public sealed class CsEconomyEngine
         ActiveMoves.AddRange(stillActive);
     }
 
-    private void PhaseSpoilage()
+    private void SpoilFood()
     {
         const float spoilageRate = 0.05f;
         for (int li = 0; li < Locations.Length; li++)
@@ -242,7 +268,7 @@ public sealed class CsEconomyEngine
         }
     }
 
-    private void PhasePriceUpdate()
+    private void UpdatePrices()
     {
         const float adjustRate = 0.15f;
         const float minPriceRatio = 0.5f;
@@ -274,48 +300,6 @@ public sealed class CsEconomyEngine
                 float newPrice = currentPrice * (1f + imbalance * adjustRate * stickiness);
                 loc.Prices[gi] = Math.Clamp(newPrice, basePrice * minPriceRatio, basePrice * maxPriceRatio);
             }
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // PHASE 2: GenerateOrders — actors emit Supply/Demand; production runs
-    // -----------------------------------------------------------------------
-
-    private void PhaseGenerateOrders(int turn)
-    {
-        // Re-compute wants first so brains see current prices
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var people = loc.Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-                people[pi].ComputeWants(Goods, loc.Prices);
-        }
-
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-
-            // Person decisions (folded brain)
-            var people = loc.Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-                people[pi].GenerateOrders(loc, _ctx);
-
-            // Government planning + mercenary demand + (imperial) loan supply
-            if (loc.Government != null)
-                loc.Government.GenerateOrders(loc, _ctx);
-
-            // Guild recruitment / labor demand (folded GuildBrain)
-            if (loc.Guild != null)
-                loc.Guild.GenerateOrders(loc, _ctx);
-
-            // Geist emits BanditSlot supply
-            if (loc.Geist != null)
-                loc.Geist.GenerateOrders(loc, _ctx);
-
-            // NaturalResource production: directly produces goods supply (no order)
-            // Side-effect on stock; matches old PhaseSupplyGeneration behavior.
-            ProduceFromNaturalResources(loc);
         }
     }
 
@@ -377,30 +361,8 @@ public sealed class CsEconomyEngine
     }
 
     // -----------------------------------------------------------------------
-    // PHASE 3: MatchOrders — service order book, priority-sorted matching
+    // MatchOrders helpers
     // -----------------------------------------------------------------------
-
-    private void PhaseMatchOrders(CsEconomyTickResult result)
-    {
-        // Subsistence runs first (farmer self-feed) — direct, no order book.
-        PhaseSubsistence();
-
-        // Service matching: per-location, sort demands desc by priority,
-        // walk supplies looking for service-type matches, fulfill greedily.
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            if (loc.Demands.Count == 0) continue;
-            loc.Demands.Sort((a, b) => b.Priority.CompareTo(a.Priority));
-
-            for (int di = 0; di < loc.Demands.Count; di++)
-            {
-                var demand = loc.Demands[di];
-                if (demand.Quantity <= 0f) continue;
-                FulfillServiceDemand(loc, demand);
-            }
-        }
-    }
 
     private void PhaseSubsistence()
     {
@@ -426,78 +388,9 @@ public sealed class CsEconomyEngine
         }
     }
 
-    private void FulfillServiceDemand(CsLocationData loc, CsOrder demand)
-    {
-        for (int si = 0; si < loc.Supplies.Count; si++)
-        {
-            var supply = loc.Supplies[si];
-            if (supply.Service != demand.Service) continue;
-            if (supply.Quantity <= 0f) continue;
-
-            float matched = MathF.Min(demand.Quantity, supply.Quantity);
-            ExecuteServiceMatch(loc, demand, supply, matched);
-            demand.Quantity -= matched;
-            supply.Quantity -= matched;
-
-            if (demand.Quantity <= 0f) break;
-        }
-    }
-
-    private void ExecuteServiceMatch(CsLocationData loc, CsOrder demand, CsOrder supply, float qty)
-    {
-        switch (demand.Service)
-        {
-            case ServiceType.Loan:
-                ExecuteLoanMatch(demand, supply, qty);
-                break;
-            case ServiceType.BanditSlot:
-                // Aggregating into Geist's bandit pool — actual squad spawn is
-                // GDScript responsibility (BanditSpawner reads pool size).
-                if (supply.GeistActor != null)
-                    supply.GeistActor.BanditPoolSize += (int)MathF.Ceiling(qty);
-                break;
-            case ServiceType.Labor:
-                // Hiring side-effect already applied in Government.GenerateOrders /
-                // Guild.GenerateOrders for parity with old behavior. Order is
-                // recorded for diagnostics only.
-                break;
-            case ServiceType.MercenaryWork:
-                // Materialization is GDScript side (MercenaryDemandCalculator +
-                // MercenaryWorkHandler). Order recorded for export.
-                break;
-            case ServiceType.Subsistence:
-                // Handled directly in PhaseSubsistence.
-                break;
-        }
-    }
-
-    private void ExecuteLoanMatch(CsOrder demand, CsOrder supply, float qty)
-    {
-        var imperial = supply.GovernmentActor;
-        var noble = demand.PersonActor;
-        if (imperial == null || noble == null) return;
-        if (!imperial.IsImperial) return;
-        imperial.IssueLoan(noble, qty, _ctx.CurrentTurn);
-    }
-
     // -----------------------------------------------------------------------
-    // PHASE 4: Execute — goods market, consumption, wages, government/guild
+    // Execute helpers (each called once from Tick — retained for navigation)
     // -----------------------------------------------------------------------
-
-    private void PhaseExecute(CsEconomyTickResult result)
-    {
-        PhaseContracts();
-        PhaseMarket();
-        PhaseConsumption();
-        PhaseWages();
-        PhaseHouseholdWages();
-        PhaseRent();
-        PhaseGovernmentTax();
-        PhaseGovernmentExecuteDirectives();
-        PhaseGuildProduce();
-        PhaseLoanRepayment();
-        PhaseImperialSpending();
-    }
 
     private void PhaseMarket()
     {
@@ -879,12 +772,6 @@ public sealed class CsEconomyEngine
         }
     }
 
-    private void PhaseLoanRepayment()
-    {
-        var imperial = ImperialGovernment;
-        imperial?.CollectInterestAndRepayments();
-    }
-
     private void PhaseImperialSpending()
     {
         var imperial = ImperialGovernment;
@@ -902,22 +789,8 @@ public sealed class CsEconomyEngine
     }
 
     // -----------------------------------------------------------------------
-    // PHASE 5: PostUpdate — satisfaction, deaths, births, mobility, geist
+    // PostUpdate helpers (each called once from Tick — retained for navigation)
     // -----------------------------------------------------------------------
-
-    private void PhasePostUpdate(CsEconomyTickResult result)
-    {
-        PhaseSatisfaction();
-        PhaseStarvation(result);
-        PhaseResetTurnFlags();
-        PhaseBirth(result);
-        PhaseSocialMobility();
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            loc.Geist?.UpdateState(loc, Goods);
-        }
-    }
 
     private void PhaseSatisfaction()
     {
