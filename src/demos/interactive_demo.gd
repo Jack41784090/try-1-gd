@@ -335,15 +335,13 @@ func _cmd_look():
 	_print_line("    %s" % ", ".join(activities))
 
 	if loc.has_shop():
+		assert(loc.inventory != null, "Shop location '%s' is missing inventory" % loc.location_id)
+		var inv := loc.inventory
 		_print_line("")
 		_print_line("  --- Shop: %s ---" % loc.shop.shop_name)
 		for item in loc.shop.items:
-			var price := item.base_price
-			if loc.inventory and loc.inventory.prices.has(item):
-				price = loc.inventory.prices[item]
-			var stock_str := ""
-			if loc.inventory and loc.inventory.stocks.has(item):
-				stock_str = " (stock: %.0f)" % loc.inventory.stocks[item]
+			var price: float = inv.prices[item] if inv.prices.has(item) else item.base_price
+			var stock_str := " (stock: %.0f)" % inv.stocks[item] if inv.stocks.has(item) else ""
 			_print_line("    %s — %.1f gold%s" % [item.thing_name, price, stock_str])
 
 	var squads_here := world.get_squads_at_location(loc_id)
@@ -577,25 +575,22 @@ func _cmd_notifications():
 func _cmd_economy():
 	_print_separator()
 	_print_line("=== Economy Overview ===")
-	if world.economy_engine == null:
-		_print_line("  No economy engine active.")
-		_print_separator()
-		return
+	assert(world.economy_engine != null, "Economy command requires initialized world.economy_engine")
 
 	for loc in world.get_economy_locations():
 		var pop_count := loc.population.size() if loc.population else 0
 		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
 		var food_stock := 0.0
 		var stocks_str := ""
-		if loc.inventory:
-			for thing in loc.inventory.stocks:
-				var amt = loc.inventory.stocks[thing]
-				if amt > 0.1:
-					var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
-					stocks_str += "    %s: %.0f (%.1fg)" % [thing.thing_name, amt, price]
-					stocks_str += "\n"
-				if thing.thing_type == EconomyTypes.ThingType.FOOD:
-					food_stock = amt
+		assert(loc.inventory != null, "Economy command found location '%s' without inventory" % loc.location_id)
+		for thing in loc.inventory.stocks:
+			var amt = loc.inventory.stocks[thing]
+			if amt > 0.1:
+				var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
+				stocks_str += "    %s: %.0f (%.1fg)" % [thing.thing_name, amt, price]
+				stocks_str += "\n"
+			if thing.thing_type == EconomyTypes.ThingType.FOOD:
+				food_stock = amt
 		_print_line("  %s — Pop:%d Sat:%.0f Food:%.0f" % [
 			loc.location_name, pop_count, avg_sat, food_stock])
 		if not stocks_str.is_empty():
@@ -1005,10 +1000,7 @@ func _cmd_god_lock(target_id: String):
 func _cmd_god_economy():
 	_print_separator()
 	_print_line("=== GOD: Full Economy ===")
-	if world.economy_engine == null:
-		_print_line("  No economy engine.")
-		_print_separator()
-		return
+	assert(world.economy_engine != null, "god_economy command requires initialized world.economy_engine")
 	var engine = world.economy_engine
 	_print_line("  Hour: %d | Deaths: %d | Births: %d | Promotions: %d" % [
 		world.current_hour, engine.total_deaths, engine.total_births, engine.total_promotions])
@@ -1019,11 +1011,11 @@ func _cmd_god_economy():
 		var pop_count := loc.population.size() if loc.population else 0
 		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
 		_print_line("  --- %s (pop:%d sat:%.0f) ---" % [loc.location_name, pop_count, avg_sat])
-		if loc.inventory:
-			for thing in loc.inventory.stocks:
-				var amt = loc.inventory.stocks[thing]
-				var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
-				_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
+		assert(loc.inventory != null, "god_economy found location '%s' without inventory" % loc.location_id)
+		for thing in loc.inventory.stocks:
+			var amt = loc.inventory.stocks[thing]
+			var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
+			_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
 		if loc.natural_resources and loc.natural_resources.size() > 0:
 			for resource in loc.natural_resources:
 				var thing_name = resource.thing.thing_name if resource.thing else "?"

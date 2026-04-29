@@ -270,18 +270,17 @@ func _log_squad_state(tag: String):
 
 func _log_economy_state(tag: String):
 	var world = presenter.game_scenario.world
-	if world.economy_engine == null:
-		return
+	assert(world.economy_engine != null, "AIActDemo requires initialized economy engine")
 	Log.info("AIActDemo", "[%s] --- Economy State ---" % tag)
 	for loc in world.get_economy_locations():
 		var pop_count := loc.population.size() if loc.population else 0
 		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
 		var food_stock := 0.0
-		if loc.inventory:
-			for thing in loc.inventory.stocks:
-				if thing.thing_type == EconomyTypes.ThingType.FOOD:
-					food_stock = loc.inventory.stocks[thing]
-					break
+		assert(loc.inventory != null, "AIActDemo economy location '%s' missing inventory" % loc.location_id)
+		for thing in loc.inventory.stocks:
+			if thing.thing_type == EconomyTypes.ThingType.FOOD:
+				food_stock = loc.inventory.stocks[thing]
+				break
 		var fed_ratio := food_stock / maxf(pop_count, 1.0)
 		Log.info("AIActDemo", "  %s: Pop=%d Sat=%.0f Food=%.0f (%.1f turns)" % [
 			loc.location_name, pop_count, avg_sat, food_stock, fed_ratio])
