@@ -58,7 +58,13 @@ public sealed class CsOrderMatcher
                 }
             case ServiceType.BanditSlot:
                 if (supply.GeistActor != null)
-                    supply.GeistActor.BanditPoolSize += (int)MathF.Ceiling(qty);
+                {
+                    int growth = (int)MathF.Ceiling(qty);
+                    supply.GeistActor.BanditPoolSize += growth;
+                    Godot.GD.Print(
+                        $"[OrderMatcher] BanditSlot match: pool +{growth} at " +
+                        $"{supply.GeistActor.LocationId} (total={supply.GeistActor.BanditPoolSize})");
+                }
                 break;
             case ServiceType.Labor:
             case ServiceType.MercenaryWork:

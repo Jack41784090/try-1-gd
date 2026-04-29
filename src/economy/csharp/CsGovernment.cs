@@ -40,6 +40,7 @@ public sealed class CsGovernment
     public float PrintMoney(float amount)
     {
         TotalPrinted += amount;
+        Godot.GD.Print($"[Bank] Print {amount:F0} (total printed={TotalPrinted:F0})");
         return amount;
     }
 
@@ -53,6 +54,9 @@ public sealed class CsGovernment
         debtor.LastLoanTurn = currentTurn;
         var loan = CsLoan.Create(debtor, amount, LoanInterestRate);
         ActiveLoans.Add(loan);
+        Godot.GD.Print(
+            $"[Bank] Loan {amount:F0} -> {debtor.PersonName} " +
+            $"(reserves={fromReserves:F0} + printed={toPrint:F0}, rate={LoanInterestRate:P1}, active={ActiveLoans.Count})");
         return loan;
     }
 
@@ -60,6 +64,7 @@ public sealed class CsGovernment
     {
         if (!IsImperial) return;
         var completed = new List<CsLoan>();
+        float totalCollected = 0f;
         foreach (var loan in ActiveLoans)
         {
             loan.AccrueInterest();
@@ -71,11 +76,18 @@ public sealed class CsGovernment
                 loan.Debtor.Money -= paid;
                 Reserves += paid;
                 TotalInterestCollected += paid;
+                totalCollected += paid;
             }
             if (loan.IsPaidOff()) completed.Add(loan);
         }
         foreach (var loan in completed)
             ActiveLoans.Remove(loan);
+        if (totalCollected > 0f || completed.Count > 0)
+        {
+            Godot.GD.Print(
+                $"[Bank] Collect {totalCollected:F1} from {ActiveLoans.Count + completed.Count} loans " +
+                $"(paid off {completed.Count}, reserves={Reserves:F0})");
+        }
     }
 
     public float GetTotalOutstanding()

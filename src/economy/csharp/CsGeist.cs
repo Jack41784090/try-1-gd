@@ -73,8 +73,22 @@ public sealed class CsGeist
         raw = Math.Clamp(raw, 0f, 1f);
 
         // EMA smoothing — desperation builds and fades over ~5 ticks
+        float prev = _smoothedDesperation;
         _smoothedDesperation = _smoothedDesperation * 0.8f + raw * 0.2f;
         Desperation = _smoothedDesperation;
+
+        // Log threshold transitions (0.3 unrest, 0.5 crisis, 0.7 collapse)
+        LogThresholdCrossing(prev, _smoothedDesperation, 0.3f, "unrest");
+        LogThresholdCrossing(prev, _smoothedDesperation, 0.5f, "crisis");
+        LogThresholdCrossing(prev, _smoothedDesperation, 0.7f, "collapse");
+    }
+
+    private void LogThresholdCrossing(float prev, float now, float threshold, string label)
+    {
+        if (prev < threshold && now >= threshold)
+            Godot.GD.Print($"[Geist] {LocationId} -> {label} (desperation={now:F2})");
+        else if (prev >= threshold && now < threshold)
+            Godot.GD.Print($"[Geist] {LocationId} <- {label} eased (desperation={now:F2})");
     }
 
     /// <summary>

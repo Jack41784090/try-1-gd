@@ -198,8 +198,13 @@ public sealed class CsEconomyEngine
 
         // === MatchOrders: subsistence then priority-sorted service matching ===
         PhaseSubsistence();
+        int totalDemands = 0, totalSupplies = 0;
         for (int li = 0; li < Locations.Length; li++)
+        {
+            totalDemands += Locations[li].Demands.Count;
+            totalSupplies += Locations[li].Supplies.Count;
             _orderMatcher.Match(Locations[li], _ctx);
+        }
 
         // === Execute: goods market, consumption, wages, government, guild, bank ===
         PhaseContracts();
@@ -224,6 +229,15 @@ public sealed class CsEconomyEngine
             Locations[li].Geist?.UpdateState(Locations[li], Goods);
 
         BuildSnapshots(result);
+
+        // Per-tick summary: orders, deaths/births, imperial bank state
+        string bankInfo = ImperialGovernment != null
+            ? $" bank[reserves={ImperialGovernment.Reserves:F0} loans={ImperialGovernment.ActiveLoans.Count} printed={ImperialGovernment.TotalPrinted:F0}]"
+            : "";
+        Godot.GD.Print(
+            $"[Economy] Tick {turn}: orders D/S={totalDemands}/{totalSupplies} " +
+            $"deaths={result.Deaths} births={result.Births} moves+={result.MovesCreated.Count} moves-={result.MovesCompleted.Count}{bankInfo}");
+
         return result;
     }
 

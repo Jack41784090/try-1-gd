@@ -66,14 +66,6 @@ func consume_supplies_by_demand(multiplier: float = 1.0) -> bool:
 		var demand = warrior.get_demand()
 		total_demand += demand.get(StrategyTypes.SquadProperty.FOOD_SUPPLIES, 0.0)
 	var food_cost := int(ceil(total_demand * multiplier))
-	print(
-		"[Squad] Supply demand: %.1f (x%.1f) = %d food from %d warriors" % [
-			total_demand,
-			multiplier,
-			food_cost,
-			get_living_warriors().size(),
-		],
-	)
 	return consume_food(food_cost)
 
 
@@ -83,14 +75,6 @@ func apply_travel_morale_penalty(base_penalty: float = -2.0) -> void:
 		var mitigation = survival / 200.0
 		var penalty = base_penalty * (1.0 - mitigation)
 		warrior.modify_morale(penalty)
-		print(
-			"[Squad] Travel morale: %s %.2f (survival %d, mitigated %.0f%%)" % [
-				warrior.name,
-				penalty,
-				int(survival),
-				mitigation * 100.0,
-			],
-		)
 
 
 func gain_money(amount: float) -> void:
