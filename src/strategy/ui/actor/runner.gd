@@ -54,7 +54,12 @@ var current_location: Variant:
 		return current_location
 	set(_cl):
 		if _cl is String:
-			current_location = aem.scenario.world.travel_graph.get_location(_cl).duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
+			var world_location: Location = aem.scenario.world.travel_graph.get_location(_cl)
+			assert(world_location != null, "Invalid location id '%s'" % _cl)
+			current_location = world_location.duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
+			# Keep runtime-only state that can be missing on Resource.duplicate() clones.
+			if current_location.population == null and world_location.population != null:
+				current_location.population = world_location.population
 		elif _cl is Location:
 			current_location = _cl
 		else:

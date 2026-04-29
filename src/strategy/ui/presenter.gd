@@ -298,8 +298,8 @@ func on_missions_closed() -> void:
 
 func on_market_requested() -> void:
 	var location = actor.current_location
-	if not location.has_economy():
-		return
+	assert(location != null, "Market requested with no current location")
+	assert(location.has_economy(), "Market requested at location '%s' without economy" % location.location_id)
 	game_clock.pause()
 	view.update_pause_state(true)
 	view.show_market(game_scenario.world, location, visited_locations)
@@ -927,20 +927,18 @@ func _update_activity_buttons() -> void:
 		"View and manage your warriors",
 	)
 
-	var has_shop = location.has_shop()
 	view.update_activity_button(
 		"shop",
 		"Shop",
-		not has_shop,
-		"Browse the local shop" if has_shop else "No shop at this location",
+		false,
+		"Browse the local shop",
 	)
 
-	var has_economy = location.has_economy()
 	view.update_activity_button(
 		"market",
 		"Market",
-		not has_economy,
-		"View local market prices and economy" if has_economy else "No market at this location",
+		false,
+		"View local market prices and economy",
 	)
 
 
@@ -1042,9 +1040,10 @@ func _log_turn_decisions(activity: Activity, player_location_before: String, ai_
 
 
 func _tick_world_systems(hour: int) -> void:
-	if hour % 24 == 0:
-		turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
-		view.log_squad_event("New day — economy cycle", Color(0.6, 0.6, 0.6))
+	# if hour % 24 == 0:
+	# 	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+		# view.log_squad_event("New day — economy cycle", Color(0.6, 0.6, 0.6))
+	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
 	for location in game_scenario.world.locations:
 		location.decay_clues()
 
