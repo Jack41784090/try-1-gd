@@ -1,6 +1,6 @@
 extends Node
 
-var fleet_manager: AIFleetManager
+var fleet_manager: AISquadManager
 var scenario: GameScenario
 
 var starting_locations := {
@@ -55,7 +55,7 @@ func _ready():
 	])
 	_print_world_map()
 
-	fleet_manager = AIFleetManager.new()
+	fleet_manager = AISquadManager.new()
 	add_child(fleet_manager)
 
 	fleet_manager.setup(scenario)

@@ -1,27 +1,26 @@
-extends Node
-
-class_name AIFleetManager
+class_name AISquadManager extends Node
 
 var scenario: GameScenario = null
-var squad_brains: Dictionary = { }
-var squad_executors: Dictionary = { }
+var squad_brains: Dictionary = {}
+var squad_executors: Dictionary = {}
 var faction_brain: FactionBrain = FactionBrain.new()
 
-var decisions_this_turn: Dictionary = { }
+var decisions_this_turn: Dictionary = {}
 var combat_log: Array[String] = []
+
+var _bandit_spawner: BanditSpawner = BanditSpawner.new()
 
 
 func setup(_scenario: GameScenario) -> void:
 	# Initializes the AI fleet — creates a SquadBrain + ActivityExecuteManager for each roaming squad
 	# e.g., scenario has 3 roaming squads: ["Wolves", "Hawks", "Bears"]
 	#   → creates 3 SquadBrain instances (decision makers) + 3 ActivityExecuteManagers (action executors)
-	assert(_scenario != null, "AIFleetManager requires a GameScenario")
+	assert(_scenario != null, "AISquadManager requires a GameScenario")
+	assert(squad_brains.is_empty() and squad_executors.is_empty())
+	
 	scenario = _scenario
 
 	Log.info("Fleet", "Setting up fleet with %d roaming squads" % scenario.world.roaming_squads.size())
-
-	squad_brains.clear()
-	squad_executors.clear()
 
 	# 1. Load the default AI behavior profile (considerations + fallback action)
 	# e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
@@ -38,10 +37,7 @@ func setup(_scenario: GameScenario) -> void:
 
 		# 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
 		var brain = SquadBrain.new(squad, profile)
-		squad_brains[squad.squad_id] = brain
-		var executor = ActivityExecuteManager.new(true)
-		executor.setup(scenario, { "squad": squad })
-		squad_executors[squad.squad_id] = executor
+		_register_brain_and_executor(squad, brain)
 
 		Log.debug("Fleet", "Created brain for squad: %s" % squad.squad_name)
 
@@ -50,7 +46,7 @@ func setup(_scenario: GameScenario) -> void:
 
 func prepare_ai_turns() -> Dictionary:
 	if squad_brains.is_empty():
-		return { "decisions_this_turn": {} }
+		return {"decisions_this_turn": {}}
 
 	Log.debug("Fleet", "=== Preparing AI Turn for %d squads ===" % squad_brains.size())
 	decisions_this_turn.clear()
@@ -61,7 +57,7 @@ func prepare_ai_turns() -> Dictionary:
 	for squad_id in squad_brains:
 		decisions_this_turn[squad_id] = _prepare_squad_decision(squad_id, default_directive)
 
-	return { "decisions_this_turn": decisions_this_turn }
+	return {"decisions_this_turn": decisions_this_turn}
 
 
 func _prepare_squad_decision(squad_id: String, directive: FactionDirective) -> Dictionary:
@@ -95,16 +91,15 @@ func _resolve_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
 
 
 func _customize_travel_activity(activity: Activity, activity_type: StrategyTypes.ActivityType, context: Dictionary) -> Activity:
-	match activity_type:
-		StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH:
-			activity = activity.duplicate(true)
-			activity.result = activity.result.duplicate(true)
-			var destination: String = context.get("travel_destination", "")
-			if not destination.is_empty():
-				activity.destination_id = destination
-				activity.result.location_changed = destination
-				if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
-					activity.ultimate_destination_id = context.get("ultimate_destination", "")
+	if _is_travel_activity(activity_type):
+		activity = activity.duplicate(true)
+		activity.result = activity.result.duplicate(true)
+		var destination: String = context.get("travel_destination", "")
+		if not destination.is_empty():
+			activity.destination_id = destination
+			activity.result.location_changed = destination
+			if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
+				activity.ultimate_destination_id = context.get("ultimate_destination", "")
 	return activity
 
 
@@ -160,15 +155,10 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		Log.error("Fleet", "Could not find squads for combat")
 		return
 
-	var atk_living = attacker.get_living_warriors()
-	var def_living = defender.get_living_warriors()
-	var atk_strength := atk_living.size() * (attacker.get_morale() + 50.0)
-	var def_strength := def_living.size() * (defender.get_morale() + 50.0)
-
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
-	atk_strength *= rng.randf_range(0.7, 1.3)
-	def_strength *= rng.randf_range(0.7, 1.3)
+	var atk_strength := _roll_strength(attacker, rng)
+	var def_strength := _roll_strength(defender, rng)
 
 	Log.debug("Fleet", "Strength: %s=%.0f vs %s=%.0f" % [
 		attacker.squad_name,
@@ -187,7 +177,7 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		loser = attacker
 
 	var loser_living = loser.get_living_warriors()
-	var casualties = maxi(1, loser_living.size() / 2)
+	var casualties := maxi(1, int(loser_living.size() / 2.0))
 	for i in range(mini(casualties, loser_living.size())):
 		loser_living[i].is_dead = true
 	Log.info("Fleet", "%s lost %d warriors" % [loser.squad_name, casualties])
@@ -209,8 +199,7 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		winner.squad_name, loser.squad_name, casualties])
 
 	if loser.is_caravan() and loser.has_cargo():
-		var Bridge = load("res://src/economy/caravan_bridge.gd")
-		Bridge.apply_loot(loser, winner)
+		CaravanBridge.apply_loot(loser, winner)
 		Log.info("Fleet", "%s looted caravan %s" % [winner.squad_name, loser.squad_name])
 
 	if loser.get_living_warriors().size() > 0:
@@ -260,9 +249,7 @@ func cleanup_defeated_squads() -> void:
 	for squad_id in to_remove:
 		var brain = squad_brains[squad_id]
 		scenario.world.roaming_squads.erase(brain.squad)
-		scenario.world.contact_tracker.clear_contacts_for(squad_id)
-		squad_brains.erase(squad_id)
-		squad_executors.erase(squad_id)
+		_erase_squad_runtime_state(squad_id)
 
 	if to_remove.size() > 0:
 		for sid in to_remove:
@@ -278,10 +265,14 @@ func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
 
 		activity_log[squad_id] = activity_type
 
-		if activity_type in [StrategyTypes.ActivityType.TRAVEL, StrategyTypes.ActivityType.FORCE_MARCH]:
+		if _is_travel_activity(activity_type):
 			var destination = context.get("travel_destination", "")
 			if not destination.is_empty():
-				edge_log[squad_id] = { "from": decision["location_at_decision"], "to": destination }
+				edge_log[squad_id] = {"from": decision["location_at_decision"], "to": destination}
+
+
+func _is_travel_activity(activity_type: StrategyTypes.ActivityType) -> bool:
+	return activity_type == StrategyTypes.ActivityType.TRAVEL or activity_type == StrategyTypes.ActivityType.FORCE_MARCH
 
 
 const WARRIOR_NAMES := [
@@ -302,42 +293,54 @@ func _ensure_unique_warriors(squad: SquadData) -> void:
 	squad.warriors = unique_warriors
 
 
-func register_caravan(squad: SquadData) -> void:
-	assert(squad.is_caravan(), "register_caravan requires a merchant squad")
+func register_squad(squad: SquadData, profile_path: String = "") -> void:
 	_ensure_unique_warriors(squad)
-	var profile = AIProfileFactory.get_default_squad_profile()
-	var BrainClass = load("res://src/strategy/ai/caravan_brain.gd")
-	var brain = BrainClass.new(squad, profile)
-	squad_brains[squad.squad_id] = brain
-	var executor = ActivityExecuteManager.new(true)
-	executor.setup(scenario, {"squad": squad})
-	squad_executors[squad.squad_id] = executor
-	Log.debug("Fleet", "Registered caravan brain: %s" % squad.squad_name)
-
-
-func unregister_caravan(squad_id: String) -> void:
-	squad_brains.erase(squad_id)
-	squad_executors.erase(squad_id)
-	decisions_this_turn.erase(squad_id)
-	scenario.world.contact_tracker.clear_contacts_for(squad_id)
-	Log.debug("Fleet", "Unregistered caravan: %s" % squad_id)
-
-
-func register_bandit(squad: SquadData, profile_path: String) -> void:
-	assert(squad.squad_role == StrategyTypes.SquadRole.BANDIT, "register_bandit requires a bandit squad")
-	_ensure_unique_warriors(squad)
-	var profile = AIProfileFactory.get_squad_profile(profile_path)
+	var resolved_profile_path := profile_path
+	if resolved_profile_path.is_empty():
+		if squad.is_caravan():
+			resolved_profile_path = AIProfileFactory.CARAVAN_PROFILE_PATH
+		else:
+			resolved_profile_path = AIProfileFactory.DEFAULT_SQUAD_PROFILE_PATH
+	var profile = AIProfileFactory.get_squad_profile(resolved_profile_path)
 	var brain = SquadBrain.new(squad, profile)
-	squad_brains[squad.squad_id] = brain
-	var executor = ActivityExecuteManager.new(true)
-	executor.setup(scenario, {"squad": squad})
-	squad_executors[squad.squad_id] = executor
-	Log.debug("Fleet", "Registered bandit brain: %s" % squad.squad_name)
+	_register_brain_and_executor(squad, brain)
+	Log.debug("Fleet", "Registered squad brain: %s (%s)" % [squad.squad_name, profile.profile_name])
 
 
 func unregister_squad(squad_id: String) -> void:
+	_erase_squad_runtime_state(squad_id)
+	Log.debug("Fleet", "Unregistered squad: %s" % squad_id)
+
+
+func tick_bandit_lifecycle(faction: Faction) -> Array[String]:
+	assert(scenario != null, "AISquadManager.tick_bandit_lifecycle requires setup() first")
+	var event_log: Array[String] = []
+	if faction == null:
+		return event_log
+	event_log.append_array(_bandit_spawner.tick_cleanup(scenario.world, faction, self))
+	event_log.append_array(_bandit_spawner.tick_spawning(scenario.world, faction, self))
+	return event_log
+
+
+func _create_executor_for_squad(squad: SquadData) -> ActivityExecuteManager:
+	var executor = ActivityExecuteManager.new(true)
+	executor.setup(scenario, {"squad": squad})
+	return executor
+
+
+func _register_brain_and_executor(squad: SquadData, brain: RefCounted) -> void:
+	squad_brains[squad.squad_id] = brain
+	squad_executors[squad.squad_id] = _create_executor_for_squad(squad)
+
+
+func _erase_squad_runtime_state(squad_id: String) -> void:
 	squad_brains.erase(squad_id)
 	squad_executors.erase(squad_id)
 	decisions_this_turn.erase(squad_id)
 	scenario.world.contact_tracker.clear_contacts_for(squad_id)
-	Log.debug("Fleet", "Unregistered squad: %s" % squad_id)
+
+
+func _roll_strength(squad: SquadData, rng: RandomNumberGenerator) -> float:
+	var living = squad.get_living_warriors()
+	var base_strength = living.size() * (squad.get_morale() + 50.0)
+	return base_strength * rng.randf_range(0.7, 1.3)

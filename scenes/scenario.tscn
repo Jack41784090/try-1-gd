@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
 [ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="13_vn_view"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
-[ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/fleet_manager.gd" id="18_fleet"]
+[ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/squad_manager.gd" id="18_fleet"]
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
 [ext_resource type="PackedScene" uid="uid://beiewkvbjg8rk" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
 [ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
@@ -27,7 +27,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/recruitment_view.tscn" id="43_recruitment_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_intermission.tscn" id="44_combat_intermission"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_overlay.tscn" id="45_combat_overlay"]
-[ext_resource type="PackedScene" uid="uid://csquadlogview1" path="res://scenes/ui/squad_log_view.tscn" id="47_squad_log"]
+[ext_resource type="PackedScene" uid="uid://bpu4edgwg1487" path="res://scenes/ui/squad_log_view.tscn" id="47_squad_log"]
 [ext_resource type="FontVariation" path="res://resources/theme/bold_font.tres" id="bold_font"]
 [ext_resource type="PackedScene" path="res://scenes/ui/clock_display.tscn" id="clock_display_scene"]
 
@@ -387,7 +387,7 @@ layout_mode = 1
 [node name="ScoutingView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 layout_mode = 1
 
-[node name="SquadLogView" parent="PanelContainer/MainVBox/MainScreenArea" instance=ExtResource("47_squad_log")]
+[node name="SquadLogView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1530038027 instance=ExtResource("47_squad_log")]
 layout_mode = 1
 
 [node name="RestingBanner" type="CenterContainer" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1756286128]
@@ -579,7 +579,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("17_jx64g")
 
-[node name="AIFleetManager" type="Node" parent="." unique_id=140452438]
+[node name="AISquadManager" type="Node" parent="." unique_id=140452438]
 script = ExtResource("18_fleet")
 
 [node name="StrategyPresenter" type="Node" parent="." unique_id=1614766973]

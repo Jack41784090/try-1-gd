@@ -1,11 +1,11 @@
 extends Control
 ## Headless mock of StrategyView for AIAct testing.
 ## Provides no-op UI methods while wiring real game logic components
-## (ActivityRunner, AIFleetManager) so StrategyPresenter can run the
+## (ActivityRunner, AISquadManager) so StrategyPresenter can run the
 ## full production turn pipeline without any rendering.
 
 var actor: ActivityRunner
-var ai_fleet: AIFleetManager
+var ai_fleet: AISquadManager
 var vn_view
 
 var action_buttons: Control
@@ -71,8 +71,8 @@ func setup_headless():
 	actor.name = "ActivityExecuteManager"
 	add_child(actor)
 
-	ai_fleet = AIFleetManager.new()
-	ai_fleet.name = "AIFleetManager"
+	ai_fleet = AISquadManager.new()
+	ai_fleet.name = "AISquadManager"
 	add_child(ai_fleet)
 
 	vn_view = _MockVnView.new()

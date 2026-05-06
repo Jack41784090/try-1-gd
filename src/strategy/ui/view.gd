@@ -59,7 +59,7 @@ var combat_overlay: CanvasLayer:
 @onready var stage_view: StageView = $PanelContainer/Foreground/StageView
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
-@onready var ai_fleet: AIFleetManager = $AIFleetManager
+@onready var ai_fleet: AISquadManager = $AISquadManager
 @onready var notification_bar: NotificationBar = $PanelContainer/MainVBox/NotificationBar
 # @onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
 # @onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars

@@ -15,7 +15,7 @@ signal tick_completed()
 
 var view
 var actor: ActivityRunner
-var ai_fleet: AIFleetManager
+var ai_fleet: AISquadManager
 var vn_view
 var stage_presenter
 var combat_orch: CombatOrchestrator
@@ -29,9 +29,9 @@ var game_scenario: GameScenario:
 
 var ui_mode: UIMode = UIMode.STRATEGY
 var is_executing_activity: bool = false
-var stat_snapshot: Dictionary = { }
+var stat_snapshot: Dictionary = {}
 var encounter_timeout_timer: float = 0.0
-var combat_options: Dictionary = { }
+var combat_options: Dictionary = {}
 var _pending_results: Array[GenericResult] = []
 var visited_locations: Array[String] = []
 var _notification_collector := NotificationCollector.new()
@@ -132,7 +132,7 @@ func _setup_components() -> void:
 	vn_view.presenter.set_stage_presenter(stage_presenter)
 	_bind_scouting_data()
 	Log.info("Presenter", "Orchestrators initialized")
-	Log.info("Presenter", "AIFleetManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
+	Log.info("Presenter", "AISquadManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 
 #endregion
 
@@ -271,7 +271,7 @@ func on_shop_closed() -> void:
 func on_scouting_requested() -> void:
 	game_clock.pause()
 	view.update_pause_state(true)
-	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else { }
+	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else {}
 	view.show_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
 
@@ -280,7 +280,7 @@ func on_scouting_closed() -> void:
 
 
 func _bind_scouting_data() -> void:
-	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else { }
+	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else {}
 	view.bind_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
 
@@ -455,7 +455,7 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 				StrategyTypes.EngagementType.keys()[engagement_type],
 			],
 		)
-		start_encounter(enemy_squad, { }, engagement_type)
+		start_encounter(enemy_squad, {}, engagement_type)
 		await encounter_resolved
 	else:
 		Log.info(
@@ -465,7 +465,7 @@ func _handle_player_engagement(engagement: Dictionary) -> void:
 				StrategyTypes.EngagementType.keys()[engagement_type],
 			],
 		)
-		start_encounter(enemy_squad, { }, engagement_type)
+		start_encounter(enemy_squad, {}, engagement_type)
 		await encounter_resolved
 
 
@@ -509,7 +509,7 @@ func _show_pending_results() -> void:
 	if _pending_results.is_empty():
 		return
 
-	var aggregated_stats: Dictionary = { }
+	var aggregated_stats: Dictionary = {}
 	var recruits: Array[Warrior] = []
 
 	for result in _pending_results:
@@ -549,7 +549,7 @@ func _queue_multiple_eventchains_from_results(results_list: Array[GenericResult]
 
 
 func _execute_story_triggerables(when: StrategyTypes.TriggerWhen) -> void:
-	var results = actor.exec_at(when)
+	var results = actor.exec_at(when )
 	if results.is_empty():
 		return
 	_queue_multiple_eventchains_from_results(results)
@@ -596,7 +596,7 @@ func _find_mission_by_id(mission_id: String) -> Mission:
 
 #region Combat System
 
-func start_encounter(enemy_squad: SquadData, _context: Dictionary = { }, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
+func start_encounter(enemy_squad: SquadData, _context: Dictionary = {}, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 	view.log_squad_event("⚔ Engaging %s! (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()], Color(1.0, 0.4, 0.4))
@@ -716,10 +716,10 @@ func _calculate_stat_deltas() -> Dictionary:
 	# e.g., snapshot={money:100, food:8}, current={money:100, food:6} → deltas={food: -2.0}
 	if not game_scenario:
 		Log.warn("StatAnim", "Cannot calculate deltas - no game_scenario")
-		return { }
+		return {}
 	if stat_snapshot.is_empty():
 		Log.warn("StatAnim", "Cannot calculate deltas - snapshot is empty")
-		return { }
+		return {}
 
 	var squad = actor.player_squad
 
@@ -731,7 +731,7 @@ func _calculate_stat_deltas() -> Dictionary:
 	}
 	Log.trace("StatAnim", "Current stats: %s" % [current_stats])
 
-	var deltas := { }
+	var deltas := {}
 	for stat_name in stat_snapshot:
 		var old_value = stat_snapshot[stat_name]
 		var new_value = current_stats[stat_name]
@@ -1041,11 +1041,26 @@ func _log_turn_decisions(activity: Activity, player_location_before: String, ai_
 
 func _tick_world_systems(hour: int) -> void:
 	# if hour % 24 == 0:
-	# 	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+	# 	turn_log.append_array(_run_economy_tick())
 		# view.log_squad_event("New day — economy cycle", Color(0.6, 0.6, 0.6))
-	turn_log.append_array(economy_orch.tick_and_spawn_caravans(game_scenario, ai_fleet))
+	turn_log.append_array(_run_economy_tick())
+	turn_log.append_array(ai_fleet.tick_bandit_lifecycle(economy_orch.get_bandit_faction(game_scenario)))
 	for location in game_scenario.world.locations:
 		location.decay_clues()
+
+
+func _run_economy_tick() -> Array[String]:
+	# Bridge between EconomyOrchestrator and AISquadManager. Economy emits a report
+	# of caravan deltas; presenter applies them to the AI squad fleet.
+	var report: Dictionary = economy_orch.tick_and_spawn_caravans(game_scenario)
+	var spawned: Array[SquadData] = report["spawned_caravans"]
+	var despawned_ids: Array[String] = report["despawned_caravan_ids"]
+	for squad in spawned:
+		ai_fleet.register_squad(squad)
+	for squad_id in despawned_ids:
+		ai_fleet.unregister_squad(squad_id)
+	var event_log: Array[String] = report["event_log"]
+	return event_log
 
 
 func _execute_all_activities(activity: Activity, turn_entries: Array) -> void:

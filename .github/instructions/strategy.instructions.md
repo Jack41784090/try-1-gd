@@ -17,6 +17,12 @@ Hour-based real-time with Paradox-style speed controls in `src/strategy/`.
 
 `GameClock.hour_ticked` → `StrategyPresenter._on_hour_tick()` runs player's current activity + all AI squads each hour. Economy ticks every 24 hours.
 
+## Documentation Sync
+
+- When editing `src/strategy/**`, update matching architecture notes in `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/` in the same task.
+- Update the impacted notes under `Systems/Core/`, `Systems/Activities/`, `Systems/AI/`, `Systems/Contact/`, `Systems/Runtime/`, and `Systems/UI/`.
+- If strategic flow edges change, also update `Systems/Graph Seed.md`, `Systems/Systems.md`, and relevant `!index.md` notes.
+
 ## Activity System
 
 - Activities (REST, PATROL, DRILL, etc.) are persistent state on `SquadData.current_activity_type`. Player toggles, clock runs automatically
@@ -50,7 +56,7 @@ km-based distances with speed-dependent travel:
 ## Strategic AI
 
 `src/strategy/ai/` — Data-driven Consideration scoring:
-- `AIFleetManager` (fleet_manager.gd) — `prepare_ai_turns()` runs brain decisions, `cleanup_defeated_squads()`. Duplicates Activity AND result for travel to avoid shared-state conflicts
+- `AISquadManager` (squad_manager.gd) — `prepare_ai_turns()` runs brain decisions, `cleanup_defeated_squads()`. Owns the `BanditSpawner` helper and exposes `tick_bandit_lifecycle(faction)`. Duplicates Activity AND result for travel to avoid shared-state conflicts
 - `SquadBrain` (squad_brain.gd) — evaluates considerations, picks highest-scoring action
 - Pattern: `StrategicGlance` → `StrategicConsideration` → `SquadBrainConfig` → `SquadBrain`. Authored as .tres in `resources/ai/strategic/`
 - `StrategicSituation` (situation.gd) — lazy BFS snapshot. **Contact-gated**: enemies require SUSPECTED+ contact

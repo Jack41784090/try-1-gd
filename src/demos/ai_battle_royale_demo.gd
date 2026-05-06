@@ -3,14 +3,14 @@ extends Node
 ##
 ## Exercises the same classes and execution order as StrategyPresenter,
 ## but headless. One squad acts as "player" (driven by SquadBrain
-## instead of human input), the rest managed by AIFleetManager.
+## instead of human input), the rest managed by AISquadManager.
 ##
 ## Pipeline per turn (mirrors _on_hour_tick):
 ##   1. Player brain decides activity (replaces button press)
 ##   2. exec_before/exec_activity/exec_after (ActivityRunner)
-##   3. AI fleet returns decisions (AIFleetManager)
+##   3. AI fleet returns decisions (AISquadManager)
 ##   4. Contact tracking (ContactTracker.update_all_contacts)
-##   5. Commit AI decisions (AIFleetManager)
+##   5. Commit AI decisions (AISquadManager)
 ##   6. Engagement detection & headless combat
 ##   7. Advance turn (StrategyEventBus.hour_advanced)
 
@@ -21,7 +21,7 @@ var scenario: GameScenario
 var actor: ActivityRunner
 var player_squad: SquadData
 var player_brain: SquadBrain
-var ai_fleet: AIFleetManager
+var ai_fleet: AISquadManager
 var rng := RandomNumberGenerator.new()
 
 
@@ -68,7 +68,7 @@ func _initialize():
 	var profile = AIProfileFactory.get_default_squad_profile()
 	player_brain = SquadBrain.new(player_squad, profile)
 
-	ai_fleet = AIFleetManager.new()
+	ai_fleet = AISquadManager.new()
 	add_child(ai_fleet)
 	ai_fleet.setup(scenario)
 
