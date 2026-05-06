@@ -156,7 +156,7 @@ func _setup_economy() -> void:
 	engine.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 200.0
-	engine.enable_csharp()  # asserts on failure — godot-mono required
+	engine.enable_csharp() # asserts on failure — godot-mono required
 	world.economy_engine = engine
 	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
 

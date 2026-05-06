@@ -317,8 +317,8 @@ func tick_bandit_lifecycle(faction: Faction) -> Array[String]:
 	var event_log: Array[String] = []
 	if faction == null:
 		return event_log
-	event_log.append_array(_bandit_spawner.tick_cleanup(scenario.world, faction, self))
-	event_log.append_array(_bandit_spawner.tick_spawning(scenario.world, faction, self))
+	event_log.append_array(_bandit_spawner.tick_cleanup(scenario.world, faction, self ))
+	event_log.append_array(_bandit_spawner.tick_spawning(scenario.world, faction, self ))
 	return event_log
 
 

@@ -1,5 +1,4 @@
-extends RefCounted
-class_name EconomyEngine
+class_name EconomyEngine extends RefCounted
 
 var world: World
 var active_moves: Array[EconomyMove] = []

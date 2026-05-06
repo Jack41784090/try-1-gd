@@ -52,15 +52,16 @@ func _ready():
 
 
 func _inject_fleeing_squad() -> void:
-	var runner = SquadData.new()
-	runner.squad_id = "retreating_scouts"
-	runner.squad_name = "Retreating Scouts"
-	runner.money = 200.0
-	runner.food = 100
-	runner.travel_tools = 20
-	runner.karma = -10.0
-	runner.set_location("oehringen")
-	runner.starting_location_id = "oehringen"
+	var runner := SquadDataFactory.create_squad(
+		"retreating_scouts",
+		"Retreating Scouts",
+		200.0,
+		100,
+		20,
+		-10.0,
+		"oehringen",
+		"oehringen",
+	)
 
 	for i in range(3):
 		var stats = EntityBaseStats.new(

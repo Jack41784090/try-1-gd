@@ -207,14 +207,16 @@ static func _create_warriors() -> Array[Warrior]:
 	return warriors
 
 static func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> SquadData:
-	var squad = SquadData.new()
-	squad.squad_id = squad_id
-	squad.squad_name = squad_name
-	squad.money = money
-	squad.food = food
-	squad.travel_tools = travel_tools
-	squad.karma = karma
-	squad.set_location(starting_location_id)
+	var squad := SquadDataFactory.create_squad(
+		squad_id,
+		squad_name,
+		money,
+		food,
+		travel_tools,
+		karma,
+		starting_location_id,
+		starting_location_id,
+	)
 	
 	var warriors = _create_warriors()
 	for warrior in warriors:

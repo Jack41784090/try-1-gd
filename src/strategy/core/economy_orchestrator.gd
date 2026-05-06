@@ -31,7 +31,7 @@ func tick_and_spawn_caravans(game_scenario: GameScenario) -> Dictionary:
 	var economy_engine := game_scenario.world.economy_engine
 	assert(economy_engine != null, "World.economy_engine is null \u2014 GameScenario._setup_economy() must initialize it")
 	var turn := game_scenario.world.current_hour
-	var tick_result := economy_engine.tick(turn)
+	var economy_engine_tick_result := economy_engine.tick(turn)
 
 	economy_engine.sync_full()
 
@@ -44,7 +44,7 @@ func tick_and_spawn_caravans(game_scenario: GameScenario) -> Dictionary:
 	_deliver_arrived_caravans(idle_caravans, game_scenario, event_log)
 
 	var pending_dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
-	for dispatch in tick_result.shipment_dispatches:
+	for dispatch in economy_engine_tick_result.shipment_dispatches:
 		if _active_shipments.has(dispatch.shipment_id):
 			continue
 		pending_dispatches.append(dispatch)

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/caravan-rest-when-out-of-food.tres" id="3_out_of_food"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/caravan-rest-when-tired.tres" id="4_tired"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/caravan-deliver-cargo.tres" id="5_deliver"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="6_fallback"]
+
+[resource]
+script = ExtResource("1_script")
+profile_name = "caravan-courier"
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_out_of_food"), ExtResource("4_tired"), ExtResource("5_deliver")])
+fallback_action = ExtResource("6_fallback")

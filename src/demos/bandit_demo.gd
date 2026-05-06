@@ -97,10 +97,10 @@ func _test_forced_spawn() -> void:
 	_assert("High pressure from low satisfaction", pressure > BanditSpawner.SPAWN_THRESHOLD)
 
 	var initial_bandit_count := spawner.count_total_bandits(world)
-	var squad := spawner.create_bandit_squad(test_loc, world)
+	var squad: SquadData = spawner.create_bandit_squad(test_loc, world)
 	world.add_roaming_squad(squad)
 	bandit_faction.add_army(squad)
-	presenter.ai_fleet.register_bandit(squad, BanditSpawner.BANDIT_PROFILE_PATH)
+	presenter.ai_fleet.register_squad(squad, BanditSpawner.BANDIT_PROFILE_PATH)
 
 	_assert("Bandit squad created", squad != null)
 	_assert("Bandit has BANDIT role", squad.squad_role == StrategyTypes.SquadRole.BANDIT)
@@ -181,10 +181,17 @@ func _test_bandit_lifecycle() -> void:
 	var spawner := BanditSpawner.new()
 	var bandit_faction := _get_bandit_faction()
 
-	var test_squad := SquadData.new()
-	test_squad.squad_id = "bandit_test_lifecycle"
-	test_squad.squad_name = "Test Bandits"
-	test_squad.squad_role = StrategyTypes.SquadRole.BANDIT
+	var test_squad := SquadDataFactory.create_squad(
+		"bandit_test_lifecycle",
+		"Test Bandits",
+		100.0,
+		0,
+		5,
+		0.0,
+		"",
+		"",
+		StrategyTypes.SquadRole.BANDIT,
+	)
 
 	var warrior := WarriorFactory.create_warrior(
 		EntityClasses.Types.Landsknecht,

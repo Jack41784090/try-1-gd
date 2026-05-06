@@ -4,13 +4,9 @@ extends Node
 
 var _pass_count: int = 0
 var _fail_count: int = 0
-var _InventoryScript: GDScript
-var _LootScript: GDScript
 
 
 func _ready() -> void:
-	_InventoryScript = load("res://src/strategy/core/inventory.gd")
-	_LootScript = load("res://src/strategy/core/loot_collector.gd")
 	Log.set_level(Log.Level.WARN)
 	_print("=== INVENTORY & EQUIPMENT UNIT TESTS ===")
 
@@ -71,7 +67,7 @@ func _make_armor(armor_name: String) -> ArmorConfig:
 func _test_inventory_add_remove() -> void:
 	_print("")
 	_print("--- SquadInventory: add/remove ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var sword := _make_weapon("Test Sword")
 	var plate := _make_armor("Test Plate")
 
@@ -95,7 +91,7 @@ func _test_inventory_add_remove() -> void:
 func _test_inventory_equip_weapon() -> void:
 	_print("")
 	_print("--- SquadInventory: equip weapon ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 	warrior.equipment_weapon = null
@@ -112,7 +108,7 @@ func _test_inventory_equip_weapon() -> void:
 func _test_inventory_equip_armor_swap() -> void:
 	_print("")
 	_print("--- SquadInventory: equip armor with swap ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 
@@ -131,7 +127,7 @@ func _test_inventory_equip_armor_swap() -> void:
 func _test_inventory_unequip() -> void:
 	_print("")
 	_print("--- SquadInventory: unequip ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var warrior := Warrior.new()
 	warrior.name = "Test Warrior"
 
@@ -156,7 +152,7 @@ func _test_inventory_unequip() -> void:
 func _test_inventory_is_empty() -> void:
 	_print("")
 	_print("--- SquadInventory: is_empty ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	_check(inv.is_empty(), "new inventory is empty")
 
 	var sword := _make_weapon("Sword")
@@ -170,7 +166,7 @@ func _test_inventory_is_empty() -> void:
 func _test_inventory_get_all_items() -> void:
 	_print("")
 	_print("--- SquadInventory: get_all_items ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var sword := _make_weapon("Sword")
 	var plate := _make_armor("Plate")
 	inv.add_weapon(sword)
@@ -215,13 +211,13 @@ func _test_default_equipment_assignment() -> void:
 func _test_loot_collector_dead_enemies() -> void:
 	_print("")
 	_print("--- LootCollector: collect from dead ---")
-	var enemy_squad := SquadData.new()
+	var enemy_squad := SquadDataFactory.create_squad()
 	var dead_warrior := _make_warrior(EntityClasses.Types.Landsknecht, "DeadEnemy")
 	dead_warrior.is_dead = true
 	enemy_squad.warriors.append(dead_warrior)
 
 	var casualties: Array[String] = [dead_warrior.id]
-	var loot = _LootScript.collect_equipment_loot(enemy_squad, casualties)
+	var loot = LootCollector.collect_equipment_loot(enemy_squad, casualties)
 	var loot_weapons: Array = loot.get("weapons", [])
 	var loot_armors: Array = loot.get("armors", [])
 	_check(loot_weapons.size() == 1, "looted 1 weapon from dead Landsknecht")
@@ -232,13 +228,13 @@ func _test_loot_collector_dead_enemies() -> void:
 func _test_loot_collector_skips_alive() -> void:
 	_print("")
 	_print("--- LootCollector: skips alive ---")
-	var enemy_squad := SquadData.new()
+	var enemy_squad := SquadDataFactory.create_squad()
 	var alive_warrior := _make_warrior(EntityClasses.Types.Landsknecht, "AliveEnemy")
 	alive_warrior.is_dead = false
 	enemy_squad.warriors.append(alive_warrior)
 
 	var casualties: Array[String] = []
-	var loot = _LootScript.collect_equipment_loot(enemy_squad, casualties)
+	var loot = LootCollector.collect_equipment_loot(enemy_squad, casualties)
 	var loot_weapons: Array = loot.get("weapons", [])
 	var loot_armors: Array = loot.get("armors", [])
 	_check(loot_weapons.size() == 0, "no weapons from alive enemy")
@@ -248,14 +244,14 @@ func _test_loot_collector_skips_alive() -> void:
 func _test_loot_collector_apply() -> void:
 	_print("")
 	_print("--- LootCollector: apply loot to inventory ---")
-	var inv = _InventoryScript.new()
+	var inv = SquadInventory.new()
 	var sword := _make_weapon("Looted Sword")
 	var plate := _make_armor("Looted Plate")
 	var loot := {
 		"weapons": [sword],
 		"armors": [plate],
 	}
-	_LootScript.apply_equipment_loot(inv, loot)
+	LootCollector.apply_equipment_loot(inv, loot)
 	_check(inv.weapons.size() == 1, "apply adds weapon to inventory")
 	_check(inv.armors.size() == 1, "apply adds armor to inventory")
 
@@ -263,14 +259,14 @@ func _test_loot_collector_apply() -> void:
 func _test_loot_collector_duplicates_items() -> void:
 	_print("")
 	_print("--- LootCollector: duplicates equipment ---")
-	var enemy_squad := SquadData.new()
+	var enemy_squad := SquadDataFactory.create_squad()
 	var w := _make_warrior(EntityClasses.Types.Pikeman, "DeadPike")
 	w.is_dead = true
 	enemy_squad.warriors.append(w)
 
 	var original_weapon := w.equipment_weapon
 	var casualties: Array[String] = [w.id]
-	var loot = _LootScript.collect_equipment_loot(enemy_squad, casualties)
+	var loot = LootCollector.collect_equipment_loot(enemy_squad, casualties)
 	var loot_weapons: Array = loot.get("weapons", [])
 	_check(loot_weapons.size() == 1, "looted 1 weapon from dead Pikeman")
 	_check(loot_weapons[0] != original_weapon, "looted weapon is a duplicate (different reference)")

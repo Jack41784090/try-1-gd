@@ -213,14 +213,16 @@ func create_test_scenario() -> GameScenario:
 	return scenario
 
 func create_test_squad(id: String, p_name: String, location: String) -> SquadData:
-	var squad = SquadData.new()
-	squad.squad_id = id
-	squad.squad_name = p_name
-	squad.money = 100.0
-	squad.food = 50
-	squad.travel_tools = 10
-	squad.karma = 0.0
-	squad.set_location(location)
+	var squad := SquadDataFactory.create_squad(
+		id,
+		p_name,
+		100.0,
+		50,
+		10,
+		0.0,
+		location,
+		location,
+	)
 
 	for i in range(3):
 		var warrior = Warrior.new()

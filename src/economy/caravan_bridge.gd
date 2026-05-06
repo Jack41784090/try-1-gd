@@ -1,5 +1,4 @@
-extends RefCounted
-class_name CaravanBridge
+class_name CaravanBridge extends RefCounted
 
 ## Factory methods for creating caravan squads from economy moves.
 ## cargo_manifest uses thing_id (String) keys.
@@ -10,17 +9,18 @@ static func create_caravan_squad(
 	shipment_id: String,
 	guard_count: int = 2,
 ) -> SquadData:
-	var squad := SquadData.new()
-	squad.squad_id = "caravan_%s" % shipment_id
-	squad.squad_name = _next_convoy_name(move.thing.thing_name)
-	squad.starting_location_id = move.source_location_id
-	squad.current_location_id = move.source_location_id
-	squad.squad_role = StrategyTypes.SquadRole.MERCHANT
-	squad.money = move.quantity * move.thing.base_price
-	squad.food = maxi(guard_count * move.turns_remaining, 3)
-	squad.karma = -50.0
+	var squad := SquadDataFactory.create_squad(
+		"caravan_%s" % shipment_id,
+		_next_convoy_name(move.thing.thing_name),
+		move.quantity * move.thing.base_price,
+		maxi(guard_count * move.turns_remaining, 3),
+		5,
+		-50.0,
+		move.source_location_id,
+		move.source_location_id,
+		StrategyTypes.SquadRole.MERCHANT,
+	)
 	squad.cargo.shipment_id = shipment_id
-
 	squad.cargo.manifest[move.thing.thing_id] = move.quantity
 	squad.cargo.destination_id = move.dest_location_id
 
@@ -63,8 +63,6 @@ static func apply_delivery(
 ) -> void:
 	for thing_id in squad.cargo.manifest:
 		var qty: float = squad.cargo.manifest[thing_id]
-		if qty <= 0.0:
-			continue
 		var thing := _find_thing(thing_id, goods_registry)
 		if thing:
 			dest_inventory.add(thing, qty)
@@ -81,8 +79,6 @@ static func apply_loot(
 	var looted: Dictionary = {}
 	for thing_id in caravan.cargo.manifest:
 		var qty: float = caravan.cargo.manifest[thing_id]
-		if qty <= 0.0:
-			continue
 		if thing_id == "food":
 			attacker.food += int(qty)
 		else:
@@ -119,9 +115,5 @@ static func _find_thing(thing_id: String, goods: Array[Thing]) -> Thing:
 	return null
 
 
-static var _Names = null
-
 static func _next_convoy_name(goods_name: String) -> String:
-	if _Names == null:
-		_Names = load("res://src/economy/convoy_names.gd")
-	return _Names.next_name(goods_name)
+	return ConvoyNames.next_name(goods_name)

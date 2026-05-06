@@ -113,8 +113,7 @@ func set_team(_team):
 
 func init_after():
 	_debug_id = "[%d]" % [player_id]
-	var RT = load("res://src/squad-battle/entity/retreat_tracker.gd")
-	retreat_tracker = RT.new()
+	retreat_tracker = RetreatTracker.new()
 	
 	changeable_stats[SquadBattleTypes.EntityChangeable.HP] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 	changeable_stats[SquadBattleTypes.EntityChangeable.STA] = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.STA)

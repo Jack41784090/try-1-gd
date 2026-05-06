@@ -1,5 +1,4 @@
-class_name SquadData
-extends Resource
+class_name SquadData extends Resource
 
 @export var squad_id: String = ""
 @export var squad_name: String = ""
@@ -15,7 +14,7 @@ var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.Engagement
 var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
 var cargo: CargoManifest = CargoManifest.new()
 var scouting_focus = null
-var inventory = load("res://src/strategy/core/inventory.gd").new()
+var inventory: SquadInventory = SquadInventory.new()
 var current_activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.REST
 var travel_progress_km: float = 0.0
 var travel_route: Array[String] = []
@@ -32,8 +31,6 @@ var _initialized: bool = false
 
 func _init() -> void:
 	pass
-	if current_tactic == null:
-		current_tactic = Tactic.create_balanced()
 
 
 func _to_string() -> String:

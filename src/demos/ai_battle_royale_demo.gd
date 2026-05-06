@@ -228,8 +228,8 @@ func _update_contacts(
 	var world = scenario.world
 	var tracker = world.contact_tracker
 
-	var activity_log: Dictionary = { }
-	var edge_log: Dictionary = { }
+	var activity_log: Dictionary = {}
+	var edge_log: Dictionary = {}
 
 	activity_log[player_squad.squad_id] = activity.activity_type
 

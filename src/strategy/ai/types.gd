@@ -52,6 +52,7 @@ enum DestinationStrategy {
 	DIRECTIVE_LOCATION,
 	AWAY_FROM_ENEMY,
 	NEAREST_MERCHANT,
+	CARGO_DESTINATION,
 }
 
 enum TargetStrategy {

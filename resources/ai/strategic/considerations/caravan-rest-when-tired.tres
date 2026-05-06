@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StrategicConsideration" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/glance.gd" id="2_glance_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/glances/caravan-tired.tres" id="3_glance"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/rest.tres" id="4_action"]
+
+[resource]
+script = ExtResource("1_script")
+name = "caravan-rest-when-tired"
+weight = 8.0
+glances = Array[ExtResource("2_glance_type")]([ExtResource("3_glance")])
+returning = ExtResource("4_action")

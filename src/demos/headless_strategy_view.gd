@@ -42,7 +42,7 @@ class _MockVnView extends Control:
 
 
 class _MockStagePresenter extends Node:
-	var current_mode: int = 2  # HIDDEN
+	var current_mode: int = 2 # HIDDEN
 	func set_mode(_mode): current_mode = _mode
 	func start_march(_squad): pass
 	func stop_march(): pass

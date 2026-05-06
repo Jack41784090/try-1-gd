@@ -30,8 +30,7 @@ func get_economy_locations() -> Array[Location]:
 var contact_tracker:
 	get:
 		if contact_tracker == null:
-			var TrackerClass = load("res://src/strategy/core/contact/tracker.gd")
-			contact_tracker = TrackerClass.new()
+			contact_tracker = ContactTracker.new()
 		return contact_tracker
 
 var travel_graph: TravelGraph = null:

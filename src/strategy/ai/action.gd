@@ -14,7 +14,7 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 	# e.g., StrategicAction(TRAVEL, destination_strategy=NEAREST_TOWN)
 	#   → resolves destination to "vienna", then finds next hop "linz"
 	#   → returns {travel_destination: "linz", ultimate_destination: "vienna"}
-	var context: Dictionary = { }
+	var context: Dictionary = {}
 
 	# 1. If action requires a destination (TRAVEL, FORCE_MARCH), resolve it
 	if requires_destination:
@@ -22,12 +22,12 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 		# e.g., NEAREST_TOWN from "salzburg" → "vienna"
 		var ultimate_dest = _resolve_destination(situation)
 		if ultimate_dest.is_empty():
-			return { }
+			return {}
 		# 1.2 Find the next hop toward that destination (may be 1 step away)
 		# e.g., path salzburg→linz→vienna, next_hop = "linz"
 		var next_hop = _get_next_hop(situation, ultimate_dest)
 		if next_hop.is_empty():
-			return { }
+			return {}
 		context["travel_destination"] = next_hop
 		# 1.3 For FORCE_MARCH, also store the ultimate destination for double-hop logic
 		if activity_type == StrategyTypes.ActivityType.FORCE_MARCH and ultimate_dest != next_hop:
@@ -38,7 +38,7 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 		# e.g., target_strategy=WEAKEST → picks enemy with lowest morale
 		var target = _resolve_target(situation)
 		if target == null:
-			return { }
+			return {}
 		context["attack_target"] = target.squad_id
 
 	return context
@@ -90,6 +90,11 @@ func _resolve_destination(situation: StrategicSituation) -> String:
 		StrategicAITypes.DestinationStrategy.NEAREST_MERCHANT:
 			if situation.nearest_merchant_location != null:
 				return situation.nearest_merchant_location.location_id
+		StrategicAITypes.DestinationStrategy.CARGO_DESTINATION:
+			var dest := situation.squad.cargo.destination_id
+			if dest.is_empty() or dest == situation.squad.current_location_id:
+				return ""
+			return dest
 	return ""
 
 

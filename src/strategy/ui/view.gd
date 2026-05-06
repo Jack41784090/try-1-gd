@@ -43,7 +43,7 @@ extends Control
 @onready var combat_overlay_node: CanvasLayer = $CombatOverlay
 var combat_ui: CombatUI
 var _contact_bars: Array[ContactMiniBar] = []
-var _active_contacts: Dictionary = { }
+var _active_contacts: Dictionary = {}
 
 var battle_viewport: SubViewport:
 	get:
@@ -78,7 +78,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	print(" --- Main gui is ready --- ")
-	combat_ui = CombatUI.create(self, combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
+	combat_ui = CombatUI.create(self , combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
 	# for child in _contact_bars_container.get_children():
 	# 	_contact_bars.append(child as ContactMiniBar)
 	# 	child.visible = false
@@ -86,7 +86,7 @@ func _ready() -> void:
 	_connect_signals()
 	_register_button_animations()
 	GrimdarkFX.register_world_textures(main_background, foreground)
-	presenter.bind_view(self)
+	presenter.bind_view(self )
 
 
 func _input(event: InputEvent) -> void:
@@ -228,7 +228,7 @@ func update_condition(text: String) -> void:
 
 
 func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
-	var new_ids: Dictionary = { }
+	var new_ids: Dictionary = {}
 	for data in contacts_data:
 		new_ids[data["target_id"]] = data
 
@@ -458,7 +458,7 @@ func hide_shop() -> void:
 	shop_view.presenter._on_closed()
 
 
-func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
 	scouting_view.show_scouting(world, player_squad, ai_decisions)
 
 
@@ -466,7 +466,7 @@ func hide_scouting() -> void:
 	scouting_view.hide_scouting()
 
 
-func bind_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+func bind_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
 	scouting_view.bind(world, player_squad, ai_decisions)
 
 

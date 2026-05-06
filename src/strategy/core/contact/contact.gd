@@ -8,8 +8,7 @@ var last_delta: float = 0.0
 var last_updated_hour: int = 0
 
 static func create(p_observer: String, p_target: String):
-	var ContactScript = load("res://src/strategy/core/contact/contact.gd")
-	var c = ContactScript.new()
+	var c = Contact.new()
 	c.observer_id = p_observer
 	c.target_id = p_target
 	return c
