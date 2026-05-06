@@ -22,6 +22,12 @@ Turn-based View/Presenter/Model in `src/squad-battle/`.
 
 All state changes produce immutable `EntityUpdate`/`EntityChange` objects.
 
+## Documentation Sync
+
+- When editing `src/squad-battle/**`, update matching architecture notes in `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/` in the same task.
+- Update impacted notes under `Systems/Combat/` and `Systems/Data/Combat Types.md`.
+- If strategy-combat integration flow changes, also update `Systems/Runtime/Combat Flow.md` and related hub notes.
+
 ## Subsystems
 
 - **RetreatTracker** (entity/retreat_tracker.gd): FIGHTING→RETREATING→LAST_STAND→CAPITULATED. `advance()` produces LOC+1/ORG restore/CAPITULATE updates

@@ -20,6 +20,12 @@ C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplie
 - **TradeMatcher** (`trade_matcher.gd`): Greedy matching engine. Creates `TradeSituation` per pair, scores via considerations or default `(margin * 0.4 + urgency * 0.6) * safety`
 - **RouteDangerCalculator** (`route_danger.gd`): Route safety (0-1) based on aggressive squads along connections. Per-edge safety = `1.0 / (1.0 + threats)`. Route = product of edges
 
+## Documentation Sync
+
+- When editing `src/economy/**`, update matching architecture notes in `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/` in the same task.
+- Update impacted notes under `Systems/Economy/`.
+- If economy runtime sequencing changes, also update `Systems/Runtime/Economy Tick 24h.md`, `Systems/Graph Seed.md`, and relevant `!index.md` notes.
+
 ## C# Engine
 
 `src/economy/csharp/`: `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`.
