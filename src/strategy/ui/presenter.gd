@@ -19,7 +19,6 @@ var ai_fleet: AISquadManager
 var vn_view
 var stage_presenter
 var combat_orch: CombatOrchestrator
-var economy_orch: EconomyOrchestrator
 var contact_orch: ContactOrchestrator
 var game_clock: GameClock
 
@@ -122,7 +121,6 @@ func _initialize_scenario() -> void:
 func _setup_components() -> void:
 	combat_orch = CombatOrchestrator.new()
 	combat_orch.setup(game_scenario.world.contact_tracker)
-	economy_orch = EconomyOrchestrator.new()
 	contact_orch = ContactOrchestrator.new()
 	game_clock = GameClock.new(game_scenario.world)
 	game_clock.hour_ticked.connect(_on_hour_tick)
@@ -1040,26 +1038,92 @@ func _log_turn_decisions(activity: Activity, player_location_before: String, ai_
 
 
 func _tick_world_systems(hour: int) -> void:
-	# if hour % 24 == 0:
-	# 	turn_log.append_array(_run_economy_tick())
-		# view.log_squad_event("New day — economy cycle", Color(0.6, 0.6, 0.6))
 	turn_log.append_array(_run_economy_tick())
-	turn_log.append_array(ai_fleet.tick_bandit_lifecycle(economy_orch.get_bandit_faction(game_scenario)))
+	turn_log.append_array(ai_fleet.tick_bandit_lifecycle(_get_bandit_faction()))
 	for location in game_scenario.world.locations:
 		location.decay_clues()
 
 
+func _get_bandit_faction() -> Faction:
+	for faction in game_scenario.factions:
+		if faction.faction_id == "bandits":
+			return faction
+	return null
+
+
+## Thin glue between EconomyEngine and AISquadManager. Engine emits a tick result
+## with shipment dispatches and mercenary-work changes; presenter materializes
+## those into roaming squads via CaravanBridge and notifies the engine of
+## arrivals so it can clear its shipment tracking.
 func _run_economy_tick() -> Array[String]:
-	# Bridge between EconomyOrchestrator and AISquadManager. Economy emits a report
-	# of caravan deltas; presenter applies them to the AI squad fleet.
-	var report: Dictionary = economy_orch.tick_and_spawn_caravans(game_scenario)
-	var spawned: Array[SquadData] = report["spawned_caravans"]
-	var despawned_ids: Array[String] = report["despawned_caravan_ids"]
-	for squad in spawned:
+	var event_log: Array[String] = []
+	var world: World = game_scenario.world
+	var engine: EconomyEngine = world.economy_engine
+	assert(engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
+
+	var result := engine.tick_full(world.current_hour)
+
+	# Deliver caravans that arrived this tick; collect them as idle for reassignment.
+	var idle_caravans: Array[SquadData] = []
+	for squad in world.roaming_squads:
+		if not squad.is_caravan():
+			continue
+		if not squad.has_reached_destination():
+			continue
+		engine.notify_caravan_arrived(squad)
+		event_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo.destination_id])
+		Log.info("Economy", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo.destination_id])
+		idle_caravans.append(squad)
+
+	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = result.shipment_dispatches
+
+	# Reassign idle caravans to pending dispatches before spawning new ones.
+	var dispatch_index := 0
+	while not idle_caravans.is_empty() and dispatch_index < dispatches.size():
+		var squad: SquadData = idle_caravans.pop_back()
+		var dispatch: EconomyTickResult.ShipmentDispatch = dispatches[dispatch_index]
+		dispatch_index += 1
+		CaravanBridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
+		engine.register_dispatch_to_squad(dispatch.shipment_id, squad.squad_id)
+		event_log.append("CARAVAN reassigned %s at %s → %s" % [
+			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
+
+	# Spawn squads for any remaining dispatches.
+	while dispatch_index < dispatches.size():
+		var dispatch: EconomyTickResult.ShipmentDispatch = dispatches[dispatch_index]
+		dispatch_index += 1
+		var squad: SquadData = CaravanBridge.create_caravan_squad(
+			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
+		)
+		world.add_roaming_squad(squad)
 		ai_fleet.register_squad(squad)
-	for squad_id in despawned_ids:
-		ai_fleet.unregister_squad(squad_id)
-	var event_log: Array[String] = report["event_log"]
+		engine.register_dispatch_to_squad(dispatch.shipment_id, squad.squad_id)
+		event_log.append("CARAVAN spawned %s at %s → %s" % [
+			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
+		Log.info("Economy", "Spawned caravan: %s at %s → %s (%d guards)" % [
+			squad.squad_name, squad.current_location_id,
+			squad.cargo.destination_id, dispatch.guard_count,
+		])
+
+	# Retire any idle caravans without work.
+	for squad in idle_caravans:
+		event_log.append("CARAVAN retired %s" % squad.squad_name)
+		Log.info("Economy", "Retiring idle caravan: %s" % squad.squad_name)
+		engine.clear_shipment_for_squad(squad.squad_id)
+		world.remove_roaming_squad(squad.squad_id)
+		ai_fleet.unregister_squad(squad.squad_id)
+
+	# Apply mercenary-work toggles emitted by the engine.
+	for location_id in result.mercenary_work_changes:
+		var should_offer: bool = result.mercenary_work_changes[location_id]
+		var loc := world.get_location_by_id(location_id)
+		if loc == null:
+			continue
+		if should_offer:
+			loc.add_activity_type(StrategyTypes.ActivityType.MERCENARY_WORK)
+		else:
+			loc.available_activity_types.erase(StrategyTypes.ActivityType.MERCENARY_WORK)
+
 	return event_log
 
 

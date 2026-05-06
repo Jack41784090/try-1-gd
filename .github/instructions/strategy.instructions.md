@@ -67,7 +67,7 @@ km-based distances with speed-dependent travel:
 ## UI Pattern
 
 View/Presenter MVP. View calls `presenter.on_X()`, Presenter calls `view.update_X()`:
-- `StrategyView/Presenter` — top-level. Three orchestrators: `EconomyOrchestrator`, `CombatOrchestrator`, `ContactOrchestrator`. Unified turn pipeline in `_on_hour_tick()`
+- `StrategyView/Presenter` — top-level. Two orchestrators: `CombatOrchestrator`, `ContactOrchestrator`. Economy lives directly on `EconomyEngine` (no orchestrator); `_run_economy_tick()` bridges `EconomyEngine.tick_full()` to `AISquadManager` via `CaravanBridge`. Unified turn pipeline in `_on_hour_tick()`
 - `TravelView/Presenter` — AUTOPILOT/MANUAL/GOING state machine
 - `ShopView/Presenter` — cart system with stock-aware purchasing from LocationInventory
 - `ScoutingView/Presenter` — hover slide-in panel from left edge. Auto-refreshes contact data on open. `bind()` stores world/squad refs

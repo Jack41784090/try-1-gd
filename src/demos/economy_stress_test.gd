@@ -2,7 +2,7 @@ extends Node
 ## Economy Stress Test — Uses the real StrategyPresenter + HeadlessStrategyView pipeline.
 ##
 ## Loads the goetz-official scenario through the same code path as the actual game:
-## GameScenario._setup_economy() → EconomyOrchestrator.tick_and_spawn_caravans()
+## GameScenario._setup_economy() → EconomyEngine.tick_full() (called from StrategyPresenter._run_economy_tick)
 ## → TradeMatcher → CaravanBridge → full hourly tick pipeline.
 ##
 ## Usage: godot-mono --headless --path . scenes/demos/economy_stress_test.tscn

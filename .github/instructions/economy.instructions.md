@@ -15,7 +15,7 @@ Demand/Supply matching system. **C# mandatory** — `CsEconomyEngine` via `CsEco
 
 ## Trade Pipeline
 
-C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplies()` export to GDScript → `TradeMatcher` scores Supply→Demand pairs using `StrategicConsideration` system → `ApplyTradeMatches()` creates shipment dispatches → `EconomyOrchestrator` spawns caravans.
+C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplies()` export to GDScript → `TradeMatcher` scores Supply→Demand pairs using `StrategicConsideration` system → `ApplyTradeMatches()` creates shipment dispatches → `EconomyEngine.tick_full()` unifies dispatches + emits `mercenary_work_changes` → `StrategyPresenter._run_economy_tick()` spawns caravans via `CaravanBridge` and notifies engine on arrival/defeat.
 
 - **TradeMatcher** (`trade_matcher.gd`): Greedy matching engine. Creates `TradeSituation` per pair, scores via considerations or default `(margin * 0.4 + urgency * 0.6) * safety`
 - **RouteDangerCalculator** (`route_danger.gd`): Route safety (0-1) based on aggressive squads along connections. Per-edge safety = `1.0 / (1.0 + threats)`. Route = product of edges
@@ -59,7 +59,7 @@ C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplie
 - **Market revenue**: Consumer purchases split 85% to producers (farmers+craftsmen), 15% merchant commission. Money-conserving
 - **Population sync**: `SyncBackToGdScript()` uses PersonId-based matching for births/deaths. `Population.remove_person()` for death sync
 - **Bank metrics**: `engine.get_bank_info()` reads C# CsCentralBank state (printed/reserves/loans/debt). GDScript CentralBank is config-only
-- **Person sync via `sync_full()`**: `EconomyOrchestrator.tick_and_spawn_caravans()` calls `engine.sync_full()` after each tick to propagate person money/satisfaction/class from C# back to GDScript
+- **Person sync via `sync_full()`**: `EconomyEngine.tick_full()` calls `engine.sync_full()` after each tick to propagate person money/satisfaction/class from C# back to GDScript
 
 ## Government Directives
 

@@ -3,7 +3,8 @@ extends Node
 ##
 ## Creates a 3-location demo world with EconomyEngine, wires it to
 ## StrategyPresenter via HeadlessStrategyView, and drives REST turns.
-## The EconomyOrchestrator handles the full caravan lifecycle:
+## EconomyEngine.tick_full() emits shipment dispatches, the StrategyPresenter
+## materializes them as MERCHANT squads, and notifies the engine on arrival:
 ## spawning, movement, and delivery. This demo only asserts correctness.
 ##
 ## Usage: godot --headless --path . scenes/demos/caravan_demo.tscn
@@ -236,7 +237,7 @@ func _print_turn_summary(turn: int) -> void:
 				StrategyTypes.SquadRole.keys()[squad.squad_role],
 			])
 	Log.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
-		total_in_world, caravan_count, presenter.economy_orch.active_shipment_count,
+		total_in_world, caravan_count, presenter.game_scenario.world.economy_engine.active_shipment_count,
 	])
 
 	if turn <= 3 or turn % 5 == 0:
@@ -252,7 +253,7 @@ func _print_turn_summary(turn: int) -> void:
 
 func _print_final_summary() -> void:
 	Log.info("CaravanDemo", "=== CARAVAN FINAL SUMMARY ===")
-	Log.info("CaravanDemo", "Active shipments: %d" % presenter.economy_orch.active_shipment_count)
+	Log.info("CaravanDemo", "Active shipments: %d" % presenter.game_scenario.world.economy_engine.active_shipment_count)
 
 	for loc in world.get_economy_locations():
 		Log.info("CaravanDemo", "  [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [

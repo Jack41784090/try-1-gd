@@ -12,6 +12,17 @@ var total_deaths: int = 0
 var total_births: int = 0
 var _shipment_counter: int = 0
 
+## Tracking for in-flight caravan shipments. Mirrors economic state of
+## EconomyMove objects with the strategy-layer SquadData ids materializing them.
+## shipment_id (String) -> squad_id (String). Engine owns this state so that
+## arrival/defeat/reassignment notifications can keep it consistent.
+var _active_shipments: Dictionary = {}
+var _trade_matcher: TradeMatcher = null
+var _mercenary_demand: MercenaryDemandCalculator = null
+
+var active_shipment_count: int:
+	get: return _active_shipments.size()
+
 var _cs_bridge: Node = null
 var _cs_initialized: bool = false
 
@@ -69,6 +80,8 @@ func enable_csharp() -> void:
 	var instance = script.new()
 	assert(instance != null, "C# bridge instantiation failed")
 	_cs_bridge = instance as Node
+	_trade_matcher = TradeMatcher.new()
+	_mercenary_demand = MercenaryDemandCalculator.new()
 	Log.info("Economy", "C# economy engine enabled")
 
 func _setup_cs_bridge() -> void:
@@ -97,6 +110,84 @@ func tick(turn: int) -> EconomyTickResult:
 	assert(_cs_bridge != null, "C# bridge required — call enable_csharp() first")
 	_setup_cs_bridge()
 	return _tick_csharp(turn)
+
+
+## Public entry point used by the strategy layer. Wraps the low-level
+## phase tick with the trade-matching pipeline, person sync, and mercenary
+## demand evaluation. Filters out shipment dispatches whose shipment_id is
+## already materialized as a roaming squad so the strategy presenter never
+## sees duplicates.
+func tick_full(turn: int) -> EconomyTickResult:
+	assert(_trade_matcher != null and _mercenary_demand != null,
+		"tick_full requires enable_csharp() to have been called")
+	var result := tick(turn)
+	sync_full()
+
+	var demands := get_pending_demands()
+	var supplies := get_available_supplies()
+	var trade_matches := _trade_matcher.match_trades(demands, supplies, world)
+	var trade_dispatches := apply_trade_matches(trade_matches)
+
+	var unified: Array[EconomyTickResult.ShipmentDispatch] = []
+	for dispatch in result.shipment_dispatches:
+		if not _active_shipments.has(dispatch.shipment_id):
+			unified.append(dispatch)
+	for dispatch in trade_dispatches:
+		if not _active_shipments.has(dispatch.shipment_id):
+			unified.append(dispatch)
+	result.shipment_dispatches = unified
+
+	for loc in world.locations:
+		if loc.type == StrategyTypes.LocationType.FORT:
+			continue
+		var demand := _mercenary_demand.calculate_demand(loc, world)
+		var should_offer := demand > MercenaryDemandCalculator.DEMAND_THRESHOLD
+		if not should_offer:
+			# Location only loses MERCENARY_WORK if there are no bandits left
+			# nearby — otherwise the bounty contract should remain available.
+			if BanditSpawner.count_bandits_at_location(loc.location_id, world) > 0:
+				continue
+		result.mercenary_work_changes[loc.location_id] = should_offer
+	return result
+
+
+## Strategy layer notifies the engine that a materialized caravan has reached
+## its destination. Engine applies the inventory delivery and clears the
+## shipment tracking entry.
+func notify_caravan_arrived(caravan: SquadData) -> void:
+	assert(caravan.is_caravan(), "notify_caravan_arrived requires a caravan squad")
+	var dest_loc := world.get_location_by_id(caravan.cargo.destination_id)
+	assert(dest_loc != null, "Caravan destination '%s' not found" % caravan.cargo.destination_id)
+	assert(dest_loc.inventory != null, "Caravan destination '%s' has no inventory" % dest_loc.location_id)
+	CaravanBridge.apply_delivery(caravan, dest_loc.inventory, world.goods)
+	_clear_shipment_for_squad(caravan.squad_id)
+
+
+## Strategy layer notifies the engine that a materialized caravan was destroyed.
+## Engine applies the loot transfer and clears the shipment tracking entry.
+func notify_caravan_defeated(caravan: SquadData, attacker: SquadData) -> Dictionary:
+	var looted: Dictionary = CaravanBridge.apply_loot(caravan, attacker)
+	_clear_shipment_for_squad(caravan.squad_id)
+	return looted
+
+
+## Strategy layer registers a shipment_id <-> squad_id binding either at
+## first spawn or when an idle caravan is reassigned to a new dispatch.
+func register_dispatch_to_squad(shipment_id: String, squad_id: String) -> void:
+	_active_shipments[shipment_id] = squad_id
+
+
+## Strategy layer notifies the engine that an idle caravan has been retired
+## without delivering. Engine clears its shipment tracking.
+func clear_shipment_for_squad(squad_id: String) -> void:
+	_clear_shipment_for_squad(squad_id)
+
+
+func _clear_shipment_for_squad(squad_id: String) -> void:
+	for shipment_id in _active_shipments.keys():
+		if _active_shipments[shipment_id] == squad_id:
+			_active_shipments.erase(shipment_id)
+			return
 
 
 func get_pending_demands() -> Array[EconomicDemand]:

@@ -66,7 +66,7 @@ func _ready():
 
 ## Why This Pattern Matters
 
-- Hand-built tests bypass TradeMatcher, EconomyOrchestrator, CaravanBridge, GovernmentDirectives, and contact system — they test a different game
+- Hand-built tests bypass TradeMatcher, EconomyEngine.tick_full, CaravanBridge, GovernmentDirectives, and contact system — they test a different game
 - Economy parameters (base prices, bank config, population scale) diverge from the real scenario, producing misleading results
 - The HeadlessStrategyView provides no-op UI methods allowing the full presenter pipeline to run headlessly
 
