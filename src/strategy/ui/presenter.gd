@@ -239,7 +239,8 @@ func on_investigation_closed() -> void:
 
 func on_recruitment_completed(warrior: Warrior) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
-	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, EntityClasses.Types.keys()[warrior.entity_class]], Color(0.3, 0.8, 1.0))
+	var display_class := warrior.background_id if not warrior.background_id.is_empty() else EntityClasses.Types.keys()[warrior.class_id]
+	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, display_class], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
 	_update_ui()
@@ -1027,21 +1028,18 @@ func _run_economy_tick() -> Array[String]:
 	var engine: EconomyEngine = world.economy_engine
 	assert(engine != null, "World.economy_engine is null — GameScenario._setup_economy() must initialize it")
 
-	var result := engine.tick_full(world.current_hour)
+	var economy_tick_result_full := engine.tick_full(world.current_hour)
 
 	# Deliver caravans that arrived this tick; collect them as idle for reassignment.
 	var idle_caravans: Array[SquadData] = []
 	for squad in world.roaming_squads:
-		if not squad.is_caravan():
-			continue
-		if not squad.has_reached_destination():
-			continue
-		engine.notify_caravan_arrived(squad)
-		event_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo.destination_id])
-		Log.info("Economy", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo.destination_id])
-		idle_caravans.append(squad)
+		if squad.is_caravan() and squad.has_reached_destination():
+			engine.execute_caravan_delivery(squad)
+			event_log.append("CARAVAN delivered %s to %s" % [squad.squad_name, squad.cargo.destination_id])
+			Log.info("Economy", "Caravan %s delivered to %s" % [squad.squad_name, squad.cargo.destination_id])
+			idle_caravans.append(squad)
 
-	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = result.shipment_dispatches
+	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = economy_tick_result_full.shipment_dispatches
 
 	# Reassign idle caravans to pending dispatches before spawning new ones.
 	var dispatch_index := 0
@@ -1049,7 +1047,7 @@ func _run_economy_tick() -> Array[String]:
 		var squad: SquadData = idle_caravans.pop_back()
 		var dispatch: EconomyTickResult.ShipmentDispatch = dispatches[dispatch_index]
 		dispatch_index += 1
-		CaravanBridge.reassign_caravan(squad, dispatch.move, dispatch.shipment_id)
+		CaravanBridge.execute_caravan_reassignment(squad, dispatch.move, dispatch.shipment_id)
 		engine.register_dispatch_to_squad(dispatch.shipment_id, squad.squad_id)
 		event_log.append("CARAVAN reassigned %s at %s → %s" % [
 			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
@@ -1080,8 +1078,8 @@ func _run_economy_tick() -> Array[String]:
 		ai_fleet.unregister_squad(squad.squad_id)
 
 	# Apply mercenary-work toggles emitted by the engine.
-	for location_id in result.mercenary_work_changes:
-		var should_offer: bool = result.mercenary_work_changes[location_id]
+	for location_id in economy_tick_result_full.mercenary_work_changes:
+		var should_offer: bool = economy_tick_result_full.mercenary_work_changes[location_id]
 		var loc := world.get_location_by_id(location_id)
 		if loc == null:
 			continue

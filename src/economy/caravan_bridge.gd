@@ -33,11 +33,10 @@ static func create_caravan_squad(
 
 static func _create_caravan_guard(squad_id: String, index: int) -> Warrior:
 	var guard := WarriorFactory.create_warrior(
-		EntityClasses.Types.Landsknecht,
+		&"landsknecht",
 		"%s_guard_%d" % [squad_id, index],
 		"Caravan Guard",
 		StrategyTypes.Religion.CATHOLIC,
-		EntityBaseStats.new(),
 	)
 	guard.morale = 60.0
 	guard.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, 15)
@@ -91,7 +90,7 @@ static func apply_loot(
 	return looted
 
 
-static func reassign_caravan(
+static func execute_caravan_reassignment(
 	squad: SquadData,
 	move: EconomyMove,
 	shipment_id: String,

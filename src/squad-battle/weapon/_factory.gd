@@ -20,7 +20,20 @@ static var pathlib = {
 	"AlchemicalFire": "res://resources/combat/weapon/alchemical-fire.tres",
 }
 
+static var _skill_map: Dictionary = {
+	WeaponClasses.Unarmed: SkillType.Types.Healing,
+	WeaponClasses.Flammenschwert: SkillType.Types.Swords,
+	WeaponClasses.Crossbow: SkillType.Types.Crossbows,
+	WeaponClasses.Arquebus: SkillType.Types.Firearms,
+	WeaponClasses.Pike: SkillType.Types.Polearms,
+	WeaponClasses.Mace: SkillType.Types.Maces,
+	WeaponClasses.AlchemicalFire: SkillType.Types.Scholarship,
+}
+
 static var _cached_key = WeaponClasses.keys()
+
+static func get_skill_used(weapon_class: WeaponClasses) -> SkillType.Types:
+	return _skill_map.get(weapon_class, SkillType.Types.Swords)
 
 static func get_weapon(_weapon: WeaponClasses) -> SquadWeapon:
 	var path = pathlib.get(_cached_key[_weapon]);

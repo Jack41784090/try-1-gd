@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WarriorBackground" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/character/warrior_background.gd" id="1_bg"]
+[ext_resource type="Texture2D" path="res://assets/Healer-idle.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_bg")
+background_id = &"healer"
+display_name = "Field Surgeon"
+icon = ExtResource("2_icon")
+cost = 150
+stats_template_path = ""
+default_weapon_id = &""
+default_armor_id = &""
+default_role = 1
+default_position = 3
+default_skills = {
+5: 3
+}
+speed_kmh = 5.5
+metadata/_custom_type_script = ""

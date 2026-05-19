@@ -14,6 +14,7 @@ var armor: ArmorConfig
 var armor_class: ArmorFactory.ArmorClasses
 var innate_skills: Array[Skill]
 var starting_location: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Front
+var skill_set: SkillSet
 
 func _init(
     p_entity_type_id: EntityClasses.Types,
@@ -28,6 +29,7 @@ func _init(
 	p_armor: ArmorConfig = null,
 	p_armor_class: ArmorFactory.ArmorClasses = ArmorFactory.ArmorClasses.Unarmored,
 	p_innate_skills: Array[Skill] = [],
+	p_skill_set: SkillSet = null,
 ):
 	entity_type_id = p_entity_type_id
 	player_id = p_player_id
@@ -41,3 +43,4 @@ func _init(
 	armor = p_armor
 	armor_class = p_armor_class
 	innate_skills = p_innate_skills
+	skill_set = p_skill_set

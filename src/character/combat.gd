@@ -44,6 +44,7 @@ var has_last_stand: bool:
 var innate_skills: Array[Skill] = []
 var temporary_skills: Array[Skill] = []
 var status_effects: Array[StatusEffect] = []
+var skill_set: SkillSet
 
 static func quick_dummy():
 	return CombatEntity.new(EntityConfig.new(
@@ -128,8 +129,10 @@ func _validate_existence() -> void:
 
 func _init(config: EntityConfig = null):
 	if config == null:
+		skill_set = SkillSet.new()
 		return
 	
+	skill_set = SkillSet.new()
 	player_id = config.player_id
 	class_id = config.entity_type_id
 	entity_name = config.name
@@ -159,7 +162,10 @@ func _init(config: EntityConfig = null):
 	
 	for skill in config.innate_skills:
 		innate_skills.append(skill)
-	
+
+	if config.skill_set:
+		skill_set = config.skill_set
+
 	changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config.starting_location
 
 	_validate_existence()

@@ -1,7 +1,7 @@
 class_name RecruitmentTab
 extends Control
 
-signal recruit_requested(class_enum: EntityClasses.Types, cost: float)
+signal recruit_requested(background: WarriorBackground)
 
 const CARD_SCENE = preload("res://scenes/ui/manage_squad/recruitment_card.tscn")
 
@@ -9,16 +9,6 @@ const CARD_SCENE = preload("res://scenes/ui/manage_squad/recruitment_card.tscn")
 @onready var _classes_container: VBoxContainer = $ScrollContainer/VBox/ClassesContainer
 
 var _current_squad: SquadData
-
-const RECRUITMENT_COSTS: Dictionary = {
-	EntityClasses.Types.Landsknecht: 100.0,
-	EntityClasses.Types.Healer: 150.0,
-	EntityClasses.Types.Crossbowman: 120.0,
-	EntityClasses.Types.Arquebusier: 200.0,
-	EntityClasses.Types.Pikeman: 130.0,
-	EntityClasses.Types.Feldprediger: 180.0,
-	EntityClasses.Types.Gelehrter: 250.0,
-}
 
 
 func refresh(squad: SquadData, _actor: ActivityRunner) -> void:
@@ -28,40 +18,41 @@ func refresh(squad: SquadData, _actor: ActivityRunner) -> void:
 	for child in _classes_container.get_children():
 		child.queue_free()
 
-	for class_enum in EntityClasses.Types.values():
-		_classes_container.add_child(_create_class_card(class_enum))
+	for bg in WarriorBackgroundFactory.all():
+		_classes_container.add_child(_create_class_card(bg))
 
 
-func _create_class_card(class_enum: EntityClasses.Types) -> PanelContainer:
-	var entity_template = EntityFactory.get_entity(class_enum)
-	var cost: float = RECRUITMENT_COSTS.get(class_enum, 100.0)
+func _create_class_card(background: WarriorBackground) -> PanelContainer:
+	var cost: int = background.cost
 	var can_afford := _current_squad.money >= cost
 
 	var panel: PanelContainer = CARD_SCENE.instantiate()
 
 	var icon_rect: TextureRect = panel.get_node("Margin/HBox/IconRect")
-	if entity_template.icon:
-		icon_rect.texture = entity_template.icon
+	if background.icon:
+		icon_rect.texture = background.icon
 
 	var name_label: Label = panel.get_node("Margin/HBox/InfoVBox/NameLabel")
-	name_label.text = entity_template.entity_name
+	name_label.text = background.display_name
 
 	var cost_label: Label = panel.get_node("Margin/HBox/InfoVBox/CostLabel")
-	cost_label.text = "Cost: %.0f gold" % cost
+	cost_label.text = "Cost: %d gold" % cost
 
 	var stats_label: Label = panel.get_node("Margin/HBox/InfoVBox/StatsLabel")
-	if entity_template.stats:
-		stats_label.text = "STR:%.0f DEX:%.0f END:%.0f INT:%.0f" % [
-			entity_template.stats.strength,
-			entity_template.stats.dex,
-			entity_template.stats.endurance,
-			entity_template.stats.int_stat
-		]
+	if not background.stats_template_path.is_empty():
+		var stats := load(background.stats_template_path) as EntityBaseStats
+		if stats:
+			stats_label.text = "STR:%.0f DEX:%.0f END:%.0f INT:%.0f" % [
+				stats.strength,
+				stats.dex,
+				stats.endurance,
+				stats.int_stat
+			]
 
 	var recruit_btn: Button = panel.get_node("Margin/HBox/RecruitButton")
 	if can_afford:
 		recruit_btn.text = "Recruit"
-		recruit_btn.pressed.connect(func(): recruit_requested.emit(class_enum, cost))
+		recruit_btn.pressed.connect(func(): recruit_requested.emit(background))
 	else:
 		recruit_btn.text = "Can't Afford"
 		recruit_btn.disabled = true

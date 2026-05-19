@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WarriorBackground" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/character/warrior_background.gd" id="1_bg"]
+
+[resource]
+script = ExtResource("1_bg")
+background_id = &"pikeman"
+display_name = "Pikeman"
+cost = 130
+stats_template_path = "res://resources/strategy-warrior/BS_pikeman.tres"
+default_weapon_id = &"Pike"
+default_armor_id = &"HalfPlate"
+default_role = 3
+default_position = 1
+default_skills = {
+1: 3
+}
+speed_kmh = 4.0
+metadata/_custom_type_script = ""

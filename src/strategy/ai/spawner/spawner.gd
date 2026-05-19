@@ -44,13 +44,12 @@ func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> A
 
 #region SPAWNING
 
-func _create_warrior(squad_id: String, index: int, class_id: EntityClasses.Types) -> Warrior:
+func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Warrior:
 	var warrior := WarriorFactory.create_warrior(
-		class_id,
+		background_id,
 		"%s_w%d" % [squad_id, index],
 		"Warrior",
 		StrategyTypes.Religion.CATHOLIC,
-		EntityBaseStats.new(),
 	)
 	warrior.morale = randf_range(40.0, 60.0)
 	return warrior
@@ -71,13 +70,10 @@ func _create_squad(location: Location, world: World) -> SquadData:
 	)
 
 	var warrior_count := randi_range(1, 4)
-	var classes: Array[EntityClasses.Types] = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Pikeman,
-	]
+	var backgrounds: Array[StringName] = [&"landsknecht", &"pikeman"]
 	for i in range(warrior_count):
-		var class_id: EntityClasses.Types = classes[i % classes.size()]
-		var warrior := _create_warrior(squad.squad_id, i, class_id)
+		var background_id: StringName = backgrounds[i % backgrounds.size()]
+		var warrior := _create_warrior(squad.squad_id, i, background_id)
 		squad.add_warrior(warrior)
 
 	Log.info("BanditSpawner", "Spawned %s (%d warriors) near %s at %s" % [

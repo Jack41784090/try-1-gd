@@ -18,35 +18,7 @@ var current_squad: SquadData:
 
 var _class_items: Array[RecruitmentClassItem]
 
-var recruitment_costs: Dictionary = {
-	EntityClasses.Types.Landsknecht: 100.0,
-	EntityClasses.Types.Healer: 150.0,
-	EntityClasses.Types.Crossbowman: 120.0,
-	EntityClasses.Types.Arquebusier: 200.0,
-	EntityClasses.Types.Pikeman: 130.0,
-	EntityClasses.Types.Feldprediger: 180.0,
-	EntityClasses.Types.Gelehrter: 250.0,
-}
-
-var class_logic_map: Dictionary = {
-	EntityClasses.Types.Landsknecht: LogicFactory.LogicAvailable.Frontline,
-	EntityClasses.Types.Healer: LogicFactory.LogicAvailable.BacklineHeal,
-	EntityClasses.Types.Crossbowman: LogicFactory.LogicAvailable.BacklineShooter,
-	EntityClasses.Types.Arquebusier: LogicFactory.LogicAvailable.BacklineGunner,
-	EntityClasses.Types.Pikeman: LogicFactory.LogicAvailable.DefensiveFrontline,
-	EntityClasses.Types.Feldprediger: LogicFactory.LogicAvailable.BacklineSupport,
-	EntityClasses.Types.Gelehrter: LogicFactory.LogicAvailable.BacklineCaster,
-}
-
-var class_location_map: Dictionary = {
-	EntityClasses.Types.Landsknecht: SquadBattleTypes.SquadEntityInSquadLocation.Front,
-	EntityClasses.Types.Healer: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-	EntityClasses.Types.Crossbowman: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-	EntityClasses.Types.Arquebusier: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-	EntityClasses.Types.Pikeman: SquadBattleTypes.SquadEntityInSquadLocation.Front,
-	EntityClasses.Types.Feldprediger: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-	EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-}
+var _class_items: Array[RecruitmentClassItem]
 
 func setup(_actor) -> void:
 	assert(_actor is ActivityRunner)
@@ -78,39 +50,31 @@ func _update_display() -> void:
 	title_label.text = "Recruit Warriors"
 	money_label.text = "Available Money: %.0f" % current_squad.money
 
-	var class_values := EntityClasses.Types.values()
+	var backgrounds := WarriorBackgroundFactory.all()
 	for i in _class_items.size():
-		if i < class_values.size():
-			var class_enum: EntityClasses.Types = class_values[i]
-			var entity_template := EntityFactory.get_entity(class_enum)
-			var cost: float = recruitment_costs.get(class_enum, 100.0)
-			var can_afford := current_squad.money >= cost
-			_class_items[i].populate(class_enum, entity_template, cost, can_afford)
+		if i < backgrounds.size():
+			var bg: WarriorBackground = backgrounds[i]
+			var can_afford := current_squad.money >= bg.cost
+			_class_items[i].populate(bg, can_afford)
 		else:
 			_class_items[i].visible = false
 
-func _on_recruit_pressed_from_item(class_enum: EntityClasses.Types) -> void:
-	var cost: float = recruitment_costs.get(class_enum, 100.0)
+func _on_recruit_pressed_from_item(background: WarriorBackground) -> void:
+	var cost: int = background.cost
 	if current_squad.money < cost:
 		return
 
-	var entity_template := EntityFactory.get_entity(class_enum)
-
 	var new_warrior = WarriorFactory.create_warrior(
-		class_enum,
+		background.background_id,
 		"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
-		"%s Recruit" % entity_template.entity_name,
-		StrategyTypes.Religion.CATHOLIC,
-		entity_template.stats.duplicate(true) if entity_template.stats else EntityBaseStats.new()
+		"%s Recruit" % background.display_name,
+		StrategyTypes.Religion.CATHOLIC
 	)
-
-	new_warrior.logic_type = class_logic_map.get(class_enum, LogicFactory.LogicAvailable.Frontline)
-	new_warrior.location_prebattle = class_location_map.get(class_enum, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 
 	current_squad.add_warrior(new_warrior)
 	current_squad.money -= cost
 
-	print("[RecruitmentView] Recruited %s for %.0f gold" % [new_warrior.name, cost])
+	print("[RecruitmentView] Recruited %s for %d gold" % [new_warrior.name, cost])
 
 	recruitment_completed.emit(new_warrior)
 	hide_recruitment_menu()

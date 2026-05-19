@@ -2,39 +2,21 @@ class_name WarriorRigConfigFactory extends RefCounted
 
 const CONFIG_BASE_PATH = "res://resources/animation/configs/"
 
-static var _cache: Dictionary = {}
+static var _default_config: WarriorRigConfig = null
 
-static func get_config(class_id: EntityClasses.Types) -> WarriorRigConfig:
-	if _cache.has(class_id):
-		return _cache[class_id]
-
-	var path = CONFIG_BASE_PATH + _class_id_to_filename(class_id)
+static func get_config(_class_id = null) -> WarriorRigConfig:
+	if _default_config:
+		return _default_config
+	var path = CONFIG_BASE_PATH + "landsknecht.tres"
 	if ResourceLoader.exists(path):
 		var config = load(path) as WarriorRigConfig
 		assert(config != null, "Failed to load WarriorRigConfig from: %s" % path)
-		_cache[class_id] = config
+		_default_config = config
 		return config
-
 	return null
 
-static func clear_cache() -> void:
-	_cache.clear()
+static func get_default_config() -> WarriorRigConfig:
+	return get_config()
 
-static func _class_id_to_filename(class_id: EntityClasses.Types) -> String:
-	match class_id:
-		EntityClasses.Types.Landsknecht:
-			return "landsknecht.tres"
-		EntityClasses.Types.Healer:
-			return "healer.tres"
-		EntityClasses.Types.Crossbowman:
-			return "crossbowman.tres"
-		EntityClasses.Types.Arquebusier:
-			return "arquebusier.tres"
-		EntityClasses.Types.Pikeman:
-			return "pikeman.tres"
-		EntityClasses.Types.Feldprediger:
-			return "feldprediger.tres"
-		EntityClasses.Types.Gelehrter:
-			return "gelehrter.tres"
-		_:
-			return "landsknecht.tres"
+static func clear_cache() -> void:
+	_default_config = null

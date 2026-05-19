@@ -39,7 +39,7 @@ func _ready() -> void:
 
 	tactics_tab.tactic_selected.connect(func(t): presenter.on_tactic_selected(t))
 	formation_tab.formation_changed.connect(func(w, p): presenter.on_formation_changed(w, p))
-	recruitment_tab.recruit_requested.connect(func(c, cost): presenter.on_recruit(c, cost))
+	recruitment_tab.recruit_requested.connect(func(bg): presenter.on_recruit(bg))
 	inventory_tab.equip_weapon_requested.connect(func(w, weapon): presenter.on_equip_weapon(w, weapon))
 	inventory_tab.equip_armor_requested.connect(func(w, armor): presenter.on_equip_armor(w, armor))
 	inventory_tab.unequip_weapon_requested.connect(func(w): presenter.on_unequip_weapon(w))

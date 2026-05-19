@@ -6,33 +6,37 @@ static var _scene_cache: PackedScene
 
 static func create_rig_for_warrior(warrior: Warrior) -> WarriorRig:
 	var rig = _instantiate_rig()
-	rig.setup(warrior.class_id, warrior.id)
+	rig.setup_default(warrior.id)
 
-	var config = WarriorRigConfigFactory.get_config(warrior.class_id)
+	var config = WarriorRigConfigFactory.get_default_config()
 	if config:
 		rig.apply_config(config)
 
 	return rig
 
-static func create_rig_for_entity(class_id: EntityClasses.Types, entity_id: String) -> WarriorRig:
+static func create_rig_for_entity(_class_id = null, entity_id: String = "") -> WarriorRig:
 	var rig = _instantiate_rig()
-	rig.setup(class_id, entity_id)
-	var config = WarriorRigConfigFactory.get_config(class_id)
+	rig.setup_default(entity_id)
+	var config = WarriorRigConfigFactory.get_default_config()
 	if config:
 		rig.apply_config(config)
 	return rig
 
 static func create_rig_for_npc(character_id: String) -> WarriorRig:
 	var rig = _instantiate_rig()
-	var hash_val = character_id.hash()
-	var class_id = (abs(hash_val) % EntityClasses.Types.size()) as EntityClasses.Types
-	rig.setup(class_id, character_id)
+	rig.setup_default(character_id)
 
-	var config = WarriorRigConfigFactory.get_config(class_id)
+	var config = WarriorRigConfigFactory.get_default_config()
 	if config:
 		rig.apply_config(config)
 
 	return rig
+
+static func _instantiate_rig() -> WarriorRig:
+	if not _scene_cache:
+		_scene_cache = load(WARRIOR_RIG_SCENE_PATH) as PackedScene
+		assert(_scene_cache != null, "Failed to load WarriorRig scene from: %s" % WARRIOR_RIG_SCENE_PATH)
+	return _scene_cache.instantiate() as WarriorRig
 
 static func _instantiate_rig() -> WarriorRig:
 	if not _scene_cache:

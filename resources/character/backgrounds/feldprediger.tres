@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WarriorBackground" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/character/warrior_background.gd" id="1_bg"]
+
+[resource]
+script = ExtResource("1_bg")
+background_id = &"feldprediger"
+display_name = "Field Preacher"
+cost = 180
+stats_template_path = "res://resources/strategy-warrior/BS_feldprediger.tres"
+default_weapon_id = &"Mace"
+default_armor_id = &"PaddedArmor"
+default_role = 4
+default_position = 3
+default_skills = {
+4: 2,
+7: 3
+}
+speed_kmh = 5.0
+metadata/_custom_type_script = ""

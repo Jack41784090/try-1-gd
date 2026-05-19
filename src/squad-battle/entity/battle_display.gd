@@ -25,7 +25,7 @@ func setup(entity: CombatEntity) -> void:
 	squad_entity = entity
 	_debug_id = "[BattleDisplay:%s[%d]]" % [entity.entity_name, entity.player_id]
 
-	rig = WarriorRigFactory.create_rig_for_entity(entity.class_id, str(entity.player_id))
+	rig = WarriorRigFactory.create_rig_for_entity(null, str(entity.player_id))
 	add_child(rig)
 	rig.position = Vector2.ZERO
 

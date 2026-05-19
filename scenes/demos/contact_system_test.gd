@@ -20,8 +20,8 @@ func _ready() -> void:
 	assert(world != null, "World must exist in scenario")
 	assert(world.locations.size() >= 2, "Need at least 2 locations")
 
-	squad_a = _make_squad("test_alpha", StrategyTypes.SquadRole.COMBAT, EntityClasses.Types.Landsknecht)
-	squad_b = _make_squad("test_bravo", StrategyTypes.SquadRole.MERCHANT, EntityClasses.Types.Crossbowman)
+	squad_a = _make_squad("test_alpha", StrategyTypes.SquadRole.COMBAT, &"landsknecht")
+	squad_b = _make_squad("test_bravo", StrategyTypes.SquadRole.MERCHANT, &"crossbowman")
 
 	print("\n" + "=".repeat(70))
 	print("CONTACT SYSTEM — UNIT TEST SUITE")
@@ -59,21 +59,23 @@ func check(condition: bool, test_name: String, detail: String = "") -> void:
 			msg += ": %s" % detail
 		print(msg)
 
-func _make_warrior(warrior_class: EntityClasses.Types) -> Warrior:
-	var w := Warrior.new()
-	w.id = "w_%s_%d" % [EntityClasses.Types.keys()[warrior_class], randi()]
-	w.name = w.id
-	w.class_id = warrior_class
+func _make_warrior(background_id: StringName) -> Warrior:
+	var w := WarriorFactory.create_warrior(
+		background_id,
+		"w_%s_%d" % [background_id, randi()],
+		"w_%s" % background_id,
+		StrategyTypes.Religion.CATHOLIC
+	)
 	w.attributes = {"diplomacy": 30, "survival": 30, "perception": 40, "leadership": 50, "stealth": 35}
 	return w
 
-func _make_squad(id: String, role: StrategyTypes.SquadRole, warrior_class: EntityClasses.Types) -> SquadData:
+func _make_squad(id: String, role: StrategyTypes.SquadRole, background_id: StringName) -> SquadData:
 	var sd := SquadData.new()
 	sd.squad_id = id
 	sd.squad_name = id
 	sd.squad_role = role
 	for i in range(3):
-		sd.warriors.append(_make_warrior(warrior_class))
+		sd.warriors.append(_make_warrior(background_id))
 	return sd
 
 func _find_connected_pair() -> Array:
@@ -256,7 +258,7 @@ func test_engagement_classification() -> void:
 
 	var tracker := ContactTracker.new()
 
-	var combat_b := _make_squad("test_combat_b", StrategyTypes.SquadRole.COMBAT, EntityClasses.Types.Crossbowman)
+	var combat_b := _make_squad("test_combat_b", StrategyTypes.SquadRole.COMBAT, &"crossbowman")
 
 	var connected = _find_connected_pair()
 	var shared_loc: Location = connected[0]
@@ -272,7 +274,7 @@ func test_engagement_classification() -> void:
 	check(contact_ba.get_state() == StrategyTypes.ContactState.NONE, "B→A is NONE")
 
 	var all_squads: Array = [squad_a, combat_b]
-	var engagements := tracker.check_engagements(world, all_squads)
+	var engagements: Array = tracker.check_engagements(world, all_squads)
 	check(engagements.size() == 1, "One engagement found", "got %d" % engagements.size())
 	if engagements.size() > 0:
 		check(engagements[0]["type"] == StrategyTypes.EngagementType.AMBUSH, "LOCKED vs NONE → AMBUSH")
@@ -292,7 +294,7 @@ func test_engagement_classification() -> void:
 	squad_a.current_location_id = shared_loc.location_id
 	combat_b.current_location_id = shared_loc.location_id
 
-	var eng2 := tracker2.check_engagements(world, all_squads)
+	var eng2: Array = tracker2.check_engagements(world, all_squads)
 	check(eng2.size() == 1, "One SET_PIECE engagement found", "got %d" % eng2.size())
 	if eng2.size() > 0:
 		check(eng2[0]["type"] == StrategyTypes.EngagementType.SET_PIECE, "Both LOCKED → SET_PIECE")

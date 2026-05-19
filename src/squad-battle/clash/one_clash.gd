@@ -44,6 +44,8 @@ func roll_for_hit() -> bool:
 	var target = target_manifestation()
 
 	var try_hit = chosen_weapon.get_total_hit_value(attacker)
+	var skill_level: float = _get_attacker_skill_level()
+	try_hit += skill_level * 2.0
 	var hit_def = target.calculate_reality_value(SquadBattleTypes.Reality.Maneuver)
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
@@ -75,11 +77,12 @@ func roll_for_pierce() -> bool:
 
 	var try_hit: float
 	var hit_def: float
+	var skill_level: float = _get_attacker_skill_level()
 	if chosen_weapon.is_magical:
-		try_hit = chosen_weapon.get_magical_penetration_value(attacker)
+		try_hit = chosen_weapon.get_magical_penetration_value(attacker) + skill_level * 2.0
 		hit_def = armour.get_magical_PV()
 	else:
-		try_hit = chosen_weapon.get_total_penetration_value(attacker)
+		try_hit = chosen_weapon.get_total_penetration_value(attacker) + skill_level * 2.0
 		hit_def = armour.get_PV()
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
@@ -108,7 +111,8 @@ func damage_calculation() -> void:
 	var chosen_weapon = attacker.weapon
 	var target = target_manifestation()
 	var armour = target.get_armour()
-	var raw_damage = chosen_weapon.get_potency_array_damage(attacker)
+	var skill_bonus: float = _get_attacker_skill_level() * 0.5
+	var dm = armour.get_raw_damage_taken(raw_damage) + skill_bonus_damage(attacker)
 	var dm = armour.get_raw_damage_taken(raw_damage)
 
 	var hp_before = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
@@ -119,6 +123,11 @@ func damage_calculation() -> void:
 	var hp_after = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 	Log.trace("OneClash", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, target.entity_name, hp_before, hp_after])
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.TargetTookDamage, dm)
+
+
+func _get_attacker_skill_level() -> float:
+	var skill_type := WeaponFactory.get_skill_used(attacker.weapon_class)
+	return float(attacker.skill_set.get_level(skill_type))
 
 
 func cleanup() -> Array[EntityUpdate]:

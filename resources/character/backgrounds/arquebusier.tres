@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WarriorBackground" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/character/warrior_background.gd" id="1_bg"]
+
+[resource]
+script = ExtResource("1_bg")
+background_id = &"arquebusier"
+display_name = "Arquebusier"
+cost = 200
+stats_template_path = "res://resources/strategy-warrior/BS_arquebusier.tres"
+default_weapon_id = &"Arquebus"
+default_armor_id = &""
+default_role = 5
+default_position = 3
+default_skills = {
+3: 3
+}
+speed_kmh = 4.5
+metadata/_custom_type_script = ""

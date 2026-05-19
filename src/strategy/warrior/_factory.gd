@@ -1,32 +1,18 @@
 class_name WarriorFactory
 
-static var _class_weapon_map: Dictionary = {
-	EntityClasses.Types.Landsknecht: "res://resources/combat/weapon/flammenschwert.tres",
-	EntityClasses.Types.Healer: "",
-	EntityClasses.Types.Crossbowman: "res://resources/combat/weapon/crossbow.tres",
-	EntityClasses.Types.Arquebusier: "res://resources/combat/weapon/arquebus.tres",
-	EntityClasses.Types.Pikeman: "res://resources/combat/weapon/pike.tres",
-	EntityClasses.Types.Feldprediger: "res://resources/combat/weapon/mace.tres",
-	EntityClasses.Types.Gelehrter: "res://resources/combat/weapon/alchemical-fire.tres",
-}
 
-static var _class_armor_map: Dictionary = {
-	EntityClasses.Types.Landsknecht: "res://resources/combat/armor/leather-armor.tres",
-	EntityClasses.Types.Healer: "",
-	EntityClasses.Types.Crossbowman: "res://resources/combat/armor/padded-armor.tres",
-	EntityClasses.Types.Arquebusier: "",
-	EntityClasses.Types.Pikeman: "res://resources/combat/armor/half-plate.tres",
-	EntityClasses.Types.Feldprediger: "res://resources/combat/armor/padded-armor.tres",
-	EntityClasses.Types.Gelehrter: "",
-}
-
-static func create_warrior(class_id: EntityClasses.Types, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats) -> Warrior:
-	var warrior = Warrior.new()
-	warrior.class_id = class_id
+static func create_warrior(background_id: StringName, id: String, name: String, religion: StrategyTypes.Religion, combat_stats: EntityBaseStats = null) -> Warrior:
+	var background := WarriorBackgroundFactory.get_background(background_id)
+	var warrior := Warrior.new()
+	warrior.background_id = background.background_id
+	warrior.class_id = EntityClasses.Types.Landsknecht
 	warrior.id = id
 	warrior.name = name
 	warrior.religion = religion
-	warrior.combat_stats = combat_stats
+	if combat_stats:
+		warrior.combat_stats = combat_stats
+	else:
+		warrior.combat_stats = _load_stats_template(background.stats_template_path)
 	warrior.morale = 100.0
 	warrior.attributes = {
 		"diplomacy": 50,
@@ -35,20 +21,57 @@ static func create_warrior(class_id: EntityClasses.Types, id: String, name: Stri
 		"leadership": 50,
 		"stealth": 50
 	}
-	_assign_default_equipment(warrior)
+	warrior.logic_type = background.default_role
+	warrior.location_prebattle = background.default_position
+
+	for skill_type in background.default_skills:
+		warrior.skill_set.set_level(skill_type as SkillType.Types, background.default_skills[skill_type])
+
+	_assign_equipment_from_background(warrior, background)
 	return warrior
 
 
-static func _assign_default_equipment(warrior: Warrior) -> void:
-	if warrior.equipment_weapon != null and warrior.equipment_armor != null:
-		return
-	var weapon_path: String = _class_weapon_map.get(warrior.class_id, "")
-	if weapon_path != "" and warrior.equipment_weapon == null:
-		var weapon_res = load(weapon_path)
-		if weapon_res is WeaponConfig:
-			warrior.equipment_weapon = weapon_res.duplicate(true)
-	var armor_path: String = _class_armor_map.get(warrior.class_id, "")
-	if armor_path != "" and warrior.equipment_armor == null:
-		var armor_res = load(armor_path)
-		if armor_res is ArmorConfig:
-			warrior.equipment_armor = armor_res.duplicate(true)
+static func _load_stats_template(path: String) -> EntityBaseStats:
+	if path.is_empty():
+		return EntityBaseStats.new()
+	var res := load(path) as EntityBaseStats
+	assert(res != null, "Failed to load stats template from: %s" % path)
+	return res.duplicate(true)
+
+
+static func _assign_equipment_from_background(warrior: Warrior, background: WarriorBackground) -> void:
+	if not background.default_weapon_id.is_empty():
+		warrior.equipment_weapon_class = _weapon_class_from_id(background.default_weapon_id)
+	if not background.default_armor_id.is_empty():
+		warrior.equipment_armor_class = _armor_class_from_id(background.default_armor_id)
+
+
+static func _weapon_class_from_id(weapon_id: StringName) -> WeaponFactory.WeaponClasses:
+	match weapon_id:
+		&"Flammenschwert":
+			return WeaponFactory.WeaponClasses.Flammenschwert
+		&"Crossbow":
+			return WeaponFactory.WeaponClasses.Crossbow
+		&"Arquebus":
+			return WeaponFactory.WeaponClasses.Arquebus
+		&"Pike":
+			return WeaponFactory.WeaponClasses.Pike
+		&"Mace":
+			return WeaponFactory.WeaponClasses.Mace
+		&"AlchemicalFire":
+			return WeaponFactory.WeaponClasses.AlchemicalFire
+		_:
+			return WeaponFactory.WeaponClasses.Unarmed
+
+
+static func _armor_class_from_id(armor_id: StringName) -> ArmorFactory.ArmorClasses:
+	match armor_id:
+		&"LeatherArmor":
+			return ArmorFactory.ArmorClasses.LeatherArmor
+		&"PaddedArmor":
+			return ArmorFactory.ArmorClasses.PaddedArmor
+		&"HalfPlate":
+			return ArmorFactory.ArmorClasses.HalfPlate
+		_:
+			return ArmorFactory.ArmorClasses.Unarmored
+

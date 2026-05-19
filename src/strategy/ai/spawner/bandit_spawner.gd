@@ -85,8 +85,8 @@ func _check_bandit_disband(squad: SquadData) -> bool:
 			break
 	return all_injured
 
-func _create_warrior(squad_id: String, index: int, class_id: EntityClasses.Types) -> Warrior:
-	var warrior = super._create_warrior(squad_id, index, class_id)
+func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Warrior:
+	var warrior = super._create_warrior(squad_id, index, background_id)
 	warrior.morale = randf_range(20.0, 30.0)
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, randi_range(20, 40))
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, randi_range(10, 15))

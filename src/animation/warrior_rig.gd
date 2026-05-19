@@ -86,11 +86,15 @@ func _process(_delta: float) -> void:
 			if part.has("display_scale"):
 				node.scale = part.display_scale
 
-func setup(p_class_id: EntityClasses.Types, p_character_id: String, p_facing: int = 1) -> void:
+func setup(p_class_id = null, p_character_id: String = "", p_facing: int = 1) -> void:
 	class_id = p_class_id
 	character_id = p_character_id
 	facing = p_facing
 	scale.x = facing
+
+func setup_default(p_character_id: String = "") -> void:
+	character_id = p_character_id
+	scale.x = 1.0
 
 func apply_config(config: WarriorRigConfig) -> void:
 	if not config:
@@ -215,69 +219,14 @@ func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) 
 	_synced_parts.append({"node": poly, "bone": bone})
 
 func _get_class_palette() -> Dictionary:
-	match class_id:
-		EntityClasses.Types.Healer:
-			return {
-				"torso": Color(0.20, 0.30, 0.55),
-				"torso_accent": Color(0.85, 0.82, 0.75),
-				"arms": Color(0.22, 0.32, 0.52),
-				"hips": Color(0.28, 0.24, 0.40),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
-			}
-		EntityClasses.Types.Crossbowman:
-			return {
-				"torso": Color(0.28, 0.44, 0.26),
-				"torso_accent": Color(0.22, 0.36, 0.20),
-				"arms": Color(0.30, 0.42, 0.28),
-				"hips": Color(0.45, 0.35, 0.25),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
-			}
-		EntityClasses.Types.Arquebusier:
-			return {
-				"torso": Color(0.28, 0.26, 0.24),
-				"torso_accent": Color(0.22, 0.20, 0.18),
-				"arms": Color(0.30, 0.28, 0.26),
-				"hips": Color(0.34, 0.28, 0.22),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.40, 0.30, 0.22),
-			}
-		EntityClasses.Types.Pikeman:
-			return {
-				"torso": Color(0.42, 0.44, 0.48),
-				"torso_accent": Color(0.50, 0.52, 0.56),
-				"arms": Color(0.46, 0.48, 0.52),
-				"hips": Color(0.42, 0.42, 0.46),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
-			}
-		EntityClasses.Types.Feldprediger:
-			return {
-				"torso": Color(0.30, 0.18, 0.42),
-				"torso_accent": Color(0.85, 0.82, 0.75),
-				"arms": Color(0.36, 0.24, 0.50),
-				"hips": Color(0.34, 0.24, 0.48),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
-			}
-		EntityClasses.Types.Gelehrter:
-			return {
-				"torso": Color(0.55, 0.14, 0.18),
-				"torso_accent": Color(0.70, 0.60, 0.30),
-				"arms": Color(0.50, 0.16, 0.22),
-				"hips": Color(0.30, 0.22, 0.22),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
-			}
-		_:
-			return {
-				"torso": Color(0.80, 0.20, 0.20),
-				"torso_accent": Color(0.86, 0.80, 0.53),
-				"arms": Color(0.60, 0.13, 0.13),
-				"hips": Color(0.45, 0.32, 0.22),
-				"legs": Color(0.47, 0.38, 0.31),
-				"boots": Color(0.48, 0.35, 0.25),
+	return {
+		"torso": Color(0.80, 0.20, 0.20),
+		"torso_accent": Color(0.86, 0.80, 0.53),
+		"arms": Color(0.60, 0.13, 0.13),
+		"hips": Color(0.45, 0.32, 0.22),
+		"legs": Color(0.47, 0.38, 0.31),
+		"boots": Color(0.48, 0.35, 0.25),
+	}
 			}
 
 func _make_rect(center: Vector2, w: float, h: float) -> PackedVector2Array:

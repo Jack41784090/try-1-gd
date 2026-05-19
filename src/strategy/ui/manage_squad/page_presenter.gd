@@ -63,44 +63,22 @@ func on_formation_changed(warrior: Warrior, new_pos: SquadBattleTypes.SquadEntit
 	warrior.location_prebattle = new_pos
 
 
-func on_recruit(class_enum: EntityClasses.Types, cost: float) -> void:
+func on_recruit(background: WarriorBackground) -> void:
+	var cost: int = background.cost
 	if squad.money < cost:
 		return
 
-	var entity_template = EntityFactory.get_entity(class_enum)
-	var class_logic_map: Dictionary = {
-		EntityClasses.Types.Landsknecht: LogicFactory.LogicAvailable.Frontline,
-		EntityClasses.Types.Healer: LogicFactory.LogicAvailable.BacklineHeal,
-		EntityClasses.Types.Crossbowman: LogicFactory.LogicAvailable.BacklineShooter,
-		EntityClasses.Types.Arquebusier: LogicFactory.LogicAvailable.BacklineGunner,
-		EntityClasses.Types.Pikeman: LogicFactory.LogicAvailable.DefensiveFrontline,
-		EntityClasses.Types.Feldprediger: LogicFactory.LogicAvailable.BacklineSupport,
-		EntityClasses.Types.Gelehrter: LogicFactory.LogicAvailable.BacklineCaster,
-	}
-	var class_location_map: Dictionary = {
-		EntityClasses.Types.Landsknecht: SquadBattleTypes.SquadEntityInSquadLocation.Front,
-		EntityClasses.Types.Healer: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-		EntityClasses.Types.Crossbowman: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-		EntityClasses.Types.Arquebusier: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-		EntityClasses.Types.Pikeman: SquadBattleTypes.SquadEntityInSquadLocation.Front,
-		EntityClasses.Types.Feldprediger: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-		EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
-	}
-
 	var new_warrior = WarriorFactory.create_warrior(
-		class_enum,
+		background.background_id,
 		"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
-		"%s Recruit" % entity_template.entity_name,
-		StrategyTypes.Religion.CATHOLIC,
-		entity_template.stats.duplicate(true) if entity_template.stats else EntityBaseStats.new()
+		"%s Recruit" % background.display_name,
+		StrategyTypes.Religion.CATHOLIC
 	)
-	new_warrior.logic_type = class_logic_map.get(class_enum, LogicFactory.LogicAvailable.Frontline)
-	new_warrior.location_prebattle = class_location_map.get(class_enum, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 
 	squad.add_warrior(new_warrior)
 	squad.money -= cost
 
-	Log.info("ManageSquadPage", "Recruited %s for %.0f gold" % [new_warrior.name, cost])
+	Log.info("ManageSquadPage", "Recruited %s for %d gold" % [new_warrior.name, cost])
 	recruitment_completed.emit(new_warrior)
 	view.recruitment_tab.refresh(squad, actor)
 
