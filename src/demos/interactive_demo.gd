@@ -426,7 +426,7 @@ func _cmd_travel(destination: String):
 	var hours_traveled := 0
 	while presenter.actor.walking_towards["location"] != null and hours_traveled < max_hours:
 		world.current_hour += 1
-		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		presenter.game_clock.gameclock_hour_tick.emit(world.current_hour)
 		while presenter.is_executing_activity:
 			await get_tree().create_timer(0.05).timeout
 		hours_traveled += 1
@@ -454,7 +454,7 @@ func _cmd_activity(type: StrategyTypes.ActivityType, description: String, arg: S
 			var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
 			handler.execute(ctx, ActivityResult.new())
 		world.current_hour += 1
-		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		presenter.game_clock.gameclock_hour_tick.emit(world.current_hour)
 		await get_tree().create_timer(0.1).timeout
 		while presenter.is_executing_activity:
 			await get_tree().create_timer(0.05).timeout
@@ -1099,7 +1099,7 @@ func _cmd_tick(arg: String):
 				var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
 				handler.execute(ctx, ActivityResult.new())
 		world.current_hour += 1
-		presenter.game_clock.hour_ticked.emit(world.current_hour)
+		presenter.game_clock.gameclock_hour_tick.emit(world.current_hour)
 		await get_tree().create_timer(0.1).timeout
 		while presenter.is_executing_activity:
 			await get_tree().create_timer(0.05).timeout

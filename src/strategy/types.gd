@@ -64,7 +64,7 @@ class EventChoice:
 	var choice_id: String
 	var choice_text: String
 	var conditions: Array = []
-	var effects: Dictionary = { }
+	var effects: Dictionary = {}
 
 
 	func _init(p_id: String = "", p_text: String = "") -> void:
@@ -130,8 +130,8 @@ enum ContactState {
 
 enum EngagementType {
 	AMBUSH,
-	SET_PIECE,
 	MEETING,
+	SET_PIECE,
 	AVOIDANCE,
 }
 

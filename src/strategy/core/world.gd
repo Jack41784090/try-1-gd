@@ -1,4 +1,5 @@
 extends Resource
+
 class_name World
 
 @export var locations: Array[Location] = []
@@ -11,14 +12,18 @@ class_name World
 
 var economy_engine: EconomyEngine = null
 
+
 func get_day() -> int:
 	return current_hour / 24 + 1
+
 
 func get_hour_of_day() -> int:
 	return current_hour % 24
 
+
 func get_clock_display() -> String:
 	return "Day %d — %02d:00" % [get_day(), get_hour_of_day()]
+
 
 func get_economy_locations() -> Array[Location]:
 	var result: Array[Location] = []
@@ -27,7 +32,8 @@ func get_economy_locations() -> Array[Location]:
 		result.append(loc)
 	return result
 
-var contact_tracker:
+
+var contact_tracker: ContactTracker:
 	get:
 		if contact_tracker == null:
 			contact_tracker = ContactTracker.new()
@@ -41,32 +47,38 @@ var travel_graph: TravelGraph = null:
 				travel_graph.add_location(location)
 		return travel_graph
 
+
 func get_location_by_id(location_id: String) -> Location:
 	for location in locations:
 		if location.location_id == location_id:
 			return location
 	return null
 
+
 func add_location(location: Location) -> void:
 	locations.append(location)
 	if travel_graph:
 		travel_graph.add_location(location)
 
+
 func build_travel_graph() -> void:
 	for location in locations:
 		travel_graph.add_location(location)
 
+
 func find_path(from_id: String, to_id: String) -> Array[String]:
 	if not travel_graph:
 		build_travel_graph()
-	
+
 	return travel_graph.find_path(from_id, to_id)
+
 
 func calculate_travel_hours(from_id: String, to_id: String, speed_kmh: float) -> float:
 	var path = travel_graph.find_path(from_id, to_id)
 	if path.is_empty():
 		return -1.0
 	return travel_graph.calculate_travel_hours(path, speed_kmh)
+
 
 func get_squads_at_location(location_id: String) -> Array[SquadData]:
 	var squads_at_loc: Array[SquadData] = []
@@ -75,14 +87,17 @@ func get_squads_at_location(location_id: String) -> Array[SquadData]:
 			squads_at_loc.append(squad)
 	return squads_at_loc
 
+
 func add_roaming_squad(squad: SquadData) -> void:
 	roaming_squads.append(squad)
+
 
 func remove_roaming_squad(squad_id: String) -> void:
 	for i in range(roaming_squads.size() - 1, -1, -1):
 		if roaming_squads[i].squad_id == squad_id:
 			roaming_squads.remove_at(i)
 			break
+
 
 func move_squad_to_location(squad_id: String, location_id: String) -> void:
 	for squad in roaming_squads:
@@ -92,7 +107,7 @@ func move_squad_to_location(squad_id: String, location_id: String) -> void:
 
 
 func find_nearest_location(from_id: String) -> String:
-	var visited: Dictionary = {}
+	var visited: Dictionary = { }
 	var queue: Array[String] = []
 	visited[from_id] = true
 	var from_loc = get_location_by_id(from_id)
@@ -114,39 +129,44 @@ func find_nearest_location(from_id: String) -> String:
 					visited[conn.to_location_id] = true
 	return ""
 
+
 func get_adjacent_squads(location_id: String) -> Array[SquadData]:
 	var adjacent_squads: Array[SquadData] = []
 	var location = get_location_by_id(location_id)
 	if not location:
 		return adjacent_squads
-	
+
 	for connected_id in location.connections:
 		var squads_there = get_squads_at_location(connected_id)
 		for squad in squads_there:
 			adjacent_squads.append(squad)
 	return adjacent_squads
 
+
 func save_state() -> Dictionary:
 	var location_data: Array = []
 	for location in locations:
-		location_data.append({
-			"id": location.location_id,
-			"name": location.location_name,
-			"type": location.type,
-			"development": location.development,
-			"stability": location.stability,
-			"connections": location.connections,
-			"activities": location.available_activity_types
-		})
-	
+		location_data.append(
+			{
+				"id": location.location_id,
+				"name": location.location_name,
+				"type": location.type,
+				"development": location.development,
+				"stability": location.stability,
+				"connections": location.connections,
+				"activities": location.available_activity_types,
+			},
+		)
+
 	return {
 		"current_hour": current_hour,
-		"locations": location_data
+		"locations": location_data,
 	}
+
 
 func load_state(data: Dictionary) -> void:
 	current_hour = data.get("current_hour", 0)
-	
+
 	locations.clear()
 	var location_data = data.get("locations", [])
 	for loc_dict in location_data:
@@ -159,3 +179,59 @@ func load_state(data: Dictionary) -> void:
 		location.connections = loc_dict.get("connections", [])
 		location.available_activity_types = loc_dict.get("activities", [])
 		locations.append(location)
+
+
+func check_engagements() -> Array[Dictionary]:
+	var engagements: Array[Dictionary] = []
+	var processed: Dictionary = { }
+
+	for squad in roaming_squads:
+		var squad_a: SquadData = squad
+		if processed.has(squad_a.squad_id):
+			continue
+
+		for squad_b in roaming_squads:
+			if squad_a == squad_b:
+				continue
+			if processed.has(squad_b.squad_id):
+				continue
+
+			if squad_a.current_location_id != squad_b.current_location_id:
+				continue
+
+			var contact_ab: Contact = contact_tracker.get_contact(squad_a.squad_id, squad_b.squad_id)
+			var contact_ba: Contact = contact_tracker.get_contact(squad_b.squad_id, squad_a.squad_id)
+			if not contact_ab or not contact_ba:
+				continue
+
+			var state_ab := contact_ab.get_state()
+			var state_ba := contact_ba.get_state()
+
+			var engagement_diff = abs(state_ab - state_ba)
+			var engagement_type = null
+			if engagement_diff == 0:
+				engagement_type = StrategyTypes.EngagementType.SET_PIECE
+			if engagement_diff > 1:
+				engagement_type = StrategyTypes.EngagementType.AMBUSH
+			else:
+				engagement_type = StrategyTypes.EngagementType.MEETING
+
+			if state_ab == StrategyTypes.ContactState.LOCKED:
+				engagements.append(
+					{
+						"type": engagement_type,
+						"can_attack_squad": squad_a,
+						"location_id": squad_a.current_location_id,
+						"gegen": squad_b,
+					},
+				)
+			if state_ba == StrategyTypes.ContactState.LOCKED:
+				engagements.append(
+					{
+						"type": engagement_type,
+						"can_attack_squad": squad_b,
+						"location_id": squad_b.current_location_id,
+						"gegen": squad_a,
+					},
+				)
+	return engagements

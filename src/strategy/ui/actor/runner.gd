@@ -35,17 +35,17 @@ var walking_towards: Variant:
 		return walking_towards
 	set(_cl):
 		if !_cl:
-			walking_towards = { "location": null, "progress": 0 }
+			walking_towards = {"location": null, "progress": 0}
 			return
 
 		assert(_cl is String or _cl is Location)
 		var new_loc: Location = aem.scenario.world.travel_graph.get_location(_cl) if _cl is String else _cl
 		if not walking_towards["location"]:
-			walking_towards = { "location": new_loc, "progress": 0 }
+			walking_towards = {"location": new_loc, "progress": 0}
 		elif new_loc.location_id == walking_towards["location"].location_id:
-			walking_towards = { "location": new_loc, "progress": walking_towards["progress"] + 1 }
+			walking_towards = {"location": new_loc, "progress": walking_towards["progress"] + 1}
 		else:
-			walking_towards = { "location": new_loc, "progress": 0 }
+			walking_towards = {"location": new_loc, "progress": 0}
 
 var current_location: Variant:
 	get:
@@ -67,7 +67,7 @@ var current_location: Variant:
 		player_squad.set_location(current_location.location_id)
 
 
-func setup(_loaded_scenario, context = { }):
+func setup(_loaded_scenario, context = {}):
 	# Initializes the ActivityRunner with a loaded GameScenario
 	# Creates the underlying ActivityExecuteManager that handles triggerable execution
 	# e.g., setup(demo_scenario) → creates ActivityExecuteManager → aem.setup(scenario)
@@ -98,7 +98,7 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 		return []
 
 	var reachable: Array[String] = []
-	var visited: Dictionary = { from_id: true }
+	var visited: Dictionary = {from_id: true}
 	var queue: Array = [[from_id, 0]]
 
 	while queue.size() > 0:
@@ -135,10 +135,8 @@ func exec_activity(activity: Activity):
 func exec_after(activity: Activity):
 	return aem.exec_after(activity)
 
-
-func exec_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
-	var res: Array[GenericResult] = aem.execute_triggerables_at(when)
-	return res
+func exec_at(when: StrategyTypes.TriggerWhen):
+	return aem.execute_triggerables_at(when )
 
 
 func advance_hour() -> void:
@@ -161,7 +159,7 @@ func create_travel_activity(location_id: String) -> Activity:
 	activity.activity_type = StrategyTypes.ActivityType.TRAVEL
 	activity.time_cost = 1
 
-	var travel_result = ActivityResult.new({ "location_changed": location_id })
+	var travel_result = ActivityResult.new({"location_changed": location_id})
 	travel_result.event_chain_path = "empty"
 
 	var squad := player_squad

@@ -1,5 +1,4 @@
-class_name ContactOrchestrator
-extends RefCounted
+class_name ContactOrchestrator extends RefCounted
 
 
 static func snapshot_states(tracker, player_squad_id: String) -> Dictionary:
@@ -16,7 +15,6 @@ static func cache_squad_names(roaming_squads) -> Dictionary:
 	for sq in roaming_squads:
 		names[sq.squad_id] = sq.squad_name
 	return names
-
 
 func update(
 	world, player: SquadData, walking_towards,
@@ -62,10 +60,12 @@ func update(
 					tracker.apply_clue_bonus(clue, enemy, player)
 
 	var player_engagements: Array[Dictionary] = []
-	var engagements = tracker.check_engagements(world, all_squads)
+	var engagements = world.check_engagements()
 	for engagement in engagements:
-		var involves_player = engagement["attacker_id"] == player.squad_id or engagement["defender_id"] == player.squad_id
+		var involves_player = \
+			engagement["attacker_id"] == player.squad_id or \
+			engagement["defender_id"] == player.squad_id
 		if involves_player:
 			player_engagements.append(engagement)
 
-	return {"engagements": player_engagements, "contact_after": after_states}
+	return after_states

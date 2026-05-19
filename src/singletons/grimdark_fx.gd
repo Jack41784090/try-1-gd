@@ -18,7 +18,7 @@ func _ready() -> void:
 		return
 	_damage_pulse.visible = false
 	_combat_atmosphere.visible = false
-	StrategyEventBus.hour_advanced.connect(_on_hour_advanced)
+	StrategyEventBus.strategy_hour_tick.connect(_on_hour_advanced)
 	update_time(0)
 
 

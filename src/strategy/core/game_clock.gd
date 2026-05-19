@@ -1,8 +1,6 @@
 class_name GameClock
 extends RefCounted
 
-signal hour_ticked(hour: int)
-
 var world: World
 var _accumulator: float = 0.0
 
@@ -20,7 +18,7 @@ func process(delta: float) -> void:
 	while _accumulator >= 1.0:
 		_accumulator -= 1.0
 		world.current_hour += 1
-		hour_ticked.emit(world.current_hour)
+		StrategyEventBus.strategy_hour_tick.emit(world.current_hour)
 
 
 func pause() -> void:
@@ -37,7 +35,7 @@ func toggle_pause() -> void:
 
 func force_tick() -> void:
 	world.current_hour += 1
-	hour_ticked.emit(world.current_hour)
+	StrategyEventBus.strategy_hour_tick.emit(world.current_hour)
 
 
 func set_speed(multiplier: float) -> void:

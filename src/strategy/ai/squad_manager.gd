@@ -46,7 +46,7 @@ func setup(_scenario: GameScenario) -> void:
 
 func prepare_ai_turns() -> Dictionary:
 	if squad_brains.is_empty():
-		return {"decisions_this_turn": {}}
+		return {}
 
 	Log.debug("Fleet", "=== Preparing AI Turn for %d squads ===" % squad_brains.size())
 	decisions_this_turn.clear()
@@ -57,7 +57,7 @@ func prepare_ai_turns() -> Dictionary:
 	for squad_id in squad_brains:
 		decisions_this_turn[squad_id] = _prepare_squad_decision(squad_id, default_directive)
 
-	return {"decisions_this_turn": decisions_this_turn}
+	return decisions_this_turn
 
 
 func _prepare_squad_decision(squad_id: String, directive: FactionDirective) -> Dictionary:

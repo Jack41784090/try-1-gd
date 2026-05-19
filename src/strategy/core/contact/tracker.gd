@@ -1,7 +1,5 @@
 class_name ContactTracker extends RefCounted
 
-const ContactClass = preload("res://src/strategy/core/contact/contact.gd")
-
 var contacts: Dictionary = {}
 
 const ACTIVITY_MODIFIERS: Dictionary = {
@@ -42,7 +40,7 @@ func _make_key(observer_id: String, target_id: String) -> String:
 func get_or_create_contact(observer_id: String, target_id: String):
 	var key = _make_key(observer_id, target_id)
 	if not contacts.has(key):
-		contacts[key] = ContactClass.create(observer_id, target_id)
+		contacts[key] = Contact.create(observer_id, target_id)
 	return contacts[key]
 
 func get_contact(observer_id: String, target_id: String):
@@ -127,64 +125,6 @@ func calculate_focus_multiplier(observer: SquadData, target: SquadData, focus) -
 		return 1.0 + coordination * FOCUS_BOOST
 	return 1.0 - coordination * FOCUS_PENALTY
 
-func check_engagements(world: World, all_squads: Array) -> Array[Dictionary]:
-	var engagements: Array[Dictionary] = []
-	var processed: Dictionary = {}
-
-	for i in range(all_squads.size()):
-		var squad_a: SquadData = all_squads[i]
-		if processed.has(squad_a.squad_id):
-			continue
-
-		for j in range(i + 1, all_squads.size()):
-			var squad_b: SquadData = all_squads[j]
-			if processed.has(squad_b.squad_id):
-				continue
-
-			if squad_a.current_location_id != squad_b.current_location_id:
-				continue
-
-			## MERCHANT squads don't trigger automatic engagements
-			if squad_a.squad_role == StrategyTypes.SquadRole.MERCHANT or squad_b.squad_role == StrategyTypes.SquadRole.MERCHANT:
-				continue
-
-			var contact_ab = get_contact(squad_a.squad_id, squad_b.squad_id)
-			var contact_ba = get_contact(squad_b.squad_id, squad_a.squad_id)
-			if not contact_ab or not contact_ba:
-				continue
-
-			var state_ab = contact_ab.get_state()
-			var state_ba = contact_ba.get_state()
-
-			if state_ab == StrategyTypes.ContactState.LOCKED and state_ba in [StrategyTypes.ContactState.NONE, StrategyTypes.ContactState.SUSPECTED]:
-				engagements.append({
-					"attacker_id": squad_a.squad_id,
-					"defender_id": squad_b.squad_id,
-					"type": StrategyTypes.EngagementType.AMBUSH,
-					"location_id": squad_a.current_location_id
-				})
-				processed[squad_a.squad_id] = true
-				processed[squad_b.squad_id] = true
-			elif state_ba == StrategyTypes.ContactState.LOCKED and state_ab in [StrategyTypes.ContactState.NONE, StrategyTypes.ContactState.SUSPECTED]:
-				engagements.append({
-					"attacker_id": squad_b.squad_id,
-					"defender_id": squad_a.squad_id,
-					"type": StrategyTypes.EngagementType.AMBUSH,
-					"location_id": squad_a.current_location_id
-				})
-				processed[squad_a.squad_id] = true
-				processed[squad_b.squad_id] = true
-			elif state_ab == StrategyTypes.ContactState.LOCKED and state_ba == StrategyTypes.ContactState.LOCKED:
-				engagements.append({
-					"attacker_id": squad_a.squad_id,
-					"defender_id": squad_b.squad_id,
-					"type": StrategyTypes.EngagementType.SET_PIECE,
-					"location_id": squad_a.current_location_id
-				})
-				processed[squad_a.squad_id] = true
-				processed[squad_b.squad_id] = true
-
-	return engagements
 
 func apply_clue_bonus(clue: Clue, target_squad: SquadData, observer_squad: SquadData) -> void:
 	if clue.destination_id == target_squad.current_location_id:
