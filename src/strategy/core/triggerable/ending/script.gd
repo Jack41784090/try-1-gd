@@ -13,7 +13,6 @@ func trigger(_context: Dictionary) -> Array[EndingResult]:
 	trigger_id = ending_id
 	trigger_name = ending_name
 	
-	execution_started.emit()
 	
 	var ending_result = EndingResult.new({
 		"ending_id": ending_id,
@@ -24,10 +23,6 @@ func trigger(_context: Dictionary) -> Array[EndingResult]:
 		"requires_async": epilogue_scene_paths.size() > 0
 	})
 	
-	triggered.emit(ending_result)
-	
-	if epilogue_scene_paths.size() == 0:
-		execution_completed.emit(ending_result)
 	
 	return [ending_result]
 

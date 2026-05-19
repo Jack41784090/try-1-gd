@@ -28,19 +28,18 @@ func _to_string() -> String:
 		destination_id,
 		"custom_script" if custom_script else "None",
 		result,
-		super(),
+		super (),
 	]
 
 
 func can_execute(squad: SquadData, location: Location) -> bool:
 	var handler = _get_registry().get_handler(activity_type)
 	if handler:
-		return handler.can_execute(self, squad, location)
+		return handler.can_execute(self , squad, location)
 	return true
 
 
 func trigger(context: Dictionary) -> Array[ActivityResult]:
-	# execution_started.emit()
 	# triggered.emit(result)
 	# if not result.requires_async:
 	# 	execution_completed.emit(result)

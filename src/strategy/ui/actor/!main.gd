@@ -22,7 +22,7 @@ func _init(is_ai = false, _ai_squad: SquadData = null) -> void:
 	_IS_AI = is_ai
 
 
-func setup(_loaded_scenario, context = { }):
+func setup(_loaded_scenario, context = {}):
 	# 1. Validate the scenario is the correct type
 	# e.g., _loaded_scenario = GameScenario(world=World(locations=[...]), factions=[Faction("Church")])
 	assert(_loaded_scenario is GameScenario)
@@ -164,7 +164,7 @@ func exec_after(activity: Activity) -> Array[GenericResult]:
 
 func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
 	var context = _build_context(activity)
-	var results = _execute_triggerables(context, when)
+	var results = _execute_triggerables(context, when )
 	for result in results:
 		_apply_result(result)
 	return results
@@ -172,7 +172,7 @@ func execute_triggerables(activity: Activity, when: StrategyTypes.TriggerWhen):
 
 func execute_triggerables_at(when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	var context = _build_context(null)
-	var results = _execute_triggerables(context, when)
+	var results = _execute_triggerables(context, when )
 	for result in results:
 		_apply_result(result)
 	return results
@@ -184,7 +184,7 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	# Core triggerable execution engine — finds all matching GameEvents and fires them
 	# e.g., context = {squad: Wolves, world: World(turn=5), location: Salzburg, activity: REST}
 	#       when = AFTER_ACTIVITY
-	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[when])
+	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[ when ])
 	# 1. Create a filter that only matches GameEvents scheduled for this timing
 	# e.g., GameEvent("Ambush", when=AFTER_ACTIVITY) passes, GameEvent("Dawn", when=HOUR_START) is skipped
 	var when_filter = func(t: Triggerable) -> bool:
@@ -207,7 +207,6 @@ func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen)
 	for triggerable in triggerables:
 		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
 		var triggered_results = triggerable.trigger(context)
-		scenario.triggerable_manager.triggerable_fired.emit(triggerable, triggered_results)
 		for r in triggered_results:
 			Log.trace("AEM", "Result: squad_changes=%s" % [r.squad_stat_changes])
 			all_results.append(r)

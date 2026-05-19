@@ -11,8 +11,6 @@ class_name Triggerable extends Resource
 # @export var event_chain_path: String
 
 signal triggered(result: Dictionary)
-signal execution_started()
-signal execution_completed(result: Dictionary)
 
 func _to_string() -> String:
 	return "Triggerable: %s (ID: %s), Repeats: %d, Conditions: %d, Trigger Chains: %s, Priority: %d, %s" % [
@@ -50,19 +48,10 @@ func trigger(context: Dictionary) -> Array[Variant]:
 	# Fires this triggerable: signal → execute() → signal. Returns results wrapped in array.
 	# Flow: execution_started → execute(context) → triggered(result_dict) → execution_completed (if sync)
 	# e.g., GameEvent "bandit_ambush" → execute() returns {trigger_id: "bandit_ambush", morale: -10, ...}
-	execution_started.emit()
 	var result = execute(context)
+	var result_dict: Dictionary = {}
+	result_dict = result
 
-	var result_dict: Dictionary = { }
-	if result is Dictionary:
-		result_dict = result
-	else:
-		result_dict = { "trigger_id": trigger_id, "trigger_name": trigger_name }
-
-	triggered.emit(result_dict)
-
-	if not result_dict.get("requires_async", false):
-		execution_completed.emit(result_dict)
 
 	return [result]
 

@@ -2,7 +2,6 @@ extends RefCounted
 
 class_name TriggerableManager
 
-signal triggerable_fired(triggerable: Triggerable, result: Variant)
 
 var registered_triggerables: Array[Triggerable] = []
 

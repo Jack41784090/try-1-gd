@@ -40,7 +40,6 @@ func trigger(context: Dictionary) -> Array[MissionResult]:
 	trigger_id = mission_id
 	trigger_name = mission_name
 	
-	execution_started.emit()
 	var result = complete()
 	
 	var result_dict = {
@@ -53,10 +52,6 @@ func trigger(context: Dictionary) -> Array[MissionResult]:
 		"event_chain_path": result.event_chain_path
 	}
 	
-	triggered.emit(result_dict)
-	
-	if not result.requires_async:
-		execution_completed.emit(result_dict)
 	
 	return [result]
 

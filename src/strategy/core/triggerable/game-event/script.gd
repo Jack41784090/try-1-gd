@@ -12,7 +12,7 @@ func _init() -> void:
 	super._init()
 
 
-func can_trigger(context: Dictionary = { }) -> bool:
+func can_trigger(context: Dictionary = {}) -> bool:
 	if repeats >= 0 and times_triggered >= repeats:
 		return false
 
@@ -27,7 +27,6 @@ func trigger(context: Dictionary) -> Array[GenericResult]:
 	times_triggered += 1
 	var _result = execute(context)
 
-	triggered.emit(_result)
 
 	#if _result.auto_resolved and _result.event_chain_path.is_empty():
 	#execution_completed.emit(_result)

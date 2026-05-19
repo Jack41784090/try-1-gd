@@ -95,8 +95,6 @@ func _setup(config: Dictionary) -> void:
 	_setup_bandit_faction()
 	_setup_economy()
 
-	# triggerable_manager.triggerable_fired.connect(_on_triggerable_fired)
-
 
 func _setup_bandit_faction() -> void:
 	for faction in factions:
