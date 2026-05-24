@@ -17,8 +17,8 @@ var _shipment_counter: int = 0
 ## shipment_id (String) -> squad_id (String). Engine owns this state so that
 ## arrival/defeat/reassignment notifications can keep it consistent.
 var _active_shipments: Dictionary = {}
-var _trade_matcher: TradeMatcher = null
 var _mercenary_demand: MercenaryDemandCalculator = null
+var _route_danger: RouteDangerCalculator = null
 
 var active_shipment_count: int:
 	get: return _active_shipments.size()
@@ -42,10 +42,6 @@ func get_bank_info() -> Dictionary:
 	if _cs_bridge == null:
 		return {}
 	return _cs_bridge.call("GetBankInfo") as Dictionary
-
-func sync_full() -> void:
-	assert(_cs_bridge != null, "C# bridge required")
-	_cs_bridge.call("SyncBackToGdScript")
 
 func get_government_info() -> Array:
 	if _cs_bridge == null:
@@ -80,20 +76,9 @@ func enable_csharp() -> void:
 	var instance = script.new()
 	assert(instance != null, "C# bridge instantiation failed")
 	_cs_bridge = instance as Node
-	_trade_matcher = TradeMatcher.new()
 	_mercenary_demand = MercenaryDemandCalculator.new()
+	_route_danger = RouteDangerCalculator.new()
 	Log.info("Economy", "C# economy engine enabled")
-
-func _setup_cs_bridge() -> void:
-	if _cs_initialized:
-		return
-	_cs_bridge.call("Setup", world)
-	if print_per_turn > 0.0 or loan_interest_rate > 0.0:
-		_cs_bridge.call("SetupBank", loan_interest_rate, print_per_turn, noble_loan_threshold, loan_amount)
-	_cs_initialized = true
-	Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [
-		world.get_economy_locations().size(), world.goods.size(),
-	])
 
 func _calculate_guard_count(move: EconomyMove) -> int:
 	var cargo_value := move.quantity * move.thing.base_price
@@ -106,37 +91,94 @@ func _calculate_guard_count(move: EconomyMove) -> int:
 	return 4
 
 
-func tick(turn: int) -> EconomyTickResult:
-	assert(_cs_bridge != null, "C# bridge required — call enable_csharp() first")
-	_setup_cs_bridge()
-	return _tick_csharp(turn)
-
-
-## Public entry point used by the strategy layer. Wraps the low-level
-## phase tick with the trade-matching pipeline, person sync, and mercenary
-## demand evaluation. Filters out shipment dispatches whose shipment_id is
-## already materialized as a roaming squad so the strategy presenter never
-## sees duplicates.
+## Public entry point used by the strategy layer. The C# engine runs the full
+## per-location pipeline AND the trade-matching greedy match in a single call;
+## GDScript only contributes a precomputed danger matrix and post-tick
+## mercenary-demand evaluation. Two bridge calls total: Tick and SyncBackToGdScript.
 func tick_full(turn: int) -> EconomyTickResult:
-	assert(_trade_matcher != null and _mercenary_demand != null,
-		"tick_full requires enable_csharp() to have been called")
-	var result := tick(turn)
-	sync_full()
+	assert(_mercenary_demand != null and _route_danger != null, "tick_full requires enable_csharp() to have been called")
+	assert(_cs_bridge != null, "C# bridge required — call enable_csharp() first")
 
-	var demands := get_pending_demands()
-	var supplies := get_available_supplies()
-	var trade_matches := _trade_matcher.match_trades(demands, supplies, world)
-	var trade_dispatches := apply_trade_matches(trade_matches)
+	# Initialise C# Scripts
+	if not _cs_initialized:
+		_cs_bridge.call("Setup", world)
+		_cs_bridge.call("SetupBank", loan_interest_rate, print_per_turn, noble_loan_threshold, loan_amount)
+		_cs_initialized = true
+		Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [world.get_economy_locations().size(), world.goods.size(), ])
 
-	var unified: Array[EconomyTickResult.ShipmentDispatch] = []
-	for dispatch in result.shipment_dispatches:
-		if not _active_shipments.has(dispatch.shipment_id):
-			unified.append(dispatch)
-	for dispatch in trade_dispatches:
-		if not _active_shipments.has(dispatch.shipment_id):
-			unified.append(dispatch)
-	result.shipment_dispatches = unified
+	# Precompute NxN inter-location danger matrix (0..1). Index order matches
+	# world.get_economy_locations(), which is also the C# Locations[] ordering.
+	var danger_matrix := _compute_danger_matrix()
 
+	# Single mega-tick: C# runs all phases, including trade matching.
+	var cs_dict: Dictionary = _cs_bridge.call("Tick", turn, danger_matrix)
+
+	# Translate tick result
+	var result := EconomyTickResult.new()
+	result.turn = cs_dict.get("turn", turn)
+	result.deaths = cs_dict.get("deaths", 0)
+	result.births = cs_dict.get("births", 0)
+
+	var things_cache = {}
+	var location_snapshots: Array = cs_dict.get("location_snapshots", [])
+	for loc_snap_dict: Dictionary in location_snapshots:
+		var snap := EconomyTickResult.LocationSnapshot.new()
+		snap.location_id = loc_snap_dict.get("location_id", "")
+		snap.location_name = loc_snap_dict.get("location_name", "")
+		snap.population_count = loc_snap_dict.get("population_count", 0)
+		snap.avg_satisfaction = loc_snap_dict.get("avg_satisfaction", 0.0)
+		snap.avg_money = loc_snap_dict.get("avg_money", 0.0)
+		snap.peasant_count = loc_snap_dict.get("peasant_count", 0)
+		snap.bourgeois_count = loc_snap_dict.get("bourgeois_count", 0)
+		snap.noble_count = loc_snap_dict.get("noble_count", 0)
+		snap.government_treasury = loc_snap_dict.get("government_treasury", 0.0)
+		snap.government_tax_collected = loc_snap_dict.get("government_tax_collected", 0.0)
+		snap.government_directives_count = loc_snap_dict.get("government_directives_count", 0)
+		snap.government_workers_hired = loc_snap_dict.get("government_workers_hired", 0)
+		snap.guild_treasury = loc_snap_dict.get("guild_treasury", 0.0)
+		snap.guild_produced = loc_snap_dict.get("guild_produced", 0.0)
+		snap.guild_worker_count = loc_snap_dict.get("guild_worker_count", 0)
+
+		var stocks_raw: Dictionary = loc_snap_dict.get("stocks", {})
+		var prices_raw: Dictionary = loc_snap_dict.get("prices", {})
+		for thing_id: String in stocks_raw:
+			var thing = things_cache.get(thing_id, null) if things_cache.has(thing_id) else _find_thing_by_id(thing_id)
+			things_cache[thing_id] = thing
+			snap.stocks[thing] = stocks_raw[thing_id]
+		for thing_id: String in prices_raw:
+			var thing = things_cache.get(thing_id, null) if things_cache.has(thing_id) else _find_thing_by_id(thing_id)
+			things_cache[thing_id] = thing
+			snap.prices[thing] = prices_raw[thing_id]
+		result.location_snapshots.append(snap)
+
+	# Shipment dispatches (created inside C# trade matcher)
+	var matched_dispatches_raw: Array = cs_dict.get("shipment_dispatches", [])
+	for d_dict: Dictionary in matched_dispatches_raw:
+		var move_dict: Dictionary = d_dict.get("move", {})
+		var move := _move_from_dict(move_dict)
+		active_moves.append(move)
+		_shipment_counter += 1
+		var dispatch := EconomyTickResult.ShipmentDispatch.create(
+			d_dict.get("shipment_id", "shipment_%d" % _shipment_counter),
+			move,
+			d_dict.get("guard_count", 2),
+		)
+		result.shipment_dispatches.append(dispatch)
+
+	# Completed moves (arrived deliveries)
+	var moves_completed_raw: Array = cs_dict.get("moves_completed", [])
+	for m_dict: Dictionary in moves_completed_raw:
+		result.moves_completed.append(_move_from_dict(m_dict))
+
+	# Aggregate counters
+	total_promotions = _cs_bridge.call("GetTotalPromotions")
+	total_deaths = _cs_bridge.call("GetTotalDeaths")
+	total_births = _cs_bridge.call("GetTotalBirths")
+
+	# Sync C# state into GDScript so the strategy layer can query person/inventory state.
+	_cs_bridge.call("SyncBackToGdScript")
+
+	# Mercenary demand evaluation (stays in GDScript — depends on world's bandit squads)
 	for loc in world.locations:
 		if loc.type == StrategyTypes.LocationType.FORT:
 			continue
@@ -151,11 +193,37 @@ func tick_full(turn: int) -> EconomyTickResult:
 	return result
 
 
+## Build an NxN matrix of inter-location route safety values (0..1) where
+## diagonal is 1.0 and entry [i,j] is the product of edge safeties along the
+## shortest path between economy locations i and j. C# uses this to score
+## trade pairs.
+func _compute_danger_matrix() -> Array:
+	_route_danger.clear_cache()
+	var locs := world.get_economy_locations()
+	var n := locs.size()
+	var matrix: Array = []
+	matrix.resize(n)
+	for i in n:
+		var row: Array = []
+		row.resize(n)
+		for j in n:
+			if i == j:
+				row[j] = 1.0
+			else:
+				var route: Array[String] = world.find_path(locs[i].location_id, locs[j].location_id)
+				if route.is_empty():
+					row[j] = 0.0
+				else:
+					row[j] = _route_danger.calculate_route_safety(route, world)
+		matrix[i] = row
+	return matrix
+
+
 ## Strategy layer notifies the engine that a materialized caravan has reached
 ## its destination. Engine applies the inventory delivery and clears the
 ## shipment tracking entry.
-func notify_caravan_arrived(caravan: SquadData) -> void:
-	assert(caravan.is_caravan(), "notify_caravan_arrived requires a caravan squad")
+func execute_caravan_delivery(caravan: SquadData) -> void:
+	assert(caravan.is_caravan(), "execute_caravan_delivery requires a caravan squad")
 	var dest_loc := world.get_location_by_id(caravan.cargo.destination_id)
 	assert(dest_loc != null, "Caravan destination '%s' not found" % caravan.cargo.destination_id)
 	assert(dest_loc.inventory != null, "Caravan destination '%s' has no inventory" % dest_loc.location_id)
@@ -188,136 +256,6 @@ func _clear_shipment_for_squad(squad_id: String) -> void:
 		if _active_shipments[shipment_id] == squad_id:
 			_active_shipments.erase(shipment_id)
 			return
-
-
-func get_pending_demands() -> Array[EconomicDemand]:
-	assert(_cs_bridge != null, "C# bridge required")
-	var raw: Array = _cs_bridge.call("GetPendingDemands")
-	var demands: Array[EconomicDemand] = []
-	for d: Dictionary in raw:
-		var thing := _find_thing_by_id(d["thing_id"])
-		if thing == null:
-			continue
-		demands.append(EconomicDemand.create(
-			thing,
-			d["quantity"],
-			d["max_price"],
-			d["location_id"],
-			"population",
-			d["priority"],
-		))
-	return demands
-
-
-func get_available_supplies() -> Array[EconomicSupply]:
-	assert(_cs_bridge != null, "C# bridge required")
-	var raw: Array = _cs_bridge.call("GetAvailableSupplies")
-	var supplies: Array[EconomicSupply] = []
-	for s: Dictionary in raw:
-		var thing := _find_thing_by_id(s["thing_id"])
-		if thing == null:
-			continue
-		supplies.append(EconomicSupply.create(
-			thing,
-			s["quantity"],
-			s["cost_basis"],
-			s["location_id"],
-			"inventory",
-		))
-	return supplies
-
-
-func apply_trade_matches(matches: Array[TradeMatch]) -> Array[EconomyTickResult.ShipmentDispatch]:
-	assert(_cs_bridge != null, "C# bridge required")
-	var match_array: Array = []
-	for m in matches:
-		match_array.append({
-			"thing_id": m.supply.thing.thing_id,
-			"quantity": m.quantity,
-			"source_location_id": m.supply.location_id,
-			"dest_location_id": m.demand.location_id,
-		})
-	var result: Dictionary = _cs_bridge.call("ApplyTradeMatches", match_array)
-	_cs_bridge.call("SyncInventories")
-
-	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = []
-	var dispatches_raw: Array = result.get("shipment_dispatches", [])
-	for d_dict: Dictionary in dispatches_raw:
-		var move_dict: Dictionary = d_dict.get("move", {})
-		var move := _move_from_dict(move_dict)
-		active_moves.append(move)
-		_shipment_counter += 1
-		var dispatch := EconomyTickResult.ShipmentDispatch.create(
-			d_dict.get("shipment_id", "shipment_%d" % _shipment_counter),
-			move,
-			d_dict.get("guard_count", 2),
-		)
-		dispatches.append(dispatch)
-	return dispatches
-
-
-func _tick_csharp(turn: int) -> EconomyTickResult:
-	var cs_dict: Dictionary = _cs_bridge.call("Tick", turn)
-	_cs_bridge.call("SyncInventories")
-
-	var result := EconomyTickResult.new()
-	result.turn = cs_dict.get("turn", turn)
-	result.deaths = cs_dict.get("deaths", 0)
-	result.births = cs_dict.get("births", 0)
-
-	var snapshots: Array = cs_dict.get("location_snapshots", [])
-	for snap_dict: Dictionary in snapshots:
-		var snap := EconomyTickResult.LocationSnapshot.new()
-		snap.location_id = snap_dict.get("location_id", "")
-		snap.location_name = snap_dict.get("location_name", "")
-		snap.population_count = snap_dict.get("population_count", 0)
-		snap.avg_satisfaction = snap_dict.get("avg_satisfaction", 0.0)
-		snap.avg_money = snap_dict.get("avg_money", 0.0)
-		snap.peasant_count = snap_dict.get("peasant_count", 0)
-		snap.bourgeois_count = snap_dict.get("bourgeois_count", 0)
-		snap.noble_count = snap_dict.get("noble_count", 0)
-		snap.government_treasury = snap_dict.get("government_treasury", 0.0)
-		snap.government_tax_collected = snap_dict.get("government_tax_collected", 0.0)
-		snap.government_directives_count = snap_dict.get("government_directives_count", 0)
-		snap.government_workers_hired = snap_dict.get("government_workers_hired", 0)
-		snap.guild_treasury = snap_dict.get("guild_treasury", 0.0)
-		snap.guild_produced = snap_dict.get("guild_produced", 0.0)
-		snap.guild_worker_count = snap_dict.get("guild_worker_count", 0)
-		var stocks_raw: Dictionary = snap_dict.get("stocks", {})
-		for thing_id: String in stocks_raw:
-			var thing := _find_thing_by_id(thing_id)
-			if thing:
-				snap.stocks[thing] = stocks_raw[thing_id]
-		var prices_raw: Dictionary = snap_dict.get("prices", {})
-		for thing_id: String in prices_raw:
-			var thing := _find_thing_by_id(thing_id)
-			if thing:
-				snap.prices[thing] = prices_raw[thing_id]
-		result.location_snapshots.append(snap)
-
-	var dispatches_raw: Array = cs_dict.get("shipment_dispatches", [])
-	for d_dict: Dictionary in dispatches_raw:
-		var move_dict: Dictionary = d_dict.get("move", {})
-		var move := _move_from_dict(move_dict)
-		active_moves.append(move)
-		result.moves_created.append(move)
-		_shipment_counter += 1
-		var dispatch := EconomyTickResult.ShipmentDispatch.create(
-			d_dict.get("shipment_id", "shipment_%d" % _shipment_counter),
-			move,
-			d_dict.get("guard_count", 2),
-		)
-		result.shipment_dispatches.append(dispatch)
-
-	var moves_completed_raw: Array = cs_dict.get("moves_completed", [])
-	for m_dict: Dictionary in moves_completed_raw:
-		result.moves_completed.append(_move_from_dict(m_dict))
-
-	total_promotions = _cs_bridge.call("GetTotalPromotions")
-	total_deaths = _cs_bridge.call("GetTotalDeaths")
-	total_births = _cs_bridge.call("GetTotalBirths")
-	return result
-
 
 func _find_thing_by_id(thing_id: String) -> Thing:
 	for thing in world.goods:

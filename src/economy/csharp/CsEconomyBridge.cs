@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System;
 using System.Collections.Generic;
 
 namespace Condor.Economy;
@@ -293,100 +294,36 @@ public partial class CsEconomyBridge : Node
     }
 
     /// <summary>
-    /// Run one economy tick. Returns a Dictionary with the results
-    /// ready for GDScript consumption.
+    /// Run one economy tick with a pre-computed inter-location danger matrix
+    /// (NxN, indexed by world.get_economy_locations() order, values in 0..1).
+    /// Returns a Dictionary with results (snapshots, deaths, births,
+    /// moves_created, moves_completed, shipment_dispatches) ready for GDScript.
     /// </summary>
-    public Godot.Collections.Dictionary Tick(int turn)
+    public Godot.Collections.Dictionary Tick(int turn, Godot.Collections.Array dangerRows = null)
     {
-        var csResult = _engine.Tick(turn);
+        float[,] matrix = null;
+        if (dangerRows != null && dangerRows.Count > 0)
+        {
+            int n = _locations.Length;
+            matrix = new float[n, n];
+            int rows = Math.Min(dangerRows.Count, n);
+            for (int i = 0; i < rows; i++)
+            {
+                var row = dangerRows[i].As<Godot.Collections.Array>();
+                if (row == null) continue;
+                int cols = Math.Min(row.Count, n);
+                for (int j = 0; j < cols; j++)
+                {
+                    matrix[i, j] = (float)(double)row[j];
+                }
+            }
+        }
+        var csResult = _engine.Tick(turn, matrix);
         _lastTickResult = csResult;
         return ConvertResult(csResult);
     }
 
     private CsEconomyTickResult _lastTickResult;
-
-    /// <summary>
-    /// Export pending demands as an Array of Dictionaries for GDScript trade matching.
-    /// Call after Tick().
-    /// </summary>
-    public Godot.Collections.Array GetPendingDemands()
-    {
-        var demands = _engine.ExportPendingDemands();
-        var result = new Godot.Collections.Array();
-        foreach (var d in demands)
-        {
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["thing_id"] = d.ThingId,
-                ["quantity"] = d.Quantity,
-                ["max_price"] = d.MaxPrice,
-                ["location_id"] = d.LocationId,
-                ["priority"] = d.Priority,
-            });
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Export available supplies as an Array of Dictionaries for GDScript trade matching.
-    /// Call after Tick().
-    /// </summary>
-    public Godot.Collections.Array GetAvailableSupplies()
-    {
-        var supplies = _engine.ExportAvailableSupplies();
-        var result = new Godot.Collections.Array();
-        foreach (var s in supplies)
-        {
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["thing_id"] = s.ThingId,
-                ["quantity"] = s.Quantity,
-                ["cost_basis"] = s.CostBasis,
-                ["location_id"] = s.LocationId,
-            });
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Apply trade matches from GDScript side. Creates economy moves and shipment dispatches.
-    /// Returns updated result dictionary with new moves/dispatches.
-    /// </summary>
-    public Godot.Collections.Dictionary ApplyTradeMatches(Godot.Collections.Array matches)
-    {
-        var csMatches = new List<CsTradeMatchImport>();
-        for (int i = 0; i < matches.Count; i++)
-        {
-            var dict = (Godot.Collections.Dictionary)matches[i];
-            csMatches.Add(new CsTradeMatchImport
-            {
-                ThingId = (string)dict["thing_id"],
-                Quantity = (float)dict["quantity"],
-                SourceLocationId = (string)dict["source_location_id"],
-                DestLocationId = (string)dict["dest_location_id"],
-            });
-        }
-
-        var result = _lastTickResult ?? new CsEconomyTickResult();
-        _engine.ApplyTradeMatches(csMatches, result);
-        _lastTickResult = result;
-
-        // Return only the new dispatches
-        var dispatches = new Godot.Collections.Array();
-        foreach (var dispatch in result.ShipmentDispatches)
-        {
-            dispatches.Add(new Godot.Collections.Dictionary
-            {
-                ["shipment_id"] = dispatch.ShipmentId,
-                ["guard_count"] = dispatch.GuardCount,
-                ["move"] = ConvertMove(dispatch.Move),
-            });
-        }
-        return new Godot.Collections.Dictionary
-        {
-            ["shipment_dispatches"] = dispatches,
-        };
-    }
 
     /// <summary>
     /// Fast sync: only writes location-level inventory stocks and prices back.

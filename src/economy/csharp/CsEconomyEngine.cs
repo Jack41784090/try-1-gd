@@ -148,26 +148,7 @@ public sealed class CsEconomyEngine
         };
     }
 
-    private int GetTravelTime(int fromIdx, int toIdx)
-    {
-        if (GetTravelTimeFunc != null)
-        {
-            int t = GetTravelTimeFunc(fromIdx, toIdx);
-            return t > 0 ? t : 1;
-        }
-        return 1;
-    }
-
-    private int CalculateGuardCount(CsEconomyMove move)
-    {
-        float cargoValue = move.Quantity * Goods[move.ThingIdx].BasePrice;
-        if (cargoValue < 20f) return 1;
-        if (cargoValue < 100f) return 2;
-        if (cargoValue < 300f) return 3;
-        return 4;
-    }
-
-    public CsEconomyTickResult Tick(int turn)
+    public CsEconomyTickResult Tick(int turn, float[,] dangerMatrix = null)
     {
         var result = new CsEconomyTickResult { Turn = turn };
 
@@ -176,77 +157,20 @@ public sealed class CsEconomyEngine
         _ctx.LoanAmount = LoanAmount;
         _ctx.ImperialGovernment = ImperialGovernment;
 
-        // === System: trade advance, spoilage, price update, order-book clear ===
-        AdvanceTradeMoves(result);
-        SpoilFood();
-        UpdatePrices();
-        for (int li = 0; li < Locations.Length; li++)
-            Locations[li].ClearOrderBook();
+        int foodIdx = -1;
+        for (int i = 0; i < _goodsCount; i++)
+            if (Goods[i].ThingType == ThingType.Food) { foodIdx = i; break; }
 
-        // === GenerateOrders: actors emit Supply/Demand; production runs ===
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var people = loc.Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-                people[pi].GenerateOrders(loc, _ctx);
-            loc.Government?.GenerateOrders(loc, _ctx);
-            loc.Guild?.GenerateOrders(loc, _ctx);
-            loc.Geist?.GenerateOrders(loc, _ctx);
-            ProduceFromNaturalResources(loc);
-        }
+        const float spoilageRate = 0.05f;
+        const float adjustRate = 0.15f;
+        const float minPriceRatio = 0.5f;
+        const float maxPriceRatio = 3.0f;
 
-        // === MatchOrders: subsistence then priority-sorted service matching ===
-        PhaseSubsistence();
-        int totalDemands = 0, totalSupplies = 0;
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            totalDemands += Locations[li].Demands.Count;
-            totalSupplies += Locations[li].Supplies.Count;
-            _orderMatcher.Match(Locations[li], _ctx);
-        }
+        // ====================================================================
+        // PHASE A — PRE-TICK GLOBALS
+        // Move advancement, contract WorkOneTurn, build global assignment state.
+        // ====================================================================
 
-        // === Execute: goods market, consumption, wages, government, guild, bank ===
-        PhaseContracts();
-        PhaseMarket();
-        PhaseConsumption();
-        PhaseWages();
-        PhaseHouseholdWages();
-        PhaseRent();
-        PhaseGovernmentTax();
-        PhaseGovernmentExecuteDirectives();
-        PhaseGuildProduce();
-        ImperialGovernment?.CollectInterestAndRepayments();
-        PhaseImperialSpending();
-
-        // === PostUpdate: satisfaction, deaths, births, mobility, geist ===
-        PhaseSatisfaction();
-        PhaseStarvation(result);
-        PhaseResetTurnFlags();
-        PhaseBirth(result);
-        PhaseSocialMobility();
-        for (int li = 0; li < Locations.Length; li++)
-            Locations[li].Geist?.UpdateState(Locations[li], Goods);
-
-        BuildSnapshots(result);
-
-        // Per-tick summary: orders, deaths/births, imperial bank state
-        string bankInfo = ImperialGovernment != null
-            ? $" bank[reserves={ImperialGovernment.Reserves:F0} loans={ImperialGovernment.ActiveLoans.Count} printed={ImperialGovernment.TotalPrinted:F0}]"
-            : "";
-        Godot.GD.Print(
-            $"[Economy] Tick {turn}: orders D/S={totalDemands}/{totalSupplies} " +
-            $"deaths={result.Deaths} births={result.Births} moves+={result.MovesCreated.Count} moves-={result.MovesCompleted.Count}{bankInfo}");
-
-        return result;
-    }
-
-    // -----------------------------------------------------------------------
-    // System helpers
-    // -----------------------------------------------------------------------
-
-    private void AdvanceTradeMoves(CsEconomyTickResult result)
-    {
         var stillActive = new List<CsEconomyMove>();
         for (int i = 0; i < ActiveMoves.Count; i++)
         {
@@ -264,33 +188,45 @@ public sealed class CsEconomyEngine
         }
         ActiveMoves.Clear();
         ActiveMoves.AddRange(stillActive);
-    }
 
-    private void SpoilFood()
-    {
-        const float spoilageRate = 0.05f;
-        for (int li = 0; li < Locations.Length; li++)
+        var newCompleted = new List<CsContract>();
+        foreach (var c in ActiveContracts)
+            if (c.WorkOneTurn()) newCompleted.Add(c);
+        foreach (var c in newCompleted)
         {
-            var loc = Locations[li];
-            for (int gi = 0; gi < _goodsCount; gi++)
-            {
-                if (Goods[gi].ThingType != ThingType.Food) continue;
-                float stock = loc.GetAvailable(gi);
-                if (stock <= 0f) continue;
-                loc.Consume(gi, stock * spoilageRate);
-            }
+            ActiveContracts.Remove(c);
+            CompletedContracts.Add(c);
         }
-    }
 
-    private void UpdatePrices()
-    {
-        const float adjustRate = 0.15f;
-        const float minPriceRatio = 0.5f;
-        const float maxPriceRatio = 3.0f;
+        var assignedSet = new HashSet<CsPerson>();
+        var patronCounts = new Dictionary<CsPerson, int>();
+        foreach (var c in ActiveContracts)
+        {
+            if (c.MerchantAssigned != null) assignedSet.Add(c.MerchantAssigned);
+            foreach (var w in c.WorkersAssigned) assignedSet.Add(w);
+            patronCounts.TryGetValue(c.Patron, out int cnt);
+            patronCounts[c.Patron] = cnt + 1;
+        }
+
+        int totalDemands = 0, totalSupplies = 0;
+
+        // ====================================================================
+        // PHASE B — PER-LOCATION MEGA-LOOP
+        // All location-local work runs in one pass for cache locality.
+        // ====================================================================
 
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
+
+            // --- B.1 Spoil Food ---
+            if (foodIdx >= 0)
+            {
+                float stock = loc.GetAvailable(foodIdx);
+                if (stock > 0f) loc.Consume(foodIdx, stock * spoilageRate);
+            }
+
+            // --- B.2 Update Prices ---
             for (int gi = 0; gi < _goodsCount; gi++)
             {
                 float demand = loc.Population.GetTotalDemand(gi);
@@ -314,103 +250,128 @@ public sealed class CsEconomyEngine
                 float newPrice = currentPrice * (1f + imbalance * adjustRate * stickiness);
                 loc.Prices[gi] = Math.Clamp(newPrice, basePrice * minPriceRatio, basePrice * maxPriceRatio);
             }
-        }
-    }
 
-    private void ProduceFromNaturalResources(CsLocationData loc)
-    {
-        foreach (var resource in loc.NaturalResources)
-        {
-            var workers = loc.Population.GetByJob(resource.WorkerJob);
-            int workerCount = workers.Count;
-            if (workerCount == 0) continue;
-            float ratio = MathF.Min((float)workerCount / resource.WorkersNeeded, 1f);
-            float produced = resource.BaseCapacity * ratio;
+            loc.ClearOrderBook();
 
-            var thingDef = Goods[resource.ThingIdx];
-            float costBasis = 0f;
+            // --- B.3 Generate Orders ---
+            var people = loc.Population.People;
+            for (int pi = 0; pi < people.Count; pi++)
+                people[pi].GenerateOrders(loc, _ctx);
+            loc.Government?.GenerateOrders(loc, _ctx);
+            loc.Guild?.GenerateOrders(loc, _ctx);
+            loc.Geist?.GenerateOrders(loc, _ctx);
 
-            if (thingDef.Inputs.Length > 0)
+            // --- B.4 Produce Natural Resources ---
+            // TODO: based on contracts! Workers don't work for free 
+            foreach (var resource in loc.NaturalResources)
             {
-                produced = LimitByInputs(loc, thingDef, produced);
-                if (produced <= 0f) continue;
-                costBasis = CalculateInputCost(loc, thingDef);
-                ConsumeInputs(loc, thingDef, produced);
+                var workers = loc.Population.GetByJob(resource.WorkerJob);
+                int workerCount = workers.Count;
+                if (workerCount == 0) continue;
+
+                float ratio = MathF.Min((float)workerCount / resource.WorkersNeeded, 1f);
+                float produced = resource.BaseCapacity * ratio;
+
+                var thingDef = Goods[resource.ThingIdx];
+                float costBasis = 0f;
+
+                if (thingDef.Inputs.Length > 0)
+                {
+                    float maxProducible = produced;
+                    foreach (var input in thingDef.Inputs)
+                    {
+                        if (input.Quantity <= 0f) continue;
+                        maxProducible = MathF.Min(maxProducible, loc.GetAvailable(input.ThingIdx) / input.Quantity);
+                    }
+                    produced = MathF.Max(maxProducible, 0f);
+
+                    if (produced <= 0f) continue;
+
+                    float totalCost = 0f;
+                    foreach (var input in thingDef.Inputs)
+                    {
+                        totalCost += loc.Prices[input.ThingIdx] * input.Quantity;
+                        loc.Consume(input.ThingIdx, input.Quantity * produced);
+                    }
+                    costBasis = totalCost;
+                }
+
+                float existingStock = loc.Stocks[resource.ThingIdx];
+                float totalStock = existingStock + produced;
+                if (totalStock > 0f)
+                    loc.CostBasis[resource.ThingIdx] = (loc.CostBasis[resource.ThingIdx] * existingStock + costBasis * produced) / totalStock;
+
+                loc.Add(resource.ThingIdx, produced);
             }
 
-            float existingStock = loc.Stocks[resource.ThingIdx];
-            float existingCost = loc.CostBasis[resource.ThingIdx];
-            float totalStock = existingStock + produced;
-            if (totalStock > 0f)
-                loc.CostBasis[resource.ThingIdx] = (existingCost * existingStock + costBasis * produced) / totalStock;
-
-            loc.Add(resource.ThingIdx, produced);
-        }
-    }
-
-    private float CalculateInputCost(CsLocationData loc, ThingDef thingDef)
-    {
-        float total = 0f;
-        foreach (var input in thingDef.Inputs)
-            total += loc.Prices[input.ThingIdx] * input.Quantity;
-        return total;
-    }
-
-    private float LimitByInputs(CsLocationData loc, ThingDef thingDef, float desiredQty)
-    {
-        float maxProducible = desiredQty;
-        foreach (var input in thingDef.Inputs)
-        {
-            float available = loc.GetAvailable(input.ThingIdx);
-            if (input.Quantity <= 0f) continue;
-            maxProducible = MathF.Min(maxProducible, available / input.Quantity);
-        }
-        return MathF.Max(maxProducible, 0f);
-    }
-
-    private void ConsumeInputs(CsLocationData loc, ThingDef thingDef, float producedQty)
-    {
-        foreach (var input in thingDef.Inputs)
-            loc.Consume(input.ThingIdx, input.Quantity * producedQty);
-    }
-
-    // -----------------------------------------------------------------------
-    // MatchOrders helpers
-    // -----------------------------------------------------------------------
-
-    private void PhaseSubsistence()
-    {
-        int foodIdx = -1;
-        for (int i = 0; i < _goodsCount; i++)
-        {
-            if (Goods[i].ThingType == ThingType.Food) { foodIdx = i; break; }
-        }
-        if (foodIdx < 0) return;
-
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var farmers = loc.Population.GetByJob(JobType.Farmer);
-            for (int fi = 0; fi < farmers.Count; fi++)
+            // --- B.5 Subsistence: farmers eat own food ---
+            if (foodIdx >= 0)
             {
-                if (loc.GetAvailable(foodIdx) >= 1f)
+                var farmers = loc.Population.GetByJob(JobType.Farmer);
+                for (int fi = 0; fi < farmers.Count; fi++)
                 {
-                    loc.Consume(foodIdx, 1f);
-                    farmers[fi].AddInventory(foodIdx, 1f);
+                    if (loc.GetAvailable(foodIdx) >= 1f)
+                    {
+                        loc.Consume(foodIdx, 1f);
+                        farmers[fi].AddInventory(foodIdx, 1f);
+                    }
                 }
             }
-        }
-    }
 
-    // -----------------------------------------------------------------------
-    // Execute helpers (each called once from Tick — retained for navigation)
-    // -----------------------------------------------------------------------
+            // --- B.6 Match Local Service Orders ---
+            totalDemands += loc.Demands.Count;
+            totalSupplies += loc.Supplies.Count;
+            _orderMatcher.Match(loc, _ctx);
 
-    private void PhaseMarket()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
+            // --- B.7 Noble Contract Assignment (uses global assignedSet) ---
+            var nobles = loc.Population.GetByClass(SocialClass.Noble);
+            var peasants = loc.Population.GetByClass(SocialClass.Peasant);
+            var bourgeois = loc.Population.GetByClass(SocialClass.Bourgeois);
+
+            for (int ni = 0; ni < nobles.Count; ni++)
+            {
+                var noble = nobles[ni];
+                patronCounts.TryGetValue(noble, out int currentCount);
+                if (currentCount >= 2) continue;
+
+                float surplus = noble.Money - NobleLoanThreshold;
+                if (surplus < 50f) continue;
+
+                float budget = surplus * 0.6f;
+                int labor = Math.Clamp((int)(budget / 15f), 1, 10);
+                float merchantFee = budget * 0.15f;
+
+                var types = new[] { ContractType.Construction, ContractType.LuxuryGoods, ContractType.FoodSupply };
+                int idx = (noble.PersonId.GetHashCode() & 0x7FFFFFFF) % types.Length;
+                var contractType = types[idx];
+
+                var contract = CsContract.Create(contractType, noble, loc.LocationId, budget, labor, 3, 1.5f, merchantFee);
+
+                for (int i = 0; i < bourgeois.Count; i++)
+                {
+                    if (assignedSet.Add(bourgeois[i]))
+                    {
+                        contract.AssignMerchant(bourgeois[i]);
+                        break;
+                    }
+                }
+
+                int assigned = 0;
+                for (int i = 0; i < peasants.Count; i++)
+                {
+                    if (assigned >= contract.LaborNeeded) break;
+                    if (assignedSet.Add(peasants[i]))
+                    {
+                        contract.AssignWorker(peasants[i]);
+                        assigned++;
+                    }
+                }
+
+                ActiveContracts.Add(contract);
+                patronCounts[noble] = currentCount + 1;
+            }
+
+            // --- B.8 Market Consumption & Revenue ---
             float[] startingStock = new float[_goodsCount];
             Array.Copy(loc.Stocks, startingStock, _goodsCount);
 
@@ -418,201 +379,304 @@ public sealed class CsEconomyEngine
             for (int bi = 0; bi < buyers.Length; bi++)
             {
                 var person = buyers[bi];
+                person.ComfortThisTurn = 0f;
+
                 for (int gi = 0; gi < _goodsCount; gi++)
                 {
                     float wantQty = person.GetWant(gi);
                     float held = person.GetInventory(gi);
                     float need = MathF.Max(wantQty - held, 0f);
-                    if (need <= 0f) continue;
 
-                    float marketAvailable = loc.GetAvailable(gi);
-                    if (marketAvailable <= 0f) continue;
+                    if (need > 0f)
+                    {
+                        float marketAvailable = loc.GetAvailable(gi);
+                        if (marketAvailable > 0f)
+                        {
+                            float depletionRatio = startingStock[gi] > 0f ? 1f - (marketAvailable / startingStock[gi]) : 0f;
+                            float effectivePrice = loc.GetPrice(gi) * (1f + (depletionRatio * depletionRatio * 0.5f));
+                            float buyQty = MathF.Min(need, marketAvailable);
+                            buyQty = person.CanAfford(effectivePrice, buyQty);
 
-                    float baseTickPrice = loc.GetPrice(gi);
-                    float depletionRatio = startingStock[gi] > 0f
-                        ? 1f - (marketAvailable / startingStock[gi])
-                        : 0f;
-                    float scarcityMarkup = depletionRatio * depletionRatio * 0.5f;
-                    float effectivePrice = baseTickPrice * (1f + scarcityMarkup);
+                            if (buyQty > 0f)
+                            {
+                                person.Buy(gi, buyQty, effectivePrice);
+                                loc.Consume(gi, buyQty);
 
-                    float buyQty = MathF.Min(need, marketAvailable);
-                    buyQty = person.CanAfford(effectivePrice, buyQty);
-                    if (buyQty <= 0f) continue;
+                                float revenue = buyQty * effectivePrice;
+                                var merchants = loc.Population.GetByJob(JobType.Merchant);
+                                var farmers = loc.Population.GetByJob(JobType.Farmer);
+                                var craftsmen = loc.Population.GetByJob(JobType.Craftsman);
+                                int producerCount = farmers.Count + craftsmen.Count;
 
-                    person.Buy(gi, buyQty, effectivePrice);
-                    loc.Consume(gi, buyQty);
-                    DistributeRevenue(loc, buyQty * effectivePrice);
-                }
-            }
-            loc.Population.MarkWealthDirty();
-        }
-    }
+                                float merchantCut = revenue * 0.15f;
+                                float producerCut = revenue * 0.85f;
 
-    private void DistributeRevenue(CsLocationData loc, float revenue)
-    {
-        var merchants = loc.Population.GetByJob(JobType.Merchant);
-        var farmers = loc.Population.GetByJob(JobType.Farmer);
-        var craftsmen = loc.Population.GetByJob(JobType.Craftsman);
-        int producerCount = farmers.Count + craftsmen.Count;
+                                if (merchants.Count > 0)
+                                {
+                                    float perMerchant = merchantCut / merchants.Count;
+                                    for (int i = 0; i < merchants.Count; i++) merchants[i].Money += perMerchant;
+                                }
+                                else producerCut += merchantCut;
 
-        float merchantCut = revenue * 0.15f;
-        float producerCut = revenue * 0.85f;
+                                if (producerCount > 0)
+                                {
+                                    float perProducer = producerCut / producerCount;
+                                    for (int i = 0; i < farmers.Count; i++) farmers[i].Money += perProducer;
+                                    for (int i = 0; i < craftsmen.Count; i++) craftsmen[i].Money += perProducer;
+                                }
+                                else if (merchants.Count > 0)
+                                {
+                                    float perMerchant = producerCut / merchants.Count;
+                                    for (int i = 0; i < merchants.Count; i++) merchants[i].Money += perMerchant;
+                                }
+                            }
+                        }
+                    }
 
-        if (merchants.Count > 0)
-        {
-            float perMerchant = merchantCut / merchants.Count;
-            for (int i = 0; i < merchants.Count; i++)
-                merchants[i].Money += perMerchant;
-        }
-        else
-        {
-            producerCut += merchantCut;
-        }
-
-        if (producerCount > 0)
-        {
-            float perProducer = producerCut / producerCount;
-            for (int i = 0; i < farmers.Count; i++)
-                farmers[i].Money += perProducer;
-            for (int i = 0; i < craftsmen.Count; i++)
-                craftsmen[i].Money += perProducer;
-        }
-        else if (merchants.Count > 0)
-        {
-            float perMerchant = producerCut / merchants.Count;
-            for (int i = 0; i < merchants.Count; i++)
-                merchants[i].Money += perMerchant;
-        }
-    }
-
-    private void PhaseConsumption()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var people = Locations[li].Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-            {
-                var person = people[pi];
-                person.ComfortThisTurn = 0f;
-                for (int gi = 0; gi < _goodsCount; gi++)
-                {
-                    float wantQty = person.GetWant(gi);
                     if (Goods[gi].ThingType == ThingType.Food)
                     {
-                        float consumed = person.Consume(gi, 1f);
-                        person.FedThisTurn = consumed >= 0.99f;
+                        person.FedThisTurn = person.Consume(gi, 1f) >= 0.99f;
                     }
                     else
                     {
                         float consumed = person.Consume(gi, wantQty);
-                        if (wantQty > 0f && consumed > 0f)
-                            person.ComfortThisTurn += consumed / wantQty;
+                        if (wantQty > 0f && consumed > 0f) person.ComfortThisTurn += consumed / wantQty;
                     }
                 }
             }
-        }
-    }
 
-    private void PhaseContracts()
-    {
-        var newCompleted = new List<CsContract>();
-        foreach (var c in ActiveContracts)
-        {
-            if (c.WorkOneTurn())
-                newCompleted.Add(c);
-        }
-        foreach (var c in newCompleted)
-        {
-            ActiveContracts.Remove(c);
-            CompletedContracts.Add(c);
-        }
-
-        var assignedSet = new HashSet<CsPerson>();
-        var patronCounts = new Dictionary<CsPerson, int>();
-        foreach (var c in ActiveContracts)
-        {
-            if (c.MerchantAssigned != null) assignedSet.Add(c.MerchantAssigned);
-            foreach (var w in c.WorkersAssigned) assignedSet.Add(w);
-            patronCounts.TryGetValue(c.Patron, out int cnt);
-            patronCounts[c.Patron] = cnt + 1;
-        }
-
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var nobles = loc.Population.GetByClass(SocialClass.Noble);
-            var merchants = loc.Population.GetByClass(SocialClass.Bourgeois);
-            var workers = loc.Population.GetByClass(SocialClass.Peasant);
-
-            for (int ni = 0; ni < nobles.Count; ni++)
+            // --- B.9 Household Wages ---
+            var servants = loc.Population.GetByJob(JobType.Servant);
+            if (nobles.Count > 0 && servants.Count > 0)
             {
-                var noble = nobles[ni];
-                patronCounts.TryGetValue(noble, out int currentCount);
-                if (currentCount >= 2) continue;
-                float surplus = noble.Money - NobleLoanThreshold;
-                if (surplus < 50f) continue;
-                float budget = surplus * 0.6f;
-                int labor = Math.Clamp((int)(budget / 15f), 1, 10);
-                const float wage = 1.5f;
-                float merchantFee = budget * 0.15f;
-                var contractType = PickContractType(noble);
+                int servantsPerNoble = (int)MathF.Ceiling(servants.Count / (float)nobles.Count);
+                int servantIdx = 0;
+                for (int ni = 0; ni < nobles.Count; ni++)
+                {
+                    int count = 0;
+                    while (count < servantsPerNoble && servantIdx < servants.Count)
+                    {
+                        float pay = MathF.Min(0.5f, nobles[ni].Money);
+                        if (pay > 0f)
+                        {
+                            nobles[ni].Money -= pay;
+                            servants[servantIdx].Money += pay;
+                        }
+                        servantIdx++;
+                        count++;
+                    }
+                }
+            }
 
-                var contract = CsContract.Create(
-                    contractType, noble, loc.LocationId,
-                    budget, labor, 3, wage, merchantFee);
-                AssignStaffFast(contract, merchants, workers, assignedSet);
-                ActiveContracts.Add(contract);
-                patronCounts[noble] = currentCount + 1;
+            // --- B.10 Rent ---
+            if (nobles.Count > 0)
+            {
+                float totalRent = 0f;
+                for (int i = 0; i < peasants.Count; i++)
+                {
+                    float rent = peasants[i].Money * 0.08f;
+                    if (rent > 0.01f) { peasants[i].Money -= rent; totalRent += rent; }
+                }
+                for (int i = 0; i < bourgeois.Count; i++)
+                {
+                    float rent = bourgeois[i].Money * 0.04f;
+                    if (rent > 0.01f) { bourgeois[i].Money -= rent; totalRent += rent; }
+                }
+                if (totalRent > 0f)
+                {
+                    float perNoble = totalRent / nobles.Count;
+                    for (int ni = 0; ni < nobles.Count; ni++) nobles[ni].Money += perNoble;
+                }
+            }
+
+            // --- B.11 Government Update ---
+            if (loc.Government != null)
+            {
+                var gov = loc.Government;
+                gov.TaxCollectedLastTick = 0;
+                double taxCollected = 0;
+                var pop = loc.Population.People;
+                for (int pi = 0; pi < pop.Count; pi++)
+                {
+                    if (pop[pi].Money > 10f)
+                    {
+                        float tax = pop[pi].Money * (float)gov.TaxRate;
+                        pop[pi].Money -= tax;
+                        taxCollected += tax;
+                    }
+                }
+                gov.Treasury += taxCollected;
+                gov.TaxCollectedLastTick = taxCollected;
+
+                for (int di = gov.ActiveDirectives.Count - 1; di >= 0; di--)
+                {
+                    var directive = gov.ActiveDirectives[di];
+                    if (directive.Type == DirectiveType.HireWorkers)
+                    {
+                        int remaining = directive.Quantity - directive.WorkersHired;
+                        float budgetLeft = directive.BudgetAllocated - directive.BudgetSpent;
+                        if (remaining > 0 && budgetLeft >= directive.WageOffered)
+                        {
+                            var pool = new List<CsPerson>(loc.Population.GetByJob(JobType.Unemployed));
+                            pool.AddRange(loc.Population.GetByJob(JobType.Laborer));
+
+                            int hired = 0;
+                            foreach (var p in pool)
+                            {
+                                if (hired >= remaining || budgetLeft < directive.WageOffered) break;
+                                var oldClass = p.SocialClass;
+                                var oldJob = p.Job;
+                                p.Job = directive.JobTarget;
+                                p.Money += directive.WageOffered;
+                                loc.Population.NotifyClassChanged(p, oldClass, oldJob);
+
+                                directive.BudgetSpent += directive.WageOffered;
+                                budgetLeft -= directive.WageOffered;
+                                gov.Treasury -= directive.WageOffered;
+                                gov.WagesPaidLastTick += directive.WageOffered;
+                                directive.WorkersHired++;
+                                hired++;
+                            }
+                            gov.WorkersHiredLastTick += hired;
+                        }
+                    }
+                    directive.AdvanceTurn();
+                    if (directive.IsExpired) gov.ActiveDirectives.RemoveAt(di);
+                }
+            }
+
+            // --- B.12 Guild Production ---
+            if (loc.Guild != null)
+            {
+                loc.Guild.Produce(loc, Goods);
+                loc.Guild.PayWages(loc);
+                loc.Guild.CollectRevenue(loc, Goods);
+            }
+
+            loc.Population.MarkWealthDirty();
+
+            // --- B.13 Population State (satisfaction, starvation, births, mobility) ---
+            {
+                var stateePeople = loc.Population.People;
+                var toRemove = new List<CsPerson>();
+                int births = 0;
+                float foodSurplus = foodIdx >= 0 ? loc.GetAvailable(foodIdx) : 0f;
+
+                for (int pi = 0; pi < stateePeople.Count; pi++)
+                {
+                    var person = stateePeople[pi];
+                    person.TurnsAlive++;
+
+                    if (person.FedThisTurn) person.Satisfaction = MathF.Min(person.Satisfaction + 5f, 100f);
+                    else person.Satisfaction = MathF.Max(person.Satisfaction - 15f, 0f);
+                    person.Satisfaction = MathF.Min(person.Satisfaction + (person.ComfortThisTurn * 2f), 100f);
+
+                    if ((person.Satisfaction <= 0f && person.StarvationCounter > 0) || (!person.FedThisTurn && person.Satisfaction < 20f))
+                    {
+                        if (++person.StarvationCounter >= 5) toRemove.Add(person);
+                    }
+                    else person.StarvationCounter = 0;
+
+                    if (foodSurplus >= 5f && person.Satisfaction >= 70f && _rng.NextDouble() <= 0.02) births++;
+
+                    person.FedThisTurn = false;
+                    person.ComfortThisTurn = 0f;
+                }
+
+                foreach (var dead in toRemove)
+                {
+                    loc.Population.RemovePerson(dead);
+                    TotalDeaths++;
+                }
+                if (toRemove.Count > 0) result.Deaths += toRemove.Count;
+
+                for (int b = 0; b < births; b++)
+                {
+                    var localPeasants = loc.Population.GetByClass(SocialClass.Peasant);
+                    var newPerson = CsPerson.Create($"{loc.LocationId}_born_{TotalBirths}", localPeasants.Count > 0 ? SocialClass.Peasant : SocialClass.Bourgeois, JobType.Laborer, 0f, _goodsCount);
+                    newPerson.Satisfaction = 50f;
+                    loc.Population.AddPerson(newPerson);
+                    TotalBirths++;
+                }
+                if (births > 0) result.Births += births;
+
+                // Social Mobility
+                var peasantsList = loc.Population.GetByClass(SocialClass.Peasant);
+                for (int pi = 0; pi < peasantsList.Count; pi++)
+                {
+                    var p = peasantsList[pi];
+                    if (p.Money >= 100f && p.Satisfaction >= 80f && _rng.NextDouble() <= 0.1)
+                    {
+                        var oldClass = p.SocialClass;
+                        var oldJob = p.Job;
+                        p.SocialClass = SocialClass.Bourgeois;
+                        p.Job = JobType.Merchant;
+                        loc.Population.NotifyClassChanged(p, oldClass, oldJob);
+                        TotalPromotions++;
+                    }
+                }
+            }
+
+            // --- B.14 Geist Update ---
+            loc.Geist?.UpdateState(loc, Goods);
+
+            // --- B.15 Snapshot ---
+            {
+                var snap = new CsLocationSnapshot
+                {
+                    LocationIdx = li,
+                    LocationId = loc.LocationId,
+                    LocationName = loc.LocationName,
+                    PopulationCount = loc.Population.Size(),
+                    AvgSatisfaction = loc.Population.GetAverageSatisfaction(),
+                    AvgMoney = loc.Population.GetAverageMoney(),
+                    Stocks = new float[_goodsCount],
+                    Prices = new float[_goodsCount],
+                    PeasantCount = loc.Population.GetByClass(SocialClass.Peasant).Count,
+                    BourgeoisCount = loc.Population.GetByClass(SocialClass.Bourgeois).Count,
+                    NobleCount = loc.Population.GetByClass(SocialClass.Noble).Count,
+                };
+
+                if (loc.Government != null)
+                {
+                    snap.GovernmentTreasury = (float)loc.Government.Treasury;
+                    snap.GovernmentTaxCollected = (float)loc.Government.TaxCollectedLastTick;
+                    snap.GovernmentDirectivesCount = loc.Government.ActiveDirectives.Count;
+                    snap.GovernmentWorkersHired = loc.Government.WorkersHiredLastTick;
+                }
+                if (loc.Guild != null)
+                {
+                    snap.GuildTreasury = (float)loc.Guild.Treasury;
+                    snap.GuildProduced = loc.Guild.ProducedLastTick;
+                    snap.GuildWorkerCount = loc.Guild.WorkerCount;
+                }
+                if (loc.Geist != null)
+                {
+                    snap.GeistDesperation = loc.Geist.Desperation;
+                    snap.GeistBanditPool = loc.Geist.BanditPoolSize;
+                    snap.GeistBanditSlotsEmitted = loc.Geist.LastBanditSlotsEmitted;
+                }
+
+                Array.Copy(loc.Stocks, snap.Stocks, _goodsCount);
+                Array.Copy(loc.Prices, snap.Prices, _goodsCount);
+                result.LocationSnapshots.Add(snap);
             }
         }
-    }
 
-    private ContractType PickContractType(CsPerson noble)
-    {
-        var types = new[] { ContractType.Construction, ContractType.LuxuryGoods, ContractType.FoodSupply };
-        int idx = (noble.PersonId.GetHashCode() & 0x7FFFFFFF) % types.Length;
-        return types[idx];
-    }
+        // ====================================================================
+        // PHASE C — POST-TICK GLOBALS
+        // Pay global contract wages, imperial bank interest+spending.
+        // ====================================================================
 
-    private void AssignStaffFast(CsContract contract, List<CsPerson> merchants,
-        List<CsPerson> workers, HashSet<CsPerson> assignedSet)
-    {
-        for (int i = 0; i < merchants.Count; i++)
-        {
-            if (!assignedSet.Contains(merchants[i]))
-            {
-                contract.AssignMerchant(merchants[i]);
-                assignedSet.Add(merchants[i]);
-                break;
-            }
-        }
-        int assigned = 0;
-        for (int i = 0; i < workers.Count; i++)
-        {
-            if (assigned >= contract.LaborNeeded) break;
-            if (!assignedSet.Contains(workers[i]))
-            {
-                contract.AssignWorker(workers[i]);
-                assignedSet.Add(workers[i]);
-                assigned++;
-            }
-        }
-    }
-
-    private void PhaseWages()
-    {
         bool anyPaid = false;
         foreach (var contract in ActiveContracts)
         {
             if (contract.WorkersAssigned.Count == 0) continue;
             var patron = contract.Patron;
-            float cost = contract.GetTotalCostPerTurn();
-            float canPay = MathF.Min(patron.Money, cost);
+            float canPay = MathF.Min(patron.Money, contract.GetTotalCostPerTurn());
             if (canPay <= 0f) continue;
-            float wagePortion = contract.GetTotalWageCost();
-            float merchantPortion = contract.MerchantFee;
-            float total = wagePortion + merchantPortion;
-            float payRatio = canPay / MathF.Max(total, 0.01f);
+
+            float payRatio = canPay / MathF.Max(contract.GetTotalWageCost() + contract.MerchantFee, 0.01f);
 
             for (int wi = 0; wi < contract.WorkersAssigned.Count; wi++)
             {
@@ -622,407 +686,84 @@ public sealed class CsEconomyEngine
             }
             if (contract.MerchantAssigned != null)
             {
-                float mPay = merchantPortion * payRatio;
+                float mPay = contract.MerchantFee * payRatio;
                 patron.Money -= mPay;
                 contract.MerchantAssigned.Money += mPay;
             }
             anyPaid = true;
         }
+
         if (anyPaid)
         {
-            for (int li = 0; li < Locations.Length; li++)
-                Locations[li].Population.MarkWealthDirty();
+            for (int li = 0; li < Locations.Length; li++) Locations[li].Population.MarkWealthDirty();
         }
-    }
 
-    private void PhaseHouseholdWages()
-    {
-        const float servantWage = 0.5f;
-        for (int li = 0; li < Locations.Length; li++)
+        ImperialGovernment?.CollectInterestAndRepayments();
+        if (ImperialGovernment != null)
         {
-            var loc = Locations[li];
-            var nobles = loc.Population.GetByClass(SocialClass.Noble);
-            var servants = loc.Population.GetByJob(JobType.Servant);
-            if (nobles.Count == 0 || servants.Count == 0) continue;
-            int servantsPerNoble = (int)MathF.Ceiling(servants.Count / (float)nobles.Count);
-            int servantIdx = 0;
-            for (int ni = 0; ni < nobles.Count; ni++)
+            float spend = ImperialGovernment.Reserves * 0.1f;
+            if (spend >= 1f)
             {
-                int count = 0;
-                while (count < servantsPerNoble && servantIdx < servants.Count)
+                ImperialGovernment.Reserves -= spend;
+                var allWorkers = new List<CsPerson>();
+                for (int li = 0; li < Locations.Length; li++) allWorkers.AddRange(Locations[li].Population.GetByClass(SocialClass.Peasant));
+                if (allWorkers.Count > 0)
                 {
-                    float pay = MathF.Min(servantWage, nobles[ni].Money);
-                    if (pay > 0f)
-                    {
-                        nobles[ni].Money -= pay;
-                        servants[servantIdx].Money += pay;
-                    }
-                    servantIdx++;
-                    count++;
+                    float perWorker = spend / allWorkers.Count;
+                    for (int i = 0; i < allWorkers.Count; i++) allWorkers[i].Money += perWorker;
                 }
             }
-            loc.Population.MarkWealthDirty();
         }
-    }
 
-    private void PhaseRent()
-    {
-        const float rentRate = 0.08f;
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var nobles = loc.Population.GetByClass(SocialClass.Noble);
-            if (nobles.Count == 0) continue;
-            var peasants = loc.Population.GetByClass(SocialClass.Peasant);
-            var bourgeois = loc.Population.GetByClass(SocialClass.Bourgeois);
-            float totalRent = 0f;
-            for (int i = 0; i < peasants.Count; i++)
-            {
-                float rent = peasants[i].Money * rentRate;
-                if (rent > 0.01f) { peasants[i].Money -= rent; totalRent += rent; }
-            }
-            for (int i = 0; i < bourgeois.Count; i++)
-            {
-                float rent = bourgeois[i].Money * rentRate * 0.5f;
-                if (rent > 0.01f) { bourgeois[i].Money -= rent; totalRent += rent; }
-            }
-            if (totalRent > 0f)
-            {
-                float perNoble = totalRent / nobles.Count;
-                for (int ni = 0; ni < nobles.Count; ni++)
-                    nobles[ni].Money += perNoble;
-            }
-            loc.Population.MarkWealthDirty();
-        }
-    }
+        // ====================================================================
+        // PHASE D — INTERNAL TRADE MATCHING
+        // Pure-C# greedy match using pre-computed danger matrix.
+        // Creates moves + shipment dispatches inline; no GDScript ping-pong.
+        // ====================================================================
 
-    private void PhaseGovernmentTax()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var gov = loc.Government;
-            if (gov == null) continue;
-            gov.TaxCollectedLastTick = 0;
-            double taxCollected = 0;
-            var people = loc.Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-            {
-                var person = people[pi];
-                if (person.Money > 10f)
-                {
-                    float tax = person.Money * (float)gov.TaxRate;
-                    person.Money -= tax;
-                    taxCollected += tax;
-                }
-            }
-            gov.Treasury += taxCollected;
-            gov.TaxCollectedLastTick = taxCollected;
-        }
-    }
+        RunTradeMatching(dangerMatrix, result);
 
-    private void PhaseGovernmentExecuteDirectives()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var gov = loc.Government;
-            if (gov == null) continue;
-            for (int di = gov.ActiveDirectives.Count - 1; di >= 0; di--)
-            {
-                var directive = gov.ActiveDirectives[di];
-                if (directive.Type == DirectiveType.HireWorkers)
-                    ExecuteHireWorkers(loc, gov, directive);
-                directive.AdvanceTurn();
-                if (directive.IsExpired)
-                    gov.ActiveDirectives.RemoveAt(di);
-            }
-        }
-    }
+        string bankInfo = ImperialGovernment != null ? $" bank[reserves={ImperialGovernment.Reserves:F0} loans={ImperialGovernment.ActiveLoans.Count} printed={ImperialGovernment.TotalPrinted:F0}]" : "";
+        Godot.GD.Print($"[Economy] Tick {turn}: orders D/S={totalDemands}/{totalSupplies} deaths={result.Deaths} births={result.Births} moves+={result.MovesCreated.Count} moves-={result.MovesCompleted.Count} dispatches={result.ShipmentDispatches.Count}{bankInfo}");
 
-    private void ExecuteHireWorkers(CsLocationData loc, CsGovernment gov, CsDirective directive)
-    {
-        int remaining = directive.Quantity - directive.WorkersHired;
-        if (remaining <= 0) return;
-        float budgetLeft = directive.BudgetAllocated - directive.BudgetSpent;
-        if (budgetLeft < directive.WageOffered) return;
-
-        var unemployed = loc.Population.GetByJob(JobType.Unemployed);
-        var laborers = loc.Population.GetByJob(JobType.Laborer);
-        var pool = new List<CsPerson>();
-        pool.AddRange(unemployed);
-        pool.AddRange(laborers);
-
-        int hiredThisTick = 0;
-        foreach (var person in pool)
-        {
-            if (hiredThisTick >= remaining) break;
-            if (budgetLeft < directive.WageOffered) break;
-            var oldClass = person.SocialClass;
-            var oldJob = person.Job;
-            person.Job = directive.JobTarget;
-            person.Money += directive.WageOffered;
-            loc.Population.NotifyClassChanged(person, oldClass, oldJob);
-            directive.BudgetSpent += directive.WageOffered;
-            budgetLeft -= directive.WageOffered;
-            gov.Treasury -= directive.WageOffered;
-            gov.WagesPaidLastTick += directive.WageOffered;
-            directive.WorkersHired++;
-            hiredThisTick++;
-        }
-        gov.WorkersHiredLastTick += hiredThisTick;
-    }
-
-    private void PhaseGuildProduce()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var guild = loc.Guild;
-            if (guild == null) continue;
-            guild.Produce(loc, Goods);
-            guild.PayWages(loc);
-            guild.CollectRevenue(loc, Goods);
-        }
-    }
-
-    private void PhaseImperialSpending()
-    {
-        var imperial = ImperialGovernment;
-        if (imperial == null) return;
-        float spend = imperial.Reserves * 0.1f;
-        if (spend < 1f) return;
-        imperial.Reserves -= spend;
-        var allWorkers = new List<CsPerson>();
-        for (int li = 0; li < Locations.Length; li++)
-            allWorkers.AddRange(Locations[li].Population.GetByClass(SocialClass.Peasant));
-        if (allWorkers.Count == 0) return;
-        float perWorker = spend / allWorkers.Count;
-        for (int i = 0; i < allWorkers.Count; i++)
-            allWorkers[i].Money += perWorker;
+        return result;
     }
 
     // -----------------------------------------------------------------------
-    // PostUpdate helpers (each called once from Tick — retained for navigation)
+    // Internal Trade Matching
     // -----------------------------------------------------------------------
 
-    private void PhaseSatisfaction()
+    private struct DemandEntry
     {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var people = Locations[li].Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-            {
-                var person = people[pi];
-                person.TurnsAlive++;
-                if (person.FedThisTurn)
-                    person.Satisfaction = MathF.Min(person.Satisfaction + 5f, 100f);
-                else
-                    person.Satisfaction = MathF.Max(person.Satisfaction - 15f, 0f);
-                float comfortBonus = person.ComfortThisTurn * 2f;
-                person.Satisfaction = MathF.Min(person.Satisfaction + comfortBonus, 100f);
-            }
-        }
+        public int ThingIdx;
+        public int LocationIdx;
+        public float Quantity;
+        public float MaxPrice;
+        public float Priority;
     }
 
-    private void PhaseStarvation(CsEconomyTickResult result)
+    private struct SupplyEntry
     {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var people = loc.Population.People;
-            var toRemove = new List<CsPerson>();
-            for (int pi = 0; pi < people.Count; pi++)
-            {
-                var person = people[pi];
-                if (person.Satisfaction <= 0f && person.StarvationCounter > 0)
-                {
-                    person.StarvationCounter++;
-                    if (person.StarvationCounter >= 5) toRemove.Add(person);
-                }
-                else if (!person.FedThisTurn && person.Satisfaction < 20f)
-                {
-                    person.StarvationCounter++;
-                    if (person.StarvationCounter >= 5) toRemove.Add(person);
-                }
-                else
-                {
-                    person.StarvationCounter = 0;
-                }
-            }
-            foreach (var dead in toRemove)
-            {
-                loc.Population.RemovePerson(dead);
-                TotalDeaths++;
-            }
-            if (toRemove.Count > 0)
-                result.Deaths += toRemove.Count;
-        }
+        public int ThingIdx;
+        public int LocationIdx;
+        public float Quantity;
+        public float CostBasis;
     }
 
-    private void PhaseResetTurnFlags()
+    private struct ScoredPair
     {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var people = Locations[li].Population.People;
-            for (int pi = 0; pi < people.Count; pi++)
-            {
-                people[pi].FedThisTurn = false;
-                people[pi].ComfortThisTurn = 0f;
-            }
-        }
+        public int SupplyIdx;
+        public int DemandIdx;
+        public float Score;
+        public float Safety;
     }
 
-    private void PhaseBirth(CsEconomyTickResult result)
+    private void RunTradeMatching(float[,] dangerMatrix, CsEconomyTickResult result)
     {
-        int foodIdx = -1;
-        for (int i = 0; i < _goodsCount; i++)
-        {
-            if (Goods[i].ThingType == ThingType.Food) { foodIdx = i; break; }
-        }
-        if (foodIdx < 0) return;
+        // Build demand/supply views from post-tick state.
+        var demands = new List<DemandEntry>();
+        var supplies = new List<SupplyEntry>();
 
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            float foodSurplus = loc.GetAvailable(foodIdx);
-            if (foodSurplus < 5f) continue;
-
-            var people = loc.Population.People;
-            int births = 0;
-            int popSize = people.Count;
-            for (int pi = 0; pi < popSize; pi++)
-            {
-                var person = people[pi];
-                if (person.Satisfaction < 70f) continue;
-                if (_rng.NextDouble() > 0.02) continue;
-                births++;
-            }
-
-            for (int b = 0; b < births; b++)
-            {
-                var peasants = loc.Population.GetByClass(SocialClass.Peasant);
-                SocialClass newClass = peasants.Count > 0 ? SocialClass.Peasant : SocialClass.Bourgeois;
-                JobType newJob = JobType.Laborer;
-                var newPerson = CsPerson.Create(
-                    $"{loc.LocationId}_born_{TotalBirths}",
-                    newClass, newJob, 0f, _goodsCount);
-                newPerson.Satisfaction = 50f;
-                loc.Population.AddPerson(newPerson);
-                TotalBirths++;
-            }
-            if (births > 0)
-                result.Births += births;
-        }
-    }
-
-    private void PhaseSocialMobility()
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var peasants = loc.Population.GetByClass(SocialClass.Peasant);
-            var toPromote = new List<CsPerson>();
-            for (int pi = 0; pi < peasants.Count; pi++)
-            {
-                var p = peasants[pi];
-                if (p.Money < 100f || p.Satisfaction < 80f) continue;
-                if (_rng.NextDouble() > 0.1) continue;
-                toPromote.Add(p);
-            }
-            foreach (var p in toPromote)
-            {
-                var oldClass = p.SocialClass;
-                var oldJob = p.Job;
-                p.SocialClass = SocialClass.Bourgeois;
-                p.Job = JobType.Merchant;
-                loc.Population.NotifyClassChanged(p, oldClass, oldJob);
-                TotalPromotions++;
-            }
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // Snapshots and exports
-    // -----------------------------------------------------------------------
-
-    private void BuildSnapshots(CsEconomyTickResult result)
-    {
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            var snap = new CsLocationSnapshot
-            {
-                LocationIdx = li,
-                LocationId = loc.LocationId,
-                LocationName = loc.LocationName,
-                PopulationCount = loc.Population.Size(),
-                AvgSatisfaction = loc.Population.GetAverageSatisfaction(),
-                AvgMoney = loc.Population.GetAverageMoney(),
-                Stocks = new float[_goodsCount],
-                Prices = new float[_goodsCount],
-                PeasantCount = loc.Population.GetByClass(SocialClass.Peasant).Count,
-                BourgeoisCount = loc.Population.GetByClass(SocialClass.Bourgeois).Count,
-                NobleCount = loc.Population.GetByClass(SocialClass.Noble).Count,
-            };
-            if (loc.Government != null)
-            {
-                snap.GovernmentTreasury = (float)loc.Government.Treasury;
-                snap.GovernmentTaxCollected = (float)loc.Government.TaxCollectedLastTick;
-                snap.GovernmentDirectivesCount = loc.Government.ActiveDirectives.Count;
-                snap.GovernmentWorkersHired = loc.Government.WorkersHiredLastTick;
-            }
-            if (loc.Guild != null)
-            {
-                snap.GuildTreasury = (float)loc.Guild.Treasury;
-                snap.GuildProduced = loc.Guild.ProducedLastTick;
-                snap.GuildWorkerCount = loc.Guild.WorkerCount;
-            }
-            if (loc.Geist != null)
-            {
-                snap.GeistDesperation = loc.Geist.Desperation;
-                snap.GeistBanditPool = loc.Geist.BanditPoolSize;
-                snap.GeistBanditSlotsEmitted = loc.Geist.LastBanditSlotsEmitted;
-            }
-            Array.Copy(loc.Stocks, snap.Stocks, _goodsCount);
-            Array.Copy(loc.Prices, snap.Prices, _goodsCount);
-            result.LocationSnapshots.Add(snap);
-        }
-    }
-
-    public List<CsDemandExport> ExportPendingDemands()
-    {
-        var demands = new List<CsDemandExport>();
-        for (int li = 0; li < Locations.Length; li++)
-        {
-            var loc = Locations[li];
-            for (int gi = 0; gi < _goodsCount; gi++)
-            {
-                float totalDemand = loc.Population.GetTotalDemand(gi);
-                float localSupply = loc.Stocks[gi];
-                float unmet = totalDemand - localSupply;
-                if (unmet <= 0f) continue;
-
-                float priority = Goods[gi].ThingType == ThingType.Food ? 10f :
-                                 Goods[gi].ThingType == ThingType.Weapons ? 3f : 1f;
-                demands.Add(new CsDemandExport
-                {
-                    ThingIdx = gi,
-                    ThingId = Goods[gi].ThingId,
-                    Quantity = unmet,
-                    MaxPrice = loc.Prices[gi] * 1.5f,
-                    LocationIdx = li,
-                    LocationId = loc.LocationId,
-                    Priority = priority,
-                });
-            }
-        }
-        return demands;
-    }
-
-    public List<CsSupplyExport> ExportAvailableSupplies()
-    {
-        var supplies = new List<CsSupplyExport>();
         for (int li = 0; li < Locations.Length; li++)
         {
             var loc = Locations[li];
@@ -1030,6 +771,21 @@ public sealed class CsEconomyEngine
             {
                 float totalDemand = loc.Population.GetTotalDemand(gi);
                 float localStock = loc.Stocks[gi];
+                float unmet = totalDemand - localStock;
+                if (unmet > 0f)
+                {
+                    float priority = Goods[gi].ThingType == ThingType.Food ? 10f :
+                                     Goods[gi].ThingType == ThingType.Weapons ? 3f : 1f;
+                    demands.Add(new DemandEntry
+                    {
+                        ThingIdx = gi,
+                        LocationIdx = li,
+                        Quantity = unmet,
+                        MaxPrice = loc.Prices[gi] * 1.5f,
+                        Priority = priority,
+                    });
+                }
+
                 float reserve = 0f;
                 var sp = loc.Population.People;
                 for (int pi = 0; pi < sp.Count; pi++)
@@ -1039,51 +795,108 @@ public sealed class CsEconomyEngine
                     reserve += MathF.Max(w - h, 0f);
                 }
                 float surplus = MathF.Max(localStock - reserve, localStock * 0.4f);
-                if (surplus <= 1f) continue;
-
-                supplies.Add(new CsSupplyExport
+                if (surplus > 1f)
                 {
-                    ThingIdx = gi,
-                    ThingId = Goods[gi].ThingId,
-                    Quantity = surplus,
-                    CostBasis = loc.CostBasis[gi],
-                    LocationIdx = li,
-                    LocationId = loc.LocationId,
-                });
+                    supplies.Add(new SupplyEntry
+                    {
+                        ThingIdx = gi,
+                        LocationIdx = li,
+                        Quantity = surplus,
+                        CostBasis = loc.CostBasis[gi],
+                    });
+                }
             }
         }
-        return supplies;
-    }
 
-    public void ApplyTradeMatches(List<CsTradeMatchImport> matches, CsEconomyTickResult result)
-    {
-        foreach (var match in matches)
+        if (demands.Count == 0 || supplies.Count == 0) return;
+
+        // Score every valid (supply, demand) pair.
+        var scored = new List<ScoredPair>(supplies.Count * 2);
+        for (int si = 0; si < supplies.Count; si++)
         {
-            if (!_locationIdToIdx.TryGetValue(match.SourceLocationId, out int srcIdx)) continue;
-            if (!_locationIdToIdx.TryGetValue(match.DestLocationId, out int destIdx)) continue;
-            if (!_thingIdToIdx.TryGetValue(match.ThingId, out int thingIdx)) continue;
+            var s = supplies[si];
+            for (int di = 0; di < demands.Count; di++)
+            {
+                var d = demands[di];
+                if (s.ThingIdx != d.ThingIdx) continue;
+                if (s.LocationIdx == d.LocationIdx) continue;
 
-            var srcLoc = Locations[srcIdx];
-            float available = srcLoc.GetAvailable(thingIdx);
-            float sendQty = MathF.Min(match.Quantity, available);
-            if (sendQty <= 0f) continue;
+                float safety = (dangerMatrix != null)
+                    ? dangerMatrix[s.LocationIdx, d.LocationIdx]
+                    : 1f;
+                if (safety <= 0f) continue;
 
-            srcLoc.Consume(thingIdx, sendQty);
+                float qty = MathF.Min(s.Quantity, d.Quantity);
+                float deliveryValue = d.MaxPrice * qty * safety;
+                if (deliveryValue <= 0f) continue;
+                float acquisitionCost = s.CostBasis * qty;
+                float margin = (deliveryValue - acquisitionCost) / deliveryValue;
+                float urgency = d.Priority / 10f;
+                float score = (margin * 0.4f + urgency * 0.6f) * safety;
+                if (score <= 0f) continue;
 
-            int travelTime = GetTravelTime(srcIdx, destIdx);
+                scored.Add(new ScoredPair { SupplyIdx = si, DemandIdx = di, Score = score, Safety = safety });
+            }
+        }
+
+        scored.Sort((a, b) => b.Score.CompareTo(a.Score));
+
+        // Greedy reserve + apply.
+        var supplyRemaining = new float[supplies.Count];
+        var demandRemaining = new float[demands.Count];
+        for (int i = 0; i < supplies.Count; i++) supplyRemaining[i] = supplies[i].Quantity;
+        for (int i = 0; i < demands.Count; i++) demandRemaining[i] = demands[i].Quantity;
+
+        for (int pi = 0; pi < scored.Count; pi++)
+        {
+            var pair = scored[pi];
+            float availS = supplyRemaining[pair.SupplyIdx];
+            float availD = demandRemaining[pair.DemandIdx];
+            if (availS <= 0f || availD <= 0f) continue;
+
+            float qty = MathF.Min(availS, availD);
+            var s = supplies[pair.SupplyIdx];
+            var d = demands[pair.DemandIdx];
+
+            var srcLoc = Locations[s.LocationIdx];
+            float realAvail = srcLoc.GetAvailable(s.ThingIdx);
+            qty = MathF.Min(qty, realAvail);
+            if (qty <= 0f) continue;
+
+            srcLoc.Consume(s.ThingIdx, qty);
+            supplyRemaining[pair.SupplyIdx] -= qty;
+            demandRemaining[pair.DemandIdx] -= qty;
+
+            int travelTime = 1;
+            if (GetTravelTimeFunc != null)
+            {
+                int t = GetTravelTimeFunc(s.LocationIdx, d.LocationIdx);
+                if (t > 0) travelTime = t;
+            }
+
+            string thingId = Goods[s.ThingIdx].ThingId;
+            string srcId = Locations[s.LocationIdx].LocationId;
+            string destId = Locations[d.LocationIdx].LocationId;
             var move = CsEconomyMove.Create(
-                thingIdx, sendQty, srcIdx, destIdx,
-                travelTime, "trade_match",
-                match.SourceLocationId, match.DestLocationId, match.ThingId);
+                s.ThingIdx, qty, s.LocationIdx, d.LocationIdx,
+                travelTime, "trade_match", srcId, destId, thingId);
             ActiveMoves.Add(move);
             result.MovesCreated.Add(move);
 
             _shipmentCounter++;
-            int guardCount = CalculateGuardCount(move);
+            float cargoValue = qty * Goods[s.ThingIdx].BasePrice;
+            int guardCount;
+            if (cargoValue < 20f) guardCount = 1;
+            else if (cargoValue < 100f) guardCount = 2;
+            else if (cargoValue < 300f) guardCount = 3;
+            else guardCount = 4;
+
             result.ShipmentDispatches.Add(
                 CsShipmentDispatch.Create($"shipment_{_shipmentCounter}", move, guardCount));
         }
     }
+
+    // -----------------------------------------------------------------------
 
     internal Dictionary<string, int> _locationIdToIdx;
     internal Dictionary<string, int> _thingIdToIdx;
