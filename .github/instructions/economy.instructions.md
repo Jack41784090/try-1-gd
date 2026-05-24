@@ -15,7 +15,7 @@ Demand/Supply matching system. **C# mandatory** — `CsEconomyEngine` via `CsEco
 
 ## Trade Pipeline
 
-C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplies()` export to GDScript → `TradeMatcher` scores Supply→Demand pairs using `StrategicConsideration` system → `ApplyTradeMatches()` creates shipment dispatches → `EconomyEngine.tick_full()` unifies dispatches + emits `mercenary_work_changes` → `StrategyPresenter._run_economy_tick()` spawns caravans via `CaravanBridge` and notifies engine on arrival/defeat.
+C# `Tick(turn, dangerMatrix)` runs all per-location phases in a single mega-loop, then runs internal trade matching using the GDScript-supplied NxN danger matrix to score `(margin * 0.4 + urgency * 0.6) * safety` and creates `EconomyMove`s + `CsShipmentDispatch`es inline → `EconomyEngine.tick_full()` reads dispatches directly from the tick result and emits `mercenary_work_changes` → `StrategyPresenter._run_economy_tick()` spawns caravans via `CaravanBridge`.
 
 - **TradeMatcher** (`trade_matcher.gd`): Greedy matching engine. Creates `TradeSituation` per pair, scores via considerations or default `(margin * 0.4 + urgency * 0.6) * safety`
 - **RouteDangerCalculator** (`route_danger.gd`): Route safety (0-1) based on aggressive squads along connections. Per-edge safety = `1.0 / (1.0 + threats)`. Route = product of edges
@@ -28,7 +28,7 @@ C# `Tick()` runs lifecycle phases → `GetPendingDemands()`/`GetAvailableSupplie
 
 ## C# Engine
 
-`src/economy/csharp/`: `CsEconomyBridge.Setup(world)` → `Tick(turn)` → `GetPendingDemands()`/`GetAvailableSupplies()` → `ApplyTradeMatches()` → `SyncInventories()`.
+`src/economy/csharp/`: `CsEconomyBridge.Setup(world)` → `Tick(turn, dangerRows)` → `SyncBackToGdScript()`. Per-location mega-loop covers spoilage, prices, orders, production, subsistence, order matching, contract assignment, market, household, rent, government, guild, pop state, geist, snapshot.
 
 **25-phase tick lifecycle** (PhasePersonDecisions at start, PhaseResetTurnFlags after starvation, PhaseGuildRecruit/Produce after government).
 
