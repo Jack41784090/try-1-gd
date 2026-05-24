@@ -13,13 +13,13 @@ const MARCH_SPEED: float = 60.0
 @onready var bubble_layer: Control = $BubbleLayer
 @onready var presenter: StagePresenter = $StagePresenter
 
-var rigs: Dictionary = { }
+var rigs: Dictionary = {}
 var bubbles: Array[SpeechBubble] = []
 var _is_marching: bool = false
 
 
 func _ready() -> void:
-	presenter.bind_view(self)
+	presenter.bind_view(self )
 
 
 func _process(delta: float) -> void:
@@ -34,7 +34,7 @@ func spawn_warriors(warriors: Array[Warrior]) -> void:
 		var warrior = warriors[i]
 		if warrior.is_dead:
 			continue
-		var rig = await WarriorRigFactory.create_rig_for_warrior(warrior)
+		var rig = WarriorRigFactory.create_rig_for_warrior(warrior)
 		warrior_container.add_child(rig)
 		rig.position = Vector2(i * MARCH_SPACING_X - (warriors.size() * MARCH_SPACING_X * 0.5), MARCH_Y_BASE + (i % 2) * 15.0)
 		rigs[warrior.id] = rig
@@ -135,7 +135,7 @@ func dismiss_all_bubbles() -> void:
 
 
 func _update_bubble_positions() -> void:
-	var vp_size = stage_viewport.size if stage_viewport else Vector2(800, 600)
+	var vp_size: Vector2 = Vector2(stage_viewport.size) if stage_viewport else Vector2(800, 600)
 	var margin := 8.0
 	for bubble in bubbles:
 		if not is_instance_valid(bubble):

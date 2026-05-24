@@ -37,9 +37,3 @@ static func _instantiate_rig() -> WarriorRig:
 		_scene_cache = load(WARRIOR_RIG_SCENE_PATH) as PackedScene
 		assert(_scene_cache != null, "Failed to load WarriorRig scene from: %s" % WARRIOR_RIG_SCENE_PATH)
 	return _scene_cache.instantiate() as WarriorRig
-
-static func _instantiate_rig() -> WarriorRig:
-	if not _scene_cache:
-		_scene_cache = load(WARRIOR_RIG_SCENE_PATH) as PackedScene
-		assert(_scene_cache != null, "Failed to load WarriorRig scene from: %s" % WARRIOR_RIG_SCENE_PATH)
-	return _scene_cache.instantiate() as WarriorRig

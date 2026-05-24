@@ -1,11 +1,11 @@
 class_name WarriorRig extends Node2D
 
 ## SD / chibi flat-vector style — 1:2.5 head-to-body ratio
-const SKIN_COLOR := Color(0.96, 0.82, 0.66)  # #f5d0a8
+const SKIN_COLOR := Color(0.96, 0.82, 0.66) # #f5d0a8
 const EYE_WHITE := Color(0.95, 0.93, 0.90)
 const EYE_PUPIL := Color(0.12, 0.10, 0.10)
 const MOUTH_COLOR := Color(0.75, 0.35, 0.30)
-const HAIR_COLOR := Color(0.77, 0.60, 0.42)  # #c49a6c — blonde default
+const HAIR_COLOR := Color(0.77, 0.60, 0.42) # #c49a6c — blonde default
 
 const BONE_DISPLAY_SIZES: Dictionary = {
 	"Head": Vector2(44, 50),
@@ -227,7 +227,6 @@ func _get_class_palette() -> Dictionary:
 		"legs": Color(0.47, 0.38, 0.31),
 		"boots": Color(0.48, 0.35, 0.25),
 	}
-			}
 
 func _make_rect(center: Vector2, w: float, h: float) -> PackedVector2Array:
 	var hw := w * 0.5

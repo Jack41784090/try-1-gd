@@ -3,7 +3,7 @@ extends Node
 ## The visual theater. Executes commands: place character, move camera, show bubble.
 ## Knows nothing about EventChains or timelines. Commanded by VnPresenter.
 
-enum StageMode { MARCH, VN, HIDDEN }
+enum StageMode {MARCH, VN, HIDDEN}
 
 var view: StageView
 var current_mode: StageMode = StageMode.HIDDEN
@@ -60,7 +60,7 @@ func set_background(texture: Texture2D) -> void:
 	view.set_background(texture)
 
 
-func prepare_for_dialogue(character_ids: Array[String]) -> void:
+func prepare_for_dialogue(_character_ids: Array[String]) -> void:
 	# Switches stage to VN mode for dialogue playback (stops march, keeps warriors visible)
 	# Called by VnPresenter before loading a timeline
 	# e.g., character_ids=["Hans", "Fritz"] → stage mode → VN (march stops)

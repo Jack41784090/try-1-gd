@@ -8,7 +8,7 @@ extends Node
 ##   VnPresenter = the director (reads timelines, issues commands)
 ##   StagePresenter = the theater (executes visual commands, knows nothing about timelines)
 
-var _DEBUG: bool = true  # If true, skips timeline playback for easier debugging of timelines and stage presentation
+var _DEBUG: bool = true # If true, skips timeline playback for easier debugging of timelines and stage presentation
 
 var view: VnView
 var stage_presenter: StagePresenter
@@ -198,7 +198,10 @@ func _execute_dialogue(inst: DialogueInstruction) -> void:
 
 	var speaker_id = _resolve_speaker_id(inst.speaker_name)
 	var is_narrator = speaker_id.is_empty() or inst.speaker_name.is_empty() or inst.speaker_name == "narrator"
-	var has_stage_rig = not is_narrator and stage_presenter and stage_presenter.view.get_rig(speaker_id) != null
+	var stage_view: StageView = null
+	if stage_presenter:
+		stage_view = stage_presenter.view as StageView
+	var has_stage_rig = not is_narrator and stage_view and stage_view.get_rig(speaker_id) != null
 
 	if has_stage_rig:
 		if not inst.expression_override.is_empty():
