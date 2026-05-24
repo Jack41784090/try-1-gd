@@ -16,7 +16,7 @@ func _init(
 		_targeted: CombatEntity = null,
 		_skill: Skill = null,
 		_situation: Situation = null,
-		_context: Dictionary = { },
+		_context: Dictionary = {},
 ):
 	# If all parameters are null, we're being loaded from a resource file
 	# The @export variables will be set by the resource loader
@@ -112,8 +112,8 @@ func damage_calculation() -> void:
 	var target = target_manifestation()
 	var armour = target.get_armour()
 	var skill_bonus: float = _get_attacker_skill_level() * 0.5
-	var dm = armour.get_raw_damage_taken(raw_damage) + skill_bonus_damage(attacker)
-	var dm = armour.get_raw_damage_taken(raw_damage)
+	var raw_damage = chosen_weapon.get_potency_array_damage(attacker)
+	var dm = armour.get_raw_damage_taken(raw_damage) + skill_bonus
 
 	var hp_before = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 	var damage_updates = target.damage(dm, attacker.player_id)
@@ -126,6 +126,8 @@ func damage_calculation() -> void:
 
 
 func _get_attacker_skill_level() -> float:
+	if attacker.skill_set == null:
+		return 0.0
 	var skill_type := WeaponFactory.get_skill_used(attacker.weapon_class)
 	return float(attacker.skill_set.get_level(skill_type))
 
@@ -203,4 +205,4 @@ func _format_triggers(trigger_array: Array[int]) -> String:
 
 
 func _emit_seeb(_signal: StatusEffectEventBus.Signals) -> void:
-	StatusEffectEventBus.EmitSignal(_signal, self)
+	StatusEffectEventBus.EmitSignal(_signal, self )

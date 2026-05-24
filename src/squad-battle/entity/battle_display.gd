@@ -246,8 +246,8 @@ func _handle_death() -> void:
 	if rig:
 		rig.play_behavior(AnimTypes.Behavior.DYING)
 	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.5)
-	tween.tween_property(self, "scale", Vector2(0.5, 0.5), 0.5)
+	tween.tween_property(self , "modulate:a", 0.0, 0.5)
+	tween.tween_property(self , "scale", Vector2(0.5, 0.5), 0.5)
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 
@@ -268,14 +268,14 @@ func _handle_clink() -> void:
 
 func _handle_dodge() -> void:
 	var tween := create_tween()
-	tween.tween_property(self, "position:y", position.y - 15.0, 0.1)
-	tween.tween_property(self, "position:y", position.y, 0.1)
+	tween.tween_property(self , "position:y", position.y - 15.0, 0.1)
+	tween.tween_property(self , "position:y", position.y, 0.1)
 	tween.finished.connect(func(): animation_completed.emit(), CONNECT_ONE_SHOT)
 
 
 func _handle_proc() -> void:
 	if rig:
-		var original := rig.modulate
+		var original: Color = rig.modulate
 		var tween := create_tween()
 		tween.tween_property(rig, "modulate", Color(1.5, 1.5, 1.5), 0.1)
 		tween.tween_property(rig, "modulate", original, 0.1)

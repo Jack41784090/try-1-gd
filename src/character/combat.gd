@@ -197,7 +197,7 @@ func is_dead() -> bool:
 func get_armour():
 	return armor
 
-enum _RealityOp { ADD, MUL }
+enum _RealityOp {ADD, MUL}
 
 const _REALITY_TABLE: Dictionary = {
 	SquadBattleTypes.Reality.HP: [3.0, _RealityOp.MUL, [["endurance", 5.0], ["siz", 2.0]]],
@@ -289,7 +289,7 @@ func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
 	]
 	
 	if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
-		for u in retreat_tracker.advance(self):
+		for u in retreat_tracker.advance(self ):
 			changes.append(u)
 	
 	return changes

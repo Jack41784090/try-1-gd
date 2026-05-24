@@ -6,7 +6,7 @@ var view
 var battle: SquadBattle
 var is_running: bool = false
 var delay_between_rounds: float = 2.0
-var last_round_capitulated: Array = []
+var last_round_capitulated: Array[CombatEntity] = []
 var all_updates: Array[EntityUpdate] = []
 
 func bind_view(v) -> void:
