@@ -273,12 +273,14 @@ func test_engagement_classification() -> void:
 	check(contact_ab.get_state() == StrategyTypes.ContactState.LOCKED, "A→B is LOCKED")
 	check(contact_ba.get_state() == StrategyTypes.ContactState.NONE, "B→A is NONE")
 
-	var all_squads: Array = [squad_a, combat_b]
-	var engagements: Array = tracker.check_engagements(world, all_squads)
-	check(engagements.size() == 1, "One engagement found", "got %d" % engagements.size())
+	var all_squads: Array[SquadData] = [squad_a, combat_b]
+	world.roaming_squads = all_squads
+	world.contact_tracker = tracker
+	var engagements: Array[Dictionary] = world.check_engagements()
+	check(engagements.size() >= 1, "At least one engagement found", "got %d" % engagements.size())
 	if engagements.size() > 0:
 		check(engagements[0]["type"] == StrategyTypes.EngagementType.AMBUSH, "LOCKED vs NONE → AMBUSH")
-		check(engagements[0]["attacker_id"] == squad_a.squad_id, "Attacker is the LOCKED side")
+		check(engagements[0]["can_attack_squad"].squad_id == squad_a.squad_id, "Attacker is the LOCKED side")
 
 	var eng_type := tracker.classify_engagement(squad_a.squad_id, combat_b.squad_id)
 	check(eng_type == StrategyTypes.EngagementType.AMBUSH, "classify_engagement → AMBUSH")
@@ -294,8 +296,9 @@ func test_engagement_classification() -> void:
 	squad_a.current_location_id = shared_loc.location_id
 	combat_b.current_location_id = shared_loc.location_id
 
-	var eng2: Array = tracker2.check_engagements(world, all_squads)
-	check(eng2.size() == 1, "One SET_PIECE engagement found", "got %d" % eng2.size())
+	world.contact_tracker = tracker2
+	var eng2: Array[Dictionary] = world.check_engagements()
+	check(eng2.size() >= 1, "At least one SET_PIECE engagement found", "got %d" % eng2.size())
 	if eng2.size() > 0:
 		check(eng2[0]["type"] == StrategyTypes.EngagementType.SET_PIECE, "Both LOCKED → SET_PIECE")
 

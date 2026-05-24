@@ -14,7 +14,7 @@ var economy_engine: EconomyEngine = null
 
 
 func get_day() -> int:
-	return current_hour / 24 + 1
+	return int(current_hour / 24.0) + 1
 
 
 func get_hour_of_day() -> int:
@@ -107,7 +107,7 @@ func move_squad_to_location(squad_id: String, location_id: String) -> void:
 
 
 func find_nearest_location(from_id: String) -> String:
-	var visited: Dictionary = { }
+	var visited: Dictionary = {}
 	var queue: Array[String] = []
 	visited[from_id] = true
 	var from_loc = get_location_by_id(from_id)
@@ -183,7 +183,7 @@ func load_state(data: Dictionary) -> void:
 
 func check_engagements() -> Array[Dictionary]:
 	var engagements: Array[Dictionary] = []
-	var processed: Dictionary = { }
+	var processed: Dictionary = {}
 
 	for squad in roaming_squads:
 		var squad_a: SquadData = squad
@@ -211,7 +211,7 @@ func check_engagements() -> Array[Dictionary]:
 			var engagement_type = null
 			if engagement_diff == 0:
 				engagement_type = StrategyTypes.EngagementType.SET_PIECE
-			if engagement_diff > 1:
+			elif engagement_diff > 1:
 				engagement_type = StrategyTypes.EngagementType.AMBUSH
 			else:
 				engagement_type = StrategyTypes.EngagementType.MEETING

@@ -206,10 +206,10 @@ func _get_tracking_capacity(squad: SquadData, activity_type: StrategyTypes.Activ
 
 func _select_tracked_targets(observer: SquadData, enemies: Array[SquadData], world: World, edge_log: Dictionary, capacity: int, focus = null) -> Dictionary:
 	if enemies.size() <= capacity:
-		var result: Dictionary = {}
+		var all_targets: Dictionary = {}
 		for e in enemies:
-			result[e.squad_id] = true
-		return result
+			all_targets[e.squad_id] = true
+		return all_targets
 
 	var scored: Array[Dictionary] = []
 	for enemy in enemies:

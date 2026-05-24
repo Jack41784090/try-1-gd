@@ -5,14 +5,6 @@ const SPAWN_RATE := 0.5
 const MAX_BANDITS_PER_LOCATION := 2
 const BANDIT_PROFILE_PATH := "res://resources/ai/strategic/profiles/bandit-raider.tres"
 
-
-static var _bandit_names: Array[String] = [
-	"Black Wolves", "Road Reapers", "Iron Fangs", "Ash Marauders",
-	"Ravenclaw Gang", "Gutter Rats", "Wretched Ones", "Bone Pickers",
-	"Hollow Men", "Salt Thieves", "Rust Brotherhood", "Ditch Crawlers",
-]
-
-
 func calculate_pressure(location: Location, world: World = null) -> float:
 	assert(world != null, "Bandit pressure calculation requires world context")
 	assert(world.economy_engine != null, "Bandit pressure calculation requires initialized economy engine")

@@ -239,7 +239,7 @@ func on_investigation_closed() -> void:
 
 func on_recruitment_completed(warrior: Warrior) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
-	var display_class := warrior.background_id if not warrior.background_id.is_empty() else EntityClasses.Types.keys()[warrior.class_id]
+	var display_class: String = str(warrior.background_id) if not warrior.background_id.is_empty() else EntityClasses.Types.keys()[warrior.class_id]
 	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, display_class], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
@@ -571,8 +571,6 @@ func _check_missions() -> void:
 			var unlocked_mission := _find_mission_by_id(unlocked_id)
 			if unlocked_mission:
 				_last_unlocked_missions.append(unlocked_mission.mission_name)
-	for r in all_results:
-		var mission = _find_mission_by_id(r.mission_id)
 	var generic_results: Array[GenericResult] = []
 	for r in all_results:
 		generic_results.append(r)
@@ -954,7 +952,7 @@ func _on_hour_tick(hour: int) -> void:
 	var activity := _resolve_player_activity()
 	var ai_decisions_dict := ai_fleet.prepare_ai_turns()
 	var player_location_before := actor.player_squad.current_location_id
-	var day := hour / 24 + 1
+	var day := int(hour / 24.0) + 1
 	var hour_of_day := hour % 24
 	var turn_entries := _build_karma_sorted_entries(ai_decisions_dict)
 	
@@ -1004,7 +1002,7 @@ func _log_turn_decisions(activity: Activity, player_location_before: String, dec
 			turn_log.append("AI %s %s at %s" % [sq_name, at_name, sq_loc])
 
 
-func _tick_world_systems(hour: int) -> void:
+func _tick_world_systems(_hour: int) -> void:
 	turn_log.append_array(_run_economy_tick())
 	turn_log.append_array(ai_fleet.tick_bandit_lifecycle(_get_bandit_faction()))
 	for location in game_scenario.world.locations:
@@ -1090,7 +1088,7 @@ func _run_economy_tick() -> Array[String]:
 
 	return event_log
 
-func _execute_all_activities__append_log(key: String, before_state: int, after_state: int, squad_names_cache: Dictionary, turn_log: Array, view) -> void:
+func _execute_all_activities__append_log(key: String, before_state: int, after_state: int, squad_names_cache: Dictionary, activity_log: Array, strategy_view) -> void:
 	# Appends activity execution results to the turn log, including contact state changes and engagements
 	var csk = StrategyTypes.ContactState.keys()
 	var parts: PackedStringArray = key.split("::")
@@ -1098,9 +1096,9 @@ func _execute_all_activities__append_log(key: String, before_state: int, after_s
 	var target_name: String = squad_names_cache.get(target_id, target_id)
 	var before_name: String = csk[before_state]
 	var after_name: String = csk[after_state]
-	turn_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
+	activity_log.append("CONTACT %s %s→%s" % [target_name, before_name, after_name])
 	var contact_color := Color(1.0, 0.85, 0.3) if after_state > before_state else Color(0.6, 0.6, 0.6)
-	view.log_squad_event("Contact: %s — %s → %s" % [target_name, before_name.capitalize(), after_name.capitalize()], contact_color)
+	strategy_view.log_squad_event("Contact: %s — %s → %s" % [target_name, before_name.capitalize(), after_name.capitalize()], contact_color)
 
 func _execute_all_activities(
 	activity: Activity,

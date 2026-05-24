@@ -54,7 +54,7 @@ func _create_warrior(squad_id: String, index: int, background_id: StringName) ->
 	warrior.morale = randf_range(40.0, 60.0)
 	return warrior
 
-func _create_squad(location: Location, world: World) -> SquadData:
+func _create_squad(location: Location, _world: World) -> SquadData:
 	_spawn_counter += 1
 	var spawn_location := location
 	var squad: SquadData = SquadDataFactory.create_squad(
@@ -85,7 +85,7 @@ func tick_spawning(_world: World, _faction: Faction, _ai_fleet: AISquadManager) 
 	return event_log
 
 
-func spawning(world: World, locs: Array[Location], faction: Faction, ai_fleet: AISquadManager) -> Array[String]:
+func spawning(world: World, locs: Array[Location], faction: Faction, _ai_fleet: AISquadManager) -> Array[String]:
 	var event_log: Array[String] = []
 	# var total_bandits := count_total_bandits(world)
 
