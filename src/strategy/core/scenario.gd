@@ -133,6 +133,8 @@ func _setup_economy() -> void:
 			loc.natural_resources = _create_natural_resources_for(loc, thing_map)
 		if loc.government_config == null and loc.type != StrategyTypes.LocationType.FORT:
 			loc.government_config = _create_government_config_for(loc)
+		if loc.guild_configs.is_empty():
+			loc.guild_configs = _create_extraction_guild_configs_for(loc, thing_map)
 
 	# Ensure exactly one location is flagged imperial (folded central bank lives here).
 	var imperial_count := 0
@@ -276,6 +278,32 @@ func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Arra
 				resources.append(NaturalResource.create(food, 30.0 * ps))
 
 	return resources
+
+
+func _create_extraction_guild_configs_for(loc: Location, thing_map: Dictionary) -> Array[GuildConfig]:
+	var configs: Array[GuildConfig] = []
+	for nr: NaturalResource in loc.natural_resources:
+		var covered := false
+		for existing: GuildConfig in configs:
+			for spec: GuildSpecialization in existing.specializations:
+				if spec.thing == nr.thing:
+					covered = true
+					break
+			if covered:
+				break
+		if not covered:
+			var spec := GuildSpecialization.new()
+			spec.thing = nr.thing
+			spec.max_workers = maxi(1, int(nr.workers_needed) * 2)
+			spec.worker_job = nr.worker_job
+			spec.wage_per_worker = 0.5
+			spec.recruitment_rate = maxi(1, int(nr.workers_needed) / 10)
+			var cfg := GuildConfig.new()
+			cfg.guild_name = "%s %s Extractors" % [loc.location_name, nr.thing.thing_name]
+			cfg.specializations = [spec]
+			cfg.starting_treasury = 50.0
+			configs.append(cfg)
+	return configs
 
 
 func _create_government_config_for(loc: Location) -> GovernmentConfig:
