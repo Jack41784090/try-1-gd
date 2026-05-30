@@ -1,16 +1,5 @@
 namespace Condor.Economy;
 
-/// <summary>
-/// A single supply or demand order in the unified order book. Orders are
-/// emitted by actors (Person, Government, Geist, Guild, NaturalResource)
-/// during PhaseGenerateOrders, then matched in PhaseMatchOrders.
-///
-/// For tangible goods (Category=Good), the order references a ThingDef via
-/// ThingIdx and Service=None. For intangibles (Category=Service), ThingIdx
-/// is -1 and Service indicates the kind. This avoids polluting the .tres-driven
-/// Goods array with synthetic services while still routing both through one
-/// pipeline.
-/// </summary>
 public sealed class CsOrder
 {
     public OrderSide Side;
@@ -23,15 +12,46 @@ public sealed class CsOrder
     public int LocationIdx;
     public string Tag;
 
-    // Issuing actor — one of these is populated for callbacks during execution.
+    public CsEconomyActor IssuerActor;
     public CsPerson PersonActor;
-    public CsGovernment GovernmentActor;
-    public CsGuild GuildActor;
-    public CsGeist GeistActor;
 
-    public static CsOrder Demand(int locationIdx, ServiceType service, float qty, float priority,
-        CsPerson personActor = null, CsGovernment govActor = null, CsGeist geistActor = null,
-        CsGuild guildActor = null, float unitPrice = 0f, string tag = null)
+    // ---- Good factories ----
+
+    public static CsOrder GoodDemand(int locationIdx, int thingIdx, float qty, float priority,
+        CsPerson personActor = null)
+    {
+        return new CsOrder
+        {
+            Side = OrderSide.Demand,
+            Category = ThingCategory.Good,
+            ThingIdx = thingIdx,
+            Quantity = qty,
+            Priority = priority,
+            LocationIdx = locationIdx,
+            PersonActor = personActor,
+        };
+    }
+
+    public static CsOrder GoodSupply(int locationIdx, int thingIdx, float qty, float priority,
+        float unitPrice = 0f, CsEconomyActor issuer = null)
+    {
+        return new CsOrder
+        {
+            Side = OrderSide.Supply,
+            Category = ThingCategory.Good,
+            ThingIdx = thingIdx,
+            Quantity = qty,
+            UnitPrice = unitPrice,
+            Priority = priority,
+            LocationIdx = locationIdx,
+            IssuerActor = issuer,
+        };
+    }
+
+    // ---- Service factories ----
+
+    public static CsOrder ServiceDemand(int locationIdx, ServiceType service, float qty, float priority,
+        CsPerson personActor = null, CsEconomyActor issuer = null, float unitPrice = 0f, string tag = null)
     {
         return new CsOrder
         {
@@ -43,16 +63,13 @@ public sealed class CsOrder
             Priority = priority,
             LocationIdx = locationIdx,
             PersonActor = personActor,
-            GovernmentActor = govActor,
-            GeistActor = geistActor,
-            GuildActor = guildActor,
+            IssuerActor = issuer,
             Tag = tag,
         };
     }
 
-    public static CsOrder Supply(int locationIdx, ServiceType service, float qty, float priority,
-        CsPerson personActor = null, CsGovernment govActor = null, CsGeist geistActor = null,
-        CsGuild guildActor = null, float unitPrice = 0f, string tag = null)
+    public static CsOrder ServiceSupply(int locationIdx, ServiceType service, float qty, float priority,
+        CsPerson personActor = null, CsEconomyActor issuer = null, float unitPrice = 0f, string tag = null)
     {
         return new CsOrder
         {
@@ -64,10 +81,15 @@ public sealed class CsOrder
             Priority = priority,
             LocationIdx = locationIdx,
             PersonActor = personActor,
-            GovernmentActor = govActor,
-            GeistActor = geistActor,
-            GuildActor = guildActor,
+            IssuerActor = issuer,
             Tag = tag,
         };
+    }
+
+    public override string ToString()
+    {
+        if (Category == ThingCategory.Good)
+            return $"Good[{Side}] ThingIdx={ThingIdx} qty={Quantity:F2} pri={Priority:F2} issuer={IssuerActor?.GetType().Name}";
+        return $"Service[{Side}] Service={Service} qty={Quantity:F2} pri={Priority:F2} issuer={IssuerActor?.GetType().Name}";
     }
 }

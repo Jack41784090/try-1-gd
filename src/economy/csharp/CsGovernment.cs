@@ -3,13 +3,7 @@ using System.Collections.Generic;
 
 namespace Condor.Economy;
 
-/// <summary>
-/// Per-location government. Holds treasury, tax rate, hiring directives,
-/// and (when IsImperial=true) the imperial bank's money-printing and loan
-/// issuance. Replaces both GovernmentBrain (folded into GenerateOrders) and
-/// CsCentralBank (folded as imperial-only fields).
-/// </summary>
-public sealed class CsGovernment
+public sealed class CsGovernment : CsEconomyActor
 {
     public double Treasury { get; set; }
     public double TaxRate { get; set; } = 0.05;
@@ -25,7 +19,6 @@ public sealed class CsGovernment
     public int WorkersHiredLastTick { get; set; }
     public double WagesPaidLastTick { get; set; }
 
-    // ---- Imperial bank (only meaningful when IsImperial=true) ----
     public bool IsImperial { get; set; }
     public float Reserves { get; set; }
     public float TotalPrinted { get; set; }
@@ -33,86 +26,31 @@ public sealed class CsGovernment
     public float LoanInterestRate { get; set; } = 0.01f;
     public float PrintPerTurn { get; set; } = 500f;
     public List<CsLoan> ActiveLoans { get; } = new();
-
-    // Per-tick mercenary demand diagnostic (computed in GenerateOrders)
     public float LastMercenaryDemand { get; set; }
-
-    public float PrintMoney(float amount)
-    {
-        TotalPrinted += amount;
-        Godot.GD.Print($"[Bank] Print {amount:F0} (total printed={TotalPrinted:F0})");
-        return amount;
-    }
-
-    public CsLoan IssueLoan(CsPerson debtor, float amount, int currentTurn)
-    {
-        float fromReserves = MathF.Min(Reserves, amount);
-        float toPrint = amount - fromReserves;
-        Reserves -= fromReserves;
-        if (toPrint > 0f) PrintMoney(toPrint);
-        debtor.Money += amount;
-        debtor.LastLoanTurn = currentTurn;
-        var loan = CsLoan.Create(debtor, amount, LoanInterestRate);
-        ActiveLoans.Add(loan);
-        Godot.GD.Print(
-            $"[Bank] Loan {amount:F0} -> {debtor.PersonName} " +
-            $"(reserves={fromReserves:F0} + printed={toPrint:F0}, rate={LoanInterestRate:P1}, active={ActiveLoans.Count})");
-        return loan;
-    }
-
-    public void CollectInterestAndRepayments()
-    {
-        if (!IsImperial) return;
-        var completed = new List<CsLoan>();
-        float totalCollected = 0f;
-        foreach (var loan in ActiveLoans)
-        {
-            loan.AccrueInterest();
-            float canPay = MathF.Min(loan.Debtor.Money * 0.2f, loan.TotalOwed);
-            canPay = MathF.Max(canPay, 0f);
-            if (canPay > 0f)
-            {
-                float paid = loan.MakePayment(canPay);
-                loan.Debtor.Money -= paid;
-                Reserves += paid;
-                TotalInterestCollected += paid;
-                totalCollected += paid;
-            }
-            if (loan.IsPaidOff()) completed.Add(loan);
-        }
-        foreach (var loan in completed)
-            ActiveLoans.Remove(loan);
-        if (totalCollected > 0f || completed.Count > 0)
-        {
-            Godot.GD.Print(
-                $"[Bank] Collect {totalCollected:F1} from {ActiveLoans.Count + completed.Count} loans " +
-                $"(paid off {completed.Count}, reserves={Reserves:F0})");
-        }
-    }
 
     public float GetTotalOutstanding()
     {
         float total = 0f;
-        foreach (var loan in ActiveLoans)
-            total += loan.TotalOwed;
+        for (int i = 0; i < ActiveLoans.Count; i++)
+            total += ActiveLoans[i].TotalOwed;
         return total;
     }
 
-    public bool ShouldIssueLoan(CsPerson noble, float minThreshold, int currentTurn, int cooldown = 5)
-        => noble.Money < minThreshold && (currentTurn - noble.LastLoanTurn) >= cooldown;
+    public void CollectInterestAndRepayments()
+    {
+    }
 
-    /// <summary>
-    /// Folded GovernmentBrain.Evaluate + mercenary demand calculation.
-    /// Emits Labor demand orders for natural-resource gaps (within budget) and
-    /// MercenaryWork demand orders proportional to local desperation.
-    /// </summary>
-    public void GenerateOrders(CsLocationData loc, EconomyContext ctx)
+    public float PrintMoney(float amount)
+    {
+        TotalPrinted += amount;
+        return amount;
+    }
+
+    public override void GenerateOrders(CsLocationData loc, EconomyContext ctx)
     {
         WorkersHiredLastTick = 0;
         WagesPaidLastTick = 0;
-        LastMercenaryDemand = 0f;
 
-        // ---- Labor demand: hire workers for under-staffed natural resources ----
         double availableBudget = Treasury * MaxBudgetRatio;
         if (availableBudget >= 1.0 && PushWeight > 0f)
         {
@@ -154,44 +92,80 @@ public sealed class CsGovernment
                     ActiveDirectives.Add(directive);
                     availableBudget -= totalCost;
 
-                    // Mirror as a Labor demand order for diagnostics / future use
-                    loc.Demands.Add(CsOrder.Demand(
+                    loc.Demands.Add(CsOrder.ServiceDemand(
                         LocationIndex, ServiceType.Labor, hireCount,
-                        priority: 8f, govActor: this,
+                        priority: 8f, issuer: this,
                         unitPrice: wage, tag: $"gov_hire_{resource.WorkerJob}"));
 
                     if (availableBudget < 1.0) break;
                 }
             }
         }
+    }
 
-        // ---- MercenaryWork demand: proportional to local desperation ----
-        if (loc.Geist != null && loc.Geist.Desperation > 0.2f && Treasury > 50.0)
+    public override void PayWorkers(CsLocationData loc)
+    {
+        WorkersHiredLastTick = 0;
+        WagesPaidLastTick = 0;
+
+        for (int di = ActiveDirectives.Count - 1; di >= 0; di--)
         {
-            float demand = loc.Geist.Desperation * 2f;
-            LastMercenaryDemand = demand;
-
-            if (demand >= 1f)
+            var directive = ActiveDirectives[di];
+            if (directive.Type == DirectiveType.HireWorkers)
             {
-                loc.Demands.Add(CsOrder.Demand(
-                    LocationIndex, ServiceType.MercenaryWork, demand,
-                    priority: 6f, govActor: this,
-                    unitPrice: 25f, tag: "gov_mercenary_bounty"));
+                int remaining = directive.Quantity - directive.WorkersHired;
+                float budgetLeft = directive.BudgetAllocated - directive.BudgetSpent;
+                if (remaining > 0 && budgetLeft >= directive.WageOffered)
+                {
+                    var pool = new List<CsPerson>(loc.Population.GetByJob(JobType.Unemployed));
+                    pool.AddRange(loc.Population.GetByJob(JobType.Laborer));
+
+                    int hired = 0;
+                    foreach (var p in pool)
+                    {
+                        if (hired >= remaining || budgetLeft < directive.WageOffered) break;
+                        var oldClass = p.SocialClass;
+                        var oldJob = p.Job;
+                        p.Job = directive.JobTarget;
+                        p.Money += directive.WageOffered;
+                        loc.Population.NotifyClassChanged(p, oldClass, oldJob);
+
+                        directive.BudgetSpent += directive.WageOffered;
+                        budgetLeft -= directive.WageOffered;
+                        Treasury -= directive.WageOffered;
+                        WagesPaidLastTick += directive.WageOffered;
+                        directive.WorkersHired++;
+                        hired++;
+                    }
+                    WorkersHiredLastTick += hired;
+                }
+            }
+            directive.AdvanceTurn();
+            if (directive.IsExpired) ActiveDirectives.RemoveAt(di);
+        }
+    }
+
+    public override void CollectRevenue(CsLocationData loc, ThingDef[] goods)
+    {
+        TaxCollectedLastTick = 0;
+        double taxCollected = 0;
+        var pop = loc.Population.People;
+        for (int pi = 0; pi < pop.Count; pi++)
+        {
+            if (pop[pi].Money > 10f)
+            {
+                float tax = pop[pi].Money * (float)TaxRate;
+                pop[pi].Money -= tax;
+                taxCollected += tax;
             }
         }
+        Treasury += taxCollected;
+        TaxCollectedLastTick = taxCollected;
+    }
 
-        // ---- Loan supply (imperial only): nobles can draw on imperial reserves ----
-        if (IsImperial)
-        {
-            float capacity = Reserves + PrintPerTurn;
-            if (capacity > 0f)
-            {
-                loc.Supplies.Add(CsOrder.Supply(
-                    LocationIndex, ServiceType.Loan, capacity,
-                    priority: 3f, govActor: this,
-                    unitPrice: LoanInterestRate, tag: "imperial_loan_capacity"));
-            }
-        }
+    public override void ReceiveRevenue(double amount)
+    {
+        Treasury += amount;
     }
 
     public override string ToString()

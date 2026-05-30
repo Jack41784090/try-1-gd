@@ -2,24 +2,12 @@ using System;
 
 namespace Condor.Economy;
 
-/// <summary>
-/// Matches Demand and Supply orders within a location's tick-local order book.
-/// Mirrors the GDScript TradeMatcher pattern but operates on intangible
-/// services (Subsistence, Labor, MercenaryWork, BanditSlot, Loan).
-///
-/// Per-location flow:
-///   1. Sort demands desc by priority.
-///   2. For each demand, walk supplies of matching ServiceType, fulfill greedily.
-///   3. Apply service-specific side-effects (loan issuance, bandit pool growth, etc.).
-///
-/// Subsistence is matched separately by the engine because it bypasses the
-/// order book entirely (farmers self-feed).
-/// </summary>
 public sealed class CsOrderMatcher
 {
     public void Match(CsLocationData loc, EconomyContext ctx)
     {
-        if (loc.Demands.Count == 0) return;
+        if (loc.Demands.Count == 0 || loc.Supplies.Count == 0) return;
+
         loc.Demands.Sort((a, b) => b.Priority.CompareTo(a.Priority));
 
         for (int di = 0; di < loc.Demands.Count; di++)
@@ -30,11 +18,10 @@ public sealed class CsOrderMatcher
             for (int si = 0; si < loc.Supplies.Count; si++)
             {
                 var supply = loc.Supplies[si];
-                if (supply.Service != demand.Service) continue;
                 if (supply.Quantity <= 0f) continue;
+                if (!IsCompatible(demand, supply)) continue;
 
-                float qty = MathF.Min(demand.Quantity, supply.Quantity);
-                Execute(demand, supply, qty, ctx);
+                float qty = ExecuteMatch(demand, supply, MathF.Min(demand.Quantity, supply.Quantity), loc, ctx);
                 demand.Quantity -= qty;
                 supply.Quantity -= qty;
 
@@ -43,36 +30,95 @@ public sealed class CsOrderMatcher
         }
     }
 
-    private static void Execute(CsOrder demand, CsOrder supply, float qty, EconomyContext ctx)
+    private static bool IsCompatible(CsOrder demand, CsOrder supply)
+    {
+        if (demand.Category != supply.Category) return false;
+
+        if (demand.Category == ThingCategory.Good)
+            return demand.ThingIdx == supply.ThingIdx;
+
+        return demand.Service == supply.Service;
+    }
+
+    private static float ExecuteMatch(CsOrder demand, CsOrder supply, float qty, CsLocationData loc, EconomyContext ctx)
+    {
+        switch (demand.Category)
+        {
+            case ThingCategory.Good:
+                return ExecuteGoodTrade(demand, supply, qty, loc);
+            case ThingCategory.Service:
+                return ExecuteServiceByType(demand, supply, qty, loc, ctx);
+        }
+        return 0f;
+    }
+
+    private static float ExecuteGoodTrade(CsOrder demand, CsOrder supply, float qty, CsLocationData loc)
+    {
+        float price = supply.UnitPrice;
+
+        if (demand.PersonActor != null)
+        {
+            float affordable = demand.PersonActor.CanAfford(price, qty);
+            if (affordable > 0f)
+            {
+                demand.PersonActor.Buy(demand.ThingIdx, affordable, price);
+                qty = affordable;
+            }
+        }
+
+        if (qty > 0f)
+        {
+            loc.Consume(demand.ThingIdx, qty);
+            double revenue = qty * price;
+            supply.IssuerActor?.ReceiveRevenue(revenue);
+        }
+
+        return qty;
+    }
+
+    private static float ExecuteServiceByType(CsOrder demand, CsOrder supply, float qty, CsLocationData loc, EconomyContext ctx)
     {
         switch (demand.Service)
         {
-            case ServiceType.Loan:
-                {
-                    var imperial = supply.GovernmentActor;
-                    var noble = demand.PersonActor;
-                    if (imperial == null || noble == null) return;
-                    if (!imperial.IsImperial) return;
-                    imperial.IssueLoan(noble, qty, ctx.CurrentTurn);
-                    break;
-                }
-            case ServiceType.BanditSlot:
-                if (supply.GeistActor != null)
-                {
-                    int growth = (int)MathF.Ceiling(qty);
-                    supply.GeistActor.BanditPoolSize += growth;
-                    Godot.GD.Print(
-                        $"[OrderMatcher] BanditSlot match: pool +{growth} at " +
-                        $"{supply.GeistActor.LocationId} (total={supply.GeistActor.BanditPoolSize})");
-                }
-                break;
-            case ServiceType.Labor:
-            case ServiceType.MercenaryWork:
             case ServiceType.Subsistence:
-                // Diagnostic-only: side-effects already applied during GenerateOrders
-                // (Government/Guild hire workers directly), or handled outside the
-                // order book (Subsistence in engine, MercenaryWork on GDScript side).
-                break;
+                return ExecuteSubsistence(demand, supply, qty, loc);
+            case ServiceType.Labor:
+                return ExecuteLabor(demand, supply, qty, loc);
+            case ServiceType.MercenaryWork:
+                return ExecuteMercenaryWork(demand, supply, qty, loc, ctx);
+            case ServiceType.BanditSlot:
+                return ExecuteBanditSlot(demand, supply, qty, loc);
+            case ServiceType.Loan:
+                return ExecuteLoan(demand, supply, qty, loc, ctx);
+            default:
+                return qty;
         }
+    }
+
+    private static float ExecuteSubsistence(CsOrder demand, CsOrder supply, float qty, CsLocationData loc)
+    {
+        return qty;
+    }
+
+    private static float ExecuteLabor(CsOrder demand, CsOrder supply, float qty, CsLocationData loc)
+    {
+        if (demand.IssuerActor is CsGuild guild)
+            guild.Recruit(supply.PersonActor, demand.Tag);
+        return qty;
+    }
+
+    private static float ExecuteMercenaryWork(CsOrder demand, CsOrder supply, float qty, CsLocationData loc, EconomyContext ctx)
+    {
+        return qty;
+    }
+
+    private static float ExecuteBanditSlot(CsOrder demand, CsOrder supply, float qty, CsLocationData loc)
+    {
+        return qty;
+    }
+
+    private static float ExecuteLoan(CsOrder demand, CsOrder supply, float qty, CsLocationData loc, EconomyContext ctx)
+    {
+        return qty;
     }
 }

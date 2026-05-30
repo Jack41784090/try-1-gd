@@ -172,10 +172,8 @@ func tick_full(turn: int) -> EconomyTickResult:
 
 	# Aggregate counters
 	total_promotions = _cs_bridge.call("GetTotalPromotions")
-	total_deaths = _cs_bridge.call("GetTotalDeaths")
-	total_births = _cs_bridge.call("GetTotalBirths")
 
-	# Sync C# state into GDScript so the strategy layer can query person/inventory state.
+	# Sync C# state (population changes, inventory) back to GDScript
 	_cs_bridge.call("SyncBackToGdScript")
 
 	# Mercenary demand evaluation (stays in GDScript — depends on world's bandit squads)
@@ -185,12 +183,16 @@ func tick_full(turn: int) -> EconomyTickResult:
 		var demand := _mercenary_demand.calculate_demand(loc, world)
 		var should_offer := demand > MercenaryDemandCalculator.DEMAND_THRESHOLD
 		if not should_offer:
-			# Location only loses MERCENARY_WORK if there are no bandits left
-			# nearby — otherwise the bounty contract should remain available.
 			if BanditSpawner.count_bandits_at_location(loc.location_id, world) > 0:
 				continue
 		result.mercenary_work_changes[loc.location_id] = should_offer
 	return result
+
+
+func sync_full() -> void:
+	if _cs_bridge == null:
+		return
+	_cs_bridge.call("SyncBackToGdScript")
 
 
 ## Build an NxN matrix of inter-location route safety values (0..1) where

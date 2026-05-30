@@ -211,29 +211,110 @@ public partial class CsEconomyBridge : Node
                 };
             }
 
-            // Mirror guild config
-            var guildConfig = gdLoc.Get("guild_config");
-            if (guildConfig.VariantType != Variant.Type.Nil)
+            // Mirror guild configs
+            var guildConfigs = gdLoc.Get("guild_configs");
+            if (guildConfigs.VariantType != Variant.Type.Nil)
             {
-                var gdGuild = (Resource)guildConfig;
-                var specThing = (Resource)gdGuild.Get("specialization");
-                string specThingId = (string)specThing.Get("thing_id");
-                if (_thingIdToIdx.TryGetValue(specThingId, out int specIdx))
+                var gdGuilds = guildConfigs.As<Godot.Collections.Array>();
+                if (gdGuilds != null && gdGuilds.Count > 0)
                 {
-                    var csGuild = new CsGuild
+                    var guildList = new List<CsGuild>();
+                    for (int gci = 0; gci < gdGuilds.Count; gci++)
+                    {
+                        var gdGuild = (Resource)gdGuilds[gci];
+                        var specsVariant = gdGuild.Get("specializations");
+                        if (specsVariant.VariantType == Variant.Type.Nil) continue;
+                        var gdSpecs = specsVariant.As<Godot.Collections.Array>();
+                        if (gdSpecs == null || gdSpecs.Count == 0) continue;
+
+                        var csSpecs = new List<CsGuildSpecialization>();
+                        for (int si = 0; si < gdSpecs.Count; si++)
+                        {
+                            var gdSpec = gdSpecs[si].As<Resource>();
+                            if (gdSpec == null) continue;
+                            var specThing = gdSpec.Get("thing").As<Resource>();
+                            if (specThing == null) continue;
+                            string thingId = (string)specThing.Get("thing_id");
+                            if (!_thingIdToIdx.TryGetValue(thingId, out int thingIdx)) continue;
+                            var gdWorkerJob = gdSpec.Get("worker_job");
+                            csSpecs.Add(new CsGuildSpecialization
+                            {
+                                ThingIdx = thingIdx,
+                                MaxEfficiencyWorkers = (int)gdSpec.Get("max_workers"),
+                                WorkerJob = gdWorkerJob.VariantType != Variant.Type.Nil
+                                    ? (JobType)(int)gdWorkerJob : JobType.Craftsman,
+                                WagePerWorker = (float)gdSpec.Get("wage_per_worker"),
+                                RecruitmentRate = (int)gdSpec.Get("recruitment_rate"),
+                            });
+                        }
+                        if (csSpecs.Count == 0) continue;
+
+                        guildList.Add(new CsGuild
+                        {
+                            LocationIndex = li,
+                            LocationId = csLoc.LocationId,
+                            GuildName = (string)gdGuild.Get("guild_name"),
+                            Specializations = csSpecs.ToArray(),
+                            Treasury = (double)(float)gdGuild.Get("starting_treasury"),
+                        });
+                    }
+                    if (guildList.Count > 0)
+                        csLoc.Guilds = guildList;
+                }
+            }
+        }
+
+        // Populate Actors: guild_configs guilds, auto-create extraction guilds for
+        // uncovered natural resources, then add Government + Geist pointers.
+        for (int li = 0; li < _locations.Length; li++)
+        {
+            var csLoc = _locations[li];
+
+            // Add guild configs to Actors
+            if (csLoc.Guilds != null)
+            {
+                for (int gi = 0; gi < csLoc.Guilds.Count; gi++)
+                {
+                    csLoc.Guilds[gi].SetGoods(_goods);
+                    csLoc.Actors.Add(csLoc.Guilds[gi]);
+                }
+            }
+
+            // Auto-create extraction guilds for uncovered natural resources
+            foreach (var res in csLoc.NaturalResources)
+            {
+                bool covered = false;
+                for (int ai = 0; ai < csLoc.Actors.Count; ai++)
+                {
+                    if (csLoc.Actors[ai] is CsGuild g && CoveredByGuild(g, res.ThingIdx))
+                    { covered = true; break; }
+                }
+                if (!covered)
+                {
+                    var extractionGuild = new CsGuild
                     {
                         LocationIndex = li,
                         LocationId = csLoc.LocationId,
-                        GuildName = (string)gdGuild.Get("guild_name"),
-                        SpecializationIdx = specIdx,
-                        MaxWorkers = (int)gdGuild.Get("max_workers"),
-                        WagePerWorker = (float)gdGuild.Get("wage_per_worker"),
-                        Treasury = (double)(float)gdGuild.Get("starting_treasury"),
-                        RecruitmentRate = (int)gdGuild.Get("recruitment_rate"),
+                        GuildName = $"{csLoc.LocationName} {_goods?[res.ThingIdx]?.ThingName ?? "Good"} Extractors",
+                        Specializations = new[] { new CsGuildSpecialization
+                        {
+                            ThingIdx = res.ThingIdx,
+                            MaxEfficiencyWorkers = (int)res.WorkersNeeded,
+                            WorkerJob = res.WorkerJob,
+                            WagePerWorker = 0.5f,
+                            RecruitmentRate = 2,
+                        }},
+                        Treasury = 50.0,
                     };
-                    csLoc.Guild = csGuild;
+                    extractionGuild.SetGoods(_goods);
+                    csLoc.Actors.Add(extractionGuild);
                 }
             }
+
+            if (csLoc.Government != null && !csLoc.Actors.Contains(csLoc.Government))
+                csLoc.Actors.Add(csLoc.Government);
+            if (csLoc.Geist != null && !csLoc.Actors.Contains(csLoc.Geist))
+                csLoc.Actors.Add(csLoc.Geist);
         }
 
         // Create engine
@@ -530,10 +611,7 @@ public partial class CsEconomyBridge : Node
     /// </summary>
     public float GetMercenaryDemand(string locationId)
     {
-        if (_engine == null) return 0f;
-        if (!_locationIdToIdx.TryGetValue(locationId, out int idx)) return 0f;
-        var gov = _engine.Locations[idx].Government;
-        return gov?.LastMercenaryDemand ?? 0f;
+        return 0f;
     }
 
     public Godot.Collections.Array GetGovernmentInfo()
@@ -565,19 +643,25 @@ public partial class CsEconomyBridge : Node
         for (int li = 0; li < _engine.Locations.Length; li++)
         {
             var loc = _engine.Locations[li];
-            if (loc.Guild == null) continue;
-            var guild = loc.Guild;
-            result[loc.LocationId] = new Godot.Collections.Dictionary
+            var guildArray = new Godot.Collections.Array();
+            for (int ai = 0; ai < loc.Actors.Count; ai++)
             {
-                ["guild_name"] = guild.GuildName,
-                ["treasury"] = guild.Treasury,
-                ["worker_count"] = guild.WorkerCount,
-                ["max_workers"] = guild.MaxWorkers,
-                ["produced_last_tick"] = guild.ProducedLastTick,
-                ["recruited_last_tick"] = guild.RecruitedLastTick,
-                ["wages_paid_last_tick"] = guild.WagesPaidLastTick,
-                ["specialization_idx"] = guild.SpecializationIdx,
-            };
+                if (loc.Actors[ai] is CsGuild guild)
+                {
+                    guildArray.Add(new Godot.Collections.Dictionary
+                    {
+                        ["guild_name"] = guild.GuildName,
+                        ["treasury"] = guild.Treasury,
+                        ["worker_count"] = guild.WorkerCount,
+                        ["produced_last_tick"] = guild.ProducedLastTick,
+                        ["recruited_last_tick"] = guild.RecruitedLastTick,
+                        ["wages_paid_last_tick"] = guild.WagesPaidLastTick,
+                        ["specialization_indices"] = BuildSpecIndices(guild.Specializations),
+                    });
+                }
+            }
+            if (guildArray.Count > 0)
+                result[loc.LocationId] = guildArray;
         }
         return result;
     }
@@ -691,6 +775,20 @@ public partial class CsEconomyBridge : Node
         result["shipment_dispatches"] = dispatches;
 
         return result;
+    }
+
+    private static bool CoveredByGuild(CsGuild guild, int thingIdx)
+    {
+        foreach (var spec in guild.Specializations)
+            if (spec.ThingIdx == thingIdx) return true;
+        return false;
+    }
+
+    private static Godot.Collections.Array BuildSpecIndices(CsGuildSpecialization[] specs)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var spec in specs) arr.Add(spec.ThingIdx);
+        return arr;
     }
 
     private Godot.Collections.Dictionary ConvertMove(CsEconomyMove move)
