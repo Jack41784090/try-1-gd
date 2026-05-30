@@ -3,16 +3,16 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5giksh8h82gd"
-path.etc2="res://.godot/imported/Landsknecht-idle.png-6fd23bbcf4592f5cf440e054901746a5.etc2.ctex"
+path.s3tc="res://.godot/imported/Landsknecht-idle.png-6fd23bbcf4592f5cf440e054901746a5.s3tc.ctex"
 metadata={
-"imported_formats": ["etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/Landsknecht-idle.png"
-dest_files=["res://.godot/imported/Landsknecht-idle.png-6fd23bbcf4592f5cf440e054901746a5.etc2.ctex"]
+dest_files=["res://.godot/imported/Landsknecht-idle.png-6fd23bbcf4592f5cf440e054901746a5.s3tc.ctex"]
 
 [params]
 

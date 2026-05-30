@@ -3,16 +3,16 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vbc03113rr6r"
-path.etc2="res://.godot/imported/hi.png-0b81bbdd37d352c633afb1370f3bab42.etc2.ctex"
+path.s3tc="res://.godot/imported/hi.png-0b81bbdd37d352c633afb1370f3bab42.s3tc.ctex"
 metadata={
-"imported_formats": ["etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/hi.png"
-dest_files=["res://.godot/imported/hi.png-0b81bbdd37d352c633afb1370f3bab42.etc2.ctex"]
+dest_files=["res://.godot/imported/hi.png-0b81bbdd37d352c633afb1370f3bab42.s3tc.ctex"]
 
 [params]
 
