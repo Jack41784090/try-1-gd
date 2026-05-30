@@ -9,7 +9,7 @@
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/food.tres" id="good_food"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/iron.tres" id="good_iron"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/luxury.tres" id="good_luxury"]
-[ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/sword.tres" id="good_sword"]
+[ext_resource type="Resource" uid="uid://66byxnpt12ye" path="res://resources/scenarios/goetz-official/goods/iron_sword.tres" id="good_sword"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/tools.tres" id="good_tools"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/wood.tres" id="good_wood"]
 [ext_resource type="Resource" uid="uid://drud4vsf682u7" path="res://resources/scenarios/goetz-official/locations/altdorf.tres" id="loc_altdorf"]
