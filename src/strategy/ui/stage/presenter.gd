@@ -59,6 +59,41 @@ func refresh_warriors(squad: SquadData) -> void:
 func set_background(texture: Texture2D) -> void:
 	view.set_background(texture)
 
+#region Scenery passthrough
+
+func apply_stage_set(stage_set: StageSet) -> void:
+	view.apply_stage_set(stage_set)
+
+
+func clear_scenery() -> void:
+	view.clear_scenery()
+
+
+func add_prop(prop: StageProp) -> void:
+	view.add_prop(prop)
+
+
+func remove_prop(prop_id: String) -> void:
+	view.remove_prop(prop_id)
+
+
+func move_prop(prop_id: String, target: Vector2, duration: float) -> void:
+	view.move_prop(prop_id, target, duration)
+
+
+func modulate_prop(prop_id: String, color: Color, duration: float) -> void:
+	view.modulate_prop(prop_id, color, duration)
+
+
+func set_prop_visible(prop_id: String, is_visible: bool) -> void:
+	view.set_prop_visible(prop_id, is_visible)
+
+
+func set_backdrop(svg_path: String, position: Vector2, scale: float, z: int, parallax: float, svg_scale: float = 4.0) -> void:
+	view.set_backdrop(svg_path, position, scale, z, parallax, svg_scale)
+
+#endregion
+
 
 func prepare_for_dialogue(_character_ids: Array[String]) -> void:
 	# Switches stage to VN mode for dialogue playback (stops march, keeps warriors visible)

@@ -18,11 +18,13 @@ UID_GROUP = "uid://bsif2cicby5dq"
 UID_DIALOGUE = "uid://deeibdh2glf6b"
 UID_CAMERA = "uid://balbj1g85dkh8"
 UID_CHARACTER = "uid://dv3iev4uomqcy"
+UID_SCENERY = "uid://cuuko1jwwg1c5"
 
 PATH_GROUP = "res://src/strategy/ui/vn/instructions/cinematic_group.gd"
 PATH_DIALOGUE = "res://src/strategy/ui/vn/instructions/dialogue_instruction.gd"
 PATH_CAMERA = "res://src/strategy/ui/vn/instructions/camera_instruction.gd"
 PATH_CHARACTER = "res://src/strategy/ui/vn/instructions/character_instruction.gd"
+PATH_SCENERY = "res://src/strategy/ui/vn/instructions/scenery_instruction.gd"
 
 # warrior_rig_2 sizing block (matches the demo's inline rachelle config).
 SIZING_BLOCK = """head_size = Vector3(50, 50, 0)
@@ -118,14 +120,33 @@ def narr(text):
     return say("", text)
 
 
+class Color4:
+    def __init__(self, r, g, b, a=1.0):
+        self.r, self.g, self.b, self.a = r, g, b, a
+
+
+def scn_add(prop_id, svg, x, y, scale=1.0, z=0, parallax=1.0, svg_scale=4.0):
+    return Instr("scn", {"action": 0, "prop_id": prop_id, "svg_path": svg,
+                         "position": (x, y), "scale": scale, "z_index": z,
+                         "parallax": parallax, "svg_scale": svg_scale})
+
+
+def scn_modulate(prop_id, color, dur=0.8):
+    return Instr("scn", {"action": 3, "prop_id": prop_id,
+                         "modulate_color": color, "duration": dur})
+
+
 def beats():
     B = []
 
     B.append(("opening", [
         hide("Courier"), hide("Gretchen"), cam_reset(),
+        scn_add("great_map", "res://assets/scenery/great_map.svg", 0.0, -210.0,
+                1.4, -20, 0.9),
         narr("Wide white stone chamber. Tiered seats curve around a central floor. "
              "Floating sigil-panels hover above the delegates — city crests, ducal eagles, "
-             "bishopric suns, merchant seals. A soft, constant magical hum runs beneath it all."),
+             "bishopric suns, merchant seals. The great map hangs above it all, and a soft, "
+             "constant magical hum runs beneath."),
     ]))
     B.append(("ambient_open", [cam_reset(), narr(
         "The river tolls must be guaranteed.\n"
@@ -292,7 +313,8 @@ def beats():
     B.append(("courier_report", [say("Courier",
         "The line is broken at dawn. Two crossings lost. Refugees at the lower gate. "
         "They are moving faster than forecast.")]))
-    B.append(("map_flares", [cam_reset(), narr(
+    B.append(("map_flares", [cam_reset(),
+        scn_modulate("great_map", Color4(0.32, 0.22, 0.28, 1.0), 0.9), narr(
         "Above the chamber, the great map flares. One city-sigil goes dark. Then another. "
         "For one frozen second nobody speaks. Then everyone does.")]))
     B.append(("ambient_chaos", [narr(
@@ -319,6 +341,8 @@ def fmt_value(v):
         return repr(v)
     if isinstance(v, str):
         return '"%s"' % esc(v)
+    if isinstance(v, Color4):
+        return "Color(%s, %s, %s, %s)" % (v.r, v.g, v.b, v.a)
     if isinstance(v, tuple):  # Vector2
         return "Vector2(%s, %s)" % (v[0], v[1])
     if isinstance(v, list):  # Array[String]
@@ -332,13 +356,12 @@ def build_cutscene():
     group_blocks = []
     group_refs = []
 
-    counters = {"dlg": 0, "cam": 0, "chr": 0}
-    ext_id = {"grp": "1_grp", "dlg": "2_dlg", "cam": "3_cam", "chr": "4_chr"}
+    counters = {"dlg": 0, "cam": 0, "chr": 0, "scn": 0}
 
     def emit_instr(inst):
         counters[inst.kind] += 1
         sid = "%s_%d" % (inst.kind.capitalize(), counters[inst.kind])
-        script_ext = {"dlg": "2_dlg", "cam": "3_cam", "chr": "4_chr"}[inst.kind]
+        script_ext = {"dlg": "2_dlg", "cam": "3_cam", "chr": "4_chr", "scn": "5_scn"}[inst.kind]
         lines = ['[sub_resource type="Resource" id="%s"]' % sid,
                  'script = ExtResource("%s")' % script_ext]
         for k, v in inst.props.items():
@@ -358,7 +381,7 @@ def build_cutscene():
         group_refs.append(gsid)
 
     n_sub = len(instr_blocks) + len(group_blocks) + 1  # +1 for root [resource]
-    load_steps = 4 + n_sub  # 4 ext_resources + sub_resources
+    load_steps = 5 + n_sub  # 5 ext_resources + sub_resources
 
     header = ['[gd_resource type="Resource" script_class="CinematicGroup" load_steps=%d format=3 uid="uid://b24vpipf4mjb1"]' % load_steps,
               "",
@@ -366,6 +389,7 @@ def build_cutscene():
               '[ext_resource type="Script" uid="%s" path="%s" id="2_dlg"]' % (UID_DIALOGUE, PATH_DIALOGUE),
               '[ext_resource type="Script" uid="%s" path="%s" id="3_cam"]' % (UID_CAMERA, PATH_CAMERA),
               '[ext_resource type="Script" uid="%s" path="%s" id="4_chr"]' % (UID_CHARACTER, PATH_CHARACTER),
+              '[ext_resource type="Script" uid="%s" path="%s" id="5_scn"]' % (UID_SCENERY, PATH_SCENERY),
               ""]
 
     root = ['[resource]',

@@ -171,6 +171,8 @@ func _on_instruction_fired(instruction: CinematicInstruction) -> void:
 		_execute_camera(instruction)
 	elif instruction is CharacterInstruction:
 		_execute_character(instruction)
+	elif instruction is SceneryInstruction:
+		_execute_scenery(instruction)
 
 
 func _execute_dialogue(inst: DialogueInstruction) -> void:
@@ -275,6 +277,41 @@ func _execute_character(inst: CharacterInstruction) -> void:
 		CharacterInstruction.Action.HIDE:
 			print("[VnPresenter] Character %s → hide" % inst.character_id)
 			stage_presenter.hide_character(inst.character_id)
+
+func _execute_scenery(inst: SceneryInstruction) -> void:
+	# Mutates stage set dressing during playback (add/remove/move/tint props, swap backdrop).
+	if not stage_presenter:
+		return
+	match inst.action:
+		SceneryInstruction.Action.ADD:
+			var prop := StageProp.new()
+			prop.prop_id = inst.prop_id
+			prop.svg_path = inst.svg_path
+			prop.position = inst.position
+			prop.scale = inst.scale
+			prop.z_index = inst.z_index
+			prop.flip_h = inst.flip_h
+			prop.parallax = inst.parallax
+			prop.svg_scale = inst.svg_scale
+			prop.modulate = inst.modulate_color
+			print("[VnPresenter] Scenery %s → add" % inst.prop_id)
+			stage_presenter.add_prop(prop)
+		SceneryInstruction.Action.REMOVE:
+			print("[VnPresenter] Scenery %s → remove" % inst.prop_id)
+			stage_presenter.remove_prop(inst.prop_id)
+		SceneryInstruction.Action.MOVE:
+			print("[VnPresenter] Scenery %s → move to %s" % [inst.prop_id, str(inst.position)])
+			stage_presenter.move_prop(inst.prop_id, inst.position, maxf(inst.duration, 0.01))
+		SceneryInstruction.Action.MODULATE:
+			print("[VnPresenter] Scenery %s → modulate %s" % [inst.prop_id, str(inst.modulate_color)])
+			stage_presenter.modulate_prop(inst.prop_id, inst.modulate_color, maxf(inst.duration, 0.01))
+		SceneryInstruction.Action.SHOW:
+			stage_presenter.set_prop_visible(inst.prop_id, true)
+		SceneryInstruction.Action.HIDE:
+			stage_presenter.set_prop_visible(inst.prop_id, false)
+		SceneryInstruction.Action.SET_BACKDROP:
+			print("[VnPresenter] Scenery → set backdrop %s" % inst.svg_path)
+			stage_presenter.set_backdrop(inst.svg_path, inst.position, inst.scale, inst.z_index, inst.parallax, inst.svg_scale)
 
 #endregion
 

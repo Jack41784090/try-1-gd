@@ -35,6 +35,9 @@ const SVG_RENDER_SCALE := 4.0
 ## One warrior_rig_2 per id, placed across the chamber facing inward.
 @export var character_ids: Array[String] = ["aldric", "rachelle"]
 
+## Static set dressing (backdrop + props) applied at scene setup.
+@export var stage_set: StageSet
+
 @onready var vn_view: VnView = $VnView
 @onready var stage_view: StageView = $StageView
 @onready var status_label: Label = $StatusLabel
@@ -67,8 +70,8 @@ func _ready() -> void:
 	print("SPACE/click: advance gate | R: replay")
 
 	_spawn_rigs()
-	_snapshot_mtimes()
 	_play_cutscene()
+	_snapshot_mtimes()
 
 	if DisplayServer.get_name() == "headless":
 		_run_headless_smoke_test()
@@ -83,8 +86,9 @@ func _process(delta: float) -> void:
 	_poll_accum = 0.0
 	if _disk_changed():
 		_reapply_config_to_rigs()
+		stage_view.reload_scenery_textures()
 		_snapshot_mtimes()
-		Log.info("RigCutsceneDemo", "Rig textures reloaded from disk")
+		Log.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -153,6 +157,7 @@ func _play_cutscene() -> void:
 	_stage.return_to_wide()
 	vn_view.hide_narrator_box()
 	_stage.prepare_for_dialogue(character_ids)
+	_stage.apply_stage_set(stage_set)
 	_place_characters()
 	assert(cutscene != null, "No CinematicGroup attached to the `cutscene` export")
 	print("[RigCutsceneDemo] Playing group '%s' — %d children" % [cutscene.id, cutscene.children.size()])
@@ -213,7 +218,11 @@ func _run_headless_smoke_test() -> void:
 			fired.append("camera")
 		elif inst is CharacterInstruction:
 			fired.append("behavior:%s" % inst.behavior)
+		elif inst is SceneryInstruction:
+			fired.append("scenery:%d" % inst.action)
 	)
+	assert(not stage_view.props.is_empty(), "Stage set produced no scenery props")
+	print("[SmokeTest] scenery props applied: %s" % str(stage_view.props.keys()))
 	var start_ms := Time.get_ticks_msec()
 	# Drive input every frame: in PLAYING this kicks fast-forward (5x), at gates it
 	# fast-forwards typewriters then releases — so the whole cutscene resolves quickly.
@@ -250,6 +259,10 @@ func _watched_paths() -> Array[String]:
 				var p := ProjectSettings.globalize_path(tex.resource_path)
 				if not paths.has(p):
 					paths.append(p)
+	for svg_path in stage_view.scenery_svg_paths():
+		var sp := ProjectSettings.globalize_path(svg_path)
+		if not paths.has(sp):
+			paths.append(sp)
 	return paths
 
 
@@ -261,20 +274,7 @@ func _snapshot_mtimes() -> void:
 
 
 func _load_texture_from_disk(abs_path: String) -> Texture2D:
-	if abs_path.to_lower().ends_with(".svg"):
-		var file := FileAccess.open(abs_path, FileAccess.READ)
-		if not file:
-			return null
-		var svg_text := file.get_as_text()
-		file.close()
-		var image := Image.new()
-		if image.load_svg_from_string(svg_text, SVG_RENDER_SCALE) != OK:
-			return null
-		return ImageTexture.create_from_image(image)
-	var img := Image.new()
-	if img.load(abs_path) != OK:
-		return null
-	return ImageTexture.create_from_image(img)
+	return SvgLoader.load_svg(abs_path, SVG_RENDER_SCALE)
 
 
 func _set_slot(cfg: WarriorRigConfig, bone_name: String, tex: Texture2D) -> void:

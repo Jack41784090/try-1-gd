@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<rect x="0" y="0" width="1920" height="1080" fill="#e7e1d2"/>
+<rect x="0" y="0" width="1920" height="120" fill="#d8d0bb"/>
+<line x1="0" y1="120" x2="1920" y2="120" stroke="#b9b099" stroke-width="6"/>
+<path d="M260 180 a90 90 0 0 1 180 0 V520 H260 Z" fill="#cfe0ef" stroke="#b9b099" stroke-width="6"/>
+<path d="M620 180 a90 90 0 0 1 180 0 V520 H620 Z" fill="#cfe0ef" stroke="#b9b099" stroke-width="6"/>
+<path d="M980 180 a90 90 0 0 1 180 0 V520 H980 Z" fill="#cfe0ef" stroke="#b9b099" stroke-width="6"/>
+<path d="M1340 180 a90 90 0 0 1 180 0 V520 H1340 Z" fill="#cfe0ef" stroke="#b9b099" stroke-width="6"/>
+<path d="M1700 180 a90 90 0 0 1 180 0 V520 H1700 Z" fill="#cfe0ef" stroke="#b9b099" stroke-width="6"/>
+<rect x="0" y="700" width="1920" height="90" fill="#cbc3ad"/>
+<line x1="0" y1="700" x2="1920" y2="700" stroke="#9c937b" stroke-width="4"/>
+<rect x="0" y="780" width="1920" height="90" fill="#c2b9a1"/>
+<line x1="0" y1="780" x2="1920" y2="780" stroke="#9c937b" stroke-width="4"/>
+<rect x="0" y="860" width="1920" height="90" fill="#b7ad93"/>
+<line x1="0" y1="860" x2="1920" y2="860" stroke="#9c937b" stroke-width="4"/>
+<rect x="0" y="950" width="1920" height="130" fill="#a8997d"/>
+</svg>

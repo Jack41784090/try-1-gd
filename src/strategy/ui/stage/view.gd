@@ -6,7 +6,9 @@ const MARCH_Y_BASE: float = 50.0
 const MARCH_SPACING_X: float = 80.0
 const MARCH_SPEED: float = 60.0
 
-@onready var background_image: TextureRect = $BackgroundImage
+const BACKDROP_PROP_ID: String = "__backdrop__"
+
+@onready var background_image: TextureRect = get_node_or_null("BackgroundImage")
 @onready var stage_viewport: SubViewport = $StageContainer/StageViewport
 @onready var stage_camera: StageCamera = $StageContainer/StageViewport/StageCamera
 @onready var warrior_container: Node2D = $StageContainer/StageViewport/WarriorContainer
@@ -15,17 +17,21 @@ const MARCH_SPEED: float = 60.0
 
 var rigs: Dictionary = {}
 var bubbles: Array[SpeechBubble] = []
+var props: Dictionary = {}
+var scenery_layer: Node2D
 var _is_marching: bool = false
 
 
 func _ready() -> void:
 	presenter.bind_view(self )
+	_ensure_scenery_layer()
 
 
 func _process(delta: float) -> void:
 	if _is_marching:
 		_update_march(delta)
 	_update_bubble_positions()
+	_update_parallax()
 
 
 func spawn_warriors(warriors: Array[Warrior]) -> void:
@@ -64,6 +70,8 @@ func reset_talking_to_idle() -> void:
 
 
 func set_background(texture: Texture2D) -> void:
+	if not background_image:
+		return
 	background_image.texture = texture
 	background_image.visible = texture != null
 
@@ -108,6 +116,154 @@ func _update_march(delta: float) -> void:
 		rig.position.x += MARCH_SPEED * delta
 		if rig.position.x > width * 0.5:
 			rig.position.x -= width
+
+#region Scenery (backdrops + props)
+
+func _ensure_scenery_layer() -> void:
+	scenery_layer = stage_viewport.get_node_or_null("Scenery") as Node2D
+	if not scenery_layer:
+		scenery_layer = Node2D.new()
+		scenery_layer.name = "Scenery"
+		stage_viewport.add_child(scenery_layer)
+	# Draw scenery before the rigs so props sit behind characters by default
+	# (per-prop z_index can still override).
+	stage_viewport.move_child(scenery_layer, 0)
+
+
+func apply_stage_set(stage_set: StageSet) -> void:
+	clear_scenery()
+	if not stage_set:
+		return
+	if not stage_set.backdrop_svg_path.is_empty():
+		set_backdrop(
+			stage_set.backdrop_svg_path,
+			stage_set.backdrop_position,
+			stage_set.backdrop_scale,
+			stage_set.backdrop_z,
+			stage_set.backdrop_parallax,
+			stage_set.backdrop_svg_scale,
+		)
+	for prop in stage_set.props:
+		add_prop(prop)
+
+
+func clear_scenery() -> void:
+	if scenery_layer:
+		for child in scenery_layer.get_children():
+			child.queue_free()
+	props.clear()
+
+
+func add_prop(prop: StageProp) -> Sprite2D:
+	if not prop or prop.prop_id.is_empty():
+		return null
+	var spr := _build_sprite(prop.prop_id, prop.svg_path, prop.svg_scale)
+	spr.position = prop.position
+	spr.scale = Vector2(prop.scale, prop.scale)
+	spr.z_index = prop.z_index
+	spr.flip_h = prop.flip_h
+	spr.modulate = prop.modulate
+	spr.set_meta("parallax", prop.parallax)
+	spr.set_meta("base_position", prop.position)
+	return spr
+
+
+func remove_prop(prop_id: String) -> void:
+	var spr = props.get(prop_id)
+	if spr and is_instance_valid(spr):
+		spr.queue_free()
+	props.erase(prop_id)
+
+
+func move_prop(prop_id: String, target: Vector2, duration: float) -> void:
+	var spr = props.get(prop_id)
+	if not spr or not is_instance_valid(spr):
+		return
+	spr.set_meta("base_position", target)
+	if duration <= 0.0:
+		spr.position = target
+		return
+	var tween := create_tween()
+	tween.tween_property(spr, "position", target, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
+
+
+func modulate_prop(prop_id: String, color: Color, duration: float) -> void:
+	var spr = props.get(prop_id)
+	if not spr or not is_instance_valid(spr):
+		return
+	if duration <= 0.0:
+		spr.modulate = color
+		return
+	var tween := create_tween()
+	tween.tween_property(spr, "modulate", color, duration)
+
+
+func set_prop_visible(prop_id: String, is_visible: bool) -> void:
+	var spr = props.get(prop_id)
+	if spr and is_instance_valid(spr):
+		spr.visible = is_visible
+
+
+func set_backdrop(svg_path: String, position: Vector2, scale: float, z: int, parallax: float, svg_scale: float = 4.0) -> void:
+	remove_prop(BACKDROP_PROP_ID)
+	var spr := _build_sprite(BACKDROP_PROP_ID, svg_path, svg_scale)
+	spr.position = position
+	spr.scale = Vector2(scale, scale)
+	spr.z_index = z
+	spr.set_meta("parallax", parallax)
+	spr.set_meta("base_position", position)
+
+
+func reload_scenery_textures() -> void:
+	# Re-rasterizes each prop's SVG from disk (used by editor hot-reload).
+	for spr in props.values():
+		if not is_instance_valid(spr):
+			continue
+		var svg_path: String = spr.get_meta("svg_path", "")
+		var svg_scale: float = spr.get_meta("svg_scale", 4.0)
+		if svg_path.is_empty():
+			continue
+		var tex := SvgLoader.load_svg(svg_path, svg_scale)
+		if tex:
+			spr.texture = tex
+
+
+func scenery_svg_paths() -> Array[String]:
+	var paths: Array[String] = []
+	for spr in props.values():
+		if not is_instance_valid(spr):
+			continue
+		var svg_path: String = spr.get_meta("svg_path", "")
+		if not svg_path.is_empty():
+			paths.append(svg_path)
+	return paths
+
+
+func _build_sprite(prop_id: String, svg_path: String, svg_scale: float) -> Sprite2D:
+	var spr := Sprite2D.new()
+	spr.name = prop_id
+	var tex := SvgLoader.load_svg(svg_path, svg_scale)
+	if tex:
+		spr.texture = tex
+	spr.set_meta("svg_path", svg_path)
+	spr.set_meta("svg_scale", svg_scale)
+	scenery_layer.add_child(spr)
+	props[prop_id] = spr
+	return spr
+
+
+func _update_parallax() -> void:
+	if not scenery_layer:
+		return
+	var cam_pos := stage_camera.global_position
+	for spr in scenery_layer.get_children():
+		var p: float = spr.get_meta("parallax", 1.0)
+		if p >= 1.0:
+			continue
+		var base: Vector2 = spr.get_meta("base_position", spr.position)
+		spr.position = base + cam_pos * (1.0 - p)
+
+#endregion
 
 #region Speech Bubbles
 

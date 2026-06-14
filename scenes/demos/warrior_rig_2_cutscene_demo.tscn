@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="4_stage_camera"]
 [ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="5_vn_view"]
 [ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="6_cfg"]
-[ext_resource type="Texture2D" uid="uid://ckv4f5ima1co6" path="res://assets/wood_table_diff_4k.jpg" id="7_bg"]
 [ext_resource type="Texture2D" uid="uid://c5r6n62g5glpy" path="res://assets/rig_textures/rachelle/head.svg" id="8_head"]
 [ext_resource type="Texture2D" uid="uid://lu14u64ycf44" path="res://assets/rig_textures/rachelle/_torso.svg" id="9_torso"]
 [ext_resource type="Texture2D" uid="uid://dclaadtrrj4xx" path="res://assets/rig_textures/rachelle/hips.svg" id="10_hips"]
@@ -26,6 +25,7 @@
 [ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_feustel.tres" id="24_feustel"]
 [ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_delegate.tres" id="25_delegate"]
 [ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_courier.tres" id="26_courier"]
+[ext_resource type="Resource" path="res://resources/stage_sets/parliament_chamber.tres" id="27_stageset"]
 
 [sub_resource type="Resource" id="Resource_cfg"]
 script = ExtResource("6_cfg")
@@ -69,6 +69,7 @@ grow_vertical = 2
 script = ExtResource("1_demo")
 cutscene = ExtResource("19_cutscene")
 config = SubResource("Resource_cfg")
+stage_set = ExtResource("27_stageset")
 character_configs = {
 "Bishop": ExtResource("22_bishop"),
 "Burgomaster": ExtResource("21_burgomaster"),
@@ -116,14 +117,15 @@ handle_input_locally = false
 size = Vector2i(1920, 1080)
 render_target_update_mode = 4
 
-[node name="TextureRect" type="TextureRect" parent="StageView/StageContainer/StageViewport" unique_id=1550130652]
+[node name="BackgroundImage" type="TextureRect" parent="StageView/StageContainer/StageViewport" unique_id=1550130652]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("7_bg")
 expand_mode = 3
+
+[node name="Scenery" type="Node2D" parent="StageView/StageContainer/StageViewport"]
 
 [node name="WarriorContainer" type="Node2D" parent="StageView/StageContainer/StageViewport" unique_id=615737795]
 
