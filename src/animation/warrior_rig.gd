@@ -106,9 +106,13 @@ func apply_config(config: WarriorRigConfig) -> void:
 
 func _apply_config_internal(config: WarriorRigConfig) -> void:
 	var bone_textures := config.get_bone_textures()
+	var bone_sizes := config.get_bone_sizes()
+	var bone_offsets := config.get_bone_offsets()
 	for bone_name in BONE_DRAW_ORDER:
 		if bone_textures.has(bone_name):
-			_replace_limb(bone_name, bone_textures[bone_name])
+			_replace_limb(bone_name, bone_textures[bone_name],
+				bone_sizes.get(bone_name, Vector3.ZERO),
+				bone_offsets.get(bone_name, Vector2.ZERO))
 	if config.eye_spritesheet and eyes:
 		eyes.texture = config.eye_spritesheet
 	if config.mouth_spritesheet and mouth:
@@ -117,7 +121,24 @@ func _apply_config_internal(config: WarriorRigConfig) -> void:
 		anim_controller.set_expression(config.default_expression)
 
 func play_behavior(behavior: AnimTypes.Behavior) -> void:
+	if anim_tree and not anim_tree.active:
+		anim_tree.active = true
 	anim_controller.play_behavior(behavior)
+
+## Freezes the rig in its skeleton rest (bind) pose with no animation driving it.
+## For a rig authored in a T-pose, this shows that T-pose.
+func pose_rest() -> void:
+	if anim_tree:
+		anim_tree.active = false
+	if anim_player:
+		anim_player.stop()
+	_apply_rest_recursive(skeleton)
+
+func _apply_rest_recursive(node: Node) -> void:
+	for child in node.get_children():
+		if child is Bone2D:
+			child.apply_rest()
+		_apply_rest_recursive(child)
 
 func set_expression(expr: iExpression) -> void:
 	anim_controller.set_expression(expr)
@@ -139,7 +160,9 @@ func clear_placeholders() -> void:
 	_synced_parts.clear()
 	_limb_nodes.clear()
 
-func _replace_limb(bone_name: String, texture: Texture2D) -> void:
+func _replace_limb(bone_name: String, texture: Texture2D,
+		size_override: Vector3 = Vector3.ZERO,
+		offset_override: Vector2 = Vector2.ZERO) -> void:
 	if _limb_nodes.has(bone_name):
 		for node in _limb_nodes[bone_name]:
 			if is_instance_valid(node):
@@ -155,14 +178,19 @@ func _replace_limb(bone_name: String, texture: Texture2D) -> void:
 	var sprite := Sprite2D.new()
 	sprite.texture = texture
 	sprite.top_level = true
+	sprite.z_index = int(size_override.z) # Vector3.z = draw order override
+	var target_size := Vector2(size_override.x, size_override.y)
+	if target_size == Vector2.ZERO and BONE_DISPLAY_SIZES.has(bone_name):
+		target_size = BONE_DISPLAY_SIZES[bone_name]
 	var display_scale := Vector2.ONE
-	if BONE_DISPLAY_SIZES.has(bone_name):
-		var target_size: Vector2 = BONE_DISPLAY_SIZES[bone_name]
+	if target_size != Vector2.ZERO:
 		var tex_size := Vector2(texture.get_width(), texture.get_height())
 		display_scale = Vector2(target_size.x / tex_size.x, target_size.y / tex_size.y)
 		sprite.scale = display_scale
-	if BONE_OFFSETS.has(bone_name):
-		var world_offset: Vector2 = BONE_OFFSETS[bone_name]
+	var world_offset: Vector2 = offset_override
+	if world_offset == Vector2.ZERO and BONE_OFFSETS.has(bone_name):
+		world_offset = BONE_OFFSETS[bone_name]
+	if world_offset != Vector2.ZERO:
 		sprite.offset = world_offset / display_scale
 	add_child(sprite)
 	_limb_nodes[bone_name] = [sprite]
