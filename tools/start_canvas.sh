@@ -20,14 +20,16 @@ PLAY_LOCK="/tmp/condor_play_${SESSION}.lock"
 echo '' > "$INPUT_FILE"
 echo '' > "$OUTPUT_FILE"
 
-# Start canvas with GUI fully detached from terminal
-nohup bash -c "tail -f '$INPUT_FILE' | godot-mono --path . scenes/demos/canvas_demo.tscn 2>&1 | tee '$OUTPUT_FILE'" > /dev/null 2>&1 &
-CANVAS_PID=$!
-disown
+# Write type marker so play.sh knows to restart as canvas if the session dies
+TYPE_FILE="/tmp/condor_type_${SESSION}"
+echo "canvas" > "$TYPE_FILE"
 
-# Write PID file so play.sh won't start a competing instance
+# Start canvas with GUI fully detached from terminal
 PID_FILE="/tmp/condor_pid_${SESSION}"
+nohup setsid bash -c "tail -f '$INPUT_FILE' | godot-mono --path . scenes/demos/canvas_demo.tscn 2>&1 | tee '$OUTPUT_FILE'" > /dev/null 2>&1 &
+CANVAS_PID=$!
 echo "$CANVAS_PID" > "$PID_FILE"
+disown
 
 echo "Canvas starting (session: $SESSION, PID: $CANVAS_PID)..."
 echo "Wait ~10 seconds for initialization, then use:"

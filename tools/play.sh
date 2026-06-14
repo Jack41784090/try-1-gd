@@ -85,7 +85,10 @@ _start_game() {
     local MODE_FLAG="--headless"
     [ "$GUI" = true ] && MODE_FLAG=""
 
-    nohup setsid bash -c "tail -f '$INPUT_FILE' | godot-mono $MODE_FLAG --path '$PROJECT_DIR' scenes/demos/interactive_demo.tscn 2>&1 | tee '$OUTPUT_FILE'" > /dev/null 2>&1 &
+    local TYPE_FILE="/tmp/condor_type_${CONDOR_SESSION}"
+    local SCENE="scenes/demos/interactive_demo.tscn"
+    [ -f "$TYPE_FILE" ] && [ "$(cat "$TYPE_FILE")" = "canvas" ] && SCENE="scenes/demos/canvas_demo.tscn"
+    nohup setsid bash -c "tail -f '$INPUT_FILE' | godot-mono $MODE_FLAG --path '$PROJECT_DIR' $SCENE 2>&1 | tee '$OUTPUT_FILE'" > /dev/null 2>&1 &
     local GAME_PID=$!
     echo $GAME_PID > "$PID_FILE"
     disown
@@ -118,7 +121,7 @@ _stop_game() {
     else
         echo "No game running for session: $CONDOR_SESSION" >&2
     fi
-    rm -f "$PID_FILE" "$INPUT_FILE" "$OUTPUT_FILE" "$PLAY_LOCK"
+    rm -f "$PID_FILE" "$INPUT_FILE" "$OUTPUT_FILE" "$PLAY_LOCK" "/tmp/condor_type_${CONDOR_SESSION}"
 }
 
 # Handle --stop

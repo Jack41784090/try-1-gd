@@ -179,12 +179,10 @@ public sealed class CsEconomyEngine
                 if (stock > 0f) loc.Consume(_foodIdx, stock * spoilageRate);
             }
 
-            // --- B.2 Compute wants for price update ---
+            // --- B.2 price update ---
             var wantsComputers = loc.Population.People;
             for (int pi = 0; pi < wantsComputers.Count; pi++)
                 wantsComputers[pi].ComputeWants(Goods, loc.Prices);
-
-            // --- B.2 Update Prices (gradual pricing) ---
             for (int gi = 0; gi < _goodsCount; gi++)
             {
                 float demand = loc.Population.GetTotalDemand(gi);
