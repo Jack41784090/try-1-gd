@@ -28,7 +28,7 @@ extends Control
 const SCREENSHOT_PATH := "/tmp/condor_screenshot.png"
 const CANVAS_BASE := "res://scenes/demos/canvas/"
 const SVG_BASE := "res://scenes/demos/canvas/svgs/"
-const RIG_SVG_BASE := "res://scenes/demos/canvas/svgs/rig/"
+const RIG_SVG_BASE := "res://assets/rig_textures/"
 const DEFAULT_CANVAS := "default"
 const SVG_RENDER_SCALE := 4.0
 
@@ -452,7 +452,7 @@ func _cmd_rig(class_name_arg: String) -> void:
 
 	_reload_rig_svgs()
 	_busy = false
-	_out("Rig mode: %s (edit SVGs in scenes/demos/canvas/svgs/rig/%s/)" % [cn, cn])
+	_out("Rig mode: %s (edit SVGs in assets/rig_textures/%s/)" % [cn, cn])
 	_out("  Bone SVGs: %d / %d loaded" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
 	_out("  Use 'anim idle', 'anim walk', etc. to animate")
 

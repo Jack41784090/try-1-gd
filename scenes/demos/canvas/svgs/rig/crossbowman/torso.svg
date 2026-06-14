@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 112" width="136" height="112">
-  <path d="M 28,8 Q 24,4 40,2 L 100,2 Q 116,4 112,8 L 115,90 Q 112,105 100,108 L 40,108 Q 28,105 25,90 Z" fill="#447744" stroke="#0a0a0a" stroke-width="8"/>
-  <path d="M 112,8 L 115,90 Q 112,105 100,108 L 88,108 L 92,8 Z" fill="#335533" stroke="#0a0a0a" stroke-width="8"/>
-  <path d="M 42,2 Q 50,12 66,14 Q 82,12 90,2" fill="none" stroke="#ccbb88" stroke-width="4"/>
-  <line x1="66" y1="14" x2="66" y2="108" stroke="#335533" stroke-width="4"/>
-  <line x1="45" y1="35" x2="50" y2="65" stroke="#335533" stroke-width="4"/>
-  <line x1="90" y1="35" x2="86" y2="65" stroke="#335533" stroke-width="4"/>
-</svg>
