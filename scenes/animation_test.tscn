@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://bkptsf6kgcmk2"]
+
+[ext_resource type="Script" uid="uid://c3oteoxj5rnuv" path="res://src/demos/animation_test.gd" id="1_test"]
+[ext_resource type="PackedScene" uid="uid://coyquc43s0igj" path="res://scenes/warrior_rig_2.tscn" id="2_rig2"]
+[ext_resource type="Texture2D" uid="uid://c5r6n62g5glpy" path="res://assets/rig_textures/rachelle/head.svg" id="2_sw4tn"]
+[ext_resource type="Texture2D" uid="uid://dclaadtrrj4xx" path="res://assets/rig_textures/rachelle/hips.svg" id="3_ghloj"]
+[ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="3_wh0ns"]
+[ext_resource type="Texture2D" uid="uid://lu14u64ycf44" path="res://assets/rig_textures/rachelle/_torso.svg" id="4_fmbxl"]
+[ext_resource type="Texture2D" uid="uid://bcbtj2km4br8v" path="res://assets/rig_textures/rachelle/leftarm.svg" id="4_q2v6w"]
+[ext_resource type="Texture2D" uid="uid://dmiwjwk5wv3gk" path="res://assets/rig_textures/rachelle/leftfoot.svg" id="5_j5dm2"]
+[ext_resource type="Texture2D" uid="uid://baxwin7id1vx" path="res://assets/rig_textures/rachelle/leftforearm.svg" id="6_obsjw"]
+[ext_resource type="Texture2D" uid="uid://dw05rrj88lghq" path="res://assets/rig_textures/rachelle/lefthand.svg" id="7_u2hdb"]
+[ext_resource type="Texture2D" uid="uid://bieml5k2yskad" path="res://assets/rig_textures/rachelle/leftleg.svg" id="8_bg7l0"]
+[ext_resource type="Texture2D" uid="uid://beddi681pcmuc" path="res://assets/rig_textures/rachelle/leftshin.svg" id="9_g42qp"]
+[ext_resource type="Texture2D" uid="uid://c4iwr8jci5c2p" path="res://assets/rig_textures/rachelle/righthand.svg" id="9_yick4"]
+[ext_resource type="Texture2D" uid="uid://drb5xbqja0tmq" path="res://assets/rig_textures/rachelle/rightfoot.svg" id="10_275b0"]
+
+[sub_resource type="Resource" id="Resource_nj072"]
+script = ExtResource("3_wh0ns")
+head_texture = ExtResource("2_sw4tn")
+torso_texture = ExtResource("4_fmbxl")
+hips_texture = ExtResource("3_ghloj")
+left_arm_texture = ExtResource("4_q2v6w")
+left_forearm_texture = ExtResource("6_obsjw")
+left_hand_texture = ExtResource("7_u2hdb")
+right_arm_texture = ExtResource("4_q2v6w")
+right_forearm_texture = ExtResource("6_obsjw")
+right_hand_texture = ExtResource("9_yick4")
+left_leg_texture = ExtResource("8_bg7l0")
+left_shin_texture = ExtResource("9_g42qp")
+left_foot_texture = ExtResource("5_j5dm2")
+right_leg_texture = ExtResource("8_bg7l0")
+right_shin_texture = ExtResource("9_g42qp")
+right_foot_texture = ExtResource("10_275b0")
+head_size = Vector3(50, 50, 0)
+torso_size = Vector3(40, 40, 0)
+hips_size = Vector3(28, 28, 1)
+left_arm_size = Vector3(30, 30, 1)
+left_forearm_size = Vector3(30, 30, 1)
+left_hand_size = Vector3(14, 14, 1)
+right_arm_size = Vector3(30, 30, -1)
+right_forearm_size = Vector3(30, 30, -1)
+left_leg_size = Vector3(45, 30, 0)
+left_shin_size = Vector3(30, 30, 0)
+left_foot_size = Vector3(20, 20, 0)
+right_leg_size = Vector3(45, 30, 0)
+right_shin_size = Vector3(30, 30, 0)
+metadata/_custom_type_script = "uid://dkvdiaugwveib"
+
+[node name="AnimationTest" type="Node2D" unique_id=1365786786]
+position = Vector2(-1, 0)
+script = ExtResource("1_test")
+config = SubResource("Resource_nj072")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=898228365]
+position = Vector2(0, -35)
+zoom = Vector2(4, 4)
+
+[node name="Rig" parent="." unique_id=1021606565 instance=ExtResource("2_rig2")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=2085115532]
+
+[node name="StatusLabel" type="Label" parent="UI" unique_id=303813582]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 340.0
+offset_bottom = 320.0
+text = "Loading..."
