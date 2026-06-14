@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://beddi681pcmuc" path="res://assets/rig_textures/rachelle/leftshin.svg" id="16_lshin"]
 [ext_resource type="Texture2D" uid="uid://dmiwjwk5wv3gk" path="res://assets/rig_textures/rachelle/leftfoot.svg" id="17_lfoot"]
 [ext_resource type="Texture2D" uid="uid://drb5xbqja0tmq" path="res://assets/rig_textures/rachelle/rightfoot.svg" id="18_rfoot"]
-[ext_resource type="Resource" uid="uid://bl5vpw13wjpu6" path="res://scenes/demos/warrior_rig_2_cutscene.tres" id="19_cutscene"]
+[ext_resource type="Resource" path="res://scenes/demos/warrior_rig_2_cutscene.tres" id="19_cutscene"]
 
 [sub_resource type="Resource" id="Resource_cfg"]
 script = ExtResource("6_cfg")
