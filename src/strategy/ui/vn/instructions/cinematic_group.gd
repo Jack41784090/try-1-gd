@@ -25,8 +25,10 @@ class_name CinematicGroup
 ## Delay in seconds after the referenced item finishes.
 @export var after_offset: float = 0.0
 
-## Mixed array of CinematicInstruction and CinematicGroup.
-var children: Array = []
+## Mixed array of CinematicInstruction and CinematicGroup (both Resource).
+## Exported so an authored group round-trips through ResourceSaver/load as a
+## reusable .tres cutscene.
+@export var children: Array[Resource] = []
 
 
 const OCCUPATION_FILL: float = -2.0

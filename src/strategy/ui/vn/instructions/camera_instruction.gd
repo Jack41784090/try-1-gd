@@ -31,7 +31,7 @@ enum Action {
 ## Normalized screen position (0.0=left, 1.0=right) for character-relative camera.
 ## Used with target_character_id: pans until character appears at this screen fraction.
 ## -1 = not set.
-var target_screen_position: float = -1.0
+@export var target_screen_position: float = -1.0
 
 
 func _init(config: Dictionary = { }) -> void:

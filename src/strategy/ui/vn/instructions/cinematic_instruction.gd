@@ -24,10 +24,10 @@ class_name CinematicInstruction
 
 ## Fraction of parent group's duration this child occupies (parallel mode).
 ## -1 = unset. -2 = FILL (takes remaining time).
-var occupation: float = -1.0
+@export var occupation: float = -1.0
 
 
-func _init(config: Dictionary = { }) -> void:
+func _init(config: Dictionary = {}) -> void:
 	if config.is_empty():
 		return
 	id = config.get("id", "")

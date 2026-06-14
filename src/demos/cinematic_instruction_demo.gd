@@ -495,7 +495,7 @@ func _test_group_playback_sequential() -> void:
 
 	var group = CinematicGroup.new()
 	group.id = "seq_root"
-	group.children = [d1, d2]
+	group.children = [d1, d2] as Array[Resource]
 
 	var playback = GroupPlayback.new()
 	var fired_ids: Array[String] = []
@@ -538,7 +538,7 @@ func _test_group_playback_auto_gate() -> void:
 	var inner_group = CinematicGroup.new()
 	inner_group.id = "ag_inner"
 	inner_group.auto_gate = true
-	inner_group.children = [d1]
+	inner_group.children = [d1] as Array[Resource]
 
 	var d2 = DialogueInstruction.new()
 	d2.id = "ag_b"
@@ -548,7 +548,7 @@ func _test_group_playback_auto_gate() -> void:
 
 	var root = CinematicGroup.new()
 	root.id = "ag_root"
-	root.children = [inner_group, d2]
+	root.children = [inner_group, d2] as Array[Resource]
 
 	var playback = GroupPlayback.new()
 	var fired_ids: Array[String] = []
@@ -601,7 +601,7 @@ func _test_group_playback_parallel() -> void:
 	var root = CinematicGroup.new()
 	root.id = "par_root"
 	root.duration = 2.0
-	root.children = [d1, cam]
+	root.children = [d1, cam] as Array[Resource]
 
 	var playback = GroupPlayback.new()
 	var fired_ids: Array[String] = []

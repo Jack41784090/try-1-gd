@@ -41,10 +41,10 @@ enum StageAnchor {
 @export var behavior: String = ""
 
 ## Named anchor for position resolution. Overrides raw target_position when set.
-var anchor: StageAnchor = StageAnchor.NONE
+@export var anchor: StageAnchor = StageAnchor.NONE
 
 ## Offset from the anchor position.
-var anchor_offset: Vector2 = Vector2.ZERO
+@export var anchor_offset: Vector2 = Vector2.ZERO
 
 
 func _init(config: Dictionary = { }) -> void:
