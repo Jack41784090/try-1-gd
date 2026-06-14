@@ -1,26 +1,25 @@
-[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=17 format=3]
+[gd_resource type="Resource" script_class="WarriorRigConfig" format=3 uid="uid://dokahhwpaqclv"]
 
-[ext_resource type="Script" path="res://src/animation/rig_config.gd" id="script"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/head.svg" id="1_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/torso.svg" id="2_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/hips.svg" id="3_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftarm.svg" id="4_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftforearm.svg" id="5_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/lefthand.svg" id="6_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightarm.svg" id="7_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightforearm.svg" id="8_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/righthand.svg" id="9_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftleg.svg" id="10_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftshin.svg" id="11_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/leftfoot.svg" id="12_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightleg.svg" id="13_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightshin.svg" id="14_landsknecht"]
-[ext_resource type="Texture2D" path="res://assets/rig_textures/landsknecht/rightfoot.svg" id="15_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://c5r6n62g5glpy" path="res://assets/rig_textures/rachelle/head.svg" id="1_xkngo"]
+[ext_resource type="Texture2D" uid="uid://b38rm2gwphtd3" path="res://assets/rig_textures/landsknecht/torso.svg" id="2_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://dclaadtrrj4xx" path="res://assets/rig_textures/landsknecht/hips.svg" id="3_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://bcbtj2km4br8v" path="res://assets/rig_textures/landsknecht/leftarm.svg" id="4_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://baxwin7id1vx" path="res://assets/rig_textures/landsknecht/leftforearm.svg" id="5_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://dw05rrj88lghq" path="res://assets/rig_textures/landsknecht/lefthand.svg" id="6_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://qxfsiev5ltp2" path="res://assets/rig_textures/landsknecht/rightarm.svg" id="7_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://def6gyxg54lld" path="res://assets/rig_textures/landsknecht/rightforearm.svg" id="8_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://c4iwr8jci5c2p" path="res://assets/rig_textures/landsknecht/righthand.svg" id="9_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://bieml5k2yskad" path="res://assets/rig_textures/landsknecht/leftleg.svg" id="10_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://beddi681pcmuc" path="res://assets/rig_textures/landsknecht/leftshin.svg" id="11_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://dmiwjwk5wv3gk" path="res://assets/rig_textures/landsknecht/leftfoot.svg" id="12_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://cxrpvmkyey8od" path="res://assets/rig_textures/landsknecht/rightleg.svg" id="13_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://cjk0bwmfgfh2o" path="res://assets/rig_textures/landsknecht/rightshin.svg" id="14_landsknecht"]
+[ext_resource type="Texture2D" uid="uid://drb5xbqja0tmq" path="res://assets/rig_textures/landsknecht/rightfoot.svg" id="15_landsknecht"]
+[ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="script"]
 
 [resource]
 script = ExtResource("script")
-class_id = 0
-head_texture = ExtResource("1_landsknecht")
+head_texture = ExtResource("1_xkngo")
 torso_texture = ExtResource("2_landsknecht")
 hips_texture = ExtResource("3_landsknecht")
 left_arm_texture = ExtResource("4_landsknecht")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5r6n62g5glpy"
-path="res://.godot/imported/head.svg-a1de1640b807dd0032e88eb5263d1f23.ctex"
+uid="uid://bwoc052ko75a8"
+path="res://.godot/imported/smug_head.svg-71593383d1e5b8df7727d09d414deb3e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rig_textures/landsknecht/head.svg"
-dest_files=["res://.godot/imported/head.svg-a1de1640b807dd0032e88eb5263d1f23.ctex"]
+source_file="res://assets/rig_textures/landsknecht/smug_head.svg"
+dest_files=["res://.godot/imported/smug_head.svg-71593383d1e5b8df7727d09d414deb3e.ctex"]
 
 [params]
 
