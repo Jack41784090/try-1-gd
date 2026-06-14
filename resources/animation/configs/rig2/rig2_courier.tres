@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/animation/rig_config.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/head.svg" id="1_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/torso.svg" id="2_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/hips.svg" id="3_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/leftarm.svg" id="4_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/leftforearm.svg" id="5_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/lefthand.svg" id="6_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/rightarm.svg" id="7_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/rightforearm.svg" id="8_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/righthand.svg" id="9_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/leftleg.svg" id="10_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/leftshin.svg" id="11_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/leftfoot.svg" id="12_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/rightleg.svg" id="13_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/rightshin.svg" id="14_healer"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/healer/rightfoot.svg" id="15_healer"]
+
+[resource]
+script = ExtResource("script")
+class_id = 1
+head_texture = ExtResource("1_healer")
+torso_texture = ExtResource("2_healer")
+hips_texture = ExtResource("3_healer")
+left_arm_texture = ExtResource("4_healer")
+left_forearm_texture = ExtResource("5_healer")
+left_hand_texture = ExtResource("6_healer")
+right_arm_texture = ExtResource("7_healer")
+right_forearm_texture = ExtResource("8_healer")
+right_hand_texture = ExtResource("9_healer")
+left_leg_texture = ExtResource("10_healer")
+left_shin_texture = ExtResource("11_healer")
+left_foot_texture = ExtResource("12_healer")
+right_leg_texture = ExtResource("13_healer")
+right_shin_texture = ExtResource("14_healer")
+right_foot_texture = ExtResource("15_healer")
+head_size = Vector3(50, 50, 0)
+torso_size = Vector3(40, 40, 0)
+hips_size = Vector3(28, 28, 1)
+left_arm_size = Vector3(30, 30, 1)
+left_forearm_size = Vector3(30, 30, 1)
+left_hand_size = Vector3(14, 14, 1)
+right_arm_size = Vector3(30, 30, -1)
+right_forearm_size = Vector3(30, 30, -1)
+left_leg_size = Vector3(45, 30, 0)
+left_shin_size = Vector3(30, 30, 0)
+left_foot_size = Vector3(20, 20, 0)
+right_leg_size = Vector3(45, 30, 0)
+right_shin_size = Vector3(30, 30, 0)

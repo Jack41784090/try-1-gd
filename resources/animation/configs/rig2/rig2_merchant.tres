@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/animation/rig_config.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/head.svg" id="1_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/torso.svg" id="2_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/hips.svg" id="3_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/leftarm.svg" id="4_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/leftforearm.svg" id="5_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/lefthand.svg" id="6_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/rightarm.svg" id="7_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/rightforearm.svg" id="8_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/righthand.svg" id="9_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/leftleg.svg" id="10_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/leftshin.svg" id="11_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/leftfoot.svg" id="12_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/rightleg.svg" id="13_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/rightshin.svg" id="14_crossbowman"]
+[ext_resource type="Texture2D" path="res://assets/rig_textures/crossbowman/rightfoot.svg" id="15_crossbowman"]
+
+[resource]
+script = ExtResource("script")
+class_id = 2
+head_texture = ExtResource("1_crossbowman")
+torso_texture = ExtResource("2_crossbowman")
+hips_texture = ExtResource("3_crossbowman")
+left_arm_texture = ExtResource("4_crossbowman")
+left_forearm_texture = ExtResource("5_crossbowman")
+left_hand_texture = ExtResource("6_crossbowman")
+right_arm_texture = ExtResource("7_crossbowman")
+right_forearm_texture = ExtResource("8_crossbowman")
+right_hand_texture = ExtResource("9_crossbowman")
+left_leg_texture = ExtResource("10_crossbowman")
+left_shin_texture = ExtResource("11_crossbowman")
+left_foot_texture = ExtResource("12_crossbowman")
+right_leg_texture = ExtResource("13_crossbowman")
+right_shin_texture = ExtResource("14_crossbowman")
+right_foot_texture = ExtResource("15_crossbowman")
+head_size = Vector3(50, 50, 0)
+torso_size = Vector3(40, 40, 0)
+hips_size = Vector3(28, 28, 1)
+left_arm_size = Vector3(30, 30, 1)
+left_forearm_size = Vector3(30, 30, 1)
+left_hand_size = Vector3(14, 14, 1)
+right_arm_size = Vector3(30, 30, -1)
+right_forearm_size = Vector3(30, 30, -1)
+left_leg_size = Vector3(45, 30, 0)
+left_shin_size = Vector3(30, 30, 0)
+left_foot_size = Vector3(20, 20, 0)
+right_leg_size = Vector3(45, 30, 0)
+right_shin_size = Vector3(30, 30, 0)

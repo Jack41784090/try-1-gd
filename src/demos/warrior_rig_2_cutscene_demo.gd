@@ -19,10 +19,20 @@ const SVG_RENDER_SCALE := 4.0
 ## The CinematicGroup cutscene fed straight into GroupPlayback (no EventChain).
 @export var cutscene: CinematicGroup
 
-## Textured config applied to every rig in the cutscene (rachelle by default).
+## Default textured config (rachelle). Used for any character without a per-id
+## entry in character_configs — the Duchess and Gretchen reuse this look.
 @export var config: WarriorRigConfig
 
-## One warrior_rig_2 per id, placed left→right facing inward.
+## Per-character look overrides: character_id -> WarriorRigConfig. Lets each
+## delegate in the parliament wear a different class look. Missing ids fall back
+## to `config`.
+@export var character_configs: Dictionary = {}
+
+## Fixed chamber seats: character_id -> Vector2. Characters without an entry are
+## auto-spread left→right (see _place_characters). Facing is derived from x sign.
+@export var seat_positions: Dictionary = {}
+
+## One warrior_rig_2 per id, placed across the chamber facing inward.
 @export var character_ids: Array[String] = ["aldric", "rachelle"]
 
 @onready var vn_view: VnView = $VnView
@@ -35,6 +45,7 @@ var _playback: GroupPlayback
 var _poll_accum: float = 0.0
 var _mtimes: Dictionary = {}
 var _completed: bool = false
+var _rig_configs: Dictionary = {}
 
 
 func _ready() -> void:
@@ -64,7 +75,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not config:
+	if _rig_configs.is_empty():
 		return
 	_poll_accum += delta
 	if _poll_accum < POLL_INTERVAL:
@@ -99,18 +110,29 @@ func _spawn_rigs() -> void:
 	for char_id in character_ids:
 		var rig := scene.instantiate() as WarriorRig
 		rig.setup_default(char_id)
-		if config:
-			rig.apply_config(config)
+		var cfg: WarriorRigConfig = character_configs.get(char_id, config)
+		_rig_configs[char_id] = cfg
+		if cfg:
+			rig.apply_config(cfg)
 		stage_view.warrior_container.add_child(rig)
 		stage_view.rigs[char_id] = rig
 
 
 func _reapply_config_to_rigs() -> void:
-	if not config:
-		return
-	var rebuilt: WarriorRigConfig = config.duplicate()
-	for bone_name in config.get_bone_textures():
-		var tex: Texture2D = config.get_bone_textures()[bone_name]
+	# Each rig keeps its own source config (per-character look), so rebuild and
+	# reapply each one independently from the freshest SVGs on disk.
+	for char_id in _rig_configs:
+		var src: WarriorRigConfig = _rig_configs[char_id]
+		var rig = stage_view.rigs.get(char_id)
+		if not src or not is_instance_valid(rig):
+			continue
+		rig.apply_config(_rebuild_config_from_disk(src))
+
+
+func _rebuild_config_from_disk(src: WarriorRigConfig) -> WarriorRigConfig:
+	var rebuilt: WarriorRigConfig = src.duplicate()
+	for bone_name in src.get_bone_textures():
+		var tex: Texture2D = src.get_bone_textures()[bone_name]
 		var out_tex: Texture2D = tex
 		if tex and not tex.resource_path.is_empty():
 			var abs_path := ProjectSettings.globalize_path(tex.resource_path)
@@ -119,9 +141,7 @@ func _reapply_config_to_rigs() -> void:
 				if reloaded:
 					out_tex = reloaded
 		_set_slot(rebuilt, bone_name, out_tex)
-	for rig in stage_view.rigs.values():
-		if is_instance_valid(rig):
-			rig.apply_config(rebuilt)
+	return rebuilt
 
 #endregion
 
@@ -142,12 +162,18 @@ func _play_cutscene() -> void:
 
 
 func _place_characters() -> void:
-	# Spread the cast left→right, each facing toward stage center.
+	# Seat the cast in the chamber. Characters with a seat_positions entry use it;
+	# the rest are auto-spread left→right. Facing is derived from x (face inward).
 	var n := character_ids.size()
 	for i in n:
-		var x := -90.0 + (180.0 * i / maxf(n - 1, 1))
-		var face := 1 if x < 0.0 else -1
-		_stage.place_character(character_ids[i], Vector2(x, 50.0), face)
+		var char_id := character_ids[i]
+		var pos: Vector2
+		if seat_positions.has(char_id):
+			pos = seat_positions[char_id]
+		else:
+			pos = Vector2(-90.0 + (180.0 * i / maxf(n - 1, 1)), 50.0)
+		var face := -1 if pos.x > 0.0 else 1
+		_stage.place_character(char_id, pos, face)
 
 #endregion
 
@@ -189,9 +215,10 @@ func _run_headless_smoke_test() -> void:
 			fired.append("behavior:%s" % inst.behavior)
 	)
 	var start_ms := Time.get_ticks_msec()
-	while not _completed and Time.get_ticks_msec() - start_ms < 30000:
-		if _playback.state == GroupPlayback.State.WAITING_FOR_GATE:
-			_playback.on_input()
+	# Drive input every frame: in PLAYING this kicks fast-forward (5x), at gates it
+	# fast-forwards typewriters then releases — so the whole cutscene resolves quickly.
+	while not _completed and Time.get_ticks_msec() - start_ms < 180000:
+		_playback.on_input()
 		await get_tree().process_frame
 	if _completed:
 		print("=== SMOKE TEST PASSED — fired %d instructions: %s ===" % [fired.size(), str(fired)])
@@ -215,10 +242,14 @@ func _disk_changed() -> bool:
 
 func _watched_paths() -> Array[String]:
 	var paths: Array[String] = []
-	if config:
-		for tex in config.get_bone_textures().values():
+	for src in _rig_configs.values():
+		if not src:
+			continue
+		for tex in src.get_bone_textures().values():
 			if tex and not tex.resource_path.is_empty():
-				paths.append(ProjectSettings.globalize_path(tex.resource_path))
+				var p := ProjectSettings.globalize_path(tex.resource_path)
+				if not paths.has(p):
+					paths.append(p)
 	return paths
 
 

@@ -19,6 +19,13 @@
 [ext_resource type="Texture2D" uid="uid://dmiwjwk5wv3gk" path="res://assets/rig_textures/rachelle/leftfoot.svg" id="17_lfoot"]
 [ext_resource type="Texture2D" uid="uid://drb5xbqja0tmq" path="res://assets/rig_textures/rachelle/rightfoot.svg" id="18_rfoot"]
 [ext_resource type="Resource" path="res://scenes/demos/warrior_rig_2_cutscene.tres" id="19_cutscene"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_chairman.tres" id="20_chairman"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_burgomaster.tres" id="21_burgomaster"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_bishop.tres" id="22_bishop"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_merchant.tres" id="23_merchant"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_feustel.tres" id="24_feustel"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_delegate.tres" id="25_delegate"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2/rig2_courier.tres" id="26_courier"]
 
 [sub_resource type="Resource" id="Resource_cfg"]
 script = ExtResource("6_cfg")
@@ -62,6 +69,27 @@ grow_vertical = 2
 script = ExtResource("1_demo")
 cutscene = ExtResource("19_cutscene")
 config = SubResource("Resource_cfg")
+character_configs = {
+"Bishop": ExtResource("22_bishop"),
+"Burgomaster": ExtResource("21_burgomaster"),
+"Chairman": ExtResource("20_chairman"),
+"Courier": ExtResource("26_courier"),
+"Delegate": ExtResource("25_delegate"),
+"Feustel": ExtResource("24_feustel"),
+"Merchant": ExtResource("23_merchant")
+}
+seat_positions = {
+"Bishop": Vector2(-115, 35),
+"Burgomaster": Vector2(-230, 35),
+"Chairman": Vector2(0, -10),
+"Courier": Vector2(-700, 90),
+"Delegate": Vector2(70, 85),
+"Duchess": Vector2(115, 35),
+"Feustel": Vector2(-65, 85),
+"Gretchen": Vector2(300, 60),
+"Merchant": Vector2(230, 35)
+}
+character_ids = Array[String](["Chairman", "Burgomaster", "Bishop", "Duchess", "Merchant", "Feustel", "Delegate", "Courier", "Gretchen"])
 
 [node name="StageView" type="Control" parent="." unique_id=1269851738]
 layout_mode = 1
