@@ -31,7 +31,32 @@ from lxml import etree
 
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
+INKSCAPE_NS = "http://www.inkscape.org/namespaces/inkscape"
 Q = lambda tag: f"{{{SVG_NS}}}{tag}"
+
+
+def has_face_layer(root) -> bool:
+    """True if the SVG contains an Inkscape 'Face' layer (a layered head)."""
+    label = f"{{{INKSCAPE_NS}}}label"
+    groupmode = f"{{{INKSCAPE_NS}}}groupmode"
+    for g in root.iter(Q("g")):
+        if g.get(groupmode) == "layer" and g.get(label) == "Face":
+            return True
+    return False
+
+
+def export_faces(src: Path) -> None:
+    """Also split a layered head SVG into per-feature/emotion overlay SVGs.
+
+    Lazily imports export_face_features to avoid a circular import (that module
+    imports helpers from this one)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        import export_face_features as eff
+    except ImportError as e:
+        print(f"  (face export skipped: {e})")
+        return
+    eff.export_safe(src)
 
 
 def get_href(elem) -> str | None:
@@ -66,33 +91,86 @@ def apply_use_transform(elem, use_elem):
         elem.set("transform", f"{combined} {existing}".strip() if existing else combined)
 
 
+def _resolve_use(use, root) -> bool:
+    """Inline a single <use> element; return True if resolved."""
+    ref_id = get_href(use)
+    if not ref_id:
+        return False
+    referenced = find_by_id(root, ref_id)
+    if referenced is None:
+        return False
+
+    inlined = copy.deepcopy(referenced)
+    strip_ids(inlined)
+    apply_use_transform(inlined, use)
+
+    parent = use.getparent()
+    idx = list(parent).index(use)
+    parent.remove(use)
+    parent.insert(idx, inlined)
+    return True
+
+
 def resolve_uses_in_clip_paths(root) -> int:
     """
     Inline <use> references inside <clipPath> elements.
     Returns the number of <use> elements resolved.
+
+    Dangling references (target id missing) are removed silently: a clipPath
+    that references nothing contributes no clip region, so the empty <use>
+    is just discarded. This keeps the export clean when the source artwork
+    contains stale clipPath definitions.
     """
     resolved = 0
     for clip_path in root.iter(Q("clipPath")):
         for use in list(clip_path.iter(Q("use"))):
-            ref_id = get_href(use)
-            if not ref_id:
-                continue
-            referenced = find_by_id(root, ref_id)
-            if referenced is None:
-                print(f"  WARNING: <use> references missing id='{ref_id}', skipping")
-                continue
-
-            inlined = copy.deepcopy(referenced)
-            strip_ids(inlined)
-            apply_use_transform(inlined, use)
-
-            parent = use.getparent()
-            idx = list(parent).index(use)
-            parent.remove(use)
-            parent.insert(idx, inlined)
-            resolved += 1
-
+            if _resolve_use(use, root):
+                resolved += 1
+            else:
+                # Remove dangling <use> so it doesn't pollute the clipPath.
+                use.getparent().remove(use)
     return resolved
+
+
+def _inside_defs(elem) -> bool:
+    """True if ``elem`` is nested inside a <defs> element."""
+    while elem is not None:
+        if etree.QName(elem).localname == "defs":
+            return True
+        elem = elem.getparent()
+    return False
+
+
+def resolve_all_uses(root, max_passes: int = 20) -> int:
+    """
+    Inline every rendered <use> element (i.e. outside <defs>), not just those
+    inside clipPaths.
+
+    Needed before splitting a layered SVG into per-feature exports: one feature
+    (e.g. the right eye) may reference shapes authored in its sibling feature
+    (the left eye). Resolving those references first makes each export self-
+    contained, so stripping the sibling feature doesn't clip out components.
+
+    Uses inside <defs> are skipped here; the dedicated clipPath resolver handles
+    those later and avoids noisy warnings about pre-existing dangling clipPath
+    references in the source artwork.
+    """
+    total = 0
+    for _ in range(max_passes):
+        # Process in reverse document order so a <use> that acts as a shared
+        # symbol (e.g. eye_r's lowlid referencing the eye_l geometry) is copied
+        # before the symbol itself is inlined and loses its id.
+        uses = [u for u in root.iter(Q("use")) if not _inside_defs(u)]
+        if not uses:
+            break
+        resolved = 0
+        for use in reversed(uses):
+            if _resolve_use(use, root):
+                resolved += 1
+        total += resolved
+        if resolved == 0:
+            break
+    return total
 
 
 SHAPE_TAGS = {"path", "ellipse", "circle", "rect", "polygon", "polyline", "line"}
@@ -176,6 +254,11 @@ def bake(src: Path, out: Path):
     parts.append(f"resolved {total} clip <use>(s)" if total else "no clip <use>")
     parts.append(f"flattened {flattened} clipPath group(s)" if flattened else "no <g> to flatten")
     print(f"{src.name} → {out.name}  ({', '.join(parts)})")
+
+    # A layered head (Face layer) also feeds the texture-swap expression system —
+    # split it into per-feature/emotion overlays right after baking.
+    if has_face_layer(root):
+        export_faces(src)
 
 
 def out_path_for(src: Path) -> Path:
