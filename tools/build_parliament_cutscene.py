@@ -103,6 +103,13 @@ def beh(char, behavior):
     return Instr("chr", {"action": 2, "character_id": char, "behavior": behavior})
 
 
+# Swap a character's facial expression (CharacterInstruction.Action.EXPRESSION = 6).
+# Combine with an animation by placing beh(...) and expr(...) in the same parallel
+# group. expression_id is resolved against the rig config's expressions by id.
+def expr(char, expression_id):
+    return Instr("chr", {"action": 6, "character_id": char, "expression": expression_id})
+
+
 def hide(char):
     return Instr("chr", {"action": 5, "character_id": char})
 
