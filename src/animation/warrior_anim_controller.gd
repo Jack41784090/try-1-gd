@@ -34,13 +34,13 @@ func play_behavior(behavior: AnimTypes.Behavior) -> void:
 	behavior_changed.emit(behavior)
 
 
+## Facial expressions are applied as overlay sprite textures by WarriorRig
+## (which owns the face sprites); the controller only tracks the current one so
+## play_action's body/face stay in sync. The rig calls this after swapping.
 func set_expression(expr: iExpression) -> void:
 	if not expr:
 		return
 	current_expression = expr
-	if _anim_tree:
-		_anim_tree.set("parameters/FaceBlend/EyeAnim/animation", expr.eye_clip)
-		_anim_tree.set("parameters/FaceBlend/MouthAnim/animation", expr.mouth_clip)
 
 
 func play_action(action: AnimAction) -> void:
