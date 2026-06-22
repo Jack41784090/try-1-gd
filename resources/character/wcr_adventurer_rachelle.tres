@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" format=3 uid="uid://ce3nlulj7r8s5"]
+
+[ext_resource type="Texture2D" uid="uid://d3kke4dhcyxdg" path="res://assets/rig_textures/rachelle/face/head_base_neutral.svg" id="1_6ikfe"]
+[ext_resource type="Texture2D" uid="uid://dclaadtrrj4xx" path="res://assets/rig_textures/rachelle/hips.svg" id="2_6k4qf"]
+[ext_resource type="Texture2D" uid="uid://bcbtj2km4br8v" path="res://assets/rig_textures/rachelle/leftarm.svg" id="3_8nnfp"]
+[ext_resource type="Script" uid="uid://b5wh8qikrxtib" path="res://src/animation/expression.gd" id="3_arkfk"]
+[ext_resource type="Texture2D" uid="uid://dmiwjwk5wv3gk" path="res://assets/rig_textures/rachelle/leftfoot.svg" id="4_iybp7"]
+[ext_resource type="Texture2D" uid="uid://baxwin7id1vx" path="res://assets/rig_textures/rachelle/leftforearm.svg" id="5_ddrnq"]
+[ext_resource type="Texture2D" uid="uid://dw05rrj88lghq" path="res://assets/rig_textures/rachelle/lefthand.svg" id="6_7712o"]
+[ext_resource type="Texture2D" uid="uid://bieml5k2yskad" path="res://assets/rig_textures/rachelle/leftleg.svg" id="7_arkfk"]
+[ext_resource type="Texture2D" uid="uid://beddi681pcmuc" path="res://assets/rig_textures/rachelle/leftshin.svg" id="8_k84xs"]
+[ext_resource type="Texture2D" uid="uid://drb5xbqja0tmq" path="res://assets/rig_textures/rachelle/rightfoot.svg" id="9_2bi48"]
+[ext_resource type="Texture2D" uid="uid://c4iwr8jci5c2p" path="res://assets/rig_textures/rachelle/righthand.svg" id="10_qjaqe"]
+[ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="11_amqkh"]
+[ext_resource type="Texture2D" uid="uid://lu14u64ycf44" path="res://assets/rig_textures/rachelle/_torso.svg" id="12_eq3o3"]
+[ext_resource type="Texture2D" uid="uid://bkqss4w6oxlcl" path="res://assets/rig_textures/rachelle/face/mouth_neutral.svg" id="14_mouth"]
+[ext_resource type="Texture2D" uid="uid://4wh8t0d8ex14" path="res://assets/rig_textures/rachelle/face/brows_neutral.svg" id="15_brows"]
+[ext_resource type="Resource" uid="uid://b1n7rcllneutr" path="res://resources/animation/expressions/rachelle/neutral.tres" id="16_expr"]
+[ext_resource type="Texture2D" uid="uid://sclq12wk12aj" path="res://assets/rig_textures/rachelle/face/hair_back_neutral.svg" id="17_hairback"]
+
+[resource]
+script = ExtResource("11_amqkh")
+head_texture = ExtResource("1_6ikfe")
+hair_back_texture = ExtResource("17_hairback")
+torso_texture = ExtResource("12_eq3o3")
+hips_texture = ExtResource("2_6k4qf")
+left_arm_texture = ExtResource("3_8nnfp")
+left_forearm_texture = ExtResource("5_ddrnq")
+left_hand_texture = ExtResource("6_7712o")
+right_arm_texture = ExtResource("3_8nnfp")
+right_forearm_texture = ExtResource("5_ddrnq")
+right_hand_texture = ExtResource("10_qjaqe")
+left_leg_texture = ExtResource("7_arkfk")
+left_shin_texture = ExtResource("8_k84xs")
+left_foot_texture = ExtResource("4_iybp7")
+right_leg_texture = ExtResource("7_arkfk")
+right_shin_texture = ExtResource("8_k84xs")
+right_foot_texture = ExtResource("9_2bi48")
+head_size = Vector3(50, 50, 0)
+torso_size = Vector3(40, 40, 0)
+hips_size = Vector3(28, 28, 1)
+left_arm_size = Vector3(30, 30, 1)
+left_forearm_size = Vector3(30, 30, 1)
+left_hand_size = Vector3(14, 14, 1)
+right_arm_size = Vector3(30, 30, -1)
+right_forearm_size = Vector3(30, 30, -1)
+left_leg_size = Vector3(45, 30, 0)
+left_shin_size = Vector3(30, 30, 0)
+left_foot_size = Vector3(20, 20, 0)
+right_leg_size = Vector3(45, 30, 0)
+right_shin_size = Vector3(30, 30, 0)
+mouth_texture = ExtResource("14_mouth")
+brows_texture = ExtResource("15_brows")
+default_expression = ExtResource("16_expr")
+metadata/_custom_type_script = "uid://dkvdiaugwveib"

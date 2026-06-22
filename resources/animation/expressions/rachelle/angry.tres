@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="iExpression" format=3 uid="uid://b1n7rcllangry"]
+
+[ext_resource type="Script" uid="uid://b5wh8qikrxtib" path="res://src/animation/expression.gd" id="1_expr"]
+[ext_resource type="Texture2D" uid="uid://4wh8t0d8ex14" path="res://assets/rig_textures/rachelle/face/brows_neutral.svg" id="2_brows"]
+
+[resource]
+script = ExtResource("1_expr")
+expression_id = "angry"
+brows_texture = ExtResource("2_brows")
+metadata/_custom_type_script = "uid://b5wh8qikrxtib"

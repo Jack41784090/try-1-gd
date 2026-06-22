@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="WarriorRigConfig" format=3 uid="uid://dduh4lhnt47cc"]
+
+[ext_resource type="Texture2D" uid="uid://i0ok1xmx6emy" path="res://assets/rig_textures/faust1/head.svg" id="1_gcdvm"]
+[ext_resource type="Texture2D" uid="uid://b725cjdvkrbm6" path="res://assets/rig_textures/faust1/hips.svg" id="2_vkv4q"]
+[ext_resource type="Texture2D" uid="uid://bumsbehr25gq7" path="res://assets/rig_textures/faust1/leftarm.svg" id="3_1xvgy"]
+[ext_resource type="Texture2D" uid="uid://2nj387ssvrkk" path="res://assets/rig_textures/faust1/leftfoot.svg" id="4_gmrfw"]
+[ext_resource type="Texture2D" uid="uid://da7yiik3engxv" path="res://assets/rig_textures/faust1/leftforearm.svg" id="5_lulp4"]
+[ext_resource type="Texture2D" uid="uid://nfbb3mai5k4g" path="res://assets/rig_textures/faust1/lefthand.svg" id="6_tik6n"]
+[ext_resource type="Texture2D" uid="uid://b4dc6i5rq4l6v" path="res://assets/rig_textures/faust1/leftleg.svg" id="7_vb2fv"]
+[ext_resource type="Texture2D" uid="uid://b10e56hs7rmcw" path="res://assets/rig_textures/faust1/leftshin.svg" id="8_io8ki"]
+[ext_resource type="Texture2D" uid="uid://bhlet5r6ofsnt" path="res://assets/rig_textures/faust1/rightfoot.svg" id="9_6wxta"]
+[ext_resource type="Texture2D" uid="uid://cr3dlug8ol3tw" path="res://assets/rig_textures/faust1/righthand.svg" id="10_pfypu"]
+[ext_resource type="Script" uid="uid://dkvdiaugwveib" path="res://src/animation/rig_config.gd" id="11_b5mnq"]
+[ext_resource type="Texture2D" uid="uid://bosbgcvuhvl76" path="res://assets/rig_textures/faust1/_torso.svg" id="12_ra41o"]
+
+[resource]
+script = ExtResource("11_b5mnq")
+head_texture = ExtResource("1_gcdvm")
+torso_texture = ExtResource("12_ra41o")
+hips_texture = ExtResource("2_vkv4q")
+left_arm_texture = ExtResource("3_1xvgy")
+left_forearm_texture = ExtResource("5_lulp4")
+left_hand_texture = ExtResource("6_tik6n")
+right_arm_texture = ExtResource("3_1xvgy")
+right_forearm_texture = ExtResource("5_lulp4")
+right_hand_texture = ExtResource("10_pfypu")
+left_leg_texture = ExtResource("7_vb2fv")
+left_shin_texture = ExtResource("8_io8ki")
+left_foot_texture = ExtResource("4_gmrfw")
+right_leg_texture = ExtResource("7_vb2fv")
+right_shin_texture = ExtResource("8_io8ki")
+right_foot_texture = ExtResource("9_6wxta")
+head_size = Vector3(50, 50, 0)
+torso_size = Vector3(40, 40, 0)
+hips_size = Vector3(28, 28, 1)
+left_arm_size = Vector3(30, 30, 1)
+left_forearm_size = Vector3(30, 30, 1)
+left_hand_size = Vector3(14, 14, 1)
+right_arm_size = Vector3(30, 30, -1)
+right_forearm_size = Vector3(30, 30, -1)
+left_leg_size = Vector3(45, 30, 0)
+left_shin_size = Vector3(30, 30, 0)
+left_foot_size = Vector3(20, 20, 0)
+right_leg_size = Vector3(45, 30, 0)
+right_shin_size = Vector3(30, 30, 0)
+metadata/_custom_type_script = "uid://dkvdiaugwveib"
