@@ -6,3 +6,11 @@ assets/hoi4_icons
 .obsidian
 addons
 log
+
+# Python cache
+tools/__pycache__/
+
+# Godot .import files for draft/intermediate SVGs (prefixed with _ or suffixed variants)
+assets/rig_textures/**/_*.svg.import
+assets/rig_textures/**/head_*.svg.import
+assets/rig_textures/**/head2.svg.import
