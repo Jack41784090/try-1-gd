@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="StageSet" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="StageSet" format=3 uid="uid://bomgxry0euadf"]
 
-[ext_resource type="Script" path="res://src/strategy/ui/stage/stage_set.gd" id="1_set"]
-[ext_resource type="Script" path="res://src/strategy/ui/stage/stage_prop.gd" id="2_prop"]
+[ext_resource type="Script" uid="uid://cw5pvcdfriy36" path="res://src/strategy/ui/stage/stage_set.gd" id="1_set"]
+[ext_resource type="Script" uid="uid://bnev0mcnyq6dy" path="res://src/strategy/ui/stage/stage_prop.gd" id="2_prop"]
 
 [sub_resource type="Resource" id="prop_pillar_l"]
 script = ExtResource("2_prop")
@@ -11,7 +11,6 @@ position = Vector2(-560, 150)
 scale = 1.2
 z_index = -40
 parallax = 0.92
-svg_scale = 4.0
 
 [sub_resource type="Resource" id="prop_pillar_r"]
 script = ExtResource("2_prop")
@@ -21,27 +20,22 @@ position = Vector2(560, 150)
 scale = 1.2
 z_index = -40
 parallax = 0.92
-svg_scale = 4.0
 
 [sub_resource type="Resource" id="prop_banner_l"]
 script = ExtResource("2_prop")
 prop_id = "banner_left"
 svg_path = "res://assets/scenery/banner.svg"
 position = Vector2(-300, -250)
-scale = 1.0
 z_index = -30
 parallax = 0.95
-svg_scale = 4.0
 
 [sub_resource type="Resource" id="prop_banner_r"]
 script = ExtResource("2_prop")
 prop_id = "banner_right"
 svg_path = "res://assets/scenery/banner.svg"
 position = Vector2(300, -250)
-scale = 1.0
 z_index = -30
 parallax = 0.95
-svg_scale = 4.0
 
 [sub_resource type="Resource" id="prop_podium"]
 script = ExtResource("2_prop")
@@ -50,15 +44,9 @@ svg_path = "res://assets/scenery/podium.svg"
 position = Vector2(0, 45)
 scale = 0.9
 z_index = -5
-parallax = 1.0
-svg_scale = 4.0
 
 [resource]
 script = ExtResource("1_set")
 backdrop_svg_path = "res://assets/scenery/backdrop_chamber.svg"
-backdrop_position = Vector2(0, 0)
-backdrop_scale = 1.0
-backdrop_z = -100
-backdrop_parallax = 1.0
 backdrop_svg_scale = 1.0
-props = Array[StageProp]([SubResource("prop_pillar_l"), SubResource("prop_pillar_r"), SubResource("prop_banner_l"), SubResource("prop_banner_r"), SubResource("prop_podium")])
+props = Array[ExtResource("2_prop")]([SubResource("prop_pillar_l"), SubResource("prop_pillar_r"), SubResource("prop_banner_l"), SubResource("prop_banner_r"), SubResource("prop_podium")])
