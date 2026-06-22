@@ -1,9 +1,13 @@
+@tool
 class_name WarriorRigConfig extends Resource
 
 @export var class_id: EntityClasses.Types
 
 @export_group("Body Textures")
 @export var head_texture: Texture2D
+## Back hair, rendered as a head-synced overlay behind the whole body (low
+## z_index). Exported separately from the head base by export_face_features.py.
+@export var hair_back_texture: Texture2D
 @export var torso_texture: Texture2D
 @export var hips_texture: Texture2D
 @export var left_arm_texture: Texture2D
@@ -60,10 +64,32 @@ class_name WarriorRigConfig extends Resource
 @export var right_shin_offset: Vector2 = Vector2.ZERO
 @export var right_foot_offset: Vector2 = Vector2.ZERO
 
+## Facial features render as full-canvas overlay sprites on top of the head base
+## texture (head_texture should be the head_base_*.svg with eyes/mouth/brows
+## removed). These are the neutral defaults; expressions swap them per-feature.
 @export_group("Face")
-@export var eye_spritesheet: Texture2D
-@export var mouth_spritesheet: Texture2D
+## Left (near) and right (far) eyes are separate overlays so each can be swapped
+## independently (winks, asymmetry). Exported per-eye by export_face_features.py.
+@export var eye_l_texture: Texture2D
+@export var eye_r_texture: Texture2D
+@export var mouth_texture: Texture2D
+@export var brows_texture: Texture2D
 @export var default_expression: iExpression
+## Named expressions this character can switch to (via the EXPRESSION cinematic
+## action). Looked up by iExpression.expression_id; default_expression is also
+## resolvable by its own id.
+@export var expressions: Array[iExpression] = []
+
+## Returns the expression whose expression_id matches (case-insensitive), or null.
+## default_expression participates in the lookup too.
+func get_expression(expression_id: String) -> iExpression:
+	var key := expression_id.to_lower()
+	if default_expression and default_expression.expression_id.to_lower() == key:
+		return default_expression
+	for expr in expressions:
+		if expr and expr.expression_id.to_lower() == key:
+			return expr
+	return null
 
 func get_bone_textures() -> Dictionary:
 	var textures: Dictionary = {}
