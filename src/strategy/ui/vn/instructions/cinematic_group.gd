@@ -1,6 +1,4 @@
-extends Resource
-
-class_name CinematicGroup
+class_name CinematicGroup extends Resource
 
 ## A group of cinematic instructions and/or child groups.
 ## Groups with duration > 0 run children in parallel (occupation-based timing).

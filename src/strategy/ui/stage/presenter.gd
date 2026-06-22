@@ -201,6 +201,13 @@ func set_character_behavior(character_id: String, behavior: AnimTypes.Behavior) 
 	rig.play_behavior(behavior)
 
 
+func set_character_expression(character_id: String, expression_id: String) -> void:
+	var rig = view.get_rig(character_id)
+	if not rig:
+		return
+	rig.set_expression_by_name(expression_id)
+
+
 func show_character(character_id: String) -> void:
 	var rig = view.get_rig(character_id)
 	if not rig:

@@ -34,8 +34,8 @@ enum Action {
 @export var target_screen_position: float = -1.0
 
 
-func _init(config: Dictionary = { }) -> void:
-	super(config)
+func _init(config: Dictionary = {}) -> void:
+	super (config)
 	if config.is_empty():
 		return
 

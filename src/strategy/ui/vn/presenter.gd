@@ -207,9 +207,7 @@ func _execute_dialogue(inst: DialogueInstruction) -> void:
 
 	if has_stage_rig:
 		if not inst.expression_override.is_empty():
-			var anim = GroupPlayback.BEHAVIOR_MAP.get(inst.expression_override.to_lower())
-			if anim != null:
-				stage_presenter.set_character_behavior(speaker_id, anim)
+			stage_presenter.set_character_expression(speaker_id, inst.expression_override)
 
 		var bubble = stage_presenter.show_speech(speaker_id, inst.speaker_name, inst.line_spoken)
 		if bubble:
@@ -277,6 +275,9 @@ func _execute_character(inst: CharacterInstruction) -> void:
 		CharacterInstruction.Action.HIDE:
 			print("[VnPresenter] Character %s → hide" % inst.character_id)
 			stage_presenter.hide_character(inst.character_id)
+		CharacterInstruction.Action.EXPRESSION:
+			print("[VnPresenter] Character %s → expression '%s'" % [inst.character_id, inst.expression])
+			stage_presenter.set_character_expression(inst.character_id, inst.expression)
 
 func _execute_scenery(inst: SceneryInstruction) -> void:
 	# Mutates stage set dressing during playback (add/remove/move/tint props, swap backdrop).

@@ -12,6 +12,7 @@ enum Action {
 	SPAWN, ## Spawn an NPC rig at a position
 	SHOW, ## Make character visible
 	HIDE, ## Make character invisible
+	EXPRESSION, ## Swap the character's facial expression (combinable with BEHAVIOR)
 }
 
 enum StageAnchor {
@@ -40,6 +41,10 @@ enum StageAnchor {
 ## Valid: idle, walking, attacking, defending, hurt, dying, talking, gesturing
 @export var behavior: String = ""
 
+## Expression id for EXPRESSION action (resolved against the rig config's
+## expressions / default_expression by iExpression.expression_id).
+@export var expression: String = ""
+
 ## Named anchor for position resolution. Overrides raw target_position when set.
 @export var anchor: StageAnchor = StageAnchor.NONE
 
@@ -47,8 +52,8 @@ enum StageAnchor {
 @export var anchor_offset: Vector2 = Vector2.ZERO
 
 
-func _init(config: Dictionary = { }) -> void:
-	super(config)
+func _init(config: Dictionary = {}) -> void:
+	super (config)
 	if config.is_empty():
 		return
 
@@ -66,6 +71,8 @@ func _init(config: Dictionary = { }) -> void:
 			action = Action.SHOW
 		"hide":
 			action = Action.HIDE
+		"expression":
+			action = Action.EXPRESSION
 
 	character_id = config.get("character_id", "")
 
@@ -79,6 +86,7 @@ func _init(config: Dictionary = { }) -> void:
 
 	face_direction = config.get("face_direction", 1)
 	behavior = config.get("behavior", "")
+	expression = config.get("expression", "")
 
 	var anchor_str: String = config.get("anchor", "")
 	if not anchor_str.is_empty():
