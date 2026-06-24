@@ -56,8 +56,7 @@ func bind_view(v) -> void:
 	_bind_view_references(v)
 	_initialize_scenario()
 	_setup_components()
-	StrategyEventBus.strategy_hour_tick.connect(_on_hour_advanced)
-	view.update_morale_bar(actor.player_squad.get_morale())
+	StrategyEventBus.squad_morale_changed.emit(actor.player_squad.get_morale())
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
@@ -173,25 +172,21 @@ func on_activity_requested(type: StrategyTypes.ActivityType) -> void:
 
 func on_travel_requested() -> void:
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_travel_menu(game_scenario, actor.locations)
 
 
 func on_investigate_requested() -> void:
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_investigation_menu()
 
 
 func on_recruit_requested() -> void:
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_recruitment_menu()
 
 
 func on_manage_squad_requested() -> void:
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_manage_squad(actor.player_squad, actor)
 
 
@@ -199,7 +194,6 @@ func on_shop_requested() -> void:
 	var location = actor.current_location
 	assert(location.has_shop(), "Shop requested but location has no shop")
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_shop(location.shop, actor.player_squad, location)
 
 
@@ -219,7 +213,7 @@ func on_travel_confirmed(location_id: String) -> void:
 	squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
 	actor.walking_towards = location_id
 
-	view.update_location(_get_travel_label())
+	StrategyEventBus.hud_location_changed.emit(_get_travel_label())
 	view.hide_travel_menu()
 	view.set_travel_mode_autopilot()
 	_update_activity_buttons()
@@ -269,7 +263,6 @@ func on_shop_closed() -> void:
 
 func on_scouting_requested() -> void:
 	game_clock.pause()
-	view.update_pause_state(true)
 	var ai_decisions := ai_fleet.decisions_this_turn if ai_fleet else {}
 	view.show_scouting(game_scenario.world, actor.player_squad, ai_decisions)
 
@@ -287,7 +280,6 @@ func on_missions_requested() -> void:
 	if game_scenario.factions.is_empty():
 		return
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_missions(game_scenario.factions)
 
 
@@ -300,7 +292,6 @@ func on_market_requested() -> void:
 	assert(location != null, "Market requested with no current location")
 	assert(location.has_economy(), "Market requested at location '%s' without economy" % location.location_id)
 	game_clock.pause()
-	view.update_pause_state(true)
 	view.show_market(game_scenario.world, location, visited_locations)
 
 
@@ -341,8 +332,6 @@ func on_battle_close() -> void:
 
 func on_pause_toggle() -> void:
 	game_clock.toggle_pause()
-	var is_paused := game_scenario.world.is_paused
-	view.update_pause_state(is_paused)
 	view.update_resting_banner(
 		actor.player_squad.current_activity_type == StrategyTypes.ActivityType.REST
 	)
@@ -350,7 +339,6 @@ func on_pause_toggle() -> void:
 
 func on_speed_changed(speed: float) -> void:
 	game_clock.set_speed(speed)
-	view.update_speed_display(speed)
 
 
 func on_retreat_requested() -> void:
@@ -771,22 +759,22 @@ func _update_ui() -> void:
 		squad = actor.player_squad
 		if squad.is_traveling():
 			var total_km = world.travel_graph.get_path_distance_km(squad.travel_route)
-			view.update_location("Travelling to %s (%.0f/%.0f km)" % [dest.location_name, squad.travel_progress_km, total_km])
+			StrategyEventBus.hud_location_changed.emit("Travelling to %s (%.0f/%.0f km)" % [dest.location_name, squad.travel_progress_km, total_km])
 		else:
-			view.update_location("Travelling to %s" % dest.location_name)
+			StrategyEventBus.hud_location_changed.emit("Travelling to %s" % dest.location_name)
 	else:
-		view.update_location(
+		StrategyEventBus.hud_location_changed.emit(
 			"%s (%s)" % [
 				location.location_name if location else "Unknown",
 				_location_type_to_string(location.type) if location else "",
 			],
 		)
 
-	view.update_condition(_get_morale_condition(squad.get_morale()))
-	view.update_morale_bar(squad.get_morale())
+	StrategyEventBus.hud_condition_changed.emit(_get_morale_condition(squad.get_morale()))
+	StrategyEventBus.squad_morale_changed.emit(squad.get_morale())
 	_update_contact_bars(world, squad)
 
-	view.update_stats(
+	StrategyEventBus.hud_stats_changed.emit(
 		squad.money,
 		squad.food,
 		squad.karma,
@@ -799,7 +787,7 @@ func _update_ui() -> void:
 
 func _update_contact_bars(world: World, squad: SquadData) -> void:
 	if not world.contact_tracker:
-		view.update_contact_bars([])
+		StrategyEventBus.hud_contact_bars_changed.emit([])
 		return
 	var our_contacts = world.contact_tracker.get_contacts_for(squad.squad_id)
 	var bars: Array[Dictionary] = []
@@ -830,7 +818,7 @@ func _update_contact_bars(world: World, squad: SquadData) -> void:
 			},
 		)
 	bars.sort_custom(func(a, b): return a["progress"] > b["progress"])
-	view.update_contact_bars(bars)
+	StrategyEventBus.hud_contact_bars_changed.emit(bars)
 
 var _update_activity_buttons__activity_buttons := [
 	{
@@ -1161,16 +1149,11 @@ func _finalize_tick(activity: Activity) -> void:
 	if activity.activity_type == StrategyTypes.ActivityType.RECRUIT:
 		actor.player_squad.current_activity_type = StrategyTypes.ActivityType.REST
 		game_clock.pause()
-		view.update_pause_state(true)
 
 	is_executing_activity = false
 	_update_ui()
 	_bind_scouting_data()
 	tick_completed.emit()
-
-
-func _on_hour_advanced(hour: int) -> void:
-	view.update_clock(hour)
 
 #endregion
 

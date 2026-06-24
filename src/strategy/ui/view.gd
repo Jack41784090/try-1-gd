@@ -85,6 +85,7 @@ func _ready() -> void:
 	# 	child.visible = false
 	rest_button.visible = false
 	_connect_signals()
+	_subscribe_event_bus()
 	_register_button_animations()
 	GrimdarkFX.register_world_textures(main_background, foreground)
 	presenter.bind_view(self )
@@ -186,6 +187,20 @@ func _connect_signals() -> void:
 		shop_view.presenter.purchase_completed.connect(func(purchases): presenter.on_purchase_completed(purchases))
 		shop_view.presenter.shop_closed.connect(func(): presenter.on_shop_closed())
 
+
+## Subscribes the HUD directly to game-state signals so the Presenter no longer
+## pushes top-bar updates through a View reference. Connected before bind_view so
+## initial emissions (e.g. GameClock.pause() during setup) are captured.
+func _subscribe_event_bus() -> void:
+	StrategyEventBus.strategy_hour_tick.connect(update_clock)
+	StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
+	StrategyEventBus.hud_location_changed.connect(update_location)
+	StrategyEventBus.hud_condition_changed.connect(update_condition)
+	StrategyEventBus.hud_stats_changed.connect(update_stats)
+	StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
+	StrategyEventBus.pause_state_changed.connect(update_pause_state)
+	StrategyEventBus.speed_changed.connect(update_speed_display)
+
 #endregion
 
 #region Display Updates
@@ -228,7 +243,7 @@ func update_condition(text: String) -> void:
 	condition_label.text = text
 
 
-func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
+func update_contact_bars(contacts_data: Array) -> void:
 	var new_ids: Dictionary = {}
 	for data in contacts_data:
 		new_ids[data["target_id"]] = data
