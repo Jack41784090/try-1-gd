@@ -127,7 +127,7 @@ func _setup_components() -> void:
 	game_clock.pause()
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
-	vn_view.presenter.set_stage_presenter(stage_presenter)
+	# VnPresenter↔StagePresenter wiring is done by CutscenePlayer._ready (self-contained).
 	_bind_scouting_data()
 	Log.info("Presenter", "Orchestrators initialized")
 	Log.info("Presenter", "AISquadManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())

@@ -1,10 +1,12 @@
-extends Resource
-
-class_name CinematicInstruction
+class_name CinematicInstruction extends Resource
 
 ## Base class for all timeline instructions in an EventChain.
 ## Each instruction fires at a specific point in the timeline and optionally
 ## takes a duration to complete (camera pans, character walks, etc.).
+
+const SEQUENTIAL_CHILDREN: float = 0.0
+const OCCUPATION_FILL: float = -2.0
+const OCCUPATION_UNSET: float = -1.0
 
 ## Optional identifier so other instructions can reference this one via after_id.
 @export var id: String = ""
@@ -24,7 +26,7 @@ class_name CinematicInstruction
 
 ## Fraction of parent group's duration this child occupies (parallel mode).
 ## -1 = unset. -2 = FILL (takes remaining time).
-@export var occupation: float = -1.0
+@export var occupation: float = OCCUPATION_UNSET
 
 
 func _init(config: Dictionary = {}) -> void:
@@ -35,7 +37,7 @@ func _init(config: Dictionary = {}) -> void:
 	duration = config.get("duration", 0.0)
 	after_id = config.get("after_id", "")
 	after_offset = config.get("after_offset", 0.0)
-	occupation = config.get("occupation", -1.0)
+	occupation = config.get("occupation", OCCUPATION_UNSET)
 
 
 func has_after_dependency() -> bool:

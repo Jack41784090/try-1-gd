@@ -1,5 +1,4 @@
-class_name VnPresenter
-extends Node
+class_name VnPresenter extends Node
 ## Group-driven VN playback engine.
 ## Reads EventChain timelines/groups, dispatches CinematicInstructions to the Stage,
 ## manages player interaction gates and speed control via GroupPlayback.

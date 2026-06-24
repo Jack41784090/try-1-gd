@@ -9,14 +9,11 @@
 [ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_vmu77"]
 [ext_resource type="Texture2D" uid="uid://by5hoqack8b3u" path="res://assets/hoi4_icons/supply_texticon.png" id="9_jx64g"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
-[ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="13_vn_view"]
+[ext_resource type="PackedScene" path="res://scenes/ui/cutscene_player.tscn" id="13_player"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/squad_manager.gd" id="18_fleet"]
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
 [ext_resource type="PackedScene" uid="uid://beiewkvbjg8rk" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
-[ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="24_stage_view"]
-[ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="25_stage_presenter"]
-[ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="26_stage_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/missions_view.tscn" id="28_missions_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" path="res://scenes/ui/market_view.tscn" id="31_market_scene"]
@@ -74,59 +71,8 @@ texture = ExtResource("3_wm03m")
 expand_mode = 2
 stretch_mode = 6
 
-[node name="StageView" type="Control" parent="PanelContainer/Foreground" unique_id=2101373503]
+[node name="CutscenePlayer" parent="PanelContainer/Foreground" unique_id=997522641 instance=ExtResource("13_player")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 143.0
-offset_bottom = 143.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("24_stage_view")
-
-[node name="BackgroundImage" type="TextureRect" parent="PanelContainer/Foreground/StageView" unique_id=683778455]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-expand_mode = 1
-stretch_mode = 6
-
-[node name="StageContainer" type="SubViewportContainer" parent="PanelContainer/Foreground/StageView" unique_id=330501863]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-
-[node name="StageViewport" type="SubViewport" parent="PanelContainer/Foreground/StageView/StageContainer" unique_id=997742812]
-transparent_bg = true
-handle_input_locally = false
-size = Vector2i(1916, 1076)
-render_target_update_mode = 4
-
-[node name="StageCamera" type="Camera2D" parent="PanelContainer/Foreground/StageView/StageContainer/StageViewport" unique_id=2080781756]
-script = ExtResource("26_stage_camera")
-
-[node name="WarriorContainer" type="Node2D" parent="PanelContainer/Foreground/StageView/StageContainer/StageViewport" unique_id=2074983164]
-
-[node name="BubbleLayer" type="Control" parent="PanelContainer/Foreground/StageView" unique_id=87882398]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="StagePresenter" type="Node" parent="PanelContainer/Foreground/StageView" unique_id=1572873795]
-script = ExtResource("25_stage_presenter")
 
 [node name="MainVBox" type="VBoxContainer" parent="PanelContainer" unique_id=373157262]
 layout_mode = 2
@@ -380,9 +326,6 @@ script = ExtResource("33_notification_bar")
 layout_mode = 2
 size_flags_vertical = 3
 expand_mode = 1
-
-[node name="VnView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=2087439437 instance=ExtResource("13_vn_view")]
-layout_mode = 1
 
 [node name="ScoutingView" parent="PanelContainer/MainVBox/MainScreenArea" unique_id=1428153029 instance=ExtResource("22_scouting_scene")]
 layout_mode = 1

@@ -1,10 +1,24 @@
-[gd_scene format=3 uid="uid://dxdlp5eqddeh6"]
+[gd_scene load_steps=10 format=3 uid="uid://dxdlp5eqddeh6"]
 
 [ext_resource type="Script" uid="uid://bb27qsgur3fns" path="res://scenes/demos/cutscene_test.gd" id="1_yqvf4"]
-[ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="2_3nwy7"]
-[ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="3_jwcfn"]
-[ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="4_jgcxx"]
-[ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="5_v7w4t"]
+[ext_resource type="Script" uid="uid://4lpu074be3h6" path="res://src/strategy/ui/vn/instructions/cinematic_instruction.gd" id="2_ctt6f"]
+[ext_resource type="Script" uid="uid://dv3iev4uomqcy" path="res://src/strategy/ui/vn/instructions/character_instruction.gd" id="3_bs0q0"]
+[ext_resource type="Script" uid="uid://bsif2cicby5dq" path="res://src/strategy/ui/vn/instructions/cinematic_group.gd" id="4_cpoyf"]
+[ext_resource type="Script" uid="uid://cw5pvcdfriy36" path="res://src/strategy/ui/stage/stage_set.gd" id="6_4mifi"]
+[ext_resource type="PackedScene" uid="uid://dc4vr7rcp61wh" path="res://scenes/ui/cutscene_player.tscn" id="7_player"]
+
+[sub_resource type="Resource" id="Resource_1h6r1"]
+script = ExtResource("3_bs0q0")
+metadata/_custom_type_script = "uid://dv3iev4uomqcy"
+
+[sub_resource type="Resource" id="Resource_ge1cv"]
+script = ExtResource("4_cpoyf")
+children = Array[ExtResource("2_ctt6f")]([SubResource("Resource_1h6r1")])
+metadata/_custom_type_script = "uid://bsif2cicby5dq"
+
+[sub_resource type="Resource" id="Resource_rcb13"]
+script = ExtResource("6_4mifi")
+metadata/_custom_type_script = "uid://cw5pvcdfriy36"
 
 [node name="CutsceneTest" type="Control" unique_id=1880047461]
 layout_mode = 3
@@ -18,60 +32,10 @@ offset_bottom = 5.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_yqvf4")
+cutscene = SubResource("Resource_ge1cv")
+stage_set = SubResource("Resource_rcb13")
 
-[node name="StageView" type="Control" parent="." unique_id=1269851738]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("2_3nwy7")
-
-[node name="StageContainer" type="SubViewportContainer" parent="StageView" unique_id=1771185351]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-
-[node name="StageViewport" type="SubViewport" parent="StageView/StageContainer" unique_id=1997252025]
-transparent_bg = true
-handle_input_locally = false
-size = Vector2i(1920, 1080)
-render_target_update_mode = 4
-
-[node name="BackgroundImage" type="TextureRect" parent="StageView/StageContainer/StageViewport" unique_id=1550130652]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-expand_mode = 3
-
-[node name="Scenery" type="Node2D" parent="StageView/StageContainer/StageViewport" unique_id=639661060]
-
-[node name="WarriorContainer" type="Node2D" parent="StageView/StageContainer/StageViewport" unique_id=615737795]
-
-[node name="StageCamera" type="Camera2D" parent="StageView/StageContainer/StageViewport" unique_id=228393351]
-script = ExtResource("3_jwcfn")
-
-[node name="BubbleLayer" type="Control" parent="StageView" unique_id=2024107850]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="StagePresenter" type="Node" parent="StageView" unique_id=452148869]
-script = ExtResource("4_jgcxx")
-
-[node name="VnView" parent="." unique_id=631805958 instance=ExtResource("5_v7w4t")]
+[node name="CutscenePlayer" parent="." instance=ExtResource("7_player")]
 layout_mode = 1
 
 [node name="StatusLabel" type="Label" parent="." unique_id=1030265980]

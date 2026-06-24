@@ -74,7 +74,7 @@ def build_configs():
 
 # --- Cutscene authoring -------------------------------------------------------
 # Each entry produces one instruction sub-resource. Beats group them; every beat
-# is auto_gate=true so the player advances with SPACE/click.
+# is gated_group=true so the player advances with SPACE/click.
 
 class Instr:
     def __init__(self, kind, props):
@@ -382,7 +382,7 @@ def build_cutscene():
         glines = ['[sub_resource type="Resource" id="%s"]' % gsid,
                   'script = ExtResource("1_grp")',
                   'id = "%s"' % gid,
-                  "auto_gate = true",
+                  "gated_group = true",
                   "children = [%s]" % ", ".join('SubResource("%s")' % s for s in child_sids)]
         group_blocks.append("\n".join(glines))
         group_refs.append(gsid)

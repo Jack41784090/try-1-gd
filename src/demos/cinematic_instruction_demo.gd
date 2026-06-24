@@ -537,7 +537,7 @@ func _test_group_playback_auto_gate() -> void:
 
 	var inner_group = CinematicGroup.new()
 	inner_group.id = "ag_inner"
-	inner_group.auto_gate = true
+	inner_group.gated_group = true
 	inner_group.children = [d1] as Array[Resource]
 
 	var d2 = DialogueInstruction.new()
@@ -631,11 +631,11 @@ func _test_cinematic_group_from_dict() -> void:
 		"type": "group",
 		"id": "test_group",
 		"duration": 3.0,
-		"auto_gate": true,
+		"gated_group": true,
 		"children": [
 			{"type": "dialogue", "id": "fd_line", "speaker_name": "Goetz", "line_spoken": "Hello."},
 			{"type": "camera", "id": "fd_cam", "action": "focus_character", "target_character": "goetz"},
-			{"type": "group", "id": "fd_inner", "auto_gate": false, "children": [
+			{"type": "group", "id": "fd_inner", "gated_group": false, "children": [
 				{"type": "dialogue", "id": "fd_inner_line", "speaker_name": "Franz", "line_spoken": "Inner."}
 			]}
 		]
@@ -644,7 +644,7 @@ func _test_cinematic_group_from_dict() -> void:
 	var group = CinematicGroup.from_dict(data)
 	_assert_eq("group id", group.id, "test_group")
 	_assert_float("group duration", group.duration, 3.0)
-	_assert_true("group auto_gate", group.auto_gate)
+	_assert_true("group gated_group", group.gated_group)
 	_assert_true("is parallel (duration>0)", group.is_parallel())
 	_assert_eq("children count", group.children.size(), 3)
 

@@ -119,14 +119,14 @@ func _advance(delta: float) -> void:
 			node.fired = true
 			if node is _InstructionNode:
 				instruction_fired.emit(node.instruction)
-			elif node is _GroupNode and node.group.auto_gate:
+			elif node is _GroupNode and node.group.gated_group:
 				pass
 
 		if node.fired and not node.completed:
 			var end_time = node.start_time + node.computed_duration
 			if node.elapsed >= end_time:
 				node.completed = true
-				if node is _GroupNode and node.group.auto_gate:
+				if node is _GroupNode and node.group.gated_group:
 					_gate_pending = true
 					_hit_auto_gate()
 					return
@@ -195,9 +195,7 @@ func _build_group_node(group: CinematicGroup, parent_start: float) -> _GroupNode
 
 		for child in group.children:
 			var cnode = _build_child(child, parent_start, group.duration)
-			if child is CinematicInstruction and is_equal_approx(child.occupation, CinematicGroup.OCCUPATION_FILL):
-				fill_children.append(cnode)
-			elif child is CinematicGroup and is_equal_approx(child.occupation, CinematicGroup.OCCUPATION_FILL):
+			if child is CinematicInstruction and is_equal_approx(child.occupation, CinematicInstruction.OCCUPATION_FILL):
 				fill_children.append(cnode)
 			else:
 				var occ = _get_occupation(child)
@@ -253,8 +251,6 @@ func _build_child(child, parent_start: float, parent_duration: float) -> _PlayNo
 
 func _get_occupation(child) -> float:
 	if child is CinematicInstruction:
-		return child.occupation if child.occupation > 0.0 else 0.0
-	elif child is CinematicGroup:
 		return child.occupation if child.occupation > 0.0 else 0.0
 	return 0.0
 

@@ -55,8 +55,9 @@ var combat_overlay: CanvasLayer:
 
 #region Components
 @onready var presenter: StrategyPresenter = $StrategyPresenter
-@onready var vn_view: VnView = $PanelContainer/MainVBox/MainScreenArea/VnView
-@onready var stage_view: StageView = $PanelContainer/Foreground/StageView
+@onready var cutscene_player: CutscenePlayer = $PanelContainer/Foreground/CutscenePlayer
+@onready var vn_view: VnView = cutscene_player.vn_view
+@onready var stage_view: StageView = cutscene_player.stage_view
 @onready var stat_animator: StatChangeAnimator = $PanelContainer
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AISquadManager = $AISquadManager

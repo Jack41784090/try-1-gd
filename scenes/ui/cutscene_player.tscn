@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://dc4vr7rcp61wh"]
+
+[ext_resource type="Script" path="res://src/strategy/ui/cutscene_player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://df1iw1yx3b2u8" path="res://src/strategy/ui/stage/view.gd" id="2_stageview"]
+[ext_resource type="Script" uid="uid://bvsmr2p02g5py" path="res://src/strategy/ui/stage/stage_camera.gd" id="3_camera"]
+[ext_resource type="Script" uid="uid://bc2kisyc5wmp7" path="res://src/strategy/ui/stage/presenter.gd" id="4_stagepres"]
+[ext_resource type="PackedScene" uid="uid://0urax67nr5wm" path="res://scenes/ui/vn_view.tscn" id="5_vnview"]
+
+[node name="CutscenePlayer" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_player")
+
+[node name="StageView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stageview")
+
+[node name="BackgroundImage" type="TextureRect" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="StageContainer" type="SubViewportContainer" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="StageViewport" type="SubViewport" parent="StageView/StageContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="StageCamera" type="Camera2D" parent="StageView/StageContainer/StageViewport"]
+script = ExtResource("3_camera")
+
+[node name="WarriorContainer" type="Node2D" parent="StageView/StageContainer/StageViewport"]
+
+[node name="BubbleLayer" type="Control" parent="StageView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StagePresenter" type="Node" parent="StageView"]
+script = ExtResource("4_stagepres")
+
+[node name="VnLayer" type="CanvasLayer" parent="."]
+
+[node name="VnView" parent="VnLayer" instance=ExtResource("5_vnview")]
+layout_mode = 1

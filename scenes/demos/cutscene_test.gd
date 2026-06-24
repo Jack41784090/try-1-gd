@@ -38,9 +38,11 @@ const SVG_RENDER_SCALE := 4.0
 ## Static set dressing (backdrop + props) applied at scene setup.
 @export var stage_set: StageSet
 
-@onready var vn_view: VnView = $VnView
-@onready var stage_view: StageView = $StageView
+@onready var cutscene_player: CutscenePlayer = $CutscenePlayer
 @onready var status_label: Label = $StatusLabel
+
+var vn_view: VnView
+var stage_view: StageView
 
 var _presenter: VnPresenter
 var _stage: StagePresenter
@@ -52,10 +54,12 @@ var _rig_configs: Dictionary = {}
 
 
 func _ready() -> void:
-	_presenter = vn_view.presenter
-	_stage = stage_view.presenter
+	vn_view = cutscene_player.vn_view
+	stage_view = cutscene_player.stage_view
+	_presenter = cutscene_player.vn_presenter
+	_stage = cutscene_player.stage_presenter
 	_playback = _presenter._playback
-	_presenter.stage_presenter = _stage
+	# CutscenePlayer already wired _presenter.stage_presenter = _stage in its _ready.
 	_presenter.character_ids_in_chain = character_ids.duplicate()
 	if _playback.timeline_complete.is_connected(_presenter._on_timeline_complete):
 		_playback.timeline_complete.disconnect(_presenter._on_timeline_complete)
@@ -77,7 +81,7 @@ func _process(delta: float) -> void:
 		return
 	_poll_accum = 0.0
 	if _disk_changed():
-		_reapply_config_to_rigs()
+		# _reapply_config_to_rigs()
 		stage_view.reload_scenery_textures()
 		_snapshot_mtimes()
 		Log.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")

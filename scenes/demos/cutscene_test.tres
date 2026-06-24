@@ -37,7 +37,7 @@ line_spoken = "Wide white stone chamber. Tiered seats curve around a central flo
 [sub_resource type="Resource" id="Grp_1"]
 script = ExtResource("1_grp")
 id = "opening"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_1"), SubResource("Chr_2"), SubResource("Cam_1"), SubResource("Scn_1"), SubResource("Dlg_1")])
 
 [sub_resource type="Resource" id="Cam_2"]
@@ -54,7 +54,7 @@ The Free Cities will not be lectured by the nobilities of other dukedoms."
 [sub_resource type="Resource" id="Grp_2"]
 script = ExtResource("1_grp")
 id = "ambient_open"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_2"), SubResource("Dlg_2")])
 
 [sub_resource type="Resource" id="Cam_3"]
@@ -76,7 +76,7 @@ line_spoken = "Order. Order in the parliament."
 [sub_resource type="Resource" id="Grp_3"]
 script = ExtResource("1_grp")
 id = "chair_order"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_3"), SubResource("Chr_3"), SubResource("Dlg_3")])
 
 [sub_resource type="Resource" id="Dlg_4"]
@@ -86,7 +86,7 @@ line_spoken = "The murmur and ambience die down."
 [sub_resource type="Resource" id="Grp_4"]
 script = ExtResource("1_grp")
 id = "chair_quiet"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_4")])
 
 [sub_resource type="Resource" id="Cam_4"]
@@ -102,7 +102,7 @@ line_spoken = "The chair will proceed by petitioned priority. No delegate will e
 [sub_resource type="Resource" id="Grp_5"]
 script = ExtResource("1_grp")
 id = "chair_rules"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_4"), SubResource("Dlg_5")])
 
 [sub_resource type="Resource" id="Dlg_6"]
@@ -113,7 +113,7 @@ line_spoken = "As a reminder, the matter before us is — the question of coordi
 [sub_resource type="Resource" id="Grp_6"]
 script = ExtResource("1_grp")
 id = "chair_matter"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_6")])
 
 [sub_resource type="Resource" id="Chr_4"]
@@ -130,7 +130,7 @@ line_spoken = "The chair recognises the Burgomaster of Wiederberg."
 [sub_resource type="Resource" id="Grp_7"]
 script = ExtResource("1_grp")
 id = "chair_recog_burg"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_4"), SubResource("Dlg_7")])
 
 [sub_resource type="Resource" id="Cam_5"]
@@ -152,7 +152,7 @@ line_spoken = "With gratitude to the chair."
 [sub_resource type="Resource" id="Grp_8"]
 script = ExtResource("1_grp")
 id = "burg_thanks"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_5"), SubResource("Chr_5"), SubResource("Dlg_8")])
 
 [sub_resource type="Resource" id="Dlg_9"]
@@ -163,7 +163,7 @@ line_spoken = "I must reiterate that the city of Wiederberg cannot entertain lev
 [sub_resource type="Resource" id="Grp_9"]
 script = ExtResource("1_grp")
 id = "burg_levy"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_9")])
 
 [sub_resource type="Resource" id="Dlg_10"]
@@ -174,7 +174,7 @@ line_spoken = "It would be fiscally unserious to demand extraordinary burdens fr
 [sub_resource type="Resource" id="Grp_10"]
 script = ExtResource("1_grp")
 id = "burg_credit"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_10")])
 
 [sub_resource type="Resource" id="Cam_6"]
@@ -190,7 +190,7 @@ line_spoken = "The point is entered."
 [sub_resource type="Resource" id="Grp_11"]
 script = ExtResource("1_grp")
 id = "chair_point"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_6"), SubResource("Dlg_11")])
 
 [sub_resource type="Resource" id="Chr_6"]
@@ -207,7 +207,7 @@ line_spoken = "The chair recognises the episcopal envoy of Mainz."
 [sub_resource type="Resource" id="Grp_12"]
 script = ExtResource("1_grp")
 id = "chair_recog_bishop"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_6"), SubResource("Dlg_12")])
 
 [sub_resource type="Resource" id="Cam_7"]
@@ -229,7 +229,7 @@ line_spoken = "H-he hail the Emperor."
 [sub_resource type="Resource" id="Grp_13"]
 script = ExtResource("1_grp")
 id = "bishop_1"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_7"), SubResource("Chr_7"), SubResource("Dlg_13")])
 
 [sub_resource type="Resource" id="Dlg_14"]
@@ -240,7 +240,7 @@ line_spoken = "B-Before any s-secular instrument is entertained, the— the cham
 [sub_resource type="Resource" id="Grp_14"]
 script = ExtResource("1_grp")
 id = "bishop_2"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_14")])
 
 [sub_resource type="Resource" id="Dlg_15"]
@@ -251,7 +251,7 @@ line_spoken = "Whether em-emergency transit, r-rrequisition, q-quartering across
 [sub_resource type="Resource" id="Grp_15"]
 script = ExtResource("1_grp")
 id = "bishop_3"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_15")])
 
 [sub_resource type="Resource" id="Dlg_16"]
@@ -262,7 +262,7 @@ line_spoken = "is... con-constitutes... temporary ne-ne-ne-necessity or actionab
 [sub_resource type="Resource" id="Grp_16"]
 script = ExtResource("1_grp")
 id = "bishop_4"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_16")])
 
 [sub_resource type="Resource" id="Cam_8"]
@@ -278,7 +278,7 @@ line_spoken = "Noted. The chair recognises the Duchess of Altenau."
 [sub_resource type="Resource" id="Grp_17"]
 script = ExtResource("1_grp")
 id = "chair_recog_duchess"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_8"), SubResource("Dlg_17")])
 
 [sub_resource type="Resource" id="Cam_9"]
@@ -299,7 +299,7 @@ line_spoken = "The Duchess blinks and looks about the chamber, caught unawares."
 [sub_resource type="Resource" id="Grp_18"]
 script = ExtResource("1_grp")
 id = "duchess_blink"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_9"), SubResource("Chr_8"), SubResource("Dlg_18")])
 
 [sub_resource type="Resource" id="Cam_10"]
@@ -315,7 +315,7 @@ line_spoken = "... Duchess of Altenau."
 [sub_resource type="Resource" id="Grp_19"]
 script = ExtResource("1_grp")
 id = "chair_prompt_duchess"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_10"), SubResource("Dlg_19")])
 
 [sub_resource type="Resource" id="Cam_11"]
@@ -337,7 +337,7 @@ line_spoken = "Oh? Oh, yes. Ahem."
 [sub_resource type="Resource" id="Grp_20"]
 script = ExtResource("1_grp")
 id = "duchess_oh"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_11"), SubResource("Chr_9"), SubResource("Dlg_20")])
 
 [sub_resource type="Resource" id="Dlg_21"]
@@ -347,7 +347,7 @@ line_spoken = "She raises a paper and reads it off, quickly."
 [sub_resource type="Resource" id="Grp_21"]
 script = ExtResource("1_grp")
 id = "duchess_paper1"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_21")])
 
 [sub_resource type="Resource" id="Dlg_22"]
@@ -358,7 +358,7 @@ line_spoken = "The marches will not be maneuvered into unilateral exposure by rh
 [sub_resource type="Resource" id="Grp_22"]
 script = ExtResource("1_grp")
 id = "duchess_read1"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_22")])
 
 [sub_resource type="Resource" id="Dlg_23"]
@@ -369,7 +369,7 @@ line_spoken = "We are asked, in effect, to ratify liability before competence ha
 [sub_resource type="Resource" id="Grp_23"]
 script = ExtResource("1_grp")
 id = "duchess_read2"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_23")])
 
 [sub_resource type="Resource" id="Cam_12"]
@@ -385,7 +385,7 @@ line_spoken = "... the objection stands recorded. The chair recognises the merch
 [sub_resource type="Resource" id="Grp_24"]
 script = ExtResource("1_grp")
 id = "chair_recog_merchant"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_12"), SubResource("Dlg_24")])
 
 [sub_resource type="Resource" id="Cam_13"]
@@ -407,7 +407,7 @@ line_spoken = "Panic is a disaster, frankly. A total disaster."
 [sub_resource type="Resource" id="Grp_25"]
 script = ExtResource("1_grp")
 id = "merch_1"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_13"), SubResource("Chr_10"), SubResource("Dlg_25")])
 
 [sub_resource type="Resource" id="Dlg_26"]
@@ -418,7 +418,7 @@ line_spoken = "You talk about collapse — and many people are saying it — and
 [sub_resource type="Resource" id="Grp_26"]
 script = ExtResource("1_grp")
 id = "merch_2"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_26")])
 
 [sub_resource type="Resource" id="Dlg_27"]
@@ -429,7 +429,7 @@ line_spoken = "We're creating the shortage ourselves, okay? So no emergency talk
 [sub_resource type="Resource" id="Grp_27"]
 script = ExtResource("1_grp")
 id = "merch_3"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_27")])
 
 [sub_resource type="Resource" id="Cam_14"]
@@ -445,7 +445,7 @@ line_spoken = "Very prudent. The chair reminds the assembly that speculative ala
 [sub_resource type="Resource" id="Grp_28"]
 script = ExtResource("1_grp")
 id = "chair_prudent"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_14"), SubResource("Dlg_28")])
 
 [sub_resource type="Resource" id="Dlg_29"]
@@ -456,7 +456,7 @@ line_spoken = "There remains a petition from the legal bench. Master Fredrich Fe
 [sub_resource type="Resource" id="Grp_29"]
 script = ExtResource("1_grp")
 id = "chair_petition"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_29")])
 
 [sub_resource type="Resource" id="Cam_15"]
@@ -472,7 +472,7 @@ line_spoken = "You have petitioned the floor three times. You now possess it."
 [sub_resource type="Resource" id="Grp_30"]
 script = ExtResource("1_grp")
 id = "chair_three"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_15"), SubResource("Dlg_30")])
 
 [sub_resource type="Resource" id="Cam_16"]
@@ -488,7 +488,7 @@ line_spoken = "Well, uhm."
 [sub_resource type="Resource" id="Grp_31"]
 script = ExtResource("1_grp")
 id = "feustel_uhm"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_16"), SubResource("Dlg_31")])
 
 [sub_resource type="Resource" id="Cam_17"]
@@ -504,7 +504,7 @@ line_spoken = "The chair recognises Master Fredrich Feustel of the legal bench."
 [sub_resource type="Resource" id="Grp_32"]
 script = ExtResource("1_grp")
 id = "chair_recog_feustel"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_17"), SubResource("Dlg_32")])
 
 [sub_resource type="Resource" id="Cam_18"]
@@ -526,7 +526,7 @@ line_spoken = "Honourable Chairman."
 [sub_resource type="Resource" id="Grp_33"]
 script = ExtResource("1_grp")
 id = "feustel_rise"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_18"), SubResource("Chr_11"), SubResource("Dlg_33")])
 
 [sub_resource type="Resource" id="Dlg_34"]
@@ -537,7 +537,7 @@ line_spoken = "Ladies and gentlemen of the chamber, I thank you for the floor."
 [sub_resource type="Resource" id="Grp_34"]
 script = ExtResource("1_grp")
 id = "feustel_thanks"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_34")])
 
 [sub_resource type="Resource" id="Dlg_35"]
@@ -548,7 +548,7 @@ line_spoken = "I shall be brief."
 [sub_resource type="Resource" id="Grp_35"]
 script = ExtResource("1_grp")
 id = "feustel_brief"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_35")])
 
 [sub_resource type="Resource" id="Dlg_36"]
@@ -558,7 +558,7 @@ line_spoken = "Above the floor the great map brightens — the left bank of the 
 [sub_resource type="Resource" id="Grp_36"]
 script = ExtResource("1_grp")
 id = "map_occupied"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_36")])
 
 [sub_resource type="Resource" id="Dlg_37"]
@@ -569,7 +569,7 @@ line_spoken = "The west bank has been occupied; the Frankish administration does
 [sub_resource type="Resource" id="Grp_37"]
 script = ExtResource("1_grp")
 id = "feustel_system"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_37")])
 
 [sub_resource type="Resource" id="Dlg_38"]
@@ -580,7 +580,7 @@ line_spoken = "Duke Van der Wiele, despite his valiant efforts, has had his esta
 [sub_resource type="Resource" id="Grp_38"]
 script = ExtResource("1_grp")
 id = "feustel_duke"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_38")])
 
 [sub_resource type="Resource" id="Dlg_39"]
@@ -590,7 +590,7 @@ line_spoken = "A few delegates murmur assent. One or two nod."
 [sub_resource type="Resource" id="Grp_39"]
 script = ExtResource("1_grp")
 id = "murmur_assent"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_39")])
 
 [sub_resource type="Resource" id="Dlg_40"]
@@ -601,7 +601,7 @@ line_spoken = "No one here, I believe, mistakes the danger."
 [sub_resource type="Resource" id="Grp_40"]
 script = ExtResource("1_grp")
 id = "feustel_danger"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_40")])
 
 [sub_resource type="Resource" id="Dlg_41"]
@@ -612,7 +612,7 @@ line_spoken = "No one here doubts what is at stake if the Franks pressed further
 [sub_resource type="Resource" id="Grp_41"]
 script = ExtResource("1_grp")
 id = "feustel_stake"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_41")])
 
 [sub_resource type="Resource" id="Dlg_42"]
@@ -623,7 +623,7 @@ line_spoken = "And no one here, certainly, wishes to see the Heiliger Mittlereic
 [sub_resource type="Resource" id="Grp_42"]
 script = ExtResource("1_grp")
 id = "feustel_jackboots"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_42")])
 
 [sub_resource type="Resource" id="Dlg_43"]
@@ -633,7 +633,7 @@ line_spoken = "The crowd murmurs in approval."
 [sub_resource type="Resource" id="Grp_43"]
 script = ExtResource("1_grp")
 id = "crowd_approve"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_43")])
 
 [sub_resource type="Resource" id="Dlg_44"]
@@ -644,7 +644,7 @@ line_spoken = "For that very reason, I beg leave to speak not of our intentions 
 [sub_resource type="Resource" id="Grp_44"]
 script = ExtResource("1_grp")
 id = "feustel_manner"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_44")])
 
 [sub_resource type="Resource" id="Dlg_45"]
@@ -654,7 +654,7 @@ line_spoken = "A small pause. The room stills a little."
 [sub_resource type="Resource" id="Grp_45"]
 script = ExtResource("1_grp")
 id = "room_stills"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_45")])
 
 [sub_resource type="Resource" id="Dlg_46"]
@@ -665,7 +665,7 @@ line_spoken = "We have heard so much this morning of... indemnities, exemptions,
 [sub_resource type="Resource" id="Grp_46"]
 script = ExtResource("1_grp")
 id = "feustel_heard"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_46")])
 
 [sub_resource type="Resource" id="Chr_12"]
@@ -682,7 +682,7 @@ line_spoken = "All necessary things, no doubt. All respectable things. And yet�
 [sub_resource type="Resource" id="Grp_47"]
 script = ExtResource("1_grp")
 id = "feustel_necessary"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_12"), SubResource("Dlg_47")])
 
 [sub_resource type="Resource" id="Chr_13"]
@@ -698,7 +698,7 @@ line_spoken = "Feustel glances at the map."
 [sub_resource type="Resource" id="Grp_48"]
 script = ExtResource("1_grp")
 id = "feustel_glance"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_13"), SubResource("Dlg_48")])
 
 [sub_resource type="Resource" id="Dlg_49"]
@@ -709,7 +709,7 @@ line_spoken = "—while you count votes, he counts guns."
 [sub_resource type="Resource" id="Grp_49"]
 script = ExtResource("1_grp")
 id = "feustel_guns"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_49")])
 
 [sub_resource type="Resource" id="Cam_19"]
@@ -724,7 +724,7 @@ line_spoken = "The view pulls back across the whole podium, and holds there for 
 [sub_resource type="Resource" id="Grp_50"]
 script = ExtResource("1_grp")
 id = "overhaul_shot"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_19"), SubResource("Dlg_50")])
 
 [sub_resource type="Resource" id="Cam_20"]
@@ -740,7 +740,7 @@ line_spoken = "What I mean... is that... Procedure... is not defence."
 [sub_resource type="Resource" id="Grp_51"]
 script = ExtResource("1_grp")
 id = "feustel_procedure"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_20"), SubResource("Dlg_51")])
 
 [sub_resource type="Resource" id="Cam_21"]
@@ -757,7 +757,7 @@ line_spoken = "What is that supposed to mean?"
 [sub_resource type="Resource" id="Grp_52"]
 script = ExtResource("1_grp")
 id = "delegate_what"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_21"), SubResource("Dlg_52")])
 
 [sub_resource type="Resource" id="Dlg_53"]
@@ -768,7 +768,7 @@ line_spoken = "It means, if we here insist first on the perfect wording, then we
 [sub_resource type="Resource" id="Grp_53"]
 script = ExtResource("1_grp")
 id = "feustel_wording"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_53")])
 
 [sub_resource type="Resource" id="Chr_14"]
@@ -790,7 +790,7 @@ line_spoken = "Feustel flushes. The Delegate turns away from him, lifting a hand
 [sub_resource type="Resource" id="Grp_54"]
 script = ExtResource("1_grp")
 id = "feustel_flush"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_14"), SubResource("Chr_15"), SubResource("Dlg_54")])
 
 [sub_resource type="Resource" id="Cam_22"]
@@ -806,7 +806,7 @@ line_spoken = "Listen. We can talk all day about fairness, caution — such admi
 [sub_resource type="Resource" id="Grp_55"]
 script = ExtResource("1_grp")
 id = "feustel_govern"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_22"), SubResource("Dlg_55")])
 
 [sub_resource type="Resource" id="Cam_23"]
@@ -821,7 +821,7 @@ line_spoken = "Murmurs now. Not assent. Discomfort."
 [sub_resource type="Resource" id="Grp_56"]
 script = ExtResource("1_grp")
 id = "chamber_discomfort"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_23"), SubResource("Dlg_56")])
 
 [sub_resource type="Resource" id="Cam_24"]
@@ -837,7 +837,7 @@ line_spoken = "Master Fredrich Feustel will confine himself to the question."
 [sub_resource type="Resource" id="Grp_57"]
 script = ExtResource("1_grp")
 id = "chair_confine"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_24"), SubResource("Dlg_57")])
 
 [sub_resource type="Resource" id="Cam_25"]
@@ -854,7 +854,7 @@ line_spoken = "And what does that make you, huh? You are just as bad as the Empe
 [sub_resource type="Resource" id="Grp_58"]
 script = ExtResource("1_grp")
 id = "delegate_emperor"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_25"), SubResource("Dlg_58")])
 
 [sub_resource type="Resource" id="Cam_26"]
@@ -871,7 +871,7 @@ line_spoken = "I am at the question, Excellency."
 [sub_resource type="Resource" id="Grp_59"]
 script = ExtResource("1_grp")
 id = "feustel_atquestion"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_26"), SubResource("Dlg_59")])
 
 [sub_resource type="Resource" id="Dlg_60"]
@@ -882,7 +882,7 @@ line_spoken = "The question is whether this chamber means to answer force with a
 [sub_resource type="Resource" id="Grp_60"]
 script = ExtResource("1_grp")
 id = "feustel_committee"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_60")])
 
 [sub_resource type="Resource" id="Dlg_61"]
@@ -894,7 +894,7 @@ The chair must discipline this."
 [sub_resource type="Resource" id="Grp_61"]
 script = ExtResource("1_grp")
 id = "ambient_outraged"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_61")])
 
 [sub_resource type="Resource" id="Cam_27"]
@@ -910,7 +910,7 @@ line_spoken = "Every man to defend the fatherland, provided first his jurisdicti
 [sub_resource type="Resource" id="Grp_62"]
 script = ExtResource("1_grp")
 id = "feustel_provided"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_27"), SubResource("Dlg_62")])
 
 [sub_resource type="Resource" id="Cam_28"]
@@ -925,7 +925,7 @@ line_spoken = "The room breaks. Shouts from different tiers. Several sigils flar
 [sub_resource type="Resource" id="Grp_63"]
 script = ExtResource("1_grp")
 id = "room_breaks"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_28"), SubResource("Dlg_63")])
 
 [sub_resource type="Resource" id="Dlg_64"]
@@ -937,7 +937,7 @@ Take that back!"
 [sub_resource type="Resource" id="Grp_64"]
 script = ExtResource("1_grp")
 id = "ambient_shame"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_64")])
 
 [sub_resource type="Resource" id="Cam_29"]
@@ -953,7 +953,7 @@ line_spoken = "Master Fredrich Feustel—"
 [sub_resource type="Resource" id="Grp_65"]
 script = ExtResource("1_grp")
 id = "chair_warn"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_29"), SubResource("Dlg_65")])
 
 [sub_resource type="Resource" id="Cam_30"]
@@ -974,7 +974,7 @@ line_spoken = "Feustel hurls his papers into the air. Others do the same."
 [sub_resource type="Resource" id="Grp_66"]
 script = ExtResource("1_grp")
 id = "feustel_throw"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_30"), SubResource("Chr_16"), SubResource("Dlg_66")])
 
 [sub_resource type="Resource" id="Dlg_67"]
@@ -985,7 +985,7 @@ line_spoken = "Lick my ass."
 [sub_resource type="Resource" id="Grp_67"]
 script = ExtResource("1_grp")
 id = "feustel_curse"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_67")])
 
 [sub_resource type="Resource" id="Dlg_68"]
@@ -995,7 +995,7 @@ line_spoken = "A ring of sigils flashes."
 [sub_resource type="Resource" id="Grp_68"]
 script = ExtResource("1_grp")
 id = "sigils_flash"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_68")])
 
 [sub_resource type="Resource" id="Dlg_69"]
@@ -1006,7 +1006,7 @@ line_spoken = "MUTE VOTE PASSED"
 [sub_resource type="Resource" id="Grp_69"]
 script = ExtResource("1_grp")
 id = "mute_vote"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_69")])
 
 [sub_resource type="Resource" id="Dlg_70"]
@@ -1019,7 +1019,7 @@ Off the floor!"
 [sub_resource type="Resource" id="Grp_70"]
 script = ExtResource("1_grp")
 id = "ambient_censure"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_70")])
 
 [sub_resource type="Resource" id="Chr_17"]
@@ -1046,7 +1046,7 @@ line_spoken = "Dispatch from the western roads!"
 [sub_resource type="Resource" id="Grp_71"]
 script = ExtResource("1_grp")
 id = "courier_enter"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Chr_17"), SubResource("Chr_18"), SubResource("Cam_31"), SubResource("Dlg_71")])
 
 [sub_resource type="Resource" id="Dlg_72"]
@@ -1056,7 +1056,7 @@ line_spoken = "He is mud-streaked, half-blooded, a cracked tube under one arm. H
 [sub_resource type="Resource" id="Grp_72"]
 script = ExtResource("1_grp")
 id = "courier_desc"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_72")])
 
 [sub_resource type="Resource" id="Dlg_73"]
@@ -1067,7 +1067,7 @@ line_spoken = "The line is broken at dawn. Two crossings lost. Refugees at the l
 [sub_resource type="Resource" id="Grp_73"]
 script = ExtResource("1_grp")
 id = "courier_report"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_73")])
 
 [sub_resource type="Resource" id="Cam_32"]
@@ -1089,7 +1089,7 @@ line_spoken = "Above the chamber, the great map flares. One city-sigil goes dark
 [sub_resource type="Resource" id="Grp_74"]
 script = ExtResource("1_grp")
 id = "map_flares"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_32"), SubResource("Scn_2"), SubResource("Dlg_74")])
 
 [sub_resource type="Resource" id="Dlg_75"]
@@ -1104,7 +1104,7 @@ Order — order —"
 [sub_resource type="Resource" id="Grp_75"]
 script = ExtResource("1_grp")
 id = "ambient_chaos"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Dlg_75")])
 
 [sub_resource type="Resource" id="Cam_33"]
@@ -1120,7 +1120,7 @@ line_spoken = "The chair has not recognized— the chair has not recognized—"
 [sub_resource type="Resource" id="Grp_76"]
 script = ExtResource("1_grp")
 id = "chair_lost"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_33"), SubResource("Dlg_76")])
 
 [sub_resource type="Resource" id="Cam_34"]
@@ -1140,7 +1140,7 @@ line_spoken = "Nobody is listening now. Feustel stands mute, pulse hammering, st
 [sub_resource type="Resource" id="Grp_77"]
 script = ExtResource("1_grp")
 id = "feustel_mute"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_34"), SubResource("Chr_19"), SubResource("Dlg_77")])
 
 [sub_resource type="Resource" id="Cam_35"]
@@ -1162,7 +1162,7 @@ line_spoken = "Gretchen-Rachelle is already looking at him. Not warmly. Not kind
 [sub_resource type="Resource" id="Grp_78"]
 script = ExtResource("1_grp")
 id = "gretchen_gaze"
-auto_gate = true
+gated_group = true
 children = Array[Resource]([SubResource("Cam_35"), SubResource("Chr_20"), SubResource("Dlg_78")])
 
 [resource]
