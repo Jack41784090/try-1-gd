@@ -1,16 +1,15 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://cg4cx7axe2x63"]
 
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/page.gd" id="1_page"]
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/page_presenter.gd" id="2_presenter"]
-[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/tactics_tab.tscn" id="3_tactics"]
-[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/units_tab.tscn" id="4_units"]
+[ext_resource type="Script" uid="uid://bfk05awfn48co" path="res://src/strategy/ui/manage_squad/page.gd" id="1_page"]
+[ext_resource type="Script" uid="uid://tha0hmys0dpd" path="res://src/strategy/ui/manage_squad/page_presenter.gd" id="2_presenter"]
+[ext_resource type="PackedScene" uid="uid://jqj7786he7rg" path="res://scenes/ui/manage_squad/tactics_tab.tscn" id="3_tactics"]
+[ext_resource type="PackedScene" uid="uid://ci3mwytplg34m" path="res://scenes/ui/manage_squad/units_tab.tscn" id="4_units"]
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/formation_tab.tscn" id="5_formation"]
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/recruitment_tab.tscn" id="6_recruitment"]
-[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/inventory_tab.tscn" id="7_inventory"]
+[ext_resource type="PackedScene" uid="uid://dsmu7hiqtycgd" path="res://scenes/ui/manage_squad/inventory_tab.tscn" id="7_inventory"]
 
-[node name="ManageSquadPage" type="Control"]
-visible = false
-layout_mode = 1
+[node name="ManageSquadPage" type="Control" unique_id=1683401513]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,7 +18,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_page")
 
-[node name="OverlayPanel" type="PanelContainer" parent="."]
+[node name="OverlayPanel" type="PanelContainer" parent="." unique_id=2088013850]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,78 +31,76 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"OverlayPanel"
 
-[node name="MainMargin" type="MarginContainer" parent="OverlayPanel"]
+[node name="MainMargin" type="MarginContainer" parent="OverlayPanel" unique_id=1856911663]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="MainVBox" type="VBoxContainer" parent="OverlayPanel/MainMargin"]
+[node name="MainVBox" type="VBoxContainer" parent="OverlayPanel/MainMargin" unique_id=1553273301]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="NavBar" type="HBoxContainer" parent="OverlayPanel/MainMargin/MainVBox"]
+[node name="NavBar" type="HBoxContainer" parent="OverlayPanel/MainMargin/MainVBox" unique_id=1031143222]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TacticsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="TacticsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=344226640]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 text = "Tactics"
 
-[node name="UnitsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="UnitsBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=799691998]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 text = "Units"
 
-[node name="FormationBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="FormationBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=1010539249]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 text = "Formation"
 
-[node name="RecruitmentBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="RecruitmentBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=1385677164]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 text = "Recruitment"
 
-[node name="InventoryBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="InventoryBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=63007993]
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 text = "Inventory"
 
-[node name="Spacer" type="Control" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="Spacer" type="Control" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=314245862]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CloseBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar"]
+[node name="CloseBtn" type="Button" parent="OverlayPanel/MainMargin/MainVBox/NavBar" unique_id=1184058614]
 custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 theme_type_variation = &"CloseButton"
 text = "Close"
 
-[node name="TabContainer" type="Control" parent="OverlayPanel/MainMargin/MainVBox"]
+[node name="TabContainer" type="Control" parent="OverlayPanel/MainMargin/MainVBox" unique_id=822517043]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TacticsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("3_tactics")]
+[node name="TacticsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=1365159145 instance=ExtResource("3_tactics")]
 visible = false
 layout_mode = 1
 
-[node name="UnitsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("4_units")]
+[node name="UnitsTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=1090125423 instance=ExtResource("4_units")]
 layout_mode = 1
 
-[node name="FormationTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("5_formation")]
+[node name="FormationTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=418850969 instance=ExtResource("5_formation")]
+visible = false
+
+[node name="RecruitmentTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=490301776 instance=ExtResource("6_recruitment")]
+visible = false
+
+[node name="InventoryTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=1131045202 instance=ExtResource("7_inventory")]
 visible = false
 layout_mode = 1
 
-[node name="RecruitmentTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("6_recruitment")]
-visible = false
-layout_mode = 1
-
-[node name="InventoryTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" instance=ExtResource("7_inventory")]
-visible = false
-layout_mode = 1
-
-[node name="ManageSquadPagePresenter" type="Node" parent="."]
+[node name="ManageSquadPagePresenter" type="Node" parent="." unique_id=1862225200]
 script = ExtResource("2_presenter")

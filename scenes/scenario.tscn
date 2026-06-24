@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://ce6jeotpmddmk" path="res://assets/hoi4_icons/strenght_texticon.png" id="8_vmu77"]
 [ext_resource type="Texture2D" uid="uid://by5hoqack8b3u" path="res://assets/hoi4_icons/supply_texticon.png" id="9_jx64g"]
 [ext_resource type="Texture2D" uid="uid://c33n06r2jw8jc" path="res://assets/hoi4_icons/counter_intelligence.png" id="10_lcnp7"]
-[ext_resource type="PackedScene" path="res://scenes/ui/cutscene_player.tscn" id="13_player"]
+[ext_resource type="PackedScene" uid="uid://dc4vr7rcp61wh" path="res://scenes/ui/cutscene_player.tscn" id="13_player"]
 [ext_resource type="Script" uid="uid://dh62hg4ob21a" path="res://src/strategy/ui/actor/runner.gd" id="17_jx64g"]
 [ext_resource type="Script" uid="uid://lkh2hy2dawgq" path="res://src/strategy/ai/squad_manager.gd" id="18_fleet"]
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
@@ -59,12 +59,14 @@ theme_type_variation = &"GamePanel"
 script = ExtResource("3_vmu77")
 
 [node name="MainBackground" type="TextureRect" parent="PanelContainer" unique_id=151719508]
+visible = false
 layout_mode = 2
 texture = ExtResource("2_cfiyq")
 expand_mode = 2
 stretch_mode = 6
 
 [node name="Foreground" type="TextureRect" parent="PanelContainer" unique_id=818456841]
+visible = false
 modulate = Color(1, 1, 1, 0.7)
 layout_mode = 2
 texture = ExtResource("3_wm03m")

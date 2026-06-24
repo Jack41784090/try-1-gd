@@ -1,9 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://jqj7786he7rg"]
 
-[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/tactics_tab.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dpt54hwunjqqj" path="res://src/strategy/ui/manage_squad/tactics_tab.gd" id="1_script"]
 
-[node name="TacticsTab" type="Control"]
-layout_mode = 1
+[node name="TacticsTab" type="Control" unique_id=459178784]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1387997603]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,7 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CardsContainer" type="VBoxContainer" parent="ScrollContainer"]
+[node name="CardsContainer" type="VBoxContainer" parent="ScrollContainer" unique_id=440304952]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

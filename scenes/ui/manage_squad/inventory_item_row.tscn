@@ -1,18 +1,20 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ew3dbrshgeo0"]
 
-[node name="InventoryItemRow" type="HBoxContainer"]
+[node name="InventoryItemRow" type="HBoxContainer" unique_id=1143585036]
 theme_override_constants/separation = 8
 
-[node name="TypeLabel" type="Label" parent="."]
+[node name="TypeLabel" type="Label" parent="." unique_id=1421958328]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 theme_type_variation = &"MetaLabel"
+text = "TYPE"
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=465593804]
 layout_mode = 2
 size_flags_horizontal = 3
+text = "NAME"
 
-[node name="SelectButton" type="Button" parent="."]
+[node name="SelectButton" type="Button" parent="." unique_id=1341566670]
 custom_minimum_size = Vector2(70, 28)
 layout_mode = 2
 theme_type_variation = &"SmallButton"

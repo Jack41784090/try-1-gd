@@ -1,5 +1,5 @@
-class_name InventoryTab
-extends Control
+@tool
+class_name InventoryTab extends Control
 
 signal equip_weapon_requested(warrior: Warrior, weapon: WeaponConfig)
 signal equip_armor_requested(warrior: Warrior, armor: ArmorConfig)
@@ -8,15 +8,46 @@ signal unequip_armor_requested(warrior: Warrior)
 
 const ITEM_ROW_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_row.tscn")
 const WARRIOR_CARD_SCENE = preload("res://scenes/ui/manage_squad/warrior_equipment_card.tscn")
+const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
+const INVENTORY_CAPACITY := 60
+const WARRIOR_CAPACTIY := 10
+
+@export var preview_in_editor: bool = false:
+	set(v):
+		preview_in_editor = v
+		if Engine.is_editor_hint() and is_node_ready():
+			if preview_in_editor:
+				_rebuild_slots()
+			else:
+				_clear_all_slots()
+		else:
+			push_warning("preview_in_editor can only be set in the editor.")
 
 @onready var _title_label: Label = $MainHBox/WarriorsPanel/VBox/TitleLabel
-@onready var _inventory_container: VBoxContainer = $MainHBox/InventoryPanel/VBox/InventoryScroll/InventoryContainer
+@onready var _inventory_container: GridContainer = $MainHBox/InventoryPanel/VBox/InventoryScroll/InventoryContainer
 @onready var _warriors_container: VBoxContainer = $MainHBox/WarriorsPanel/VBox/WarriorsScroll/WarriorsContainer
 @onready var _empty_label: Label = $MainHBox/InventoryPanel/VBox/EmptyLabel
 
 var _current_squad: SquadData
 var _selected_weapon: WeaponConfig
 var _selected_armor: ArmorConfig
+
+func _clear_all_slots() -> void:
+	for c in _inventory_container.get_children():
+		c.queue_free()
+	for c in _warriors_container.get_children():
+		c.queue_free()
+
+func _rebuild_slots() -> void:
+	_clear_all_slots()
+	for i in WARRIOR_CAPACTIY:
+		_warriors_container.add_child(WARRIOR_CARD_SCENE.instantiate())
+	for i in INVENTORY_CAPACITY:
+		_inventory_container.add_child(GRID_ITEM_SCENE.instantiate())
+
+
+func _ready() -> void:
+	_rebuild_slots()
 
 
 func refresh(squad: SquadData) -> void:
@@ -28,23 +59,8 @@ func refresh(squad: SquadData) -> void:
 
 
 func _refresh_inventory() -> void:
-	for child in _inventory_container.get_children():
-		child.queue_free()
-
 	var inv = _current_squad.inventory
 	_empty_label.visible = inv.is_empty()
-
-	for weapon in inv.weapons:
-		var row := _create_item_row(weapon.weapon_name, "Weapon", Color(0.7, 0.85, 1.0))
-		var select_btn := row.get_meta("select_btn") as Button
-		select_btn.pressed.connect(_on_weapon_selected.bind(weapon, select_btn))
-		_inventory_container.add_child(row)
-
-	for armor in inv.armors:
-		var row := _create_item_row(armor.armor_name, "Armor", Color(0.85, 0.75, 0.55))
-		var select_btn := row.get_meta("select_btn") as Button
-		select_btn.pressed.connect(_on_armor_selected.bind(armor, select_btn))
-		_inventory_container.add_child(row)
 
 
 func _refresh_warriors() -> void:

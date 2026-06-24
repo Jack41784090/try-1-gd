@@ -3,9 +3,11 @@
 /android/
 temp
 assets/hoi4_icons
+assets/Weapon Sprites
 .obsidian
 addons
 log
+*.zip
 
 # Python cache
 tools/__pycache__/
