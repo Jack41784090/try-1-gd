@@ -10,10 +10,10 @@ static func collect_equipment_loot(enemy_squad: SquadData, enemy_casualties: Arr
 			continue
 		if warrior.equipment_weapon != null:
 			looted_weapons.append(warrior.equipment_weapon.duplicate(true))
-			Log.debug("LootCollector", "Looted weapon '%s' from %s" % [warrior.equipment_weapon.weapon_name, warrior.name])
+			Log.debug("LootCollector", "Looted weapon '%s' from %s" % [SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class], warrior.name])
 		if warrior.equipment_armor != null:
 			looted_armors.append(warrior.equipment_armor.duplicate(true))
-			Log.debug("LootCollector", "Looted armor '%s' from %s" % [warrior.equipment_armor.armor_name, warrior.name])
+			Log.debug("LootCollector", "Looted armor '%s' from %s" % [SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class], warrior.name])
 
 	return {
 		"weapons": looted_weapons,

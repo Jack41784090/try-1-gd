@@ -117,6 +117,6 @@ func _print_squad_positions(battle: SquadBattle, side: SquadBattleTypes.Side, la
 			var magical_tag = " [magical]" if entity.weapon and entity.weapon.is_magical else ""
 			print("    %s [%s] HP:%.0f/%.0f ORG:%.1f Weapon:%s%s" % [
 				entity.entity_name, loc_name, hp, hp_max, org,
-				entity.weapon.weapon_name if entity.weapon else "None",
+				SquadBattleTypes.WeaponClasses.keys()[entity.weapon.weapon_class] if entity.weapon else "None",
 				magical_tag
 			])

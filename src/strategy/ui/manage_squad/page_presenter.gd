@@ -85,25 +85,25 @@ func on_recruit(background: WarriorBackground) -> void:
 
 func on_equip_weapon(warrior: Warrior, weapon: WeaponConfig) -> void:
 	squad.inventory.equip_weapon(warrior, weapon)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, weapon.weapon_name])
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
 	_refresh_tab()
 
 
 func on_equip_armor(warrior: Warrior, armor: ArmorConfig) -> void:
 	squad.inventory.equip_armor(warrior, armor)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, armor.armor_name])
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
 	_refresh_tab()
 
 
 func on_unequip_weapon(warrior: Warrior) -> void:
-	var weapon_name := warrior.equipment_weapon.weapon_name if warrior.equipment_weapon else "nothing"
+	var weapon_name := SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class] if warrior.equipment_weapon else "nothing"
 	squad.inventory.unequip_weapon(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.name])
 	_refresh_tab()
 
 
 func on_unequip_armor(warrior: Warrior) -> void:
-	var armor_name := warrior.equipment_armor.armor_name if warrior.equipment_armor else "nothing"
+	var armor_name := SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class] if warrior.equipment_armor else "nothing"
 	squad.inventory.unequip_armor(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.name])
 	_refresh_tab()

@@ -75,8 +75,8 @@ func _to_string() -> String:
 	var mag = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.MAG)
 	var loc = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
 	
-	var weapon_str = weapon.weapon_name if weapon else "NULL"
-	var armor_str = armor.armor_name if armor else "NULL"
+	var weapon_str = SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class] if weapon else "NULL"
+	var armor_str = SquadBattleTypes.ArmorClasses.keys()[armor.armor_class] if armor else "NULL"
 	var icon_str = icon.resource_path if icon else "NULL"
 	
 	var skills_str = ""

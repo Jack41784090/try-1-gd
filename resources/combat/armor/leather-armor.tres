@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://cya1ph2rx5aff"
 
 [resource]
 script = ExtResource("2_armor_cfg")
-armor_name = "Leather Armor"
+armor_class = 1
 defense_bonus = 2.0
 armor_bonus = 5.0
 protection_translation = Array[ExtResource("1_prot_tsl")]([SubResource("Resource_leather_tsl")])

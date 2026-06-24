@@ -1,6 +1,6 @@
 class_name SquadWeapon extends RefCounted
 
-var weapon_name: String = "Unarmed"
+var weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
 var hit_bonus: float
 var penetration_bonus: float
 var is_magical: bool = false
@@ -9,7 +9,7 @@ var weapon_location_map: Array[WeaponLocation] = []
 
 func _init(config: WeaponConfig):
 	assert(config != null, "WeaponConfig cannot be null")
-	weapon_name = config.weapon_name
+	weapon_class = config.weapon_class
 	hit_bonus = config.hit_bonus
 	penetration_bonus = config.penetration_bonus
 	is_magical = config.is_magical

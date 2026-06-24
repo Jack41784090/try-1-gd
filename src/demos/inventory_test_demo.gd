@@ -49,14 +49,14 @@ func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> Warri
 		class_id, warrior_name.to_lower(), warrior_name,
 		StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
 
-func _make_weapon(weapon_name: String) -> WeaponConfig:
+func _make_weapon(wc: SquadBattleTypes.WeaponClasses) -> WeaponConfig:
 	var w := WeaponConfig.new()
-	w.weapon_name = weapon_name
+	w.weapon_class = wc
 	return w
 
-func _make_armor(armor_name: String) -> ArmorConfig:
+func _make_armor(ac: SquadBattleTypes.ArmorClasses) -> ArmorConfig:
 	var a := ArmorConfig.new()
-	a.armor_name = armor_name
+	a.armor_class = ac
 	return a
 
 #endregion
@@ -189,7 +189,7 @@ func _test_default_equipment_assignment() -> void:
 	var lk := _make_warrior(EntityClasses.Types.Landsknecht, "TestLK")
 	_check(lk.equipment_weapon != null, "Landsknecht gets weapon")
 	_check(lk.equipment_armor != null, "Landsknecht gets armor")
-	_check(lk.equipment_weapon.weapon_name != "", "Landsknecht weapon has name")
+	_check(lk.equipment_weapon.weapon_class != SquadBattleTypes.WeaponClasses.Unarmed, "Landsknecht weapon is not Unarmed")
 
 	var healer := _make_warrior(EntityClasses.Types.Healer, "TestHealer")
 	_check(healer.equipment_weapon == null, "Healer has no weapon")
@@ -222,7 +222,7 @@ func _test_loot_collector_dead_enemies() -> void:
 	var loot_armors: Array = loot.get("armors", [])
 	_check(loot_weapons.size() == 1, "looted 1 weapon from dead Landsknecht")
 	_check(loot_armors.size() == 1, "looted 1 armor from dead Landsknecht")
-	_check(loot_weapons[0].weapon_name == dead_warrior.equipment_weapon.weapon_name, "looted weapon matches source")
+	_check(loot_weapons[0].weapon_class == dead_warrior.equipment_weapon.weapon_class, "looted weapon matches source")
 
 
 func _test_loot_collector_skips_alive() -> void:
@@ -245,8 +245,8 @@ func _test_loot_collector_apply() -> void:
 	_print("")
 	_print("--- LootCollector: apply loot to inventory ---")
 	var inv = SquadInventory.new()
-	var sword := _make_weapon("Looted Sword")
-	var plate := _make_armor("Looted Plate")
+	var sword := _make_weapon(SquadBattleTypes.WeaponClasses.Flammenschwert)
+	var plate := _make_armor(SquadBattleTypes.ArmorClasses.LeatherArmor)
 	var loot := {
 		"weapons": [sword],
 		"armors": [plate],
@@ -270,6 +270,6 @@ func _test_loot_collector_duplicates_items() -> void:
 	var loot_weapons: Array = loot.get("weapons", [])
 	_check(loot_weapons.size() == 1, "looted 1 weapon from dead Pikeman")
 	_check(loot_weapons[0] != original_weapon, "looted weapon is a duplicate (different reference)")
-	_check(loot_weapons[0].weapon_name == original_weapon.weapon_name, "duplicate has same name")
+	_check(loot_weapons[0].weapon_class == original_weapon.weapon_class, "duplicate has same class")
 
 #endregion

@@ -4,7 +4,7 @@
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/iron.tres" id="2_t288n"]
 [ext_resource type="Resource" path="res://resources/scenarios/goetz-official/goods/wood.tres" id="3_0x5pb"]
 [ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="4_3sgpq"]
-[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/flammenschwert.tres" id="5_sword"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="5_sword"]
 
 [sub_resource type="Resource" id="input_iron"]
 script = ExtResource("1_bhurl")

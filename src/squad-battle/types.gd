@@ -90,13 +90,3 @@ enum BattleOutcome {
 	DEFENDER_VICTORY,
 	DRAW
 }
-
-
-class ArmourConfig:
-	var DV: float
-	var PV: float
-	var resistance: Dictionary = {}
-	
-	func _init(p_DV: float = 12, p_PV: float = 0):
-		DV = p_DV
-		PV = p_PV

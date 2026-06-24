@@ -383,20 +383,20 @@ func _cmd_inventory():
 		if not inv.weapons.is_empty():
 			_print_line("  Weapons:")
 			for w in inv.weapons:
-				_print_line("    - %s" % w.weapon_name)
+				_print_line("    - %s" % SquadBattleTypes.WeaponClasses.keys()[w.weapon_class])
 		if not inv.armors.is_empty():
 			_print_line("  Armors:")
 			for a in inv.armors:
-				_print_line("    - %s" % a.armor_name)
+				_print_line("    - %s" % SquadBattleTypes.ArmorClasses.keys()[a.armor_class])
 	_print_line("")
 	_print_line("=== Warrior Equipment ===")
 	for w in player_squad.get_living_warriors():
 		var weapon_name := "None"
 		var armor_name := "None"
 		if w.equipment_weapon:
-			weapon_name = w.equipment_weapon.weapon_name
+			weapon_name = SquadBattleTypes.WeaponClasses.keys()[w.equipment_weapon.weapon_class]
 		if w.equipment_armor:
-			armor_name = w.equipment_armor.armor_name
+			armor_name = SquadBattleTypes.ArmorClasses.keys()[w.equipment_armor.armor_class]
 		_print_line("  %s — W: %s | A: %s" % [w.name, weapon_name, armor_name])
 	_print_separator()
 

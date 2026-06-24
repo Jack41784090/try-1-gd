@@ -29,7 +29,7 @@ metadata/_custom_type_script = "uid://cya1ph2rx5aff"
 
 [resource]
 script = ExtResource("2_acfg")
-armor_name = "Half Plate"
+armor_class = 3
 armor_bonus = 12.0
 protection_translation = Array[ExtResource("1_prot")]([SubResource("Resource_prot_tsl")])
 metadata/_custom_type_script = "uid://cmp8q7xe0kf7r"

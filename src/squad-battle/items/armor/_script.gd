@@ -1,6 +1,6 @@
 class_name SquadArmor extends RefCounted
 
-var armor_name: String = "Unarmored"
+var armor_class: SquadBattleTypes.ArmorClasses = SquadBattleTypes.ArmorClasses.Unarmored
 var defense_bonus: float
 var armor_bonus: float
 var magical_armor_bonus: float = 0.0
@@ -9,7 +9,7 @@ var defender_ref = null
 
 func _init(config: ArmorConfig):
 	assert(config != null, "ArmorConfig cannot be null")
-	armor_name = config.armor_name
+	armor_class = config.armor_class
 	defense_bonus = config.defense_bonus
 	armor_bonus = config.armor_bonus
 	magical_armor_bonus = config.magical_armor_bonus
@@ -100,4 +100,3 @@ func get_raw_damage_taken(raw_damage: Dictionary) -> float:
 		total_damage += final_damage
 	
 	return total_damage
-

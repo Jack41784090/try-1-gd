@@ -5,4 +5,3 @@ class_name ProtectionTranslation extends Resource
 
 func _to_string() -> String:
 	return "ProtectionTranslation(Reality=%s, PotencyList=%s)" % [Reality, PotencyList]
-

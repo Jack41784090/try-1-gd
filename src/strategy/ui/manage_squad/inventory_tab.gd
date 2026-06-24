@@ -99,7 +99,7 @@ func _create_warrior_card(warrior: Warrior) -> PanelContainer:
 	name_label.text = "%s — %s" % [warrior.name, EntityClasses.Types.keys()[warrior.class_id]]
 
 	var weapon_name_label: Label = card.get_node("VBox/WeaponRow/ItemLabel")
-	weapon_name_label.text = warrior.equipment_weapon.weapon_name if warrior.equipment_weapon else "Unarmed"
+	weapon_name_label.text = SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class] if warrior.equipment_weapon else "Unarmed"
 	weapon_name_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0) if warrior.equipment_weapon else Color(0.5, 0.5, 0.5, 0.6))
 
 	var equip_weapon_btn: Button = card.get_node("VBox/WeaponRow/EquipBtn")
@@ -123,7 +123,7 @@ func _create_warrior_card(warrior: Warrior) -> PanelContainer:
 	)
 
 	var armor_name_label: Label = card.get_node("VBox/ArmorRow/ItemLabel")
-	armor_name_label.text = warrior.equipment_armor.armor_name if warrior.equipment_armor else "Unarmored"
+	armor_name_label.text = SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class] if warrior.equipment_armor else "Unarmored"
 	armor_name_label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55) if warrior.equipment_armor else Color(0.5, 0.5, 0.5, 0.6))
 
 	var equip_armor_btn: Button = card.get_node("VBox/ArmorRow/EquipBtn")

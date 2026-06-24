@@ -11,12 +11,12 @@ func unprotected() -> SquadArmour:
 	DV = 12
 	PV = 0
 	resistance = {
-		SquadBattleTypes.DamageType.Cut: -0.2,
-		SquadBattleTypes.DamageType.Impale: -0.2
+		SquadBattleTypes.DamageType.Cut: - 0.2,
+		SquadBattleTypes.DamageType.Impale: - 0.2
 	}
 	return self
 
-func _init(config: SquadBattleTypes.ArmourConfig = null):
+func _init(config: ArmorConfig = null):
 	if config:
 		DV = config.DV
 		PV = config.PV

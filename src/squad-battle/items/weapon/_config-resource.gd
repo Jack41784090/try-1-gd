@@ -1,6 +1,6 @@
 class_name WeaponConfig extends Resource
 
-@export var weapon_name: String = "Unarmed"
+@export var weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
 @export var hit_bonus: float
 @export var penetration_bonus: float
 @export var damage_translation: Array[DamageTranslation] = []

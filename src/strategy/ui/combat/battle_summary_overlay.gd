@@ -47,10 +47,10 @@ func show_equipment_loot(equipment_loot: Dictionary) -> void:
 	loot_display.visible = true
 	for w in weapons:
 		if w is WeaponConfig:
-			_add_loot_item("+ %s" % w.weapon_name, Color(0.7, 0.85, 1.0))
+			_add_loot_item("+ %s" % SquadBattleTypes.WeaponClasses.keys()[w.weapon_class], Color(0.7, 0.85, 1.0))
 	for a in armors:
 		if a is ArmorConfig:
-			_add_loot_item("+ %s" % a.armor_name, Color(0.85, 0.75, 0.55))
+			_add_loot_item("+ %s" % SquadBattleTypes.ArmorClasses.keys()[a.armor_class], Color(0.85, 0.75, 0.55))
 
 	loot_display.modulate.a = 0.0
 	var tween := create_tween()

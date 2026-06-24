@@ -112,5 +112,5 @@ func _print_squad_positions(battle: SquadBattle, side: SquadBattleTypes.Side, la
 			var loc_name = SquadBattleTypes.SquadEntityInSquadLocation.keys()[loc - 1] if loc >= 1 and loc <= 3 else "?"
 			print("    %s [%s] HP:%.0f/%.0f ORG:%.1f Weapon:%s" % [
 				entity.entity_name, loc_name, hp, hp_max, org,
-				entity.weapon.weapon_name if entity.weapon else "None"
+				SquadBattleTypes.WeaponClasses.keys()[entity.weapon.weapon_class] if entity.weapon else "None"
 			])
