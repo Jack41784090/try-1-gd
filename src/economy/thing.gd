@@ -8,8 +8,9 @@ class_name Thing
 @export var description: String = ""
 @export var inputs: Array[ThingInput] = []
 @export var elasticity: float = -1.0
+@export var weapon_config: WeaponConfig
 
-static func create(id: String, p_name: String, type: EconomyTypes.ThingType, price: float = 1.0, p_description: String = "", p_inputs: Array[ThingInput] = [], p_elasticity: float = -1.0) -> Thing:
+static func create(id: String, p_name: String, type: EconomyTypes.ThingType, price: float = 1.0, p_description: String = "", p_inputs: Array[ThingInput] = [], p_elasticity: float = -1.0, p_weapon_config: WeaponConfig = null) -> Thing:
 	var t := Thing.new()
 	t.thing_id = id
 	t.thing_name = p_name
@@ -18,6 +19,7 @@ static func create(id: String, p_name: String, type: EconomyTypes.ThingType, pri
 	t.description = p_description
 	t.inputs = p_inputs
 	t.elasticity = p_elasticity
+	t.weapon_config = p_weapon_config
 	return t
 
 func get_elasticity() -> float:

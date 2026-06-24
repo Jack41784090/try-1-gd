@@ -149,6 +149,11 @@ func _apply_thing_effect(thing: Thing, quantity: int) -> void:
 		EconomyTypes.ThingType.LUXURY:
 			squad.modify_morale(float(quantity) * 3.0)
 			Log.debug("Shop", "Bought %d luxuries (morale boost)" % quantity)
+		EconomyTypes.ThingType.WEAPONS:
+			if thing.weapon_config != null:
+				for i in quantity:
+					squad.inventory.add_weapon(thing.weapon_config.duplicate(true))
+				Log.debug("Shop", "Added %d %s to squad inventory" % [quantity, thing.thing_name])
 	_consume_from_economy(thing, quantity)
 
 
