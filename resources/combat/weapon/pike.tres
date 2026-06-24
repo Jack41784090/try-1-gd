@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="WeaponConfig" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="WeaponConfig" format=3]
 
-[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/weapon/damage-tsl.gd" id="1_dtsl"]
-[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/weapon/_config-resource.gd" id="2_wcfg"]
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/weapon/potency-obj.gd" id="3_pot"]
-[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/weapon/weapon-location.gd" id="4_wloc"]
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage-tsl.gd" id="1_dtsl"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/_config-resource.gd" id="2_wcfg"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency-obj.gd" id="3_pot"]
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/weapon-location.gd" id="4_wloc"]
 [ext_resource type="Resource" path="res://resources/combat/weapon/front-to-front-mid.tres" id="5_f2fm"]
 [ext_resource type="Resource" path="res://resources/combat/weapon/middle-to-front.tres" id="6_m2f"]
 
