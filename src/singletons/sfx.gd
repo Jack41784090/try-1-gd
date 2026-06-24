@@ -72,15 +72,15 @@ func play_ui_cancel() -> void:
 
 func play_attack_for_weapon(weapon_class: int) -> void:
 	match weapon_class:
-		WeaponFactory.WeaponClasses.Crossbow:
+		SquadBattleTypes.WeaponClasses.Crossbow:
 			play("arrow_fire", -4.0)
-		WeaponFactory.WeaponClasses.Arquebus:
+		SquadBattleTypes.WeaponClasses.Arquebus:
 			play("arquebus_fire", -3.0)
-		WeaponFactory.WeaponClasses.Pike:
+		SquadBattleTypes.WeaponClasses.Pike:
 			play("pike_thrust", -4.0)
-		WeaponFactory.WeaponClasses.Mace:
+		SquadBattleTypes.WeaponClasses.Mace:
 			play("shield_block", -6.0)
-		WeaponFactory.WeaponClasses.AlchemicalFire:
+		SquadBattleTypes.WeaponClasses.AlchemicalFire:
 			play("fire_spell", -4.0)
 		_:
 			play("sword_hit", -5.0)

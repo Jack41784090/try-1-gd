@@ -9,9 +9,9 @@ var team: String
 var stats: EntityBaseStats
 var logic_enum: LogicFactory.LogicAvailable
 var weapon: WeaponConfig
-var weapon_class: WeaponFactory.WeaponClasses
+var weapon_class: SquadBattleTypes.WeaponClasses
 var armor: ArmorConfig
-var armor_class: ArmorFactory.ArmorClasses
+var armor_class: SquadBattleTypes.ArmorClasses
 var innate_skills: Array[Skill]
 var starting_location: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Front
 var skill_set: SkillSet
@@ -25,9 +25,9 @@ func _init(
 	p_starting_location: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Front,
 	p_logic_enum: LogicFactory.LogicAvailable = LogicFactory.LogicAvailable.Frontline,
 	p_weapon: WeaponConfig = null,
-	p_weapon_class: WeaponFactory.WeaponClasses = WeaponFactory.WeaponClasses.Unarmed,
+	p_weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed,
 	p_armor: ArmorConfig = null,
-	p_armor_class: ArmorFactory.ArmorClasses = ArmorFactory.ArmorClasses.Unarmored,
+	p_armor_class: SquadBattleTypes.ArmorClasses = SquadBattleTypes.ArmorClasses.Unarmored,
 	p_innate_skills: Array[Skill] = [],
 	p_skill_set: SkillSet = null,
 ):

@@ -1,12 +1,5 @@
 class_name ArmorFactory
 
-enum ArmorClasses {
-	Unarmored,
-	LeatherArmor,
-	PaddedArmor,
-	HalfPlate,
-}
-
 static var pathlib = {
 	"Unarmored": "res://resources/combat/armor/unarmored.tres",
 	"LeatherArmor": "res://resources/combat/armor/leather-armor.tres",
@@ -14,9 +7,9 @@ static var pathlib = {
 	"HalfPlate": "res://resources/combat/armor/half-plate.tres",
 }
 
-static var _cached_key = ArmorClasses.keys()
+static var _cached_key = SquadBattleTypes.ArmorClasses.keys()
 
-static func get_armor(_armor: ArmorClasses) -> SquadArmor:
+static func get_armor(_armor: SquadBattleTypes.ArmorClasses) -> SquadArmor:
 	var path = pathlib.get(_cached_key[_armor]);
 	var armor_template = load(path)
 	assert(armor_template != null, "Failed to load armor from path: %s" % path)
@@ -24,4 +17,3 @@ static func get_armor(_armor: ArmorClasses) -> SquadArmor:
 	var armor_conf = armor_template.duplicate(true)
 	var armor = SquadArmor.new(armor_conf)
 	return armor
-

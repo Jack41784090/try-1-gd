@@ -23,8 +23,8 @@ var skill_set: SkillSet
 @export var equipment_weapon: WeaponConfig
 @export var equipment_armor: ArmorConfig
 
-var equipment_weapon_class: WeaponFactory.WeaponClasses = WeaponFactory.WeaponClasses.Unarmed
-var equipment_armor_class: ArmorFactory.ArmorClasses = ArmorFactory.ArmorClasses.Unarmored
+var equipment_weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
+var equipment_armor_class: SquadBattleTypes.ArmorClasses = SquadBattleTypes.ArmorClasses.Unarmored
 
 var is_dead: bool = false
 var is_injured: bool = false

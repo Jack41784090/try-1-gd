@@ -9,10 +9,10 @@ var _debug_id = "Entity_script_unknown";
 @export var stats: EntityBaseStats
 @export var icon: Texture2D
 
-@export var weapon_class: WeaponFactory.WeaponClasses = WeaponFactory.WeaponClasses.Unarmed
+@export var weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
 var weapon: SquadWeapon = null
 
-@export var armor_class: ArmorFactory.ArmorClasses = ArmorFactory.ArmorClasses.Unarmored
+@export var armor_class: SquadBattleTypes.ArmorClasses = SquadBattleTypes.ArmorClasses.Unarmored
 var armor: SquadArmor = null
 
 @export var logic_config: SimplifiedLogicConfig
@@ -56,9 +56,9 @@ static func quick_dummy():
 		SquadBattleTypes.SquadEntityInSquadLocation.Front,
 		LogicFactory.LogicAvailable.Frontline,
 		null,
-		WeaponFactory.WeaponClasses.Unarmed,
+		SquadBattleTypes.WeaponClasses.Unarmed,
 		null,
-		ArmorFactory.ArmorClasses.Unarmored
+		SquadBattleTypes.ArmorClasses.Unarmored
 	))
 
 

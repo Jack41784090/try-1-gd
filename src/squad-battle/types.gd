@@ -1,6 +1,23 @@
 extends RefCounted
 class_name SquadBattleTypes
 
+enum WeaponClasses {
+	Unarmed,
+	Flammenschwert,
+	Crossbow,
+	Arquebus,
+	Pike,
+	Mace,
+	AlchemicalFire,
+}
+
+enum ArmorClasses {
+	Unarmored,
+	LeatherArmor,
+	PaddedArmor,
+	HalfPlate,
+}
+
 enum Reality {
 	HP,
 	Force,

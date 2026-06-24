@@ -1,15 +1,5 @@
 class_name WeaponFactory
 
-enum WeaponClasses {
-	Unarmed,
-	Flammenschwert,
-	Crossbow,
-	Arquebus,
-	Pike,
-	Mace,
-	AlchemicalFire,
-}
-
 static var pathlib = {
 	"Unarmed": "res://resources/combat/weapon/unarmed.tres",
 	"Flammenschwert": "res://resources/combat/weapon/flammenschwert.tres",
@@ -21,21 +11,21 @@ static var pathlib = {
 }
 
 static var _skill_map: Dictionary = {
-	WeaponClasses.Unarmed: SkillType.Types.Healing,
-	WeaponClasses.Flammenschwert: SkillType.Types.Swords,
-	WeaponClasses.Crossbow: SkillType.Types.Crossbows,
-	WeaponClasses.Arquebus: SkillType.Types.Firearms,
-	WeaponClasses.Pike: SkillType.Types.Polearms,
-	WeaponClasses.Mace: SkillType.Types.Maces,
-	WeaponClasses.AlchemicalFire: SkillType.Types.Scholarship,
+	SquadBattleTypes.WeaponClasses.Unarmed: SkillType.Types.Healing,
+	SquadBattleTypes.WeaponClasses.Flammenschwert: SkillType.Types.Swords,
+	SquadBattleTypes.WeaponClasses.Crossbow: SkillType.Types.Crossbows,
+	SquadBattleTypes.WeaponClasses.Arquebus: SkillType.Types.Firearms,
+	SquadBattleTypes.WeaponClasses.Pike: SkillType.Types.Polearms,
+	SquadBattleTypes.WeaponClasses.Mace: SkillType.Types.Maces,
+	SquadBattleTypes.WeaponClasses.AlchemicalFire: SkillType.Types.Scholarship,
 }
 
-static var _cached_key = WeaponClasses.keys()
+static var _cached_key = SquadBattleTypes.WeaponClasses.keys()
 
-static func get_skill_used(weapon_class: WeaponClasses) -> SkillType.Types:
+static func get_skill_used(weapon_class: SquadBattleTypes.WeaponClasses) -> SkillType.Types:
 	return _skill_map.get(weapon_class, SkillType.Types.Swords)
 
-static func get_weapon(_weapon: WeaponClasses) -> SquadWeapon:
+static func get_weapon(_weapon: SquadBattleTypes.WeaponClasses) -> SquadWeapon:
 	var path = pathlib.get(_cached_key[_weapon]);
 	var weapon_template = load(path)
 	assert(weapon_template != null, "Failed to load weapon from path: %s" % path)
