@@ -1,6 +1,7 @@
 class_name WeaponResource
 extends CombatEquipment
 
+@export var icon: Texture2D = PlaceholderTexture2D.new()
 @export var weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
 @export var hit_bonus: float
 @export var penetration_bonus: float

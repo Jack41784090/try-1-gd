@@ -1,13 +1,15 @@
-[gd_resource type="Resource" script_class="WeaponConfig" format=3 uid="uid://b1ky46cluj0on"]
+[gd_resource type="Resource" script_class="WeaponResource" format=3 uid="uid://b1ky46cluj0on"]
 
 [ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage_translate.gd" id="1_2n51w"]
 [ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/resource.gd" id="2_3w4fy"]
 [ext_resource type="Resource" uid="uid://dm8x3kj22fmfr" path="res://resources/combat/weapon/translation/force-slash-1-1.tres" id="2_hxym5"]
+[ext_resource type="Texture2D" uid="uid://lrkwe868w5th" path="res://assets/Weapon Sprites/wep_sw026.png" id="3_0nmf1"]
 [ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/location.gd" id="3_hxym5"]
 [ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="5_h6we3"]
 
 [resource]
 script = ExtResource("2_3w4fy")
+icon = ExtResource("3_0nmf1")
 weapon_class = 1
 hit_bonus = 1.0
 penetration_bonus = 3.0
