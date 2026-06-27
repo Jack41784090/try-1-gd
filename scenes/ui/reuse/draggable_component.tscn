@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cyo4mnkw2uhl2"]
+
+[ext_resource type="Script" uid="uid://bfvbvpx10b8b4" path="res://scenes/ui/reuse/draggable.gd" id="1_od1of"]
+
+[node name="DraggableComponent" type="Control" unique_id=958131323]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_od1of")
