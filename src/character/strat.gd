@@ -1,5 +1,5 @@
 class_name StrategyEntity
-extends RefCounted
+extends Node
 
 var resource: StrategyEntityResource
 var morale: float:
@@ -14,7 +14,7 @@ var is_injured: bool
 var move_speed: float
 
 
-func _init(_resource: Resource) -> void:
+func _init(_resource: StrategyEntityResource) -> void:
 	morale = .5
 	move_speed = 5.
 	resource = _resource

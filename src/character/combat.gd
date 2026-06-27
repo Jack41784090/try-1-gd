@@ -1,5 +1,5 @@
 class_name CombatEntity
-extends RefCounted
+extends Node
 
 var _debug_id := "Entity_script_unknown"
 var resource: CombatEntityResource
@@ -121,7 +121,7 @@ func get_armour():
 	return armor
 
 
-enum _RealityOp {ADD, MUL}
+enum _RealityOp { ADD, MUL }
 
 const _REALITY_TABLE: Dictionary = {
 	SquadBattleTypes.Reality.HP: [3.0, _RealityOp.MUL, [["endurance", 5.0], ["siz", 2.0]]],
@@ -297,7 +297,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	var updates: Array = []
 	var updated_logic = _logic_override.update_situation(
 		{
-			"entity": self ,
+			"entity": self,
 			"our_squad": our_squad,
 			"enemy_squad": enemy_squad,
 		},
@@ -324,7 +324,7 @@ func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	var updates: Array = []
 	var updated_logic = _logic_override.update_situation(
 		{
-			"entity": self ,
+			"entity": self,
 			"our_squad": our_squad,
 			"enemy_squad": enemy_squad,
 		},
