@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="StrategyEntityResource" format=3 uid="uid://jcikf8f3hc56"]
+
+[ext_resource type="Script" uid="uid://caiy8nrf8p8cv" path="res://src/character/strat_resource.gd" id="1_kqsbc"]
+
+[resource]
+script = ExtResource("1_kqsbc")
+metadata/_custom_type_script = "uid://caiy8nrf8p8cv"

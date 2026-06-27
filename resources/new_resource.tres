@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CrossItem" format=3 uid="uid://b7xwgid0b5ryi"]
+
+[ext_resource type="Script" uid="uid://ctdiaaksjseb7" path="res://src/cross_item.gd" id="1_6p7ku"]
+[ext_resource type="Resource" uid="uid://66byxnpt12ye" path="res://resources/strategy/scenarios/goetz-official/goods/iron_sword.tres" id="2_8jnv3"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="5_5wlln"]
+
+[resource]
+script = ExtResource("1_6p7ku")
+display_name = "Flammenschwert"
+max_durability = 100.0
+economic_comp = ExtResource("2_8jnv3")
+combat_comp = ExtResource("5_5wlln")
+metadata/_custom_type_script = "uid://ctdiaaksjseb7"
