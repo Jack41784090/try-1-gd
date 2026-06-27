@@ -28,6 +28,19 @@ var _nav_buttons: Array[Button] = []
 var _active_tab: int = 0
 
 
+func _build_demo_squad() -> StrategySquad:
+	squad = StrategySquad.new()
+	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
+	for i in range(5):
+		var nw = StrategyEntity.new(w)
+		squad.add_warrior(nw)
+
+	var mace = load("res://resources/combat/weapon/config/mace.tres")
+	for i in range(15):
+		squad.inventory.add_weapon(mace)
+	return squad
+
+
 func _ready() -> void:
 	_nav_buttons = [tab_tactics, tab_units, tab_formation, tab_recruitment, tab_inventory]
 	for btn in _nav_buttons:
@@ -49,6 +62,10 @@ func _ready() -> void:
 	inventory_tab.unequip_weapon_requested.connect(_on_unequip_weapon)
 	inventory_tab.unequip_armor_requested.connect(_on_unequip_armor)
 
+	if get_tree().current_scene == self and squad == null:
+		_build_demo_squad()
+		open(squad, null)
+
 
 func open(p_squad: StrategySquad, p_actor: ActivityRunner) -> void:
 	squad = p_squad
@@ -61,11 +78,11 @@ func open(p_squad: StrategySquad, p_actor: ActivityRunner) -> void:
 	_active_tab = 0
 	_switch_tab(_active_tab)
 	visible = true
-	await UIAnimations.show_overlay(self )
+	await UIAnimations.show_overlay(self)
 
 
 func close() -> void:
-	await UIAnimations.hide_overlay(self )
+	await UIAnimations.hide_overlay(self)
 	visible = false
 	squad = null
 	actor = null

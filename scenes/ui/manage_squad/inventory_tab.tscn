@@ -89,7 +89,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.8, 0.5, 1)
 theme_override_font_sizes/font_size = 18
-text = "WARRIORS"
+text = "WARRIORS — 5"
 
 [node name="Separator" type="HSeparator" parent="MainHBox/WarriorsPanel/VBox" unique_id=330001796]
 layout_mode = 2

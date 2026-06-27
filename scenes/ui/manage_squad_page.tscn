@@ -100,4 +100,3 @@ visible = false
 [node name="InventoryTab" parent="OverlayPanel/MainMargin/MainVBox/TabContainer" unique_id=1131045202 instance=ExtResource("7_inventory")]
 visible = false
 layout_mode = 1
-

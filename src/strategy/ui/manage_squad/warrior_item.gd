@@ -71,13 +71,13 @@ func _setup_warrior_internal(warrior_data: StrategyEntity) -> void:
 		morale_value_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3, 1.0))
 
 	# Update location label
-	match warrior_data.location_prebattle:
-		SquadBattleTypes.SquadEntityInSquadLocation.Front:
-			loca_value_label.text = "Front"
-		SquadBattleTypes.SquadEntityInSquadLocation.Middle:
-			loca_value_label.text = "Middle"
-		SquadBattleTypes.SquadEntityInSquadLocation.Back:
-			loca_value_label.text = "Back"
+	#match warrior_data.location_prebattle:
+	#SquadBattleTypes.SquadEntityInSquadLocation.Front:
+	#loca_value_label.text = "Front"
+	#SquadBattleTypes.SquadEntityInSquadLocation.Middle:
+	#loca_value_label.text = "Middle"
+	#SquadBattleTypes.SquadEntityInSquadLocation.Back:
+	#loca_value_label.text = "Back"
 
 	# Disable menu for dead warriors
 	if warrior_data.is_dead:

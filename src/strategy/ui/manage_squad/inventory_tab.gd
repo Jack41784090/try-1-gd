@@ -9,14 +9,14 @@ signal unequip_armor_requested(warrior: StrategyEntity)
 
 const WARRIOR_CARD_SCENE = preload("res://scenes/ui/manage_squad/warrior_equipment_card.tscn")
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
-const INVENTORY_CAPACITY := 60
-const WARRIOR_CAPACTIY := 10
+const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
 
 @export var preview_in_editor: bool = false:
 	set(v):
 		preview_in_editor = v
 		if Engine.is_editor_hint() and is_node_ready():
 			if preview_in_editor:
+				_build_demo_squad()
 				_rebuild_slots()
 			else:
 				_clear_all_slots()
@@ -31,6 +31,19 @@ const WARRIOR_CAPACTIY := 10
 var _squad: StrategySquad
 
 
+func _build_demo_squad() -> StrategySquad:
+	_squad = StrategySquad.new()
+	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
+	for i in range(5):
+		var nw = StrategyEntity.new(w)
+		_squad.add_warrior(nw)
+
+	var mace = load("res://resources/combat/weapon/config/mace.tres")
+	for i in range(15):
+		_squad.inventory.add_weapon(mace)
+	return _squad
+
+
 func _clear_all_slots() -> void:
 	for c in _inventory_container.get_children():
 		c.queue_free()
@@ -40,16 +53,13 @@ func _clear_all_slots() -> void:
 
 func _rebuild_slots() -> void:
 	_clear_all_slots()
-	for i in WARRIOR_CAPACTIY:
-		_warriors_container.add_child(WARRIOR_CARD_SCENE.instantiate())
-	for i in INVENTORY_CAPACITY:
-		var item = GRID_ITEM_SCENE.instantiate()
-		_inventory_container.add_child(item)
-	print('done')
+	_pull()
 
 
 func _ready() -> void:
-	_rebuild_slots()
+	if Engine.is_editor_hint() and _squad == null:
+		_squad = _build_demo_squad()
+	#_rebuild_slots()
 	visibility_changed.connect(_on_visibility_changed)
 
 
@@ -77,16 +87,26 @@ func _on_visibility_changed() -> void:
 		return
 	if visible:
 		_connect_signals()
-		_pull()
+		_rebuild_slots()
 	else:
 		_disconnect_signals()
 
 
 func _refresh_inventory() -> void:
+	for child in _inventory_container.get_children():
+		child.queue_free()
+
+	if _squad == null:
+		return
 	var items: Array = _squad.inventory.get_all_items()
-	var slots := _inventory_container.get_children()
-	for i in slots.size():
-		slots[i].setup(items[i] if i < items.size() else null)
+	for i in items:
+		if i is WeaponResource:
+			var ws = weapon_slot.instantiate()
+			ws.weapon_config = i
+			_inventory_container.add_child(ws)
+		elif i is ArmorConfig:
+			pass
+
 	_empty_label.visible = _squad.inventory.is_empty()
 
 

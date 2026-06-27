@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://b0m6fnpbfs032"]
 
 [ext_resource type="Script" uid="uid://br3v5o7rpycuv" path="res://src/strategy/ui/manage_squad/warrior_equipment_card.gd" id="1_card"]
-[ext_resource type="Script" uid="uid://b3oc6vjpetnts" path="res://scenes/ui/reuse/draggable_receive.gd" id="2_p28wd"]
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 content_margin_left = 8.0
 content_margin_top = 6.0
@@ -95,7 +93,3 @@ custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Unequip"
-
-[node name="DraggableReceive" type="Control" parent="." unique_id=1027687713]
-layout_mode = 2
-script = ExtResource("2_p28wd")
