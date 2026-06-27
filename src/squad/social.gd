@@ -1,14 +1,21 @@
-class_name SquadData extends Resource
+class_name StrategySquad
+extends RefCounted
 
-@export var squad_id: String = ""
-@export var squad_name: String = ""
-@export var warriors: Array[Warrior] = []
-@export var money: float = 100.0
-@export var karma: float = 0.0
-@export var food: int = 0
-@export var travel_tools: int = 5
-@export var formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
-@export var starting_location_id: String = ""
+signal warriors_changed
+signal money_changed
+signal tactic_changed
+
+var resource: StrategySquadResource;
+
+var squad_id: String = ""
+var squad_name: String = ""
+var warriors: Array[StrategyEntity] = []
+var money: float = 100.0
+var karma: float = 0.0
+var food: int = 0
+var travel_tools: int = 5
+var formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
+var starting_location_id: String = ""
 
 var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
 var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
@@ -34,7 +41,7 @@ func _init() -> void:
 
 
 func _to_string() -> String:
-	return "SquadData(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
+	return "StrategySquad(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
 
 
 func consume_food(amount: int) -> bool:
@@ -76,11 +83,13 @@ func apply_travel_morale_penalty(base_penalty: float = -2.0) -> void:
 
 func gain_money(amount: float) -> void:
 	money = max(0.0, money + amount)
+	money_changed.emit()
 
 
 func spend_money(amount: float) -> bool:
 	if money >= amount:
 		money -= amount
+		money_changed.emit()
 		return true
 	return false
 
@@ -130,18 +139,19 @@ func get_morale() -> float:
 	return aggregate_morale
 
 
-func add_warrior(warrior: Warrior) -> void:
+func add_warrior(warrior: StrategyEntity) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	warriors_changed.emit()
 	# update_aggregate_morale()
 
 
-func remove_dead_warriors() -> Array[Warrior]:
+func remove_dead_warriors() -> Array[StrategyEntity]:
 	# Removes dead warriors from the squad and their formation slots, returns the dead ones
 	# e.g., warriors=[Hans(alive), Fritz(dead), Karl(alive)], formation=[Front, Middle, Back]
 	#   → new warriors=[Hans, Karl], new formation=[Front, Back], returns [Fritz]
-	var dead_warriors: Array[Warrior] = []
-	var new_warriors: Array[Warrior] = []
+	var dead_warriors: Array[StrategyEntity] = []
+	var new_warriors: Array[StrategyEntity] = []
 	var new_formation: Array[SquadBattleTypes.SquadEntityInSquadLocation] = []
 
 	for i in range(warriors.size()):
@@ -161,15 +171,15 @@ func remove_dead_warriors() -> Array[Warrior]:
 	return dead_warriors
 
 
-func get_living_warriors() -> Array[Warrior]:
-	var living: Array[Warrior] = []
+func get_living_warriors() -> Array[StrategyEntity]:
+	var living: Array[StrategyEntity] = []
 	for warrior in warriors:
 		if not warrior.is_dead:
 			living.append(warrior)
 	return living
 
 
-func get_warrior_by_id(warrior_id: String) -> Warrior:
+func get_warrior_by_id(warrior_id: String) -> StrategyEntity:
 	for warrior in warriors:
 		if warrior.id == warrior_id:
 			return warrior
@@ -178,6 +188,7 @@ func get_warrior_by_id(warrior_id: String) -> Warrior:
 
 func set_tactic(tactic: Tactic) -> void:
 	current_tactic = tactic
+	tactic_changed.emit()
 
 
 func get_tactic() -> Tactic:
@@ -220,12 +231,12 @@ func get_coordination() -> float:
 	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
 
 
-func attempt_stealth_return_failed(location: Location, destination_id: String, current_hour: int) -> Array[Warrior]:
+func attempt_stealth_return_failed(location: Location, destination_id: String, current_hour: int) -> Array[StrategyEntity]:
 	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
 	# Used when traveling to determine if enemies can track this squad's movement
 	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
 	# e.g., warrior stealth=80, roll=50 → 50 < 80 → PASSED, no clue left
-	var clues_left: Array[Warrior] = []
+	var clues_left: Array[StrategyEntity] = []
 
 	for warrior in get_living_warriors():
 		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
@@ -238,8 +249,8 @@ func attempt_stealth_return_failed(location: Location, destination_id: String, c
 	return clues_left
 
 
-func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Warrior]:
-	var matching: Array[Warrior] = []
+func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[StrategyEntity]:
+	var matching: Array[StrategyEntity] = []
 	for warrior in warriors:
 		if warrior.check_religion(religion_type):
 			matching.append(warrior)

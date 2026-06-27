@@ -10,8 +10,8 @@ static func create_squad(
 	starting_location_id: String = "",
 	current_location_id: String = "",
 	squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT,
-) -> SquadData:
-	var squad := SquadData.new()
+) -> StrategySquad:
+	var squad := StrategySquad.new()
 	var resolved_location_id := current_location_id if not current_location_id.is_empty() else starting_location_id
 
 	squad.squad_id = squad_id

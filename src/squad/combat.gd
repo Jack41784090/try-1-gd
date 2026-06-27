@@ -1,36 +1,41 @@
 class_name CombatSquad
-extends Resource
+extends RefCounted
 
-var entities: Array[CombatEntity] = []
-var squad_name: String = ""
+var resource: CombatSquadResource
+var entities: Array[CombatEntity]
+var squad_name: String
 var last_round_received_attack: int = -1
 
 
-func _init(config: Dictionary = { }):
-	squad_name = config.get("name", "")
-	var entity_configs = config.get("entities", [])
-	var next_player_id = randi() % 1000 + 1
+func _init(_r: CombatSquadResource) -> void:
+	resource = _r
+	entities = _r.entities.map(func(_cer): return CombatEntity.new(_cer))
+	squad_name = _r.name
 
-	for entity_config in entity_configs:
-		var entity: CombatEntity
-		if entity_config is EntityClasses.Types:
-			entity = EntityFactory.get_entity(entity_config)
-			entity.init_from_resource()
-			entity.set_player_id(next_player_id)
-			next_player_id += 1
-		elif entity_config is EntityConfig:
-			entity = CombatEntity.new(entity_config)
-		elif entity_config is CombatEntity:
-			entity = entity_config
-			entity.set_player_id(next_player_id)
-			next_player_id += 1
-		else:
-			push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])
-			continue
-
-		entity.side = config.get("side")
-		assert(entity.side != null)
-		entities.append(entity)
+	#func _init(config: Dictionary = { }):
+	#squad_name = config.get("name", "")
+	#var entity_configs = config.get("entities", [])
+	#var next_player_id = randi() % 1000 + 1
+	#
+	#for entity_config in entity_configs:
+	#var entity: CombatEntity
+	#if entity_config is String:
+	#entity = CombatEntityFactory.get_by_identification(entity_config)
+	#entity.set_player_id(next_player_id)
+	#next_player_id += 1
+	## elif entity_config is EntityConfig:
+	## 	entity = CombatEntity.new(entity_config)
+	#elif entity_config is CombatEntity:
+	#entity = entity_config
+	#entity.set_player_id(next_player_id)
+	#next_player_id += 1
+	#else:
+	#push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])
+	#continue
+	#
+	#entity.side = config.get("side")
+	#assert(entity.side != null)
+	#entities.append(entity)
 
 
 func is_crippled() -> bool:
