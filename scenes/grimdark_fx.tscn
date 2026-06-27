@@ -1,10 +1,10 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene format=3 uid="uid://m036hqr4ytpy"]
 
-[ext_resource type="Shader" path="res://assets/shaders/fx/combat_atmosphere.gdshader" id="1_combat"]
-[ext_resource type="Shader" path="res://assets/shaders/fx/vignette.gdshader" id="4_vig"]
-[ext_resource type="Shader" path="res://assets/shaders/fx/film_grain.gdshader" id="5_grain"]
-[ext_resource type="Shader" path="res://assets/shaders/fx/damage_pulse.gdshader" id="6_dmg"]
-[ext_resource type="Script" path="res://src/singletons/grimdark_fx.gd" id="7_script"]
+[ext_resource type="Shader" uid="uid://bjjj7duwqoj0" path="res://assets/shaders/fx/combat_atmosphere.gdshader" id="1_combat"]
+[ext_resource type="Shader" uid="uid://ca7i4hyimolhf" path="res://assets/shaders/fx/vignette.gdshader" id="4_vig"]
+[ext_resource type="Shader" uid="uid://cdmpcnvod7d41" path="res://assets/shaders/fx/film_grain.gdshader" id="5_grain"]
+[ext_resource type="Shader" uid="uid://xry8wp01nyy3" path="res://assets/shaders/fx/damage_pulse.gdshader" id="6_dmg"]
+[ext_resource type="Script" uid="uid://ci2vu5lyj5u0i" path="res://src/singletons/grimdark_fx.gd" id="7_script"]
 
 [sub_resource type="ShaderMaterial" id="mat_combat"]
 shader = ExtResource("1_combat")
@@ -32,43 +32,46 @@ shader_parameter/pulse_intensity = 0.0
 shader_parameter/pulse_color = Color(0.6, 0.02, 0.02, 1)
 shader_parameter/inner_radius = 0.3
 
-[node name="GrimdarkFX" type="CanvasLayer"]
+[node name="GrimdarkFX" type="CanvasLayer" unique_id=370439328]
 layer = 200
 script = ExtResource("7_script")
 
-[node name="CombatAtmosphere" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-material = SubResource("mat_combat")
-
-[node name="Vignette" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-material = SubResource("mat_vig")
-
-[node name="FilmGrain" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-material = SubResource("mat_grain")
-
-[node name="DamagePulse" type="ColorRect" parent="."]
+[node name="CombatAtmosphere" type="ColorRect" parent="." unique_id=203234425]
 visible = false
+material = SubResource("mat_combat")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Vignette" type="ColorRect" parent="." unique_id=785101033]
+visible = false
+material = SubResource("mat_vig")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FilmGrain" type="ColorRect" parent="." unique_id=203398762]
+visible = false
+material = SubResource("mat_grain")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DamagePulse" type="ColorRect" parent="." unique_id=2091991584]
+visible = false
 material = SubResource("mat_dmg")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

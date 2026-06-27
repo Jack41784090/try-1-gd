@@ -59,8 +59,8 @@ func check(condition: bool, test_name: String, detail: String = "") -> void:
 			msg += ": %s" % detail
 		print(msg)
 
-func _make_warrior(background_id: StringName) -> Warrior:
-	var w := WarriorFactory.create_warrior(
+func _make_warrior(background_id: StringName) -> StrategyEntity:
+	var w := StrategyEntityFactory.Create(
 		background_id,
 		"w_%s_%d" % [background_id, randi()],
 		"w_%s" % background_id,

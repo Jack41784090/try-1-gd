@@ -193,11 +193,11 @@ func _test_bandit_lifecycle() -> void:
 		StrategyTypes.SquadRole.BANDIT,
 	)
 
-	var warrior := WarriorFactory.create_warrior(
+	var warrior := StrategyEntityFactory.Create(
 		EntityClasses.Types.Landsknecht,
 		"bandit_test_w0", "Test Bandit",
 		StrategyTypes.Religion.CATHOLIC,
-		EntityBaseStats.new(),
+		CombatEntityBaseStats.new(),
 	)
 	warrior.morale = 5.0
 	test_squad.add_warrior(warrior)

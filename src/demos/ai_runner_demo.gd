@@ -225,11 +225,11 @@ func create_test_squad(id: String, p_name: String, location: String) -> SquadDat
 	)
 
 	for i in range(3):
-		var warrior = Warrior.new()
+		var warrior = StrategyEntity.new()
 		warrior.id = "%s_warrior_%d" % [id, i]
-		warrior.name = "Warrior %d" % i
+		warrior.name = "StrategyEntity %d" % i
 		warrior.morale = 50.0
-		warrior.combat_stats = EntityBaseStats.new()
+		warrior.combat_stats = CombatEntityBaseStats.new()
 		squad.add_warrior(warrior)
 
 	return squad

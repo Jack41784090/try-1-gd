@@ -45,8 +45,8 @@ func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 	print("\n[1] Warriors survive duplicate(true)")
 	var squad := SquadData.new()
 	for i in range(3):
-		var w := Warrior.new()
-		w.name = "Warrior %d" % i
+		var w := StrategyEntity.new()
+		w.name = "StrategyEntity %d" % i
 		w.morale = 80.0
 		squad.add_warrior(w)
 
@@ -54,14 +54,14 @@ func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 	_assert(duped.warriors.size() == 3,
 		"duplicate(true) preserves warrior count (expected 3, got %d)" % duped.warriors.size())
 	if duped.warriors.size() > 0:
-		_assert(duped.warriors[0].name == "Warrior 0",
+		_assert(duped.warriors[0].name == "StrategyEntity 0",
 			"first warrior name preserved after duplicate")
 
 func _test_squad_morale_is_nonzero_after_duplicate() -> void:
 	print("\n[2] Morale is non-zero after duplicate(true)")
 	var squad := SquadData.new()
 	for i in range(3):
-		var w := Warrior.new()
+		var w := StrategyEntity.new()
 		w.morale = 80.0
 		squad.add_warrior(w)
 
@@ -115,16 +115,16 @@ func _test_demo_scenario_player_squad_morale() -> void:
 		"player_squad.get_morale() > 0 (got %.1f)" % morale)
 
 func _test_warrior_item_hp_percent_logic() -> void:
-	print("\n[6] Warrior HP percent: dead=0, injured=0.5, alive=1.0")
-	var alive := Warrior.new()
+	print("\n[6] StrategyEntity HP percent: dead=0, injured=0.5, alive=1.0")
+	var alive := StrategyEntity.new()
 	alive.is_dead = false
 	alive.is_injured = false
 
-	var injured := Warrior.new()
+	var injured := StrategyEntity.new()
 	injured.is_dead = false
 	injured.is_injured = true
 
-	var dead := Warrior.new()
+	var dead := StrategyEntity.new()
 	dead.is_dead = true
 
 	_assert(_get_warrior_hp_percent(alive) == 1.0,
@@ -135,8 +135,8 @@ func _test_warrior_item_hp_percent_logic() -> void:
 		"dead warrior HP percent = 0.0 (got %.1f)" % _get_warrior_hp_percent(dead))
 
 func _test_warrior_location_label_data() -> void:
-	print("\n[7] Warrior location_prebattle maps to correct label text")
-	var w := Warrior.new()
+	print("\n[7] StrategyEntity location_prebattle maps to correct label text")
+	var w := StrategyEntity.new()
 
 	w.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Front
 	_assert(_location_to_label(w) == "Front",
@@ -154,14 +154,14 @@ func _test_warrior_location_label_data() -> void:
 
 #region Helpers (mirror WarriorItem logic for headless testing)
 
-func _get_warrior_hp_percent(warrior_param: Warrior) -> float:
+func _get_warrior_hp_percent(warrior_param: StrategyEntity) -> float:
 	if warrior_param.is_dead:
 		return 0.0
 	if warrior_param.is_injured:
 		return 0.5
 	return 1.0
 
-func _location_to_label(warrior_param: Warrior) -> String:
+func _location_to_label(warrior_param: StrategyEntity) -> String:
 	match warrior_param.location_prebattle:
 		SquadBattleTypes.SquadEntityInSquadLocation.Front:
 			return "Front"

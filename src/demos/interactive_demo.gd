@@ -389,7 +389,7 @@ func _cmd_inventory():
 			for a in inv.armors:
 				_print_line("    - %s" % SquadBattleTypes.ArmorClasses.keys()[a.armor_class])
 	_print_line("")
-	_print_line("=== Warrior Equipment ===")
+	_print_line("=== StrategyEntity Equipment ===")
 	for w in player_squad.get_living_warriors():
 		var weapon_name := "None"
 		var armor_name := "None"
@@ -675,7 +675,7 @@ func _cmd_recruit(arg: String):
 		_print_line("Not enough gold! Need %d, have %.0f" % [cost, player_squad.money])
 		return
 
-	var new_warrior := WarriorFactory.create_warrior(
+	var new_warrior := StrategyEntityFactory.Create(
 		selected.background_id,
 		"warrior_%d_%d" % [world.current_hour, randi()],
 		"%s Recruit" % selected.display_name,

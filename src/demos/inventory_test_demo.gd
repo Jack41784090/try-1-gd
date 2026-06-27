@@ -44,13 +44,13 @@ func _check(condition: bool, test_name: String) -> void:
 		_fail_count += 1
 		_print("  FAIL: %s" % test_name)
 
-func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> Warrior:
-	return WarriorFactory.create_warrior(
+func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> StrategyEntity:
+	return StrategyEntityFactory.Create(
 		class_id, warrior_name.to_lower(), warrior_name,
-		StrategyTypes.Religion.CATHOLIC, EntityBaseStats.new())
+		StrategyTypes.Religion.CATHOLIC, CombatEntityBaseStats.new())
 
-func _make_weapon(wc: SquadBattleTypes.WeaponClasses) -> WeaponConfig:
-	var w := WeaponConfig.new()
+func _make_weapon(wc: SquadBattleTypes.WeaponClasses) -> WeaponResource:
+	var w := WeaponResource.new()
 	w.weapon_class = wc
 	return w
 
@@ -92,8 +92,8 @@ func _test_inventory_equip_weapon() -> void:
 	_print("")
 	_print("--- SquadInventory: equip weapon ---")
 	var inv = SquadInventory.new()
-	var warrior := Warrior.new()
-	warrior.name = "Test Warrior"
+	var warrior := StrategyEntity.new()
+	warrior.name = "Test StrategyEntity"
 	warrior.equipment_weapon = null
 
 	var sword := _make_weapon("Iron Sword")
@@ -109,8 +109,8 @@ func _test_inventory_equip_armor_swap() -> void:
 	_print("")
 	_print("--- SquadInventory: equip armor with swap ---")
 	var inv = SquadInventory.new()
-	var warrior := Warrior.new()
-	warrior.name = "Test Warrior"
+	var warrior := StrategyEntity.new()
+	warrior.name = "Test StrategyEntity"
 
 	var old_armor := _make_armor("Old Leather")
 	warrior.equipment_armor = old_armor
@@ -128,8 +128,8 @@ func _test_inventory_unequip() -> void:
 	_print("")
 	_print("--- SquadInventory: unequip ---")
 	var inv = SquadInventory.new()
-	var warrior := Warrior.new()
-	warrior.name = "Test Warrior"
+	var warrior := StrategyEntity.new()
+	warrior.name = "Test StrategyEntity"
 
 	var sword := _make_weapon("Iron Sword")
 	warrior.equipment_weapon = sword
@@ -185,7 +185,7 @@ func _test_inventory_get_all_items() -> void:
 
 func _test_default_equipment_assignment() -> void:
 	_print("")
-	_print("--- WarriorFactory: default equipment ---")
+	_print("--- StrategyEntityFactory: default equipment ---")
 	var lk := _make_warrior(EntityClasses.Types.Landsknecht, "TestLK")
 	_check(lk.equipment_weapon != null, "Landsknecht gets weapon")
 	_check(lk.equipment_armor != null, "Landsknecht gets armor")

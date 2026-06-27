@@ -25,8 +25,8 @@ StrategyEventBus="*res://src/singletons/StrategyEventBus.gd"
 StatusEffectEventBus="*res://src/singletons/StatusEffectEventBus.gd"
 DamageNumbersManager="*res://src/singletons/DamageNumbersManager.gd"
 SceneManager="*res://scenes/scene_manager.tscn"
-SFX="*res://src/singletons/sfx.gd"
-GrimdarkFX="*res://scenes/grimdark_fx.tscn"
+SFX="res://src/singletons/sfx.gd"
+GrimdarkFX="res://scenes/grimdark_fx.tscn"
 
 [display]
 

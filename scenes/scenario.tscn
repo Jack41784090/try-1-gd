@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://b8sqy13gtuq6p" path="res://src/strategy/ui/presenter.gd" id="19_presenter"]
 [ext_resource type="PackedScene" uid="uid://beiewkvbjg8rk" path="res://scenes/ui/scouting_view.tscn" id="22_scouting_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/missions_view.tscn" id="28_missions_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
+[ext_resource type="PackedScene" uid="uid://cg4cx7axe2x63" path="res://scenes/ui/manage_squad_page.tscn" id="30_manage_page"]
 [ext_resource type="PackedScene" path="res://scenes/ui/market_view.tscn" id="31_market_scene"]
 [ext_resource type="Script" uid="uid://6elmxh7hf8q6" path="res://src/strategy/ui/notification/notification_bar.gd" id="33_notification_bar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_view.tscn" id="40_shop_scene"]
@@ -319,6 +319,7 @@ layout_mode = 2
 text = "End Game"
 
 [node name="NotificationBar" type="HBoxContainer" parent="PanelContainer/MainVBox" unique_id=1918925065]
+visible = false
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -358,6 +359,7 @@ horizontal_alignment = 1
 
 [node name="ActionButtons" type="PanelContainer" parent="PanelContainer/MainVBox" unique_id=1660287274]
 layout_mode = 2
+size_flags_vertical = 3
 theme_type_variation = &"TransparentPanel"
 
 [node name="ActionMargin" type="MarginContainer" parent="PanelContainer/MainVBox/ActionButtons" unique_id=262658954]
@@ -375,70 +377,70 @@ theme_override_constants/v_separation = 10
 columns = 3
 
 [node name="TrainingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=373873347]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Make camp and recover morale"
 theme_type_variation = &"GoldButton"
 text = "🏕️ Rest"
 
 [node name="RestButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=137027879]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Train to improve combat skills"
 theme_type_variation = &"GoldButton"
 text = "⚔️ Drill"
 
 [node name="SkillButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1705380255]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Patrol the area and maintain order"
 theme_type_variation = &"GoldButton"
 text = "🛡️ Patrol"
 
 [node name="NurseButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1624518233]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Gather information and seek opportunities"
 theme_type_variation = &"GoldButton"
 text = "🔍 Investigate"
 
 [node name="OutingButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1548672974]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Lead religious observance"
 theme_type_variation = &"GoldButton"
 text = "✝️ Hold Mass"
 
 [node name="RaceButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=2139180012]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Move to another location"
 theme_type_variation = &"GoldButton"
 text = "🗺️ Travel"
 
 [node name="AttackButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1883398150]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Attack enemies at this location"
 theme_type_variation = &"GoldButton"
 text = "⚔️ Attack"
 
 [node name="ManageSquadButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=1457764343]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "View and manage your warriors"
 theme_type_variation = &"GoldButton"
 text = "👥 Manage Squad"
 
 [node name="RecruitButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=2061278943]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "View and manage your warriors"
 theme_type_variation = &"GoldButton"
 text = "👥 Recruit"
 
 [node name="ShopButton" type="Button" parent="PanelContainer/MainVBox/ActionButtons/ActionMargin/ActionGrid" unique_id=945831779]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(250, 75)
 layout_mode = 2
 tooltip_text = "Browse the local shop"
 theme_type_variation = &"GoldButton"
@@ -506,6 +508,8 @@ text = "☰ Menu"
 [node name="RecruitmentView" parent="." unique_id=936268883 instance=ExtResource("43_recruitment_scene")]
 
 [node name="ManageSquadPage" parent="." unique_id=148327654 instance=ExtResource("30_manage_page")]
+visible = false
+layout_mode = 1
 
 [node name="ShopView" parent="." unique_id=1736799284 instance=ExtResource("40_shop_scene")]
 

@@ -658,7 +658,7 @@ func test_scenario_priority_resolution() -> void:
 
 func create_test_entity(config: Dictionary) -> CharacterCombatStat:
 	# Create entity with proper stats initialization
-	var stats = EntityBaseStats.new()
+	var stats = CombatEntityBaseStats.new()
 	stats.endurance = 10.0 # Will give HP = 10*5 + 5*2 = 60
 	stats.siz = 5.0
 	stats.strength = 5.0
@@ -672,8 +672,8 @@ func create_test_entity(config: Dictionary) -> CharacterCombatStat:
 	stats.beu = 5.0
 	stats.wil = 5.0
 	
-	var entity_config = EntityConfig.new(
-		EntityFactory.EntityClasses.Landsknecht,
+	var entity_config = CombatEntityConfig.new(
+		CombatEntityFactory.EntityClasses.Landsknecht,
 		config.get("player_id", 0),
 		"Test Entity",
 		"test",

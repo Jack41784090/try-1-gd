@@ -199,7 +199,6 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - **Fail-fast**: `assert()` for requirements. No fallback values or stubs
 - **Enums over strings**. **Typed arrays**: `Array[EntityUpdate]` not `Array`
 - **No comments** unless `##` doc or complex algorithms
-- **One class per file**. **Factory pattern**: static `create_*()` methods. `class_name Class extends Subclass` on one line
 - **Instantiate squads through `SquadDataFactory.create_squad(config)`**
 - **Don't use `preload`** on "class not found" errors. **Don't export RefCounted** types. **Don't use `class_name` for inner classes**
 - **`Resource.duplicate(true)` does NOT deep-copy external `.tres` sub-resources** — explicitly duplicate: `activity.result = activity.result.duplicate(true)`

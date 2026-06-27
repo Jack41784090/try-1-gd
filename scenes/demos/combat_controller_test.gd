@@ -87,15 +87,15 @@ func end_test() -> void:
 
 #region Test Data Creation
 
-func create_test_warrior(id: String, warrior_name: String) -> Warrior:
-	var warrior = Warrior.new()
+func create_test_warrior(id: String, warrior_name: String) -> StrategyEntity:
+	var warrior = StrategyEntity.new()
 	warrior.id = id
 	warrior.name = warrior_name
 	warrior.morale = 50.0
 	warrior.is_dead = false
 	
-	# Create combat stats using EntityBaseStats
-	var stats = EntityBaseStats.new()
+	# Create combat stats using CombatEntityBaseStats
+	var stats = CombatEntityBaseStats.new()
 	stats.strength = 10.0
 	stats.endurance = 10.0
 	stats.siz = 10.0

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dgpody5fewwup" path="res://src/animation/warrior_rig.gd" id="1_6ti6l"]
 [ext_resource type="Script" uid="uid://mc5wjpbx7ny1" path="res://src/animation/warrior_anim_controller.gd" id="2_e3dth"]
 [ext_resource type="Texture2D" uid="uid://dw05rrj88lghq" path="res://assets/rig_textures/rachelle/lefthand.svg" id="2_jr2u5"]
-[ext_resource type="Resource" uid="uid://ce3nlulj7r8s5" path="res://resources/character/wcr_adventurer_rachelle.tres" id="2_xm1i3"]
+[ext_resource type="Resource" uid="uid://ce3nlulj7r8s5" path="res://resources/animation/configs/wcr_adventurer_rachelle.tres" id="2_xm1i3"]
 [ext_resource type="Texture2D" uid="uid://baxwin7id1vx" path="res://assets/rig_textures/rachelle/leftforearm.svg" id="3_5a64t"]
 [ext_resource type="Texture2D" uid="uid://bcbtj2km4br8v" path="res://assets/rig_textures/rachelle/leftarm.svg" id="4_cb1p0"]
 [ext_resource type="Texture2D" uid="uid://c4iwr8jci5c2p" path="res://assets/rig_textures/rachelle/righthand.svg" id="5_udfsl"]

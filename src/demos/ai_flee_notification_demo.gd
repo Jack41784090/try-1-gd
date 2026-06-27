@@ -64,10 +64,10 @@ func _inject_fleeing_squad() -> void:
 	)
 
 	for i in range(3):
-		var stats = EntityBaseStats.new(
+		var stats = CombatEntityBaseStats.new(
 			"", 40, 40, 40, 50, 50, 50, 30, 30, 30, 30, 40, 40
 		)
-		var warrior = WarriorFactory.create_warrior(
+		var warrior = StrategyEntityFactory.Create(
 			EntityClasses.Types.Landsknecht,
 			"scout_%d" % i,
 			"Scout %d" % (i + 1),

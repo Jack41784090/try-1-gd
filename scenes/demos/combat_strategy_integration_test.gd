@@ -582,20 +582,20 @@ func test_squad_get_warrior_by_id() -> void:
 	var squad = SquadData.new()
 	squad.warriors.clear()
 	
-	var warrior1 = Warrior.new()
+	var warrior1 = StrategyEntity.new()
 	warrior1.id = "w1"
-	warrior1.name = "Warrior One"
+	warrior1.name = "StrategyEntity One"
 	
-	var warrior2 = Warrior.new()
+	var warrior2 = StrategyEntity.new()
 	warrior2.id = "w2"
-	warrior2.name = "Warrior Two"
+	warrior2.name = "StrategyEntity Two"
 	
 	squad.warriors.append(warrior1)
 	squad.warriors.append(warrior2)
 	
 	var found = squad.get_warrior_by_id("w1")
 	assert_not_null(found, "warrior found")
-	assert_equal(found.name, "Warrior One", "correct warrior returned")
+	assert_equal(found.name, "StrategyEntity One", "correct warrior returned")
 	
 	var not_found = squad.get_warrior_by_id("nonexistent")
 	assert_true(not_found == null, "null for nonexistent id")
@@ -735,16 +735,16 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_squad.squad_name = "Enemy CombatSquad"
 	
 	# Create warriors with combat stats
-	var warrior = Warrior.new()
+	var warrior = StrategyEntity.new()
 	warrior.id = "w1"
-	warrior.name = "Test Warrior"
-	warrior.combat_stats = EntityBaseStats.new()
+	warrior.name = "Test StrategyEntity"
+	warrior.combat_stats = CombatEntityBaseStats.new()
 	player_squad.warriors.append(warrior)
 	
-	var enemy_warrior = Warrior.new()
+	var enemy_warrior = StrategyEntity.new()
 	enemy_warrior.id = "e1"
-	enemy_warrior.name = "Enemy Warrior"
-	enemy_warrior.combat_stats = EntityBaseStats.new()
+	enemy_warrior.name = "Enemy StrategyEntity"
+	enemy_warrior.combat_stats = CombatEntityBaseStats.new()
 	enemy_squad.warriors.append(enemy_warrior)
 	
 	# Test with aggressive charge tactic
