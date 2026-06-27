@@ -17,7 +17,7 @@ static func cache_squad_names(roaming_squads) -> Dictionary:
 	return names
 
 func update(
-	world, player: SquadData, walking_towards,
+	world, player: StrategySquad, walking_towards,
 	ai_fleet: AISquadManager, activity: Activity,
 	player_location_before: String, pre_states: Dictionary,
 	notification_collector, squad_names: Dictionary,

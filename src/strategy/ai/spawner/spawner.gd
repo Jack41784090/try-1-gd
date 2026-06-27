@@ -4,13 +4,13 @@ var DISBAND_MORALE_THRESHOLD := 0.0
 var _spawn_counter: int = 0
 
 #region DISBANDING
-func _disband_if_all_dead(squad: SquadData):
+func _disband_if_all_dead(squad: StrategySquad):
 	return squad.get_living_warriors().is_empty()
 
-func _disband_if_morale_crumbles(squad: SquadData):
+func _disband_if_morale_crumbles(squad: StrategySquad):
 	return squad.get_morale() <= self.DISBAND_MORALE_THRESHOLD
 
-func _disband_if_all_injured(squad: SquadData):
+func _disband_if_all_injured(squad: StrategySquad):
 	var all_injured := true
 	for w in squad.get_living_warriors():
 		if not w.is_injured:
@@ -18,7 +18,7 @@ func _disband_if_all_injured(squad: SquadData):
 			break
 	return all_injured
 
-func check_disband(squad: SquadData) -> bool:
+func check_disband(squad: StrategySquad) -> bool:
 	return \
 		_disband_if_all_dead(squad) or \
 		_disband_if_morale_crumbles(squad) or \
@@ -44,20 +44,23 @@ func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> A
 
 #region SPAWNING
 
-func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Warrior:
-	var warrior := WarriorFactory.create_warrior(
-		background_id,
-		"%s_w%d" % [squad_id, index],
-		"Warrior",
-		StrategyTypes.Religion.CATHOLIC,
-	)
-	warrior.morale = randf_range(40.0, 60.0)
-	return warrior
+func _create_warrior(_squad_id: String, _index: int, _background_id: StringName) -> StrategyEntity:
+	# DISABLED: StrategyEntityFactory does not exist during the StrategyEntity rewrite.
+	push_error("Spawner._create_warrior disabled during StrategyEntity rewrite")
+	return null
+	# var warrior := StrategyEntityFactory.Create(
+	# 	background_id,
+	# 	"%s_w%d" % [squad_id, index],
+	# 	"StrategyEntity",
+	# 	StrategyTypes.Religion.CATHOLIC,
+	# )
+	# warrior.morale = randf_range(40.0, 60.0)
+	# return warrior
 
-func _create_squad(location: Location, _world: World) -> SquadData:
+func _create_squad(location: Location, _world: World) -> StrategySquad:
 	_spawn_counter += 1
 	var spawn_location := location
-	var squad: SquadData = SquadDataFactory.create_squad(
+	var squad: StrategySquad = SquadDataFactory.create_squad(
 		"squad_%d" % int(randf() * 1000000.0),
 		"Squad %d" % _spawn_counter,
 		randf_range(5.0, 20.0),

@@ -33,11 +33,11 @@ func calculate_demand(location: Location, world: World) -> float:
 	return trade_loss / maxf(hire_cost, 1.0)
 
 
-func get_bounty(squad: SquadData) -> float:
+func get_bounty(squad: StrategySquad) -> float:
 	return float(squad.get_living_warriors().size()) * BOUNTY_PER_WARRIOR
 
 
-func find_nearest_bandit(location: Location, world: World) -> SquadData:
+func find_nearest_bandit(location: Location, world: World) -> StrategySquad:
 	var squads_here := world.get_squads_at_location(location.location_id)
 	for s in squads_here:
 		if s.squad_role == StrategyTypes.SquadRole.BANDIT:

@@ -65,7 +65,7 @@ func count_total_bandits(world: World) -> int:
 func get_max_bandits(world: World) -> int:
 	return world.locations.size() * 2
 
-func _check_bandit_disband(squad: SquadData) -> bool:
+func _check_bandit_disband(squad: StrategySquad) -> bool:
 	if squad.get_living_warriors().is_empty():
 		return true
 	if squad.get_morale() < DISBAND_MORALE_THRESHOLD:
@@ -77,7 +77,7 @@ func _check_bandit_disband(squad: SquadData) -> bool:
 			break
 	return all_injured
 
-func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Warrior:
+func _create_warrior(squad_id: String, index: int, background_id: StringName) -> StrategyEntity:
 	var warrior = super._create_warrior(squad_id, index, background_id)
 	warrior.morale = randf_range(20.0, 30.0)
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, randi_range(20, 40))

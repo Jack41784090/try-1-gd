@@ -1,7 +1,7 @@
 @tool
 class_name WarriorRigConfig extends Resource
 
-@export var class_id: EntityClasses.Types
+@export var class_id: String = ""
 
 @export_group("Body Textures")
 @export var head_texture: Texture2D

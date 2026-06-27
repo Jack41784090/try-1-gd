@@ -10,7 +10,7 @@ func setup(contact_tracker) -> void:
 	combat_controller.set_contact_tracker(contact_tracker)
 
 
-func inject_context(player: SquadData, enemy: SquadData, battle_viewport, combat_overlay, engagement_type) -> Dictionary:
+func inject_context(player: StrategySquad, enemy: StrategySquad, battle_viewport, combat_overlay, engagement_type) -> Dictionary:
 	is_in_encounter = true
 	return combat_controller.inject_context(player, enemy, battle_viewport, combat_overlay, engagement_type)
 
@@ -19,7 +19,7 @@ func execute_choice(choice: CombatController.IntermissionChoice) -> CombatContro
 	return await combat_controller.process_intermission_choice(choice)
 
 
-func apply_result(result: CombatController.CombatResult, squad: SquadData, location, world, turn_log: Array[String]) -> Dictionary:
+func apply_result(result: CombatController.CombatResult, squad: StrategySquad, location, world, turn_log: Array[String]) -> Dictionary:
 	is_in_encounter = false
 
 	var outcome_str := "VICTORY" if result.victory else ("FLED" if result.fled else ("NEGOTIATED" if result.negotiated else "DEFEAT"))
@@ -73,7 +73,7 @@ func apply_result(result: CombatController.CombatResult, squad: SquadData, locat
 	}
 
 
-func _apply_loot(squad: SquadData, loot: Dictionary) -> void:
+func _apply_loot(squad: StrategySquad, loot: Dictionary) -> void:
 	if loot.has("money"):
 		squad.money += loot.money
 		Log.debug("Combat", "Gained money: %.0f" % loot.money)
@@ -92,5 +92,5 @@ func _apply_loot(squad: SquadData, loot: Dictionary) -> void:
 				Log.debug("Combat", "Looted caravan goods worth: %.0f" % (qty * 2.0))
 
 
-static func check_game_over(squad: SquadData) -> bool:
+static func check_game_over(squad: StrategySquad) -> bool:
 	return squad.get_living_warriors().is_empty()

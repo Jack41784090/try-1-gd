@@ -54,7 +54,7 @@ func _get_edge_safety(from_id: String, to_id: String, world: World) -> float:
 	return edge_safety
 
 
-func _squad_threat(squad: SquadData) -> float:
+func _squad_threat(squad: StrategySquad) -> float:
 	if squad.squad_role == StrategyTypes.SquadRole.MERCHANT:
 		return 0.0
 	var warrior_count := squad.get_living_warriors().size()

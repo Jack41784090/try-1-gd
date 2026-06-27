@@ -13,7 +13,7 @@ var total_births: int = 0
 var _shipment_counter: int = 0
 
 ## Tracking for in-flight caravan shipments. Mirrors economic state of
-## EconomyMove objects with the strategy-layer SquadData ids materializing them.
+## EconomyMove objects with the strategy-layer StrategySquad ids materializing them.
 ## shipment_id (String) -> squad_id (String). Engine owns this state so that
 ## arrival/defeat/reassignment notifications can keep it consistent.
 var _active_shipments: Dictionary = {}
@@ -224,7 +224,7 @@ func _compute_danger_matrix() -> Array:
 ## Strategy layer notifies the engine that a materialized caravan has reached
 ## its destination. Engine applies the inventory delivery and clears the
 ## shipment tracking entry.
-func execute_caravan_delivery(caravan: SquadData) -> void:
+func execute_caravan_delivery(caravan: StrategySquad) -> void:
 	assert(caravan.is_caravan(), "execute_caravan_delivery requires a caravan squad")
 	var dest_loc := world.get_location_by_id(caravan.cargo.destination_id)
 	assert(dest_loc != null, "Caravan destination '%s' not found" % caravan.cargo.destination_id)
@@ -235,7 +235,7 @@ func execute_caravan_delivery(caravan: SquadData) -> void:
 
 ## Strategy layer notifies the engine that a materialized caravan was destroyed.
 ## Engine applies the loot transfer and clears the shipment tracking entry.
-func notify_caravan_defeated(caravan: SquadData, attacker: SquadData) -> Dictionary:
+func notify_caravan_defeated(caravan: StrategySquad, attacker: StrategySquad) -> Dictionary:
 	var looted: Dictionary = CaravanBridge.apply_loot(caravan, attacker)
 	_clear_shipment_for_squad(caravan.squad_id)
 	return looted

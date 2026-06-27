@@ -5,12 +5,14 @@ var is_executing_activity = false
 var aem: ActivityExecuteManager
 var hour_count: int = 0
 
-@onready var player_squad: SquadData:
+@onready var player_squad: StrategySquad:
 	set(_ps):
 		player_squad = _ps
 	get:
-		if player_squad == null and aem.scenario.starting_player_squad != null:
-			player_squad = aem.scenario.starting_player_squad.duplicate(true)
+		# DISABLED: building a runtime StrategySquad from StrategySquadResource
+		# (starting_player_squad) needs the runtime-build bridge, not yet written.
+		# if player_squad == null and aem.scenario.starting_player_squad != null:
+		# 	player_squad = aem.scenario.starting_player_squad.duplicate(true)
 		return player_squad
 
 var locations:

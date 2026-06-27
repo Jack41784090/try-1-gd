@@ -3,7 +3,7 @@ extends ActivityHandler
 
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
-	var squad = context.get("squad") as SquadData
+	var squad = context.get("squad") as StrategySquad
 	var world = context.get("world") as World
 	var location = world.get_location_by_id(squad.current_location_id)
 	assert(location != null, "BUY_SUPPLIES location not found for squad '%s'" % squad.squad_id)

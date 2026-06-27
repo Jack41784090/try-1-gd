@@ -1,14 +1,14 @@
 class_name ScoutingFocus extends RefCounted
 
 var selected_roles: Array[StrategyTypes.SquadRole] = []
-var selected_classes: Array[EntityClasses.Types] = []
+var selected_classes: Array[String] = []
 
 
 func is_empty() -> bool:
 	return selected_roles.is_empty() and selected_classes.is_empty()
 
 
-func matches(squad: SquadData) -> bool:
+func matches(squad: StrategySquad) -> bool:
 	if is_empty():
 		return false
 
@@ -18,7 +18,7 @@ func matches(squad: SquadData) -> bool:
 
 	for cls in selected_classes:
 		for warrior in squad.get_living_warriors():
-			if warrior.class_id == cls:
+			if warrior.identification == cls:
 				return true
 
 	return false
@@ -32,7 +32,7 @@ func toggle_role(role: StrategyTypes.SquadRole) -> void:
 		selected_roles.append(role)
 
 
-func toggle_class(cls: EntityClasses.Types) -> void:
+func toggle_class(cls: String) -> void:
 	var idx = selected_classes.find(cls)
 	if idx >= 0:
 		selected_classes.remove_at(idx)
@@ -47,17 +47,17 @@ func clear() -> void:
 
 func set_preset_aggressive() -> void:
 	selected_classes.clear()
-	selected_classes.append(EntityClasses.Types.Landsknecht)
-	selected_classes.append(EntityClasses.Types.Crossbowman)
-	selected_classes.append(EntityClasses.Types.Arquebusier)
-	selected_classes.append(EntityClasses.Types.Pikeman)
-	selected_classes.append(EntityClasses.Types.Gelehrter)
+	selected_classes.append("landsknecht")
+	selected_classes.append("crossbowman")
+	selected_classes.append("arquebusier")
+	selected_classes.append("pikeman")
+	selected_classes.append("gelehrter")
 
 
 func set_preset_support() -> void:
 	selected_classes.clear()
-	selected_classes.append(EntityClasses.Types.Healer)
-	selected_classes.append(EntityClasses.Types.Feldprediger)
+	selected_classes.append("healer")
+	selected_classes.append("feldprediger")
 
 
 func get_summary_text() -> String:
@@ -68,6 +68,6 @@ func get_summary_text() -> String:
 	for role in selected_roles:
 		parts.append(StrategyTypes.SquadRole.keys()[role])
 	for cls in selected_classes:
-		parts.append(EntityClasses.Types.keys()[cls])
+		parts.append(cls)
 
 	return "Focused on: %s" % ", ".join(parts)

@@ -1,7 +1,5 @@
-class_name SquadInventory
-extends RefCounted
-
-signal changed
+class_name SquadInventoryResource
+extends Resource
 
 var weapons: Array[WeaponResource] = []
 var armors: Array[ArmorConfig] = []

@@ -1,8 +1,8 @@
 class_name LootCollector
 extends RefCounted
 
-static func collect_equipment_loot(enemy_squad: SquadData, enemy_casualties: Array[String]) -> Dictionary:
-	var looted_weapons: Array[WeaponConfig] = []
+static func collect_equipment_loot(enemy_squad: StrategySquad, enemy_casualties: Array[String]) -> Dictionary:
+	var looted_weapons: Array[WeaponResource] = []
 	var looted_armors: Array[ArmorConfig] = []
 
 	for warrior in enemy_squad.warriors:
@@ -26,7 +26,7 @@ static func apply_equipment_loot(inventory, loot: Dictionary) -> void:
 	var armors: Array = loot.get("armors", [])
 
 	for weapon in weapons:
-		if weapon is WeaponConfig:
+		if weapon is WeaponResource:
 			inventory.add_weapon(weapon)
 
 	for armor in armors:

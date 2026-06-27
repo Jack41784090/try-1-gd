@@ -1,20 +1,20 @@
 class_name StrategicSituation
 extends RefCounted
 
-var squad: SquadData
+var squad: StrategySquad
 var location: Location
 var world: World
 var faction: Faction
 var directive: FactionDirective
 
-var enemies_here: Array[SquadData]:
+var enemies_here: Array[StrategySquad]:
 	get:
 		if not _enemies_here_computed:
 			_enemies_here = _find_enemies_here()
 			_enemies_here_computed = true
 		return _enemies_here
 
-var adjacent_enemies: Array[SquadData]:
+var adjacent_enemies: Array[StrategySquad]:
 	get:
 		if not _adjacent_enemies_computed:
 			_adjacent_enemies = _find_adjacent_enemies()
@@ -96,14 +96,14 @@ var weakest_tracked_enemy_warriors: int:
 			_weakest_tracked_enemy_warriors_computed = true
 		return _weakest_tracked_enemy_warriors
 
-var merchants_here: Array[SquadData]:
+var merchants_here: Array[StrategySquad]:
 	get:
 		if not _merchants_here_computed:
 			_merchants_here = _find_merchants_here()
 			_merchants_here_computed = true
 		return _merchants_here
 
-var merchants_adjacent: Array[SquadData]:
+var merchants_adjacent: Array[StrategySquad]:
 	get:
 		if not _merchants_adjacent_computed:
 			_merchants_adjacent = _find_merchants_adjacent()
@@ -117,9 +117,9 @@ var nearest_merchant_location: Location:
 			_nearest_merchant_location_computed = true
 		return _nearest_merchant_location
 
-var _enemies_here: Array[SquadData] = []
+var _enemies_here: Array[StrategySquad] = []
 var _enemies_here_computed: bool = false
-var _adjacent_enemies: Array[SquadData] = []
+var _adjacent_enemies: Array[StrategySquad] = []
 var _adjacent_enemies_computed: bool = false
 var _nearest_town: Location = null
 var _nearest_town_computed: bool = false
@@ -141,15 +141,15 @@ var _ambush_target_id: String = ""
 var _ambush_target_computed: bool = false
 var _weakest_tracked_enemy_warriors: int = 0
 var _weakest_tracked_enemy_warriors_computed: bool = false
-var _merchants_here: Array[SquadData] = []
+var _merchants_here: Array[StrategySquad] = []
 var _merchants_here_computed: bool = false
-var _merchants_adjacent: Array[SquadData] = []
+var _merchants_adjacent: Array[StrategySquad] = []
 var _merchants_adjacent_computed: bool = false
 var _nearest_merchant_location: Location = null
 var _nearest_merchant_location_computed: bool = false
 
 
-func _init(p_squad: SquadData, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
+func _init(p_squad: StrategySquad, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
 	# Initializes a lazy-evaluated snapshot of the world from this squad's perspective
 	# All computed properties (enemies_here, nearest_town, etc.) are only calculated on first access
 	# e.g., StrategicSituation(squad="Wolves", world, faction="Bandits") → location = world.get_location_by_id("salzburg")
@@ -161,8 +161,8 @@ func _init(p_squad: SquadData, p_world: World, p_faction: Faction, p_directive: 
 	assert(location != null, "Squad %s has invalid location: %s" % [squad.squad_name, squad.current_location_id])
 
 
-func _find_enemies_here() -> Array[SquadData]:
-	var result: Array[SquadData] = []
+func _find_enemies_here() -> Array[StrategySquad]:
+	var result: Array[StrategySquad] = []
 	var tracker = world.contact_tracker
 	var squads_at_loc = world.get_squads_at_location(location.location_id)
 	for s in squads_at_loc:
@@ -174,8 +174,8 @@ func _find_enemies_here() -> Array[SquadData]:
 	return result
 
 
-func _find_adjacent_enemies() -> Array[SquadData]:
-	var result: Array[SquadData] = []
+func _find_adjacent_enemies() -> Array[StrategySquad]:
+	var result: Array[StrategySquad] = []
 	var tracker = world.contact_tracker
 	var adjacent = world.get_adjacent_squads(location.location_id)
 	for s in adjacent:
@@ -193,7 +193,7 @@ func _find_nearest_of_type(types: Array) -> Location:
 	if not world.travel_graph:
 		return null
 
-	var visited: Dictionary = { }
+	var visited: Dictionary = {}
 	var queue: Array = [location.location_id]
 	visited[location.location_id] = true
 
@@ -319,15 +319,15 @@ func _compute_weakest_tracked_enemy_warriors() -> int:
 	return min_warriors if min_warriors < 999 else 0
 
 
-func _find_squad_by_id(target_id: String) -> SquadData:
+func _find_squad_by_id(target_id: String) -> StrategySquad:
 	for s in world.roaming_squads:
 		if s.squad_id == target_id:
 			return s
 	return null
 
 
-func _find_merchants_here() -> Array[SquadData]:
-	var result: Array[SquadData] = []
+func _find_merchants_here() -> Array[StrategySquad]:
+	var result: Array[StrategySquad] = []
 	var squads_at_loc = world.get_squads_at_location(location.location_id)
 	for s in squads_at_loc:
 		if s.squad_id == squad.squad_id:
@@ -337,8 +337,8 @@ func _find_merchants_here() -> Array[SquadData]:
 	return result
 
 
-func _find_merchants_adjacent() -> Array[SquadData]:
-	var result: Array[SquadData] = []
+func _find_merchants_adjacent() -> Array[StrategySquad]:
+	var result: Array[StrategySquad] = []
 	var adjacent = world.get_adjacent_squads(location.location_id)
 	for s in adjacent:
 		if s.squad_id == squad.squad_id:

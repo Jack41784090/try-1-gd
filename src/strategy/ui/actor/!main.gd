@@ -10,15 +10,17 @@ var scenario: GameScenario
 var world: World:
 	get:
 		return scenario.world
-var player_squad: SquadData:
+var player_squad: StrategySquad:
 	get:
-		if player_squad == null and \
-		(not _IS_AI and scenario.starting_player_squad != null):
-			player_squad = scenario.starting_player_squad.duplicate(true)
+		# DISABLED: building a runtime StrategySquad from StrategySquadResource
+		# (starting_player_squad) needs the runtime-build bridge, not yet written.
+		# if player_squad == null and \
+		# (not _IS_AI and scenario.starting_player_squad != null):
+		# 	player_squad = scenario.starting_player_squad.duplicate(true)
 		return player_squad
 #endregion
 
-func _init(is_ai = false, _ai_squad: SquadData = null) -> void:
+func _init(is_ai = false, _ai_squad: StrategySquad = null) -> void:
 	_IS_AI = is_ai
 
 
@@ -30,13 +32,13 @@ func setup(_loaded_scenario, context = {}):
 	# 2. Store the scenario reference — gives us access to world, triggerables, factions
 	scenario = _loaded_scenario
 	# 3. Set the squad — for AI, it's passed in context; for player, lazy-loaded from scenario
-	# e.g., context = {"squad": SquadData(squad_name="Wolves", warriors=[Warrior("Hans"), Warrior("Erik")])}
+	# e.g., context = {"squad": StrategySquad(squad_name="Wolves", warriors=[StrategyEntity("Hans"), StrategyEntity("Erik")])}
 	player_squad = context.get("squad", player_squad)
 	# scenario.initialize(context)
 
 
 ## Finds an enemy squad by ID from the world's roaming squads
-func _find_enemy_squad(squad_id: String) -> SquadData:
+func _find_enemy_squad(squad_id: String) -> StrategySquad:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
@@ -81,7 +83,7 @@ func _apply_location_change_result(_lcr: GenericResult):
 
 func _apply_result(result: GenericResult) -> void:
 	# Master result applier — takes ANY GenericResult and applies all its effects to the squad/world
-	# e.g., result = ActivityResult(location_changed="vienna", squad_stat_changes={MORALE: -5.0}, new_recruits=[Warrior("Otto")])
+	# e.g., result = ActivityResult(location_changed="vienna", squad_stat_changes={MORALE: -5.0}, new_recruits=[StrategyEntity("Otto")])
 	Log.trace("AEM", "_apply_result() called")
 	Log.trace("AEM", "Result type: %s" % result.get_class())
 	Log.trace("AEM", "Squad changes: %s" % [result.squad_stat_changes])
@@ -99,17 +101,19 @@ func _apply_result(result: GenericResult) -> void:
 		_apply_stats_changes_result(result)
 
 	# 3. Add new recruits into player squad — from RECRUIT activity
-	# e.g., new_recruits = [Warrior(name="Recruit_3")] → appended to squad.warriors
+	# e.g., new_recruits = [StrategyEntity(name="Recruit_3")] → appended to squad.warriors
 	if result.new_recruits.size() > 0:
 		Log.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
-		for recruit in result.new_recruits:
-			player_squad.add_warrior(recruit)
+		# DISABLED: new_recruits are StrategyEntityResource; runtime build bridge (StrategyEntity
+		# from StrategyEntityResource) needed before they can be added as runtime warriors.
+		# for recruit in result.new_recruits:
+		# 	player_squad.add_warrior(recruit)
 
 
 func _build_context(activity: Activity = null) -> Dictionary:
 	# Builds the shared context Dictionary used by ALL triggerables (activities, events, missions)
 	# to evaluate their conditions and execute their logic.
-	# e.g., returns {"squad": SquadData, "world": World, "location": Location("salzburg"), "turn": 5, ...}
+	# e.g., returns {"squad": StrategySquad, "world": World, "location": Location("salzburg"), "turn": 5, ...}
 	#
 	# 1. Gather completed missions for condition checks (e.g., "requires mission_01 completed")
 	var completed_mission_ids: Array[String] = []

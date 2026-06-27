@@ -3,7 +3,7 @@ extends ActivityHandler
 
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
-	var squad = context.get("squad") as SquadData
+	var squad = context.get("squad") as StrategySquad
 	var world = context.get("world") as World
 
 	if squad.get_living_warriors().is_empty():
@@ -34,7 +34,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	return result
 
 
-func _execute_legacy(squad: SquadData, result: ActivityResult) -> ActivityResult:
+func _execute_legacy(squad: StrategySquad, result: ActivityResult) -> ActivityResult:
 	var monster_count = randi_range(2, 4)
 	var base_pay_per_kill := 15.0
 	var squad_warriors = squad.get_living_warriors()

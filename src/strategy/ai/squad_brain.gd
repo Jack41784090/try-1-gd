@@ -2,10 +2,10 @@ class_name SquadBrain
 extends RefCounted
 
 var config: SquadBrainConfig
-var squad: SquadData
+var squad: StrategySquad
 var _rng := RandomNumberGenerator.new()
 
-func _init(p_squad: SquadData, p_config: SquadBrainConfig) -> void:
+func _init(p_squad: StrategySquad, p_config: SquadBrainConfig) -> void:
 	assert(p_squad != null, "SquadBrain requires a squad")
 	assert(p_config != null, "SquadBrain requires a config")
 	squad = p_squad

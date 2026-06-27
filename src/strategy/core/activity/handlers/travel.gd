@@ -3,7 +3,7 @@ extends ActivityHandler
 
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
-	var squad = context.get("squad") as SquadData
+	var squad = context.get("squad") as StrategySquad
 
 	var consumed = squad.consume_supplies_by_demand()
 	if not consumed:

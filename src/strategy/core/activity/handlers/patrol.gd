@@ -3,7 +3,7 @@ extends ActivityHandler
 
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
-	var squad = context.get("squad") as SquadData
+	var squad = context.get("squad") as StrategySquad
 	var world = context.get("world") as World
 	var tracker = world.contact_tracker
 

@@ -78,7 +78,7 @@ var emotion: String = "neutral":
 		emotion = value
 		_on_rig_source_changed()
 
-var class_id: EntityClasses.Types
+var class_id: String = ""
 var character_id: String = ""
 var facing: int = 1
 var _synced_parts: Array[Dictionary] = []

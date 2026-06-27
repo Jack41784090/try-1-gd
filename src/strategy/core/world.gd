@@ -6,7 +6,7 @@ class_name World
 @export var current_hour: int = 0
 @export var is_paused: bool = true
 @export var speed_multiplier: float = 1.0
-@export var roaming_squads: Array[SquadData] = []
+var roaming_squads: Array[StrategySquad] = []
 @export var map_scene: PackedScene
 @export var goods: Array[Thing] = []
 
@@ -80,15 +80,15 @@ func calculate_travel_hours(from_id: String, to_id: String, speed_kmh: float) ->
 	return travel_graph.calculate_travel_hours(path, speed_kmh)
 
 
-func get_squads_at_location(location_id: String) -> Array[SquadData]:
-	var squads_at_loc: Array[SquadData] = []
+func get_squads_at_location(location_id: String) -> Array[StrategySquad]:
+	var squads_at_loc: Array[StrategySquad] = []
 	for squad in roaming_squads:
 		if squad.current_location_id == location_id:
 			squads_at_loc.append(squad)
 	return squads_at_loc
 
 
-func add_roaming_squad(squad: SquadData) -> void:
+func add_roaming_squad(squad: StrategySquad) -> void:
 	roaming_squads.append(squad)
 
 
@@ -130,8 +130,8 @@ func find_nearest_location(from_id: String) -> String:
 	return ""
 
 
-func get_adjacent_squads(location_id: String) -> Array[SquadData]:
-	var adjacent_squads: Array[SquadData] = []
+func get_adjacent_squads(location_id: String) -> Array[StrategySquad]:
+	var adjacent_squads: Array[StrategySquad] = []
 	var location = get_location_by_id(location_id)
 	if not location:
 		return adjacent_squads
@@ -186,7 +186,7 @@ func check_engagements() -> Array[Dictionary]:
 	var processed: Dictionary = {}
 
 	for squad in roaming_squads:
-		var squad_a: SquadData = squad
+		var squad_a: StrategySquad = squad
 		if processed.has(squad_a.squad_id):
 			continue
 

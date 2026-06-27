@@ -103,13 +103,15 @@ func _customize_travel_activity(activity: Activity, activity_type: StrategyTypes
 	return activity
 
 
-func _find_squad_by_id(squad_id: String) -> SquadData:
+func _find_squad_by_id(squad_id: String) -> StrategySquad:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
 
-	if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:
-		return scenario.starting_player_squad
+	# DISABLED: starting_player_squad is now StrategySquadResource (authored); resolving it as a
+	# runtime StrategySquad needs the runtime-build bridge, not yet written.
+	# if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:
+	# 	return scenario.starting_player_squad
 
 	return null
 
@@ -167,8 +169,8 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 		def_strength,
 	])
 
-	var winner: SquadData
-	var loser: SquadData
+	var winner: StrategySquad
+	var loser: StrategySquad
 	if atk_strength >= def_strength:
 		winner = attacker
 		loser = defender
@@ -214,7 +216,7 @@ func cleanup_defeated_squads() -> void:
 
 	for squad_id in squad_brains:
 		var brain = squad_brains[squad_id]
-		var squad: SquadData = brain.squad
+		var squad: StrategySquad = brain.squad
 
 		var living_count = 0
 		var total_count = squad.warriors.size()
@@ -283,17 +285,17 @@ const WARRIOR_NAMES := [
 	"Volker", "Wilhelm", "Xaver", "Yannick", "Zacharias",
 ]
 
-func _ensure_unique_warriors(squad: SquadData) -> void:
-	var unique_warriors: Array[Warrior] = []
+func _ensure_unique_warriors(squad: StrategySquad) -> void:
+	var unique_warriors: Array[StrategyEntity] = []
 	for i in range(squad.warriors.size()):
-		var copy: Warrior = squad.warriors[i].duplicate(true)
+		var copy: StrategyEntity = squad.warriors[i].duplicate(true)
 		copy.id = "%s_w%d" % [squad.squad_id, i]
 		copy.name = WARRIOR_NAMES[(squad.squad_id.hash() + i) % WARRIOR_NAMES.size()]
 		unique_warriors.append(copy)
 	squad.warriors = unique_warriors
 
 
-func register_squad(squad: SquadData, profile_path: String = "") -> void:
+func register_squad(squad: StrategySquad, profile_path: String = "") -> void:
 	_ensure_unique_warriors(squad)
 	var resolved_profile_path := profile_path
 	if resolved_profile_path.is_empty():
@@ -322,13 +324,13 @@ func tick_bandit_lifecycle(faction: Faction) -> Array[String]:
 	return event_log
 
 
-func _create_executor_for_squad(squad: SquadData) -> ActivityExecuteManager:
+func _create_executor_for_squad(squad: StrategySquad) -> ActivityExecuteManager:
 	var executor = ActivityExecuteManager.new(true)
 	executor.setup(scenario, {"squad": squad})
 	return executor
 
 
-func _register_brain_and_executor(squad: SquadData, brain: RefCounted) -> void:
+func _register_brain_and_executor(squad: StrategySquad, brain: RefCounted) -> void:
 	squad_brains[squad.squad_id] = brain
 	squad_executors[squad.squad_id] = _create_executor_for_squad(squad)
 
@@ -340,7 +342,7 @@ func _erase_squad_runtime_state(squad_id: String) -> void:
 	scenario.world.contact_tracker.clear_contacts_for(squad_id)
 
 
-func _roll_strength(squad: SquadData, rng: RandomNumberGenerator) -> float:
+func _roll_strength(squad: StrategySquad, rng: RandomNumberGenerator) -> float:
 	var living = squad.get_living_warriors()
 	var base_strength = living.size() * (squad.get_morale() + 50.0)
 	return base_strength * rng.randf_range(0.7, 1.3)

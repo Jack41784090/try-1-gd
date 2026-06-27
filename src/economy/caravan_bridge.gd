@@ -8,7 +8,7 @@ static func create_caravan_squad(
 	move: EconomyMove,
 	shipment_id: String,
 	guard_count: int = 2,
-) -> SquadData:
+) -> StrategySquad:
 	var squad := SquadDataFactory.create_squad(
 		"caravan_%s" % shipment_id,
 		_next_convoy_name(move.thing.thing_name),
@@ -24,24 +24,29 @@ static func create_caravan_squad(
 	squad.cargo.manifest[move.thing.thing_id] = move.quantity
 	squad.cargo.destination_id = move.dest_location_id
 
-	for i in range(guard_count):
-		var warrior := _create_caravan_guard(squad.squad_id, i)
-		squad.add_warrior(warrior)
+	# DISABLED: guard creation needs the StrategyEntity runtime-build bridge (StrategyEntityFactory)
+	# which does not exist during the StrategyEntity rewrite.
+	# for i in range(guard_count):
+	# 	var warrior := _create_caravan_guard(squad.squad_id, i)
+	# 	squad.add_warrior(warrior)
 
 	return squad
 
 
-static func _create_caravan_guard(squad_id: String, index: int) -> Warrior:
-	var guard := WarriorFactory.create_warrior(
-		&"landsknecht",
-		"%s_guard_%d" % [squad_id, index],
-		"Caravan Guard",
-		StrategyTypes.Religion.CATHOLIC,
-	)
-	guard.morale = 60.0
-	guard.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, 15)
-	guard.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, 5)
-	return guard
+static func _create_caravan_guard(_squad_id: String, _index: int) -> StrategyEntity:
+	# DISABLED: StrategyEntityFactory does not exist during the StrategyEntity rewrite.
+	push_error("CaravanBridge._create_caravan_guard disabled during StrategyEntity rewrite")
+	return null
+	# var guard := StrategyEntityFactory.Create(
+	# 	&"landsknecht",
+	# 	"%s_guard_%d" % [squad_id, index],
+	# 	"Caravan Guard",
+	# 	StrategyTypes.Religion.CATHOLIC,
+	# )
+	# guard.morale = 60.0
+	# guard.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, 15)
+	# guard.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, 5)
+	# return guard
 
 
 static func calculate_guard_count(move: EconomyMove) -> int:
@@ -56,7 +61,7 @@ static func calculate_guard_count(move: EconomyMove) -> int:
 
 
 static func apply_delivery(
-	squad: SquadData,
+	squad: StrategySquad,
 	dest_inventory: LocationInventory,
 	goods_registry: Array[Thing],
 ) -> void:
@@ -72,8 +77,8 @@ static func apply_delivery(
 
 
 static func apply_loot(
-	caravan: SquadData,
-	attacker: SquadData,
+	caravan: StrategySquad,
+	attacker: StrategySquad,
 ) -> Dictionary:
 	var looted: Dictionary = {}
 	for thing_id in caravan.cargo.manifest:
@@ -91,7 +96,7 @@ static func apply_loot(
 
 
 static func execute_caravan_reassignment(
-	squad: SquadData,
+	squad: StrategySquad,
 	move: EconomyMove,
 	shipment_id: String,
 ) -> void:

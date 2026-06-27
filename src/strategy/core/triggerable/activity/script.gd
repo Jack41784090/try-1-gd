@@ -32,7 +32,7 @@ func _to_string() -> String:
 	]
 
 
-func can_execute(squad: SquadData, location: Location) -> bool:
+func can_execute(squad: StrategySquad, location: Location) -> bool:
 	var handler = _get_registry().get_handler(activity_type)
 	if handler:
 		return handler.can_execute(self , squad, location)

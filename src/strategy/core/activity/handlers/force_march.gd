@@ -2,7 +2,7 @@ class_name ForceMarchHandler
 extends ActivityHandler
 
 
-func can_execute(activity, squad: SquadData, location: Location) -> bool:
+func can_execute(activity, squad: StrategySquad, location: Location) -> bool:
 	if activity.destination_id.is_empty():
 		return false
 	if not location.is_connected_to(activity.destination_id):
@@ -19,7 +19,7 @@ func can_execute(activity, squad: SquadData, location: Location) -> bool:
 
 func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var world = context.get("world") as World
-	var squad = context.get("squad") as SquadData
+	var squad = context.get("squad") as StrategySquad
 	var activity = context.get("activity")
 
 	var config := activity.force_march_config as ForceMarchConfig
