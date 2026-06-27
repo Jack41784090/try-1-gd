@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Faction" format=3]
+
+[ext_resource type="Script" uid="uid://bcbf28h1wrvnl" path="res://src/strategy/core/faction.gd" id="1_faction"]
+[ext_resource type="Script" uid="uid://3686v40s4jn5" path="res://src/strategy/core/triggerable/mission/script.gd" id="2_mission_script"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/missions/g0_license_crisis.tres" id="3_g0"]
+[ext_resource type="Resource" uid="uid://ccmg52fi1n513" path="res://resources/strategy/scenarios/goetz-official/missions/g1_march_to_nuremberg.tres" id="4_g1"]
+
+[resource]
+script = ExtResource("1_faction")
+faction_id = "goetz_household"
+faction_name = "House of Berlichingen"
+description = "The household of Goetz von Berlichingen, a minor Franconian knight."
+missions = Array[ExtResource("2_mission_script")]([ExtResource("3_g0"), ExtResource("4_g1")])
+metadata/_custom_type_script = "uid://bcbf28h1wrvnl"

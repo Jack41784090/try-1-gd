@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Activity" format=3]
+
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
+[ext_resource type="Resource" path="res://resources/strategy/generic-activities/attack/result.tres" id="2_result"]
+[ext_resource type="Script" uid="uid://lsl135kkyadr" path="res://src/strategy/core/activity/attack_config.gd" id="3_atk_cfg"]
+
+[sub_resource type="Resource" id="Resource_atk"]
+script = ExtResource("3_atk_cfg")
+min_stability_to_block = 80.0
+
+[resource]
+script = ExtResource("1_activity")
+result = ExtResource("2_result")
+activity_type = 8
+time_cost = 1
+attack_config = SubResource("Resource_atk")
+trigger_id = "attack-generic"
+trigger_name = "Attack"
+description = "Engage enemy forces at this location. Cannot be performed in highly stable areas."

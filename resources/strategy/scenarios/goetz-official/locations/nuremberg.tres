@@ -1,0 +1,141 @@
+[gd_resource type="Resource" script_class="Location" format=3 uid="uid://klo0k8q8ylu5"]
+
+[ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="1_i373h"]
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/cloth.tres" id="4_cloth"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/food.tres" id="5_food"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/iron.tres" id="5_iron"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/luxury.tres" id="6_luxury"]
+[ext_resource type="Resource" uid="uid://66byxnpt12ye" path="res://resources/strategy/scenarios/goetz-official/goods/iron_sword.tres" id="7_sword"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/tools.tres" id="7_tools"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/wood.tres" id="7_wood"]
+[ext_resource type="Script" uid="uid://c600uhd2rh4ps" path="res://src/economy/stock_entry.gd" id="8_se"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="9_inv"]
+[ext_resource type="Script" uid="uid://c8huja3ryjk0f" path="res://src/economy/natural_resource.gd" id="10_iwu8r"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="10_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="11_thing_script"]
+[ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="12_popconfig"]
+[ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="13_popgroup"]
+[ext_resource type="Script" uid="uid://cd5tc80ro1kvg" path="res://src/economy/guild_config.gd" id="14_guildconfig"]
+[ext_resource type="Script" uid="uid://bvshxj6mh7lw2" path="res://src/economy/guild_specialization.gd" id="15_guildspec"]
+
+[sub_resource type="Resource" id="conn_nuremberg_to_altdorf"]
+script = ExtResource("2_conn")
+from_location_id = "nuremberg"
+to_location_id = "altdorf"
+distance_km = 25.0
+
+[sub_resource type="Resource" id="conn_nuremberg_to_bamberg"]
+script = ExtResource("2_conn")
+from_location_id = "nuremberg"
+to_location_id = "bamberg"
+distance_km = 63.0
+
+[sub_resource type="Resource" id="conns_nuremberg"]
+script = ExtResource("3_conns")
+tt = Array[ExtResource("2_conn")]([SubResource("conn_nuremberg_to_altdorf"), SubResource("conn_nuremberg_to_bamberg")])
+
+[sub_resource type="Resource" id="spec_nuremberg_sword"]
+script = ExtResource("15_guildspec")
+thing = ExtResource("7_sword")
+max_workers = 30
+worker_job = 3
+wage_per_worker = 1.5
+recruitment_rate = 2
+
+[sub_resource type="Resource" id="guild_nuremberg"]
+script = ExtResource("14_guildconfig")
+guild_name = "Nürnberg Smithing Guild"
+specializations = Array[ExtResource("15_guildspec")]([SubResource("spec_nuremberg_sword")])
+starting_treasury = 500.0
+
+[sub_resource type="Resource" id="se_nuremberg_food"]
+script = ExtResource("8_se")
+thing = ExtResource("5_food")
+amount = 15000.0
+
+[sub_resource type="Resource" id="se_nuremberg_cloth"]
+script = ExtResource("8_se")
+thing = ExtResource("4_cloth")
+amount = 800.0
+
+[sub_resource type="Resource" id="se_nuremberg_tools"]
+script = ExtResource("8_se")
+thing = ExtResource("7_tools")
+amount = 400.0
+
+[sub_resource type="Resource" id="se_nuremberg_luxury"]
+script = ExtResource("8_se")
+thing = ExtResource("6_luxury")
+amount = 200.0
+
+[sub_resource type="Resource" id="se_nuremberg_iron"]
+script = ExtResource("8_se")
+thing = ExtResource("5_iron")
+amount = 300.0
+
+[sub_resource type="Resource" id="se_nuremberg_wood"]
+script = ExtResource("8_se")
+thing = ExtResource("7_wood")
+amount = 500.0
+
+[sub_resource type="Resource" id="inv_nuremberg"]
+script = ExtResource("9_inv")
+initial_stocks = Array[ExtResource("8_se")]([SubResource("se_nuremberg_food"), SubResource("se_nuremberg_cloth"), SubResource("se_nuremberg_tools"), SubResource("se_nuremberg_luxury"), SubResource("se_nuremberg_iron"), SubResource("se_nuremberg_wood")])
+
+[sub_resource type="Resource" id="popgroup_nuremberg_0"]
+script = ExtResource("13_popgroup")
+count = 650
+starting_money = 2.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_1"]
+script = ExtResource("13_popgroup")
+count = 550
+social_class = 1
+job = 3
+starting_money = 10.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_2"]
+script = ExtResource("13_popgroup")
+count = 400
+social_class = 1
+job = 1
+starting_money = 15.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_3"]
+script = ExtResource("13_popgroup")
+count = 120
+social_class = 2
+job = 2
+starting_money = 50.0
+
+[sub_resource type="Resource" id="popgroup_nuremberg_4"]
+script = ExtResource("13_popgroup")
+count = 780
+job = 4
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popconfig_nuremberg"]
+script = ExtResource("12_popconfig")
+groups = Array[ExtResource("13_popgroup")]([SubResource("popgroup_nuremberg_0"), SubResource("popgroup_nuremberg_1"), SubResource("popgroup_nuremberg_2"), SubResource("popgroup_nuremberg_3"), SubResource("popgroup_nuremberg_4")])
+
+[sub_resource type="Resource" id="shop_nuremberg"]
+script = ExtResource("10_shop")
+shop_name = "Nürnberg Grand Bazaar"
+items = Array[ExtResource("11_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth"), ExtResource("7_tools"), ExtResource("6_luxury"), ExtResource("7_sword")])
+
+[resource]
+script = ExtResource("1_loc")
+location_id = "nuremberg"
+location_name = "Nürnberg"
+type = 0
+development = 85
+stability = 75.0
+connections = SubResource("conns_nuremberg")
+available_activity_types = Array[int]([0, 2, 3, 4, 5, 6, 10, 11, 14])
+shop = SubResource("shop_nuremberg")
+inventory = SubResource("inv_nuremberg")
+population_config = SubResource("popconfig_nuremberg")
+guild_configs = Array[ExtResource("14_guildconfig")]([SubResource("guild_nuremberg")])

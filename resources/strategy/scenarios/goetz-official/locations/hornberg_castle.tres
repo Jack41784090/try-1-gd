@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="Location" format=3 uid="uid://dm4ypyub4jxhs"]
+
+[ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="1_3bjev"]
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/cloth.tres" id="4_cloth"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/food.tres" id="5_food"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/tools.tres" id="6_tools"]
+[ext_resource type="Script" uid="uid://c600uhd2rh4ps" path="res://src/economy/stock_entry.gd" id="7_se"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="8_inv"]
+[ext_resource type="Script" uid="uid://c8huja3ryjk0f" path="res://src/economy/natural_resource.gd" id="9_50jc2"]
+[ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="10_popconfig"]
+[ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="11_popgroup"]
+[ext_resource type="Script" uid="uid://b136kr6rocls5" path="res://src/strategy/core/shop/shop.gd" id="12_shop"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="13_thing_script"]
+
+[sub_resource type="Resource" id="conn_hornberg_castle_to_neckartal"]
+script = ExtResource("2_conn")
+from_location_id = "hornberg_castle"
+to_location_id = "neckartal"
+distance_km = 20.0
+
+[sub_resource type="Resource" id="conns_hornberg_castle"]
+script = ExtResource("3_conns")
+tt = Array[ExtResource("2_conn")]([SubResource("conn_hornberg_castle_to_neckartal")])
+
+[sub_resource type="Resource" id="se_hornberg_castle_food"]
+script = ExtResource("7_se")
+thing = ExtResource("5_food")
+amount = 3000.0
+
+[sub_resource type="Resource" id="se_hornberg_castle_cloth"]
+script = ExtResource("7_se")
+thing = ExtResource("4_cloth")
+amount = 100.0
+
+[sub_resource type="Resource" id="se_hornberg_castle_tools"]
+script = ExtResource("7_se")
+thing = ExtResource("6_tools")
+amount = 50.0
+
+[sub_resource type="Resource" id="inv_hornberg_castle"]
+script = ExtResource("8_inv")
+initial_stocks = Array[ExtResource("7_se")]([SubResource("se_hornberg_castle_food"), SubResource("se_hornberg_castle_cloth"), SubResource("se_hornberg_castle_tools")])
+
+[sub_resource type="Resource" id="popgroup_hornberg_castle_0"]
+script = ExtResource("11_popgroup")
+count = 50
+job = 5
+
+[sub_resource type="Resource" id="popgroup_hornberg_castle_1"]
+script = ExtResource("11_popgroup")
+count = 50
+job = 4
+starting_money = 1.0
+
+[sub_resource type="Resource" id="popgroup_hornberg_castle_2"]
+script = ExtResource("11_popgroup")
+count = 20
+social_class = 2
+job = 2
+starting_money = 80.0
+
+[sub_resource type="Resource" id="popconfig_hornberg_castle"]
+script = ExtResource("10_popconfig")
+groups = Array[ExtResource("11_popgroup")]([SubResource("popgroup_hornberg_castle_0"), SubResource("popgroup_hornberg_castle_1"), SubResource("popgroup_hornberg_castle_2")])
+
+[sub_resource type="Resource" id="shop_hornberg_castle"]
+script = ExtResource("12_shop")
+shop_name = "Hornberg Garrison Market"
+items = Array[ExtResource("13_thing_script")]([ExtResource("5_food"), ExtResource("4_cloth"), ExtResource("6_tools")])
+
+[resource]
+script = ExtResource("1_loc")
+location_id = "hornberg_castle"
+location_name = "Hornberg Castle"
+type = 3
+development = 70
+stability = 110.0
+connections = SubResource("conns_hornberg_castle")
+available_activity_types = Array[int]([0, 1, 3, 5, 10, 11, 14])
+shop = SubResource("shop_hornberg_castle")
+inventory = SubResource("inv_hornberg_castle")
+population_config = SubResource("popconfig_hornberg_castle")

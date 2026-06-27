@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Faction" format=3 uid="uid://c8g1w3umulj61"]
+
+[ext_resource type="Script" path="res://src/strategy/missions/mission.gd" id="1_rex7l"]
+[ext_resource type="Resource" uid="uid://cdhxdhnsms6mo" path="res://resources/strategy/scenarios/test scenario/factions/1/missions/f1-m1.tres" id="2_sbyvi"]
+[ext_resource type="Script" path="res://src/strategy/missions/faction.gd" id="3_jj0mo"]
+
+[resource]
+script = ExtResource("3_jj0mo")
+faction_id = "f1"
+faction_name = "Faction 1"
+missions = Array[ExtResource("1_rex7l")]([ExtResource("2_sbyvi")])
+metadata/_custom_type_script = "uid://cc5wxu7e8gyp3"

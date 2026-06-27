@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StrategySquad" format=3 uid="uid://dqekkd30ffwmi"]
+
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="1_upt3a"]
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="2_char"]
+[ext_resource type="Resource" uid="uid://cob1exkhexah3" path="res://resources/strategy/warrior-presets/test-Siegmund.tres" id="3_war"]
+
+[resource]
+script = ExtResource("1_upt3a")
+squad_id = "bandit_squad_1"
+squad_name = "Forest Bandits"
+warriors = Array[ExtResource("2_char")]([ExtResource("3_war"), ExtResource("3_war")])
+money = 50.0
+karma = -20.0
+food = 5
+travel_tools = 2
+formation = Array[int]([1, 1, 2])
+starting_location_id = "camp"

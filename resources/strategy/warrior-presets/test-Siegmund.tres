@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Warrior" format=3 uid="uid://cob1exkhexah3"]
+
+[ext_resource type="Resource" uid="uid://cc7myluyxivt1" path="res://resources/combat/classes/base_stats/BS_test-Landsnecht.tres" id="1_ftabk"]
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="1_twsyk"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="2_tqwuc"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="3_dmeqs"]
+
+[resource]
+script = ExtResource("1_twsyk")
+id = "landsknecht"
+name = "Siegmund"
+attributes = {
+"diplomacy": 3,
+"leadership": 3,
+"perception": 2,
+"stealth": 4,
+"survival": 5
+}
+combat_stats = ExtResource("1_ftabk")
+equipment_weapon = ExtResource("3_dmeqs")
+equipment_armor = ExtResource("2_tqwuc")
+metadata/_custom_type_script = "uid://daf2liv8hyncx"

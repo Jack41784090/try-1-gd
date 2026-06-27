@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Thing" format=3 uid="uid://66byxnpt12ye"]
+
+[ext_resource type="Script" uid="uid://br8diy4ooe5b3" path="res://src/economy/thing_input.gd" id="1_bhurl"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/iron.tres" id="2_t288n"]
+[ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/wood.tres" id="3_0x5pb"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="4_3sgpq"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="5_sword"]
+
+[sub_resource type="Resource" id="input_iron"]
+script = ExtResource("1_bhurl")
+thing = ExtResource("2_t288n")
+quantity = 2.0
+
+[sub_resource type="Resource" id="input_wood"]
+script = ExtResource("1_bhurl")
+thing = ExtResource("3_0x5pb")
+
+[resource]
+script = ExtResource("4_3sgpq")
+thing_id = "iron-sword"
+thing_name = "Iron Sword"
+thing_type = 5
+base_price = 25.0
+description = "Forged blades from the smithing guild."
+inputs = Array[ExtResource("1_bhurl")]([SubResource("input_iron"), SubResource("input_wood")])
+weapon_config = ExtResource("5_sword")

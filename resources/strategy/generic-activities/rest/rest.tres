@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Activity" format=3 uid="uid://dto2tvlqqylg"]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_t6tde"]
+[ext_resource type="Resource" uid="uid://bqbu8htfo0mli" path="res://resources/strategy/generic-activities/rest/result.tres" id="2_113es"]
+[ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="2_a5rie"]
+
+[resource]
+script = ExtResource("2_a5rie")
+result = ExtResource("2_113es")
+activity_type = 0
+trigger_id = "rest-generic"
+trigger_name = "Rest"
+description = "Make camp and allow the squad to recover from the rigors of the road. Essential for maintaining morale."
+emergency_priority = 1

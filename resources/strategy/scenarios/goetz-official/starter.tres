@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StrategySquad" format=3 uid="uid://c51vajq8ti4m2"]
+
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="3_social"]
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="5_hdn84"]
+[ext_resource type="Resource" uid="uid://cob1exkhexah3" path="res://resources/strategy/warrior-presets/test-Siegmund.tres" id="6_24mu5"]
+
+[resource]
+script = ExtResource("3_social")
+squad_id = "goetz_men_at_arms"
+squad_name = "Götz's Men-at-Arms"
+warriors = Array[ExtResource("5_hdn84")]([ExtResource("6_24mu5")])
+money = 250.0
+food = 30
+travel_tools = 8
+metadata/_custom_type_script = "uid://cjilk34mc47ja"

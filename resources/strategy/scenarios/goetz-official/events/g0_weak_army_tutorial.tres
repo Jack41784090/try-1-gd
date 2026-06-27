@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="GameEvent" format=3 uid="uid://cr2stqjpcaf2d"]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_03b57"]
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="2_2cun2"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="2_4dscv"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="3_syq6c"]
+
+[sub_resource type="Resource" id="cond_time"]
+script = ExtResource("1_03b57")
+condition_type = 5
+parameters = {
+"turn_min": 0,
+"turn_max": 24
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[sub_resource type="Resource" id="Resource_b2q8x"]
+script = ExtResource("3_syq6c")
+event_chain_path = "res://resources/scenarios/goetz-official/event-chains/g0_weak_army_tutorial_eventchain.tres"
+requires_async = true
+metadata/_custom_type_script = "uid://bid5uxwt6tojw"
+
+[resource]
+script = ExtResource("2_4dscv")
+trigger_id = "g0_weak_army_tutorial"
+trigger_name = "Weak Army Tutorial"
+conditions = Array[ExtResource("1_03b57")]([SubResource("cond_time")])
+result = SubResource("Resource_b2q8x")
+when_to_trigger = 3
+repeats = 1
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"

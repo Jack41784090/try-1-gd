@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="GameEvent" format=3 uid="uid://dq3v8x2lawpnh"]
+
+[ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Resource" uid="uid://b8x2lavpn5wqh" path="res://resources/strategy/generic-activities/travelling/starvation-result.tres" id="3_result"]
+
+[sub_resource type="Resource" id="Resource_condition"]
+script = ExtResource("1_condition")
+parameters = {
+"comparison": "less_than_or_equal",
+"property": 2,
+"threshold": 0.0
+}
+metadata/_custom_type_script = "uid://bttrmws06n1o1"
+
+[resource]
+script = ExtResource("2_event")
+result = ExtResource("3_result")
+trigger_id = "travel-no-supply"
+trigger_name = "Starvation"
+description = "The squad has run out of food supplies and the crew is on the verge of revolt."
+conditions = Array[ExtResource("1_condition")]([SubResource("Resource_condition")])
+emergency_priority = 5
+metadata/_custom_type_script = "uid://be7sjfrk5uh5g"
