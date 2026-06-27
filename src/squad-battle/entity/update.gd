@@ -1,4 +1,5 @@
 class_name EntityUpdate
+extends RefCounted
 
 var source: int
 var affected: int

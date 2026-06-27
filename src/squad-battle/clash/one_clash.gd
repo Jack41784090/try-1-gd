@@ -3,9 +3,9 @@ extends Resource
 
 var updates: Array[EntityUpdate] = []
 
-@export var affecteds: Array[CombatEntity] = []
-@export var attacker: CombatEntity
-@export var targeted: CombatEntity
+var affecteds: Array[CombatEntity] = []
+var attacker: CombatEntity
+var targeted: CombatEntity
 @export var skill: Skill
 var situation: Situation
 var context: Dictionary

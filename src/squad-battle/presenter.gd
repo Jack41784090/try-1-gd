@@ -67,10 +67,10 @@ func _create_mock_battle() -> SquadBattle:
 				"name": "Heroes",
 				"team": "heroes",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Healer
+					"landsknecht",
+					"landsknecht",
+					"landsknecht",
+					"healer"
 				]
 			}],
 			SquadBattleTypes.Side.DEFENDER: [ {
@@ -78,10 +78,10 @@ func _create_mock_battle() -> SquadBattle:
 				"name": "Monsters",
 				"team": "monsters",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Healer
+					"landsknecht",
+					"landsknecht",
+					"landsknecht",
+					"healer"
 				]
 			}]
 		},
