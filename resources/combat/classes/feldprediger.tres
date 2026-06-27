@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="SquadEntity" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="SquadEntity" format=3]
 
-[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat.gd" id="1_combat"]
-[ext_resource type="Resource" path="res://resources/combat/logic/logic/backline-support.tres" id="2_logic"]
-[ext_resource type="Resource" path="res://resources/strategy-warrior/BS_feldprediger.tres" id="3_stats"]
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
+[ext_resource type="Resource" uid="uid://dw86udcpq7ivu" path="res://resources/combat/logic/logic/backline-support.tres" id="2_logic"]
+[ext_resource type="Resource" path="res://resources/combat/classes/base_stats/BS_feldprediger.tres" id="3_stats"]
 
 [resource]
 script = ExtResource("1_combat")

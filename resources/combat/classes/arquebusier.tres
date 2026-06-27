@@ -1,15 +1,16 @@
-[gd_resource type="Resource" script_class="SquadEntity" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3 uid="uid://b8b230wjh0136"]
 
-[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat.gd" id="1_combat"]
-[ext_resource type="Resource" path="res://resources/combat/logic/logic/backline-gunner.tres" id="2_logic"]
-[ext_resource type="Resource" path="res://resources/strategy-warrior/BS_arquebusier.tres" id="3_stats"]
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="1_sp6eo"]
+[ext_resource type="Resource" uid="uid://dki5wkrk2eun3" path="res://resources/combat/logic/logic/backline-gunner.tres" id="2_logic"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_rm0vk"]
+[ext_resource type="Resource" path="res://resources/combat/classes/base_stats/BS_arquebusier.tres" id="5_wvn0f"]
+[ext_resource type="Resource" uid="uid://dpnp1lb8kk4sc" path="res://resources/combat/weapon/config/arquebus.tres" id="6_ehy5b"]
 
 [resource]
 script = ExtResource("1_combat")
-class_id = 3
-entity_name = "Arquebusier"
-stats = ExtResource("3_stats")
-weapon_class = 3
-armor_class = 0
+stats = ExtResource("5_wvn0f")
+weapon_class = ExtResource("6_ehy5b")
+armor_class = ExtResource("1_sp6eo")
 logic_config = ExtResource("2_logic")
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

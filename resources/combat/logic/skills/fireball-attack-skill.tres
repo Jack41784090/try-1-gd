@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://yvbccq62ymri"]
 
 [ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_ske"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_skill"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="3_glance"]
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="4_csdr"]
-[ext_resource type="Script" path="res://src/squad-battle/clash/skill/ske-splash.gd" id="5_splash"]
+[ext_resource type="Script" uid="uid://d1251t8bjn6ks" path="res://src/squad-battle/clash/skill/ske-splash.gd" id="5_splash"]
 
 [sub_resource type="Resource" id="Resource_damage"]
 script = ExtResource("1_ske")
@@ -13,7 +13,6 @@ metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
 
 [sub_resource type="Resource" id="Resource_splash"]
 script = ExtResource("5_splash")
-splash_damage_ratio = 0.5
 name = "Fireball Splash"
 triggers = Array[int]([1])
 

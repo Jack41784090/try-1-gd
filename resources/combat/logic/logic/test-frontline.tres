@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=9 format=3 uid="uid://cvco6tu0hveri"]
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" format=3 uid="uid://cvco6tu0hveri"]
 
 [ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad-battle/entity/logic/config.gd" id="1_config"]
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="2_consideration"]

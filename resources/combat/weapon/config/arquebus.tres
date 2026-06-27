@@ -1,34 +1,34 @@
-[gd_resource type="Resource" script_class="WeaponConfig" format=3]
+[gd_resource type="Resource" script_class="WeaponConfig" format=3 uid="uid://dpnp1lb8kk4sc"]
 
-[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage-tsl.gd" id="1_dtsl"]
-[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/_config-resource.gd" id="2_wcfg"]
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency-obj.gd" id="3_pot"]
-[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/weapon-location.gd" id="4_wloc"]
-[ext_resource type="Resource" path="res://resources/combat/weapon/locations/back-to-all.tres" id="5_b2a"]
-[ext_resource type="Resource" path="res://resources/combat/weapon/locations/middle-to-front-mid.tres" id="6_m2fm"]
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage_translate.gd" id="1_3eey1"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency.gd" id="2_5nd60"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/resource.gd" id="3_l86et"]
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/location.gd" id="4_h46by"]
+[ext_resource type="Resource" path="res://resources/combat/weapon/locations/back-to-all.tres" id="5_2bpsu"]
+[ext_resource type="Resource" path="res://resources/combat/weapon/locations/middle-to-front-mid.tres" id="6_3q2gt"]
 
 [sub_resource type="Resource" id="Resource_pot_strike"]
-script = ExtResource("3_pot")
+script = ExtResource("2_5nd60")
 value = 0.5
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_pot_stab"]
-script = ExtResource("3_pot")
+script = ExtResource("2_5nd60")
 potency = 2
 value = 0.6
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_dtsl"]
-script = ExtResource("1_dtsl")
+script = ExtResource("1_3eey1")
 reality = 1
-potency_list = Array[ExtResource("3_pot")]([SubResource("Resource_pot_strike"), SubResource("Resource_pot_stab")])
+potency_list = Array[ExtResource("2_5nd60")]([SubResource("Resource_pot_strike"), SubResource("Resource_pot_stab")])
 metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
 
 [resource]
-script = ExtResource("2_wcfg")
+script = ExtResource("3_l86et")
 weapon_class = 3
 hit_bonus = -2.0
 penetration_bonus = 8.0
-damage_translation = Array[ExtResource("1_dtsl")]([SubResource("Resource_dtsl")])
-weapon_location_map = Array[ExtResource("4_wloc")]([ExtResource("5_b2a"), ExtResource("6_m2fm")])
+damage_translation = Array[ExtResource("1_3eey1")]([SubResource("Resource_dtsl")])
+weapon_location_map = Array[ExtResource("4_h46by")]([ExtResource("5_2bpsu"), ExtResource("6_3q2gt")])
 metadata/_custom_type_script = "uid://bbuqprgu6l833"

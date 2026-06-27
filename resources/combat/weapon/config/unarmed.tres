@@ -1,17 +1,17 @@
 [gd_resource type="Resource" script_class="WeaponConfig" format=3 uid="uid://wtjmoptcuffo"]
 
-[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage-tsl.gd" id="1_7kbrk"]
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency-obj.gd" id="2_63qs5"]
-[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/_config-resource.gd" id="2_664yu"]
-[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/weapon-location.gd" id="3_63qs5"]
-[ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="5_v1mfc"]
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage_translate.gd" id="1_khpnf"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency.gd" id="2_25l80"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/resource.gd" id="3_7twky"]
+[ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad-battle/items/weapon/location.gd" id="4_lsagv"]
+[ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="5_40wku"]
 
 [sub_resource type="Resource" id="Resource_5xhdi"]
-script = ExtResource("1_7kbrk")
+script = ExtResource("1_khpnf")
 metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
 
 [resource]
-script = ExtResource("2_664yu")
-damage_translation = Array[ExtResource("1_7kbrk")]([SubResource("Resource_5xhdi")])
-weapon_location_map = Array[ExtResource("3_63qs5")]([ExtResource("5_v1mfc")])
+script = ExtResource("3_7twky")
+damage_translation = Array[ExtResource("1_khpnf")]([SubResource("Resource_5xhdi")])
+weapon_location_map = Array[ExtResource("4_lsagv")]([ExtResource("5_40wku")])
 metadata/_custom_type_script = "uid://bbuqprgu6l833"

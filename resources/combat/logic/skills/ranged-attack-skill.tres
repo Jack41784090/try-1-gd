@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://cmytclt13jaur"]
 
 [ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_ske"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_skill"]

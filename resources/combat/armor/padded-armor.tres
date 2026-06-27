@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="ArmorConfig" format=3]
+[gd_resource type="Resource" script_class="ArmorConfig" format=3 uid="uid://b4tst6xe311gc"]
 
 [ext_resource type="Script" uid="uid://cya1ph2rx5aff" path="res://src/squad-battle/items/armor/protection-tsl.gd" id="1_prot"]
 [ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad-battle/items/armor/_config-resource.gd" id="2_acfg"]
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency-obj.gd" id="3_pot"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency.gd" id="3_pot"]
 
 [sub_resource type="Resource" id="Resource_pot_strike"]
 script = ExtResource("3_pot")

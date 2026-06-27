@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SimplifiedLogicConfig" load_steps=8 format=3 uid="uid://cdedndmtxq6m8"]
+[gd_resource type="Resource" script_class="SimplifiedLogicConfig" format=3 uid="uid://cdedndmtxq6m8"]
 
 [ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad-battle/entity/logic/config.gd" id="1_config"]
 [ext_resource type="Resource" uid="uid://cds4shncbtjre" path="res://resources/combat/considerations/consider_moving_to_backline_if_not.tres" id="2_8ulir"]

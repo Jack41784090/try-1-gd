@@ -1,21 +1,21 @@
 [gd_resource type="Resource" script_class="DamageTranslation" format=3 uid="uid://dm8x3kj22fmfr"]
 
-[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency-obj.gd" id="1_lw2r7"]
-[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage-tsl.gd" id="2_cbxkl"]
+[ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad-battle/items/weapon/potency.gd" id="1_ulfm8"]
+[ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad-battle/items/weapon/damage_translate.gd" id="2_12pl2"]
 
 [sub_resource type="Resource" id="Resource_lw2r7"]
-script = ExtResource("1_lw2r7")
+script = ExtResource("1_ulfm8")
 value = 0.25
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_cbxkl"]
-script = ExtResource("1_lw2r7")
+script = ExtResource("1_ulfm8")
 potency = 1
 value = 0.95
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [resource]
-script = ExtResource("2_cbxkl")
+script = ExtResource("2_12pl2")
 reality = 1
-potency_list = Array[ExtResource("1_lw2r7")]([SubResource("Resource_lw2r7"), SubResource("Resource_cbxkl")])
+potency_list = Array[ExtResource("1_ulfm8")]([SubResource("Resource_lw2r7"), SubResource("Resource_cbxkl")])
 metadata/_custom_type_script = "uid://bm1l2jo5k6h1"

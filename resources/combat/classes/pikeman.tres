@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="SquadEntity" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="SquadEntity" format=3]
 
-[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat.gd" id="1_combat"]
-[ext_resource type="Resource" path="res://resources/combat/logic/logic/defensive-frontline.tres" id="2_logic"]
-[ext_resource type="Resource" path="res://resources/strategy-warrior/BS_pikeman.tres" id="3_stats"]
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
+[ext_resource type="Resource" uid="uid://dwm3hgj8uwbos" path="res://resources/combat/logic/logic/defensive-frontline.tres" id="2_logic"]
+[ext_resource type="Resource" path="res://resources/combat/classes/base_stats/BS_pikeman.tres" id="3_stats"]
 
 [resource]
 script = ExtResource("1_combat")

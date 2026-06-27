@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Consideration" load_steps=4 format=3 uid="uid://cf667axp7g2jh"]
+[gd_resource type="Resource" script_class="Consideration" format=3 uid="uid://cf667axp7g2jh"]
 
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="1_21bd7"]
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/_script.gd" id="2_gveka"]
