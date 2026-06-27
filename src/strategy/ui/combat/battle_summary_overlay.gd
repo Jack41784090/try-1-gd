@@ -46,7 +46,7 @@ func show_equipment_loot(equipment_loot: Dictionary) -> void:
 
 	loot_display.visible = true
 	for w in weapons:
-		if w is WeaponConfig:
+		if w is WeaponResource:
 			_add_loot_item("+ %s" % SquadBattleTypes.WeaponClasses.keys()[w.weapon_class], Color(0.7, 0.85, 1.0))
 	for a in armors:
 		if a is ArmorConfig:
