@@ -34,7 +34,7 @@ func _process(delta: float) -> void:
 	_update_parallax()
 
 
-func spawn_warriors(warriors: Array[Warrior]) -> void:
+func spawn_warriors(warriors: Array[StrategyEntity]) -> void:
 	clear_warriors()
 	for i in warriors.size():
 		var warrior = warriors[i]
@@ -87,7 +87,7 @@ func stop_march() -> void:
 	set_all_behavior(AnimTypes.Behavior.IDLE)
 
 
-func set_march_positions(warriors: Array[Warrior]) -> void:
+func set_march_positions(warriors: Array[StrategyEntity]) -> void:
 	var width = _get_stage_width()
 	var spacing = width / maxf(warriors.size(), 1)
 	for i in warriors.size():

@@ -87,7 +87,7 @@ func _ready() -> void:
 	_connect_signals()
 	_subscribe_event_bus()
 	_register_button_animations()
-	GrimdarkFX.register_world_textures(main_background, foreground)
+	#GrimdarkFX.register_world_textures(main_background, foreground)
 	presenter.bind_view(self )
 
 
@@ -97,7 +97,7 @@ func _input(event: InputEvent) -> void:
 			presenter.on_pause_toggle()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_G:
-			GrimdarkFX.toggle()
+			#GrimdarkFX.toggle()
 			get_viewport().set_input_as_handled()
 
 #endregion
@@ -172,8 +172,8 @@ func _connect_signals() -> void:
 		recruitment_view.closed.connect(func(): presenter.on_recruitment_closed())
 
 	if manage_squad_page:
-		manage_squad_page.presenter.closed.connect(func(): presenter.on_manage_squad_closed())
-		manage_squad_page.presenter.recruitment_completed.connect(func(warrior): presenter.on_recruitment_completed(warrior))
+		manage_squad_page.closed.connect(func(): presenter.on_manage_squad_closed())
+		manage_squad_page.recruitment_completed.connect(func(warrior): presenter.on_recruitment_completed(warrior))
 
 	if missions_view:
 		missions_view.presenter.missions_closed.connect(func(): presenter.on_missions_closed())
@@ -462,11 +462,11 @@ func hide_recruitment_menu() -> void:
 	recruitment_view.hide_recruitment_menu()
 
 
-func show_manage_squad(squad: SquadData, p_actor: ActivityRunner) -> void:
-	manage_squad_page.presenter.open(squad, p_actor)
+func show_manage_squad(squad: StrategySquad, p_actor: ActivityRunner) -> void:
+	manage_squad_page.open(squad, p_actor)
 
 
-func show_shop(shop: Shop, squad: SquadData, location: Location = null) -> void:
+func show_shop(shop: Shop, squad: StrategySquad, location: Location = null) -> void:
 	shop_view.presenter.open(shop, squad, location)
 
 
@@ -474,7 +474,7 @@ func hide_shop() -> void:
 	shop_view.presenter._on_closed()
 
 
-func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
+func show_scouting(world: World, player_squad: StrategySquad, ai_decisions: Dictionary = {}) -> void:
 	scouting_view.show_scouting(world, player_squad, ai_decisions)
 
 
@@ -482,7 +482,7 @@ func hide_scouting() -> void:
 	scouting_view.hide_scouting()
 
 
-func bind_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
+func bind_scouting(world: World, player_squad: StrategySquad, ai_decisions: Dictionary = {}) -> void:
 	scouting_view.bind(world, player_squad, ai_decisions)
 
 
@@ -519,6 +519,7 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 func log_squad_event(text: String, color: Color = Color(0.78, 0.75, 0.68)) -> void:
 	if squad_log_view:
 		squad_log_view.add_entry(text, color)
+
 
 func log_squad_separator() -> void:
 	if squad_log_view:

@@ -35,7 +35,7 @@ func set_mode(mode: StageMode) -> void:
 
 #region March API
 
-func start_march(squad: SquadData) -> void:
+func start_march(squad: StrategySquad) -> void:
 	# Spawns 2D warrior rigs for each living warrior and starts the march walking animation
 	# Called on game start and when warriors change (recruitment, casualties)
 	# e.g., squad has 3 living warriors → spawns 3 WarriorRig nodes → sets mode MARCH → rigs walk right
@@ -47,7 +47,7 @@ func stop_march() -> void:
 	set_mode(StageMode.HIDDEN)
 
 
-func refresh_warriors(squad: SquadData) -> void:
+func refresh_warriors(squad: StrategySquad) -> void:
 	view.spawn_warriors(squad.get_living_warriors())
 	if current_mode == StageMode.MARCH:
 		view.start_march()

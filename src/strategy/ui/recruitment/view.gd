@@ -1,6 +1,6 @@
 class_name RecruitmentView extends Control
 
-signal recruitment_completed(warrior: Warrior)
+signal recruitment_completed(warrior: StrategyEntity)
 signal closed
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
@@ -12,7 +12,7 @@ signal closed
 const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
 
 var actor: ActivityRunner
-var current_squad: SquadData:
+var current_squad: StrategySquad:
 	get:
 		return actor.player_squad
 
@@ -62,19 +62,18 @@ func _on_recruit_pressed_from_item(background: WarriorBackground) -> void:
 	if current_squad.money < cost:
 		return
 
-	var new_warrior = WarriorFactory.create_warrior(
-		background.background_id,
-		"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
-		"%s Recruit" % background.display_name,
-		StrategyTypes.Religion.CATHOLIC
-	)
-
-	current_squad.add_warrior(new_warrior)
-	current_squad.money -= cost
-
-	print("[RecruitmentView] Recruited %s for %d gold" % [new_warrior.name, cost])
-
-	recruitment_completed.emit(new_warrior)
+	# DISABLED: recruitment needs the StrategyEntity runtime-build bridge
+	# (StrategyEntityFactory) which does not exist during the StrategyEntity rewrite.
+	# var new_warrior = StrategyEntityFactory.Create(
+	# 	background.background_id,
+	# 	"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
+	# 	"%s Recruit" % background.display_name,
+	# 	StrategyTypes.Religion.CATHOLIC
+	# )
+	# current_squad.add_warrior(new_warrior)
+	# current_squad.money -= cost
+	# print("[RecruitmentView] Recruited %s for %d gold" % [new_warrior.name, cost])
+	# recruitment_completed.emit(new_warrior)
 	hide_recruitment_menu()
 
 func _on_close_pressed() -> void:

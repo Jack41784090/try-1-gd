@@ -21,7 +21,7 @@ func populate(background: WarriorBackground, can_afford: bool) -> void:
 	cost_label.text = "Cost: %d gold" % background.cost
 
 	if not background.stats_template_path.is_empty():
-		var stats := load(background.stats_template_path) as EntityBaseStats
+		var stats := load(background.stats_template_path) as CombatEntityBaseStats
 		if stats:
 			stats_label.text = "STR:%.0f DEX:%.0f END:%.0f INT:%.0f" % [
 				stats.strength,

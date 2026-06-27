@@ -1,6 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://b0m6fnpbfs032"]
+
+[ext_resource type="Script" uid="uid://br3v5o7rpycuv" path="res://src/strategy/ui/manage_squad/warrior_equipment_card.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://b3oc6vjpetnts" path="res://scenes/ui/reuse/draggable_receive.gd" id="2_p28wd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
 bg_color = Color(0.12, 0.12, 0.16, 0.9)
 border_width_left = 1
 border_width_top = 1
@@ -11,83 +18,84 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-content_margin_left = 8
-content_margin_right = 8
-content_margin_top = 6
-content_margin_bottom = 6
 
-[node name="WarriorEquipmentCard" type="PanelContainer"]
+[node name="WarriorEquipmentCard" type="PanelContainer" unique_id=307389505]
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+script = ExtResource("1_card")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=461627243]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NameRow" type="HBoxContainer" parent="VBox"]
+[node name="NameRow" type="HBoxContainer" parent="VBox" unique_id=764140348]
 layout_mode = 2
 
-[node name="NameLabel" type="Label" parent="VBox/NameRow"]
+[node name="NameLabel" type="Label" parent="VBox/NameRow" unique_id=1010549682]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
 theme_override_font_sizes/font_size = 15
 
-[node name="WeaponRow" type="HBoxContainer" parent="VBox"]
+[node name="WeaponRow" type="HBoxContainer" parent="VBox" unique_id=1936052219]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="SlotLabel" type="Label" parent="VBox/WeaponRow"]
+[node name="SlotLabel" type="Label" parent="VBox/WeaponRow" unique_id=1499750028]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 theme_override_font_sizes/font_size = 13
 text = "Weapon:"
 
-[node name="ItemLabel" type="Label" parent="VBox/WeaponRow"]
+[node name="ItemLabel" type="Label" parent="VBox/WeaponRow" unique_id=247737768]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 13
 
-[node name="EquipBtn" type="Button" parent="VBox/WeaponRow"]
+[node name="EquipBtn" type="Button" parent="VBox/WeaponRow" unique_id=1135321550]
 visible = false
 custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Equip"
 
-[node name="UnequipBtn" type="Button" parent="VBox/WeaponRow"]
+[node name="UnequipBtn" type="Button" parent="VBox/WeaponRow" unique_id=316714908]
 visible = false
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Unequip"
 
-[node name="ArmorRow" type="HBoxContainer" parent="VBox"]
+[node name="ArmorRow" type="HBoxContainer" parent="VBox" unique_id=527575948]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="SlotLabel" type="Label" parent="VBox/ArmorRow"]
+[node name="SlotLabel" type="Label" parent="VBox/ArmorRow" unique_id=513469847]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 theme_override_font_sizes/font_size = 13
 text = "Armor:"
 
-[node name="ItemLabel" type="Label" parent="VBox/ArmorRow"]
+[node name="ItemLabel" type="Label" parent="VBox/ArmorRow" unique_id=1183569290]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 13
 
-[node name="EquipBtn" type="Button" parent="VBox/ArmorRow"]
+[node name="EquipBtn" type="Button" parent="VBox/ArmorRow" unique_id=1470106805]
 visible = false
 custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Equip"
 
-[node name="UnequipBtn" type="Button" parent="VBox/ArmorRow"]
+[node name="UnequipBtn" type="Button" parent="VBox/ArmorRow" unique_id=1964905797]
 visible = false
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Unequip"
+
+[node name="DraggableReceive" type="Control" parent="." unique_id=1027687713]
+layout_mode = 2
+script = ExtResource("2_p28wd")

@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://cg4cx7axe2x63"]
 
 [ext_resource type="Script" uid="uid://bfk05awfn48co" path="res://src/strategy/ui/manage_squad/page.gd" id="1_page"]
-[ext_resource type="Script" uid="uid://tha0hmys0dpd" path="res://src/strategy/ui/manage_squad/page_presenter.gd" id="2_presenter"]
 [ext_resource type="PackedScene" uid="uid://jqj7786he7rg" path="res://scenes/ui/manage_squad/tactics_tab.tscn" id="3_tactics"]
 [ext_resource type="PackedScene" uid="uid://ci3mwytplg34m" path="res://scenes/ui/manage_squad/units_tab.tscn" id="4_units"]
 [ext_resource type="PackedScene" path="res://scenes/ui/manage_squad/formation_tab.tscn" id="5_formation"]
@@ -102,5 +101,3 @@ visible = false
 visible = false
 layout_mode = 1
 
-[node name="ManageSquadPagePresenter" type="Node" parent="." unique_id=1862225200]
-script = ExtResource("2_presenter")

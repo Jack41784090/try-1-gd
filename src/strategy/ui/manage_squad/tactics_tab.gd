@@ -7,7 +7,7 @@ const CARD_SCENE = preload("res://scenes/ui/manage_squad/tactic_card.tscn")
 
 @onready var _cards_container: VBoxContainer = $ScrollContainer/CardsContainer
 
-var _current_tactic_id: String = ""
+var _squad: StrategySquad
 
 const TACTIC_DEFS: Array[Dictionary] = [
 	{
@@ -44,25 +44,44 @@ const TACTIC_DEFS: Array[Dictionary] = [
 
 
 func _ready() -> void:
-	pass
+	visibility_changed.connect(_on_visibility_changed)
 
 
-func refresh(squad: SquadData) -> void:
-	_current_tactic_id = squad.current_tactic.tactic_id if squad.current_tactic else "balanced"
-	_rebuild_cards()
+func setup(squad: StrategySquad) -> void:
+	_squad = squad
 
 
-func _rebuild_cards() -> void:
+func _pull() -> void:
 	for child in _cards_container.get_children():
 		child.queue_free()
-
+	var current_id := _squad.current_tactic.tactic_id if _squad.current_tactic else "balanced"
 	for def in TACTIC_DEFS:
-		_cards_container.add_child(_create_card(def))
+		_cards_container.add_child(_create_card(def, current_id))
 
 
-func _create_card(def: Dictionary) -> PanelContainer:
+func _connect_signals() -> void:
+	if not _squad.tactic_changed.is_connected(_pull):
+		_squad.tactic_changed.connect(_pull)
+
+
+func _disconnect_signals() -> void:
+	if _squad and _squad.tactic_changed.is_connected(_pull):
+		_squad.tactic_changed.disconnect(_pull)
+
+
+func _on_visibility_changed() -> void:
+	if _squad == null:
+		return
+	if visible:
+		_connect_signals()
+		_pull()
+	else:
+		_disconnect_signals()
+
+
+func _create_card(def: Dictionary, current_tactic_id: String) -> PanelContainer:
 	var tactic := Tactic.create_from_type(def["type"] as Tactic.TacticType)
-	var is_active := tactic.tactic_id == _current_tactic_id
+	var is_active := tactic.tactic_id == current_tactic_id
 
 	var panel: PanelContainer = CARD_SCENE.instantiate()
 

@@ -231,9 +231,9 @@ func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
 
-func on_recruitment_completed(warrior: Warrior) -> void:
+func on_recruitment_completed(warrior: StrategyEntity) -> void:
 	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
-	var display_class: String = str(warrior.background_id) if not warrior.background_id.is_empty() else EntityClasses.Types.keys()[warrior.class_id]
+	var display_class: String = str(warrior.background_id) if not warrior.background_id.is_empty() else warrior.identification
 	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, display_class], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
@@ -333,7 +333,7 @@ func on_battle_close() -> void:
 func on_pause_toggle() -> void:
 	game_clock.toggle_pause()
 	view.update_resting_banner(
-		actor.player_squad.current_activity_type == StrategyTypes.ActivityType.REST
+		actor.player_squad.current_activity_type == StrategyTypes.ActivityType.REST,
 	)
 
 
@@ -362,7 +362,6 @@ func _get_active_battle_presenter():
 #endregion
 
 #region Activity Pipeline
-
 
 func _build_karma_sorted_entries(decisions: Dictionary) -> Array:
 	var entries: Array = []
@@ -418,7 +417,6 @@ func _exec_play_animchanges_loop(activity, state):
 	if not has_combat:
 		await _animate_stat_changes()
 
-
 # func _handle_player_engagement(engagement: Dictionary) -> void:
 # 	game_clock.pause()
 # 	var engagement_type: StrategyTypes.EngagementType = engagement["type"]
@@ -454,7 +452,7 @@ func _exec_play_animchanges_loop(activity, state):
 # 		)
 # 		start_encounter(enemy_squad, {}, engagement_type)
 # 		await encounter_resolved
-	
+
 # 	game_clock.unpause()
 
 
@@ -495,7 +493,7 @@ func _show_pending_results() -> void:
 		return
 
 	var aggregated_stats: Dictionary = {}
-	var recruits: Array[Warrior] = []
+	var recruits: Array[StrategyEntity] = []
 
 	for result in _pending_results:
 		for stat_key in result.squad_stat_changes:
@@ -577,12 +575,12 @@ func _find_mission_by_id(mission_id: String) -> Mission:
 
 #region Combat System
 
-func start_encounter(enemy_squad: SquadData, _context: Dictionary = {}, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
+func start_encounter(enemy_squad: StrategySquad, _context: Dictionary = {}, engagement_type: StrategyTypes.EngagementType = StrategyTypes.EngagementType.SET_PIECE) -> void:
 	Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[engagement_type])
 	Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 	view.log_squad_event("⚔ Engaging %s! (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()], Color(1.0, 0.4, 0.4))
 
-	GrimdarkFX.set_combat_mode(true)
+	#GrimdarkFX.set_combat_mode(true)
 
 	combat_options = combat_orch.inject_context(
 		actor.player_squad,
@@ -618,10 +616,10 @@ func _on_combat_timeout() -> void:
 func _handle_encounter_result(result: CombatController.CombatResult) -> void:
 	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
 
-	GrimdarkFX.set_combat_mode(false)
+	#GrimdarkFX.set_combat_mode(false)
 	if not result.player_casualties.is_empty():
-		GrimdarkFX.trigger_damage_pulse()
-
+		#GrimdarkFX.trigger_damage_pulse()
+		pass
 	var outcome = combat_orch.apply_result(result, actor.player_squad, actor.current_location, game_scenario.world, turn_log)
 
 	if result.victory:
@@ -785,7 +783,7 @@ func _update_ui() -> void:
 	_update_activity_buttons()
 
 
-func _update_contact_bars(world: World, squad: SquadData) -> void:
+func _update_contact_bars(world: World, squad: StrategySquad) -> void:
 	if not world.contact_tracker:
 		StrategyEventBus.hud_contact_bars_changed.emit([])
 		return
@@ -794,7 +792,7 @@ func _update_contact_bars(world: World, squad: SquadData) -> void:
 	for contact in our_contacts:
 		if contact.progress <= 0.0:
 			continue
-		var target_squad: SquadData = null
+		var target_squad: StrategySquad = null
 		for s in world.roaming_squads:
 			if s.squad_id == contact.target_id:
 				target_squad = s
@@ -819,6 +817,7 @@ func _update_contact_bars(world: World, squad: SquadData) -> void:
 		)
 	bars.sort_custom(func(a, b): return a["progress"] > b["progress"])
 	StrategyEventBus.hud_contact_bars_changed.emit(bars)
+
 
 var _update_activity_buttons__activity_buttons := [
 	{
@@ -870,11 +869,12 @@ var _update_activity_buttons__activity_buttons := [
 		"tooltip": "Travel to another location",
 	},
 ]
+
+
 func _update_activity_buttons() -> void:
 	var location = actor.current_location
 	var current_activity_type := actor.player_squad.current_activity_type
 	view.update_resting_banner(current_activity_type == StrategyTypes.ActivityType.REST)
-
 
 	for cfg in _update_activity_buttons__activity_buttons:
 		var activity_type = cfg["type"]
@@ -943,9 +943,9 @@ func _on_hour_tick(hour: int) -> void:
 	var day := int(hour / 24.0) + 1
 	var hour_of_day := hour % 24
 	var turn_entries := _build_karma_sorted_entries(ai_decisions_dict)
-	
+
 	await _execute_all_activities(activity, turn_entries, player_location_before, ContactOrchestrator.snapshot_states(game_scenario.world.contact_tracker, actor.player_squad.squad_id), ContactOrchestrator.cache_squad_names(game_scenario.world.roaming_squads))
-	
+
 	view.log_squad_separator()
 	var activity_name: String = StrategyTypes.ActivityType.keys()[activity.activity_type]
 	view.log_squad_event("Day %d, %02d:00 — %s" % [day, hour_of_day, activity_name.capitalize()], Color(0.85, 0.75, 0.55))
@@ -1017,7 +1017,7 @@ func _run_economy_tick() -> Array[String]:
 	var economy_tick_result_full := engine.tick_full(world.current_hour)
 
 	# Deliver caravans that arrived this tick; collect them as idle for reassignment.
-	var idle_caravans: Array[SquadData] = []
+	var idle_caravans: Array[StrategySquad] = []
 	for squad in world.roaming_squads:
 		if squad.is_caravan() and squad.has_reached_destination():
 			engine.execute_caravan_delivery(squad)
@@ -1030,30 +1030,47 @@ func _run_economy_tick() -> Array[String]:
 	# Reassign idle caravans to pending dispatches before spawning new ones.
 	var dispatch_index := 0
 	while not idle_caravans.is_empty() and dispatch_index < dispatches.size():
-		var squad: SquadData = idle_caravans.pop_back()
+		var squad: StrategySquad = idle_caravans.pop_back()
 		var dispatch: EconomyTickResult.ShipmentDispatch = dispatches[dispatch_index]
 		dispatch_index += 1
 		CaravanBridge.execute_caravan_reassignment(squad, dispatch.move, dispatch.shipment_id)
 		engine.register_dispatch_to_squad(dispatch.shipment_id, squad.squad_id)
-		event_log.append("CARAVAN reassigned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
+		event_log.append(
+			"CARAVAN reassigned %s at %s → %s" % [
+				squad.squad_name,
+				squad.current_location_id,
+				squad.cargo.destination_id,
+			],
+		)
 
 	# Spawn squads for any remaining dispatches.
 	while dispatch_index < dispatches.size():
 		var dispatch: EconomyTickResult.ShipmentDispatch = dispatches[dispatch_index]
 		dispatch_index += 1
-		var squad: SquadData = CaravanBridge.create_caravan_squad(
-			dispatch.move, dispatch.shipment_id, dispatch.guard_count,
+		var squad: StrategySquad = CaravanBridge.create_caravan_squad(
+			dispatch.move,
+			dispatch.shipment_id,
+			dispatch.guard_count,
 		)
 		world.add_roaming_squad(squad)
 		ai_fleet.register_squad(squad)
 		engine.register_dispatch_to_squad(dispatch.shipment_id, squad.squad_id)
-		event_log.append("CARAVAN spawned %s at %s → %s" % [
-			squad.squad_name, squad.current_location_id, squad.cargo.destination_id])
-		Log.info("Economy", "Spawned caravan: %s at %s → %s (%d guards)" % [
-			squad.squad_name, squad.current_location_id,
-			squad.cargo.destination_id, dispatch.guard_count,
-		])
+		event_log.append(
+			"CARAVAN spawned %s at %s → %s" % [
+				squad.squad_name,
+				squad.current_location_id,
+				squad.cargo.destination_id,
+			],
+		)
+		Log.info(
+			"Economy",
+			"Spawned caravan: %s at %s → %s (%d guards)" % [
+				squad.squad_name,
+				squad.current_location_id,
+				squad.cargo.destination_id,
+				dispatch.guard_count,
+			],
+		)
 
 	# Retire any idle caravans without work.
 	for squad in idle_caravans:
@@ -1076,6 +1093,7 @@ func _run_economy_tick() -> Array[String]:
 
 	return event_log
 
+
 func _execute_all_activities__append_log(key: String, before_state: int, after_state: int, squad_names_cache: Dictionary, activity_log: Array, strategy_view) -> void:
 	# Appends activity execution results to the turn log, including contact state changes and engagements
 	var csk = StrategyTypes.ContactState.keys()
@@ -1088,12 +1106,13 @@ func _execute_all_activities__append_log(key: String, before_state: int, after_s
 	var contact_color := Color(1.0, 0.85, 0.3) if after_state > before_state else Color(0.6, 0.6, 0.6)
 	strategy_view.log_squad_event("Contact: %s — %s → %s" % [target_name, before_name.capitalize(), after_name.capitalize()], contact_color)
 
+
 func _execute_all_activities(
-	activity: Activity,
-	turn_entries: Array,
-	player_location_before: String,
-	contact_before_states: Dictionary,
-	squad_names_cache: Dictionary,
+		activity: Activity,
+		turn_entries: Array,
+		player_location_before: String,
+		contact_before_states: Dictionary,
+		squad_names_cache: Dictionary,
 ) -> void:
 	for entry in turn_entries:
 		if entry["is_player"]:
@@ -1126,7 +1145,6 @@ func _execute_all_activities(
 				# for engagement in player_engagements:
 				# 	await _handle_player_engagement(engagement)
 
-
 			if entry["is_player"]:
 				await _exec_play_animchanges_loop(activity, phase)
 			else:
@@ -1137,6 +1155,7 @@ func _execute_all_activities(
 	ai_fleet.cleanup_defeated_squads()
 	turn_log.append_array(ai_fleet.combat_log)
 	ai_fleet.combat_log.clear()
+
 
 func _finalize_tick(activity: Activity) -> void:
 	await _check_missions()

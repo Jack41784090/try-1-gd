@@ -3,6 +3,7 @@
 [ext_resource type="StyleBox" path="res://resources/theme/styles/item_panel.tres" id="1_ift5a"]
 [ext_resource type="Script" uid="uid://ck0060tnon8ib" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
 [ext_resource type="Texture2D" uid="uid://eqngpfqpffae" path="res://assets/Weapon Sprites/wep_lc084_up.png" id="3_4tjuw"]
+[ext_resource type="PackedScene" uid="uid://cyo4mnkw2uhl2" path="res://scenes/ui/reuse/draggable_component.tscn" id="4_4tjuw"]
 
 [node name="InventoryItem" type="PanelContainer" unique_id=1854098293]
 custom_minimum_size = Vector2(128, 128)
@@ -32,3 +33,6 @@ vertical_alignment = 2
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 show_percentage = false
+
+[node name="DraggableComponent" parent="." unique_id=958131323 instance=ExtResource("4_4tjuw")]
+layout_mode = 2

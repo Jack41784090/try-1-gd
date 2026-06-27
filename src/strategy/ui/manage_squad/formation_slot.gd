@@ -1,10 +1,10 @@
 class_name FormationSlot
 extends PanelContainer
 
-signal warrior_dropped(warrior: Warrior, slot: Variant)
+signal warrior_dropped(warrior: StrategyEntity, slot: Variant)
 signal slot_clicked(slot: Variant)
 
-var warrior: Warrior = null
+var warrior: StrategyEntity = null
 var row_position: SquadBattleTypes.SquadEntityInSquadLocation
 var slot_index: int = 0
 
@@ -79,7 +79,7 @@ func setup(pos: SquadBattleTypes.SquadEntityInSquadLocation, idx: int) -> void:
 	slot_index = idx
 
 
-func set_warrior(w: Warrior) -> void:
+func set_warrior(w: StrategyEntity) -> void:
 	warrior = w
 	_refresh_display()
 
@@ -104,7 +104,7 @@ func _refresh_display() -> void:
 
 	if warrior:
 		_name_label.text = warrior.name
-		_class_label.text = EntityClasses.Types.keys()[warrior.class_id]
+		_class_label.text = warrior.identification
 		if warrior.is_dead:
 			_hp_label.text = "DEAD"
 			_hp_label.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3, 1.0))
@@ -157,7 +157,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	set_drag_preview(preview_panel)
 
-	return { "warrior": warrior, "source_slot": self }
+	return {"warrior": warrior, "source_slot": self }
 
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
@@ -171,7 +171,7 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if not data is Dictionary:
 		return
-	var dropped_warrior: Warrior = data["warrior"]
+	var dropped_warrior: StrategyEntity = data["warrior"]
 	var source_slot = data["source_slot"]
 
 	if source_slot == self:
@@ -181,7 +181,7 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	source_slot.set_warrior(my_warrior)
 	set_warrior(dropped_warrior)
 
-	warrior_dropped.emit(dropped_warrior, self)
+	warrior_dropped.emit(dropped_warrior, self )
 	if my_warrior:
 		warrior_dropped.emit(my_warrior, source_slot)
 
@@ -200,7 +200,7 @@ func _notification(what: int) -> void:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			slot_clicked.emit(self)
+			slot_clicked.emit(self )
 			accept_event()
 
 

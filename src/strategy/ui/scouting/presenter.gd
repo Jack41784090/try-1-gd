@@ -2,13 +2,13 @@ class_name ScoutingPresenter extends Node
 
 var view: ScoutingView
 var _world: World
-var _player_squad: SquadData
+var _player_squad: StrategySquad
 var _ai_decisions: Dictionary = {}
 
 func _ready() -> void:
 	view = get_parent() as ScoutingView
 
-func refresh(world: World, player_squad: SquadData, ai_decisions: Dictionary = {}) -> void:
+func refresh(world: World, player_squad: StrategySquad, ai_decisions: Dictionary = {}) -> void:
 	_world = world
 	_player_squad = player_squad
 	_ai_decisions = ai_decisions
@@ -59,7 +59,7 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 
 	view.display_contacts(active)
 
-func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
+func _build_card_data(contact, target_squad: StrategySquad) -> Dictionary:
 	var state = contact.get_state()
 	var focus = _player_squad.scouting_focus if _player_squad else null
 	var focus_mult = 1.0
@@ -109,7 +109,7 @@ func _build_card_data(contact, target_squad: SquadData) -> Dictionary:
 				data["destination_intel"] = locked_dest
 	return data
 
-func _get_size_hint(squad: SquadData) -> String:
+func _get_size_hint(squad: StrategySquad) -> String:
 	var count = squad.get_living_warriors().size()
 	if count <= 2:
 		return "Small (1-2 warriors)"
@@ -130,7 +130,7 @@ func _get_morale_category(morale: float) -> String:
 	else:
 		return "Critical"
 
-func _get_warrior_details(squad: SquadData) -> Array[Dictionary]:
+func _get_warrior_details(squad: StrategySquad) -> Array[Dictionary]:
 	var details: Array[Dictionary] = []
 	for warrior in squad.warriors:
 		var status := "Healthy"
@@ -141,14 +141,14 @@ func _get_warrior_details(squad: SquadData) -> Array[Dictionary]:
 		details.append({"name": warrior.name, "status": status})
 	return details
 
-func _find_squad(squad_id: String, world: World) -> SquadData:
+func _find_squad(squad_id: String, world: World) -> StrategySquad:
 	for squad in world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
 	return null
 
 
-func _get_destination_intel(contact, target_squad: SquadData) -> Dictionary:
+func _get_destination_intel(contact, target_squad: StrategySquad) -> Dictionary:
 	var actual_dest := _resolve_squad_destination(target_squad)
 	if actual_dest.is_empty():
 		return {}
@@ -180,7 +180,7 @@ func _get_destination_intel(contact, target_squad: SquadData) -> Dictionary:
 	return result
 
 
-func _resolve_squad_destination(target_squad: SquadData) -> String:
+func _resolve_squad_destination(target_squad: StrategySquad) -> String:
 	if target_squad.is_caravan() and not target_squad.cargo.destination_id.is_empty():
 		return target_squad.cargo.destination_id
 
@@ -221,7 +221,7 @@ func on_role_toggled(role: StrategyTypes.SquadRole) -> void:
 	_refresh_after_focus_change()
 
 
-func on_class_toggled(cls: EntityClasses.Types) -> void:
+func on_class_toggled(cls: String) -> void:
 	if not _player_squad:
 		return
 	_player_squad.scouting_focus.toggle_class(cls)

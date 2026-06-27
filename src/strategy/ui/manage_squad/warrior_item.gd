@@ -11,8 +11,8 @@ class_name WarriorItem
 @onready var menu_bar: MenuBar = $MarginContainer/HBoxContainer/MenuBar
 @onready var popup_menu: PopupMenu = $"MarginContainer/HBoxContainer/MenuBar/Actions ▼"
 
-var warrior: Warrior = null
-var _pending_warrior_setup: Warrior = null
+var warrior: StrategyEntity = null
+var _pending_warrior_setup: StrategyEntity = null
 
 
 func _ready() -> void:
@@ -26,7 +26,7 @@ func _ready() -> void:
 		_pending_warrior_setup = null
 
 
-func setup_warrior(warrior_data: Warrior) -> void:
+func setup_warrior(warrior_data: StrategyEntity) -> void:
 	warrior = warrior_data
 
 	if is_node_ready():
@@ -35,7 +35,7 @@ func setup_warrior(warrior_data: Warrior) -> void:
 		_pending_warrior_setup = warrior_data
 
 
-func _setup_warrior_internal(warrior_data: Warrior) -> void:
+func _setup_warrior_internal(warrior_data: StrategyEntity) -> void:
 	# Set up icon (placeholder for now)
 	if warrior_data.is_dead:
 		icon_rect.modulate = Color(0.5, 0.5, 0.5, 0.5)
@@ -112,7 +112,7 @@ func _on_action_selected(id: int) -> void:
 			loca_value_label.text = "Back"
 
 
-func _get_warrior_hp_percent(warrior_param: Warrior) -> float:
+func _get_warrior_hp_percent(warrior_param: StrategyEntity) -> float:
 	if warrior_param.is_dead:
 		return 0.0
 	if warrior_param.is_injured:

@@ -26,7 +26,7 @@ func _ready() -> void:
 		hide_missions()
 		closed.emit()
 	)
-	presenter.bind_view(self)
+	presenter.bind_view(self )
 
 
 #region Public API
@@ -34,11 +34,11 @@ func _ready() -> void:
 func show_missions() -> void:
 	visible = true
 	overlay_panel.visible = true
-	await UIAnimations.show_overlay(self, overlay_panel)
+	await UIAnimations.show_overlay(self , overlay_panel)
 
 
 func hide_missions() -> void:
-	await UIAnimations.hide_overlay(self, overlay_panel)
+	await UIAnimations.hide_overlay(self , overlay_panel)
 	overlay_panel.visible = false
 	visible = false
 
@@ -213,7 +213,7 @@ func _describe_warrior_condition(params: Dictionary) -> String:
 		var religion: String = StrategyTypes.Religion.keys()[params["warrior_religion"]]
 		var count: int = params.get("warrior_count_min", 1)
 		return "Have %d+ %s warrior(s)" % [count, religion.capitalize()]
-	return "Warrior status check"
+	return "StrategyEntity status check"
 
 
 func _describe_time_condition(params: Dictionary) -> String:

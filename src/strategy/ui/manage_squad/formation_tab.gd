@@ -1,10 +1,10 @@
 class_name FormationTab
 extends Control
 
-signal formation_changed(warrior: Warrior, new_position: SquadBattleTypes.SquadEntityInSquadLocation)
+signal formation_changed(warrior: StrategyEntity, new_position: SquadBattleTypes.SquadEntityInSquadLocation)
 
 const MAX_SLOTS_PER_ROW := 5
-const ROW_LABELS := { 1: "FRONT LINE", 2: "MIDDLE LINE", 3: "BACK LINE" }
+const ROW_LABELS := {1: "FRONT LINE", 2: "MIDDLE LINE", 3: "BACK LINE"}
 const ROW_COLORS := {
 	1: Color(0.7, 0.3, 0.3, 0.15),
 	2: Color(0.7, 0.6, 0.3, 0.1),
@@ -15,6 +15,7 @@ const SLOT_SCENE = preload("res://scenes/ui/manage_squad/formation_slot.tscn")
 var _rows: Dictionary = {}
 var _all_slots: Array = []
 var _selected_slot = null
+var _squad: StrategySquad
 
 @onready var _main_vbox: VBoxContainer = $ScrollContainer/OuterVBox/MainVBox
 @onready var _hint_label: Label = $ScrollContainer/OuterVBox/HintLabel
@@ -22,6 +23,52 @@ var _selected_slot = null
 
 func _ready() -> void:
 	_build_rows()
+	visibility_changed.connect(_on_visibility_changed)
+
+
+func setup(squad: StrategySquad) -> void:
+	_squad = squad
+
+
+func _pull() -> void:
+	_clear_selection()
+	for slot in _all_slots:
+		slot.clear_warrior()
+
+	var row_counts: Dictionary = {1: 0, 2: 0, 3: 0}
+
+	for warrior in _squad.warriors:
+		if warrior.is_dead:
+			continue
+		var pos: int = warrior.location_prebattle
+		var idx: int = row_counts.get(pos, 0)
+		if idx < MAX_SLOTS_PER_ROW:
+			var slots: Array = _rows[pos]
+			slots[idx].set_warrior(warrior)
+			row_counts[pos] = idx + 1
+
+	var living := _squad.get_living_warriors().size()
+	_hint_label.text = "%d / %d warriors placed" % [living, _squad.warriors.size()]
+
+
+func _connect_signals() -> void:
+	if not _squad.warriors_changed.is_connected(_pull):
+		_squad.warriors_changed.connect(_pull)
+
+
+func _disconnect_signals() -> void:
+	if _squad and _squad.warriors_changed.is_connected(_pull):
+		_squad.warriors_changed.disconnect(_pull)
+
+
+func _on_visibility_changed() -> void:
+	if _squad == null:
+		return
+	if visible:
+		_connect_signals()
+		_pull()
+	else:
+		_disconnect_signals()
 
 
 func _build_rows() -> void:
@@ -77,28 +124,7 @@ func _build_rows() -> void:
 		_main_vbox.add_child(row_panel)
 
 
-func refresh(squad: SquadData) -> void:
-	_clear_selection()
-	for slot in _all_slots:
-		slot.clear_warrior()
-
-	var row_counts: Dictionary = { 1: 0, 2: 0, 3: 0 }
-
-	for warrior in squad.warriors:
-		if warrior.is_dead:
-			continue
-		var pos: int = warrior.location_prebattle
-		var idx: int = row_counts.get(pos, 0)
-		if idx < MAX_SLOTS_PER_ROW:
-			var slots: Array = _rows[pos]
-			slots[idx].set_warrior(warrior)
-			row_counts[pos] = idx + 1
-
-	var living := squad.get_living_warriors().size()
-	_hint_label.text = "%d / %d warriors placed" % [living, squad.warriors.size()]
-
-
-func _on_warrior_dropped(warrior: Warrior, slot) -> void:
+func _on_warrior_dropped(warrior: StrategyEntity, slot) -> void:
 	_clear_selection()
 	formation_changed.emit(warrior, slot.row_position)
 
@@ -115,8 +141,8 @@ func _on_slot_clicked(slot) -> void:
 		_clear_selection()
 		return
 
-	var source_warrior: Warrior = _selected_slot.warrior
-	var target_warrior: Warrior = slot.warrior
+	var source_warrior: StrategyEntity = _selected_slot.warrior
+	var target_warrior: StrategyEntity = slot.warrior
 	var source_slot = _selected_slot
 
 	source_slot.set_warrior(target_warrior)

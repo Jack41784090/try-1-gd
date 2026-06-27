@@ -23,14 +23,14 @@ const SLIDE_DURATION := 0.3
 @onready var _merchant_check: CheckBox = $OverlayPanel/MarginContainer/VBoxContainer/FocusSection/FilterRow/MerchantCheck
 @onready var _class_grid: GridContainer = $OverlayPanel/MarginContainer/VBoxContainer/FocusSection/ClassGrid
 
-var _role_checkboxes: Dictionary = { }
-var _class_checkboxes: Dictionary = { }
+var _role_checkboxes: Dictionary = {}
+var _class_checkboxes: Dictionary = {}
 var _is_open := false
 var _is_pinned := false
 var _tween: Tween
 var _world: World
-var _player_squad: SquadData
-var _ai_decisions: Dictionary = { }
+var _player_squad: StrategySquad
+var _ai_decisions: Dictionary = {}
 var _bound := false
 
 
@@ -59,21 +59,21 @@ func _connect_focus_signals() -> void:
 	for child in _class_grid.get_children():
 		if child is CheckBox:
 			var cls_name: String = child.text
-			for cls in EntityClasses.Types.values():
-				if EntityClasses.Types.keys()[cls] == cls_name:
-					_class_checkboxes[cls] = child
-					child.toggled.connect(func(_pressed, c = cls): presenter.on_class_toggled(c))
+			for id_name in CombatEntityFactory.available_identifications():
+				if id_name.nocasecmp_to(cls_name) == 0:
+					_class_checkboxes[id_name] = child
+					child.toggled.connect(func(_pressed, c = id_name): presenter.on_class_toggled(c))
 					break
 
 
-func bind(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+func bind(world: World, player_squad: StrategySquad, ai_decisions: Dictionary = {}) -> void:
 	_world = world
 	_player_squad = player_squad
 	_ai_decisions = ai_decisions
 	_bound = true
 
 
-func show_scouting(world: World, player_squad: SquadData, ai_decisions: Dictionary = { }) -> void:
+func show_scouting(world: World, player_squad: StrategySquad, ai_decisions: Dictionary = {}) -> void:
 	bind(world, player_squad, ai_decisions)
 	_slide_in()
 
@@ -313,7 +313,7 @@ func _configure_progress_bar(delta_symbol: Label, bar_fill: ColorRect, delta_mar
 
 
 func _add_destination_intel(parent: VBoxContainer, data: Dictionary, show_distance: bool) -> void:
-	var intel: Dictionary = data.get("destination_intel", { })
+	var intel: Dictionary = data.get("destination_intel", {})
 	if intel.is_empty():
 		return
 	var dest_name: String = intel.get("destination_name", "Unknown")
