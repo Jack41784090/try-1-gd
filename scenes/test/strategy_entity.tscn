@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bm6dg0rgcj1mx"]
+
+[ext_resource type="Script" uid="uid://dbxnpys6octm8" path="res://scenes/test/strategy_stats.gd" id="1_8e53b"]
+[ext_resource type="Script" uid="uid://baoqv6ggnag0a" path="res://scenes/test/strategy_entity.gd" id="1_t44yv"]
+
+[node name="StrategyEntity" type="Node2D" unique_id=1979717146]
+script = ExtResource("1_t44yv")
+
+[node name="StrategyStats" type="Node2D" parent="." unique_id=395292460]
+script = ExtResource("1_8e53b")
