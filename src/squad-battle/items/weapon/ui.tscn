@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://imjkd2tyhypl"]
+
+[ext_resource type="Script" uid="uid://bo6jjhjmv8kbk" path="res://src/squad-battle/items/weapon/ui.gd" id="1_2hooc"]
+[ext_resource type="PackedScene" uid="uid://bi16xap1m3oub" path="res://scenes/ui/manage_squad/inventory_item_grid.tscn" id="3_yxan8"]
+
+[node name="Control" type="PanelContainer" unique_id=2115904342]
+offset_right = 461.14285
+offset_bottom = 132.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_2hooc")
+
+[node name="InventoryItem" parent="." unique_id=1854098293 instance=ExtResource("3_yxan8")]
+layout_mode = 2
