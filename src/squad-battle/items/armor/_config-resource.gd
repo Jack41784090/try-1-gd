@@ -1,4 +1,4 @@
-class_name ArmorConfig extends Resource
+class_name ArmorConfig extends CombatEquipment
 
 @export var armor_class: SquadBattleTypes.ArmorClasses = SquadBattleTypes.ArmorClasses.Unarmored
 @export var defense_bonus: float

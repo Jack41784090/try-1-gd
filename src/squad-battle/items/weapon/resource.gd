@@ -1,4 +1,5 @@
-class_name WeaponConfig extends Resource
+class_name WeaponResource
+extends CombatEquipment
 
 @export var weapon_class: SquadBattleTypes.WeaponClasses = SquadBattleTypes.WeaponClasses.Unarmed
 @export var hit_bonus: float
