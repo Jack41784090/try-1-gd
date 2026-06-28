@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dawgk6h3vruux"]
 
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_gvirj"]
-[ext_resource type="Script" uid="uid://dqeufe86kkugq" path="res://src/strategy/ui/manage_squad/warriors_panel.gd" id="1_i0ho6"]
+[ext_resource type="Script" uid="uid://dqeufe86kkugq" path="res://src/strategy/ui/manage_squad/units_panel.gd" id="1_i0ho6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b2wls"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -18,7 +18,7 @@ font_color = Color(0, 0, 0, 1)
 shadow_size = 12
 shadow_color = Color(0, 0, 0, 0.18039216)
 
-[node name="WarriorsPanel" type="PanelContainer" unique_id=1689607094]
+[node name="UnitsPanel" type="PanelContainer" unique_id=1689607094]
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.55
 script = ExtResource("1_i0ho6")
@@ -32,16 +32,16 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.8, 0.5, 1)
 theme_override_font_sizes/font_size = 18
-text = "WARRIORS — 5"
+text = "UNITS — 5"
 
 [node name="Separator" type="HSeparator" parent="_old" unique_id=42725635]
 layout_mode = 2
 
-[node name="WarriorsScroll" type="ScrollContainer" parent="_old" unique_id=322195764]
+[node name="UnitsScroll" type="ScrollContainer" parent="_old" unique_id=322195764]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="WarriorsContainer" type="VBoxContainer" parent="_old/WarriorsScroll" unique_id=371577641]
+[node name="UnitsContainer" type="VBoxContainer" parent="_old/UnitsScroll" unique_id=371577641]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6

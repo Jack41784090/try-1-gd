@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cmnhh1yx1ipk3" path="res://scenes/ui/reuse/desktop_manager.gd" id="1_dgqwl"]
 [ext_resource type="Script" uid="uid://drp8sj413a75u" path="res://src/strategy/ui/manage_squad/new_page.gd" id="1_j7spm"]
 [ext_resource type="PackedScene" uid="uid://cxa3h371mpkys" path="res://scenes/ui/manage_squad/inventory_panel.tscn" id="2_ffd2y"]
-[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/warriors_panel.tscn" id="3_h6tn1"]
+[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/units_panel.tscn" id="3_h6tn1"]
 [ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="4_h6tn1"]
 [ext_resource type="PackedScene" uid="uid://dkpgmwamw6ksr" path="res://scenes/ui/manage_squad/tactics_panel.tscn" id="5_dow3k"]
 
@@ -61,7 +61,7 @@ layout_mode = 0
 offset_right = 170.0
 offset_bottom = 51.0
 
-[node name="WarriorsPanel" parent="Desktop/PanelLayer" unique_id=1689607094 instance=ExtResource("3_h6tn1")]
+[node name="UnitsPanel" parent="Desktop/PanelLayer" unique_id=1689607094 instance=ExtResource("3_h6tn1")]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 260.0

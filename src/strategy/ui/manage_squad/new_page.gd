@@ -17,7 +17,7 @@ signal recruitment_completed(warrior: StrategyEntity)
 #@onready var tab_container: Control = $OverlayPanel/MainMargin/MainVBox/TabContainer
 
 #@onready var tactics_tab: TacticsTab = $OverlayPanel/MainMargin/MainVBox/TabContainer/TacticsTab
-@onready var units_tab: UnitsFloatingPanel = %WarriorsPanel
+@onready var units_tab: UnitsFloatingPanel = %UnitsPanel
 #@onready var formation_tab: FormationTab = $OverlayPanel/MainMargin/MainVBox/TabContainer/FormationTab
 #@onready var recruitment_tab: RecruitmentTab = $OverlayPanel/MainMargin/MainVBox/TabContainer/RecruitmentTab
 @onready var inventory_tab: InventoryFloatingPanel = %InventoryPanel

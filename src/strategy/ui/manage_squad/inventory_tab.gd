@@ -23,9 +23,9 @@ const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
 		else:
 			push_warning("preview_in_editor can only be set in the editor.")
 
-@onready var _title_label: Label = $MainHBox/WarriorsPanel/VBox/TitleLabel
+@onready var _title_label: Label = $MainHBox/UnitsPanel/VBox/TitleLabel
 @onready var _inventory_container: GridContainer = $MainHBox/InventoryPanel/VBox/InventoryScroll/InventoryContainer
-@onready var _warriors_container: VBoxContainer = $MainHBox/WarriorsPanel/VBox/WarriorsScroll/WarriorsContainer
+@onready var _units_container: VBoxContainer = $MainHBox/UnitsPanel/VBox/UnitsScroll/UnitsContainer
 @onready var _empty_label: Label = $MainHBox/InventoryPanel/VBox/EmptyLabel
 
 var _squad: StrategySquad:
@@ -51,7 +51,7 @@ func _build_demo_squad() -> StrategySquad:
 func _clear_all_slots() -> void:
 	for c in _inventory_container.get_children():
 		c.queue_free()
-	for c in _warriors_container.get_children():
+	for c in _units_container.get_children():
 		c.queue_free()
 
 
@@ -73,7 +73,7 @@ func setup(squad: StrategySquad) -> void:
 
 func _pull() -> void:
 	_refresh_inventory()
-	_refresh_warriors()
+	_refresh_units()
 
 
 func _connect_signals() -> void:
@@ -114,15 +114,15 @@ func _refresh_inventory() -> void:
 	_empty_label.visible = _squad.inventory.is_empty()
 
 
-func _refresh_warriors() -> void:
-	for child in _warriors_container.get_children():
+func _refresh_units() -> void:
+	for child in _units_container.get_children():
 		child.queue_free()
 
 	#_title_label.text = "WARRIORS — %d" % _squad.get_living_warriors().size()
 
 	for warrior in _squad.get_living_warriors():
 		var card = WARRIOR_CARD_SCENE.instantiate()
-		_warriors_container.add_child(card)
+		_units_container.add_child(card)
 		card.setup(warrior)
 		card.equip_weapon_requested.connect(func(w, wep): equip_weapon_requested.emit(w, wep))
 		card.equip_armor_requested.connect(func(w, arm): equip_armor_requested.emit(w, arm))

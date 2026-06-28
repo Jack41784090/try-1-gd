@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dfabrq8mfoyci" path="res://src/strategy/ui/manage_squad/inventory_tab.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cxa3h371mpkys" path="res://scenes/ui/manage_squad/inventory_panel.tscn" id="2_8ml84"]
-[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/warriors_panel.tscn" id="3_cidog"]
+[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/units_panel.tscn" id="3_cidog"]
 
 [node name="InventoryTab" type="Control" unique_id=1671456202]
 layout_mode = 3
@@ -26,5 +26,5 @@ theme_override_constants/separation = 16
 [node name="InventoryPanel" parent="MainHBox" unique_id=1097482328 instance=ExtResource("2_8ml84")]
 layout_mode = 2
 
-[node name="WarriorsPanel" parent="MainHBox" unique_id=1689607094 instance=ExtResource("3_cidog")]
+[node name="UnitsPanel" parent="MainHBox" unique_id=1689607094 instance=ExtResource("3_cidog")]
 layout_mode = 2

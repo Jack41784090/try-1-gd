@@ -5,7 +5,7 @@ extends Control
 const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
 
 @onready var _title_label: Label = $ScrollContainer/VBox/TitleLabel
-@onready var _warriors_container: VBoxContainer = $ScrollContainer/VBox/WarriorsContainer
+@onready var _units_container: VBoxContainer = $ScrollContainer/VBox/UnitsContainer
 
 var _squad: StrategySquad
 
@@ -19,12 +19,12 @@ func setup(squad: StrategySquad) -> void:
 
 
 func _rebuild_units_container() -> void:
-	for child in _warriors_container.get_children():
+	for child in _units_container.get_children():
 		child.queue_free()
 	for warrior in _squad.warriors:
 		var item = WARRIOR_ITEM_SCENE.instantiate()
 		item.setup(warrior)
-		_warriors_container.add_child(item)
+		_units_container.add_child(item)
 
 
 func _connect_signals() -> void:
