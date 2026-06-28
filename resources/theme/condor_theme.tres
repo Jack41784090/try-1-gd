@@ -1,6 +1,7 @@
 [gd_resource type="Theme" format=3 uid="uid://861t6lhxpyaa"]
 
 [ext_resource type="FontFile" uid="uid://c061e87slhmjv" path="res://assets/fonts/eb_garamond.ttf" id="1_font"]
+[ext_resource type="Texture2D" uid="uid://cvmodmm7jie7g" path="res://assets/seamless-paper-texture-business-card-background-thumb47-461051118.png" id="2_imcs3"]
 
 [sub_resource type="FontVariation" id="FontVariation_bold"]
 base_font = ExtResource("1_font")
@@ -89,6 +90,16 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(2, 2)
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_imcs3"]
+content_margin_left = 4.0
+content_margin_top = 0.0
+content_margin_right = 4.0
+content_margin_bottom = 0.0
+color = Color(0.047557652, 0.047557652, 0.04755763, 1)
+grow_begin = -2.0
+grow_end = -2.0
+thickness = 2
+
 [sub_resource type="FontVariation" id="FontVariation_regular"]
 base_font = ExtResource("1_font")
 
@@ -133,6 +144,12 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4kson"]
+texture = ExtResource("2_imcs3")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+modulate_color = Color(0.75898623, 0.75898623, 0.68334395, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
 bg_color = Color(0.2, 0.2, 0.2, 1)
@@ -190,6 +207,8 @@ GoldButton/styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 GoldButton/styles/hover = SubResource("StyleBoxFlat_action_btn_hover")
 GoldButton/styles/normal = SubResource("StyleBoxFlat_action_btn_normal")
 GoldButton/styles/pressed = SubResource("StyleBoxFlat_action_btn_pressed")
+HSeparator/constants/separation = 10
+HSeparator/styles/separator = SubResource("StyleBoxLine_imcs3")
 HeaderLabel/base_type = &"Label"
 HeaderLabel/colors/font_color = Color(0.9, 0.85, 0.7, 1)
 HeaderLabel/colors/font_shadow_color = Color(0, 0, 0, 0.8)
@@ -197,8 +216,8 @@ HeaderLabel/constants/shadow_offset_x = 2
 HeaderLabel/constants/shadow_offset_y = 2
 HeaderLabel/font_sizes/font_size = 22
 HeaderLabel/fonts/font = SubResource("FontVariation_bold")
-Label/colors/font_color = Color(0.95, 0.95, 0.9, 1)
-Label/colors/font_shadow_color = Color(0, 0, 0, 0.6)
+Label/colors/font_color = Color(0.05882353, 0, 0.02745098, 1)
+Label/colors/font_outline_color = Color(0.641934, 0.641934, 0.641934, 1)
 Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
 Label/font_sizes/font_size = 14
@@ -231,7 +250,7 @@ NavButton/styles/normal = SubResource("StyleBoxFlat_nav_btn_normal")
 NavButton/styles/pressed = SubResource("StyleBoxFlat_nav_btn_pressed")
 OverlayPanel/base_type = &"PanelContainer"
 OverlayPanel/styles/panel = SubResource("StyleBoxFlat_overlay_panel")
-PanelContainer/styles/panel = SubResource("StyleBoxFlat_game_panel")
+PanelContainer/styles/panel = SubResource("StyleBoxTexture_4kson")
 ProgressBar/styles/background = SubResource("StyleBoxFlat_hp_bg")
 ProgressBar/styles/fill = SubResource("StyleBoxFlat_hp_fill")
 SectionLabel/base_type = &"Label"

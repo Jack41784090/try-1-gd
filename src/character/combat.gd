@@ -1,5 +1,5 @@
 class_name CombatEntity
-extends Node
+extends RefCounted
 
 var _debug_id := "Entity_script_unknown"
 var resource: CombatEntityResource
@@ -8,7 +8,6 @@ var resource: CombatEntityResource
 var display_name: String
 # var stats: CombatEntityBaseStats
 # var icon: Texture2D
-# var logic_config: SimplifiedLogicConfig
 
 ## !! Only set this when the template's logic is determined no sufficient
 var _logic_override: SimplifiedSquadLogic
@@ -19,14 +18,7 @@ var side: SquadBattleTypes.Side
 var player_id: int
 var team: String
 
-#region Changeable stats (flat fields)
-var hp: float = 0.0
-var sta: float = 0.0
-var org: float = 0.0
-var pos: float = 0.0
-var mag: float = 0.0
-var loc: SquadBattleTypes.SquadEntityInSquadLocation = SquadBattleTypes.SquadEntityInSquadLocation.Front
-#endregion
+var stats: CombatEntityStats
 
 var retreat_tracker = null
 
@@ -48,7 +40,7 @@ func _init(config: CombatEntityConfig):
 	display_name = _r.codename
 	weapon = Weapon.new(_r.weapon_class)
 	armor = SquadArmor.new(_r.armor_class)
-	loc = config.starting_location
+	#loc = config.starting_location
 	side = config.side
 	pass
 
@@ -176,40 +168,42 @@ func get_floor_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> f
 
 
 func get_changeable_stat_num(property: SquadBattleTypes.EntityChangeable) -> float:
-	match property:
-		SquadBattleTypes.EntityChangeable.HP:
-			return hp
-		SquadBattleTypes.EntityChangeable.STA:
-			return sta
-		SquadBattleTypes.EntityChangeable.ORG:
-			return org
-		SquadBattleTypes.EntityChangeable.POS:
-			return pos
-		SquadBattleTypes.EntityChangeable.MAG:
-			return mag
-		SquadBattleTypes.EntityChangeable.LOC:
-			return float(loc)
-		_:
-			push_error("[%s] Unknown changeable stat %s" % [_debug_id, property])
-			return 0.0
+	#match property:
+	#SquadBattleTypes.EntityChangeable.HP:
+	#return hp
+	#SquadBattleTypes.EntityChangeable.STA:
+	#return sta
+	#SquadBattleTypes.EntityChangeable.ORG:
+	#return org
+	#SquadBattleTypes.EntityChangeable.POS:
+	#return pos
+	#SquadBattleTypes.EntityChangeable.MAG:
+	#return mag
+	#SquadBattleTypes.EntityChangeable.LOC:
+	#return float(loc)
+	#_:
+	#push_error("[%s] Unknown changeable stat %s" % [_debug_id, property])
+	#return 0.0
+	return 0.0
 
 
 func _set_stat_field(property: SquadBattleTypes.EntityChangeable, value: float) -> void:
-	match property:
-		SquadBattleTypes.EntityChangeable.HP:
-			hp = value
-		SquadBattleTypes.EntityChangeable.STA:
-			sta = value
-		SquadBattleTypes.EntityChangeable.ORG:
-			org = value
-		SquadBattleTypes.EntityChangeable.POS:
-			pos = value
-		SquadBattleTypes.EntityChangeable.MAG:
-			mag = value
-		SquadBattleTypes.EntityChangeable.LOC:
-			loc = int(value)
-		_:
-			push_error("[%s] Unknown changeable stat %s" % [_debug_id, property])
+	#match property:
+	#SquadBattleTypes.EntityChangeable.HP:
+	#hp = value
+	#SquadBattleTypes.EntityChangeable.STA:
+	#sta = value
+	#SquadBattleTypes.EntityChangeable.ORG:
+	#org = value
+	#SquadBattleTypes.EntityChangeable.POS:
+	#pos = value
+	#SquadBattleTypes.EntityChangeable.MAG:
+	#mag = value
+	#SquadBattleTypes.EntityChangeable.LOC:
+	#loc = int(value)
+	#_:
+	#push_error("[%s] Unknown changeable stat %s" % [_debug_id, property])
+	pass
 
 # func set_changeable_stat(property: SquadBattleTypes.EntityChangeable, to: float) -> EntityChange:
 # 	var old_value = get_changeable_stat_num(property)

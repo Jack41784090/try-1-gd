@@ -1,4 +1,5 @@
-class_name CombatEntityBaseStats extends Resource
+class_name CombatEntityBaseStats
+extends Resource
 
 #@export var id: String
 @export var strength: float

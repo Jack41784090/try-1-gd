@@ -1,22 +1,8 @@
 [gd_scene format=3 uid="uid://dsmu7hiqtycgd"]
 
 [ext_resource type="Script" uid="uid://dfabrq8mfoyci" path="res://src/strategy/ui/manage_squad/inventory_tab.gd" id="1_script"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-content_margin_left = 10.0
-content_margin_top = 10.0
-content_margin_right = 10.0
-content_margin_bottom = 10.0
-bg_color = Color(0.1, 0.1, 0.14, 0.8)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.5, 0.4, 0.25, 0.6)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+[ext_resource type="PackedScene" uid="uid://cxa3h371mpkys" path="res://scenes/ui/manage_squad/inventory_panel.tscn" id="2_8ml84"]
+[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/warriors_panel.tscn" id="3_cidog"]
 
 [node name="InventoryTab" type="Control" unique_id=1671456202]
 layout_mode = 3
@@ -37,68 +23,8 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
 
-[node name="InventoryPanel" type="PanelContainer" parent="MainHBox" unique_id=33841883]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.45
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="VBox" type="VBoxContainer" parent="MainHBox/InventoryPanel" unique_id=1598476025]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Header" type="Label" parent="MainHBox/InventoryPanel/VBox" unique_id=1107521246]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.8, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "SQUAD INVENTORY"
-
-[node name="Separator" type="HSeparator" parent="MainHBox/InventoryPanel/VBox" unique_id=294596551]
+[node name="InventoryPanel" parent="MainHBox" unique_id=1097482328 instance=ExtResource("2_8ml84")]
 layout_mode = 2
 
-[node name="EmptyLabel" type="Label" parent="MainHBox/InventoryPanel/VBox" unique_id=111067048]
-visible = false
+[node name="WarriorsPanel" parent="MainHBox" unique_id=1689607094 instance=ExtResource("3_cidog")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 0.8)
-theme_override_font_sizes/font_size = 14
-text = "No items in inventory"
-horizontal_alignment = 1
-
-[node name="InventoryScroll" type="ScrollContainer" parent="MainHBox/InventoryPanel/VBox" unique_id=1238909540]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="InventoryContainer" type="GridContainer" parent="MainHBox/InventoryPanel/VBox/InventoryScroll" unique_id=210427151]
-layout_mode = 2
-size_flags_horizontal = 6
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 8
-columns = 6
-
-[node name="WarriorsPanel" type="PanelContainer" parent="MainHBox" unique_id=1149697734]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.55
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="VBox" type="VBoxContainer" parent="MainHBox/WarriorsPanel" unique_id=1690622302]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="TitleLabel" type="Label" parent="MainHBox/WarriorsPanel/VBox" unique_id=1471870945]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.8, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "WARRIORS — 5"
-
-[node name="Separator" type="HSeparator" parent="MainHBox/WarriorsPanel/VBox" unique_id=330001796]
-layout_mode = 2
-
-[node name="WarriorsScroll" type="ScrollContainer" parent="MainHBox/WarriorsPanel/VBox" unique_id=516501477]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="WarriorsContainer" type="VBoxContainer" parent="MainHBox/WarriorsPanel/VBox/WarriorsScroll" unique_id=1908976503]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6

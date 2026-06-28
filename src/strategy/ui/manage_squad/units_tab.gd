@@ -23,7 +23,7 @@ func _pull() -> void:
 		child.queue_free()
 	for warrior in _squad.warriors:
 		var item = WARRIOR_ITEM_SCENE.instantiate()
-		item.setup_warrior(warrior)
+		item.setup(warrior)
 		_warriors_container.add_child(item)
 
 

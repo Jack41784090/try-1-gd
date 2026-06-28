@@ -1,0 +1,5 @@
+[gd_scene format=3]
+
+[node name="CollapsedTab" type="Button"]
+custom_minimum_size = Vector2(120, 36)
+text = "Panel"

@@ -1,7 +1,5 @@
-extends RefCounted
-
 class_name CombatController
-
+extends RefCounted
 ## Controls combat flow between strategic and tactical layers
 ## Manages pre-combat intermission, combat execution, and post-combat resolution
 ## Integrates with CombatBridge for StrategyEntity↔Entity mapping
@@ -29,8 +27,8 @@ class CombatResult extends RefCounted:
 	var enemy_casualties: Array[String] = []
 	var escaped_warriors: Array[String] = []
 	var morale_change: float = 0.0
-	var loot: Dictionary = {}
-	var equipment_loot: Dictionary = {}
+	var loot: Dictionary = { }
+	var equipment_loot: Dictionary = { }
 	var clues_dropped: Array[Clue] = []
 	var turns_elapsed: int = 0
 

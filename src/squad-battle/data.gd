@@ -1,11 +1,10 @@
-extends RefCounted
-
 class_name SquadBattle
+extends RefCounted
 
 var Types := SquadBattleTypes
 
 var teams_and_squads: Dictionary = { }
-var team_names: Array[Variant] = []
+var team_names: Array[Variant]
 var round_count: int = -1
 
 # Tactic configuration for battle flow
@@ -40,7 +39,6 @@ func _init(config: Dictionary):
 			teams_and_squads[team_name].append(squad)
 
 		team_names.append(team_name)
-
 
 
 func get_entity_by_id(entity_id: int) -> CombatEntity:

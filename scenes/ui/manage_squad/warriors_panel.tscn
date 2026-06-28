@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://dawgk6h3vruux"]
+
+[ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_gvirj"]
+[ext_resource type="Script" uid="uid://dqeufe86kkugq" path="res://src/strategy/ui/manage_squad/warriors_panel.gd" id="1_i0ho6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b2wls"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_fnlf8"]
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+shadow_size = 12
+shadow_color = Color(0, 0, 0, 0.18039216)
+
+[node name="WarriorsPanel" type="PanelContainer" unique_id=1689607094]
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.55
+script = ExtResource("1_i0ho6")
+
+[node name="_old" type="VBoxContainer" parent="." unique_id=1800074931]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="_old" unique_id=2109657973]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "WARRIORS — 5"
+
+[node name="Separator" type="HSeparator" parent="_old" unique_id=42725635]
+layout_mode = 2
+
+[node name="WarriorsScroll" type="ScrollContainer" parent="_old" unique_id=322195764]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WarriorsContainer" type="VBoxContainer" parent="_old/WarriorsScroll" unique_id=371577641]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Control" type="Control" parent="." unique_id=1499632274]
+layout_mode = 2
+script = ExtResource("1_gvirj")
+window_path = NodePath("..")
+grab_node_path = NodePath("../Rim")
+
+[node name="Rim" type="PanelContainer" parent="." unique_id=1749240511]
+custom_minimum_size = Vector2(640, 640)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_b2wls")
+
+[node name="VBox" type="VBoxContainer" parent="Rim" unique_id=963133873]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Rim/VBox" unique_id=664786310]
+layout_mode = 2
+text = "UNITS"
+label_settings = SubResource("LabelSettings_fnlf8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="Rim/VBox" unique_id=649803646]
+layout_mode = 2
+
+[node name="Rim" type="PanelContainer" parent="Rim/VBox" unique_id=766939377]
+custom_minimum_size = Vector2(640, 640)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_b2wls")
+
+[node name="Scroll" type="ScrollContainer" parent="Rim/VBox/Rim" unique_id=2042464316]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="Rim/VBox/Rim/Scroll" unique_id=288099314]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4

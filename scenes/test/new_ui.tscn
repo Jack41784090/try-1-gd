@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://b8lvq2onopaln"]
+
+[ext_resource type="Script" uid="uid://cmnhh1yx1ipk3" path="res://scenes/ui/reuse/desktop_manager.gd" id="1_mgr"]
+[ext_resource type="PackedScene" uid="uid://twe8n00vr1ae" path="res://scenes/ui/reuse/floating_panel.tscn" id="2_panel"]
+[ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="3_carousel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0.4, 0.6, 0.9, 0.22)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.75, 1, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Desktop" type="Control" unique_id=472532007]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mgr")
+
+[node name="PanelLayer" type="Control" parent="." unique_id=146641479]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SnapOverlay" type="Panel" parent="PanelLayer" unique_id=1436567075]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+
+[node name="Panel5" parent="PanelLayer" unique_id=1941227070 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 868.0
+offset_top = 364.0
+offset_right = 1148.0
+offset_bottom = 564.0
+
+[node name="Panel3" parent="PanelLayer" unique_id=643696565 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 1697.8865
+offset_top = 358.06207
+offset_right = 1977.8865
+offset_bottom = 558.0621
+rotation = 0.047996555
+pivot_offset = Vector2(140, 100)
+
+[node name="Panel1" parent="PanelLayer" unique_id=501956538 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -57.886383
+offset_top = 358.06207
+offset_right = 222.11362
+offset_bottom = 558.0621
+rotation = -0.047996555
+pivot_offset = Vector2(140, 100)
+
+[node name="LeftTabBar" type="Control" parent="." unique_id=1553341712]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 300.0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_carousel")
+spread = 0.25
+
+[node name="Panel2" parent="LeftTabBar" unique_id=442747232 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -60.0
+offset_top = 440.0
+offset_right = 220.0
+offset_bottom = 640.0
+pivot_offset = Vector2(140, 100)
+
+[node name="RightTabBar" type="Control" parent="." unique_id=755748136]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_carousel")
+spread = 0.25
+flip = true
+
+[node name="Panel4" parent="RightTabBar" unique_id=643791888 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 440.0
+offset_right = 360.0
+offset_bottom = 640.0
+pivot_offset = Vector2(140, 100)

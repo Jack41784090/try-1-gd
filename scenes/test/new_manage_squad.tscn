@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://db7r5wkq0um6d"]
+
+[ext_resource type="Script" uid="uid://cmnhh1yx1ipk3" path="res://scenes/ui/reuse/desktop_manager.gd" id="1_dgqwl"]
+[ext_resource type="Script" uid="uid://drp8sj413a75u" path="res://src/strategy/ui/manage_squad/new_page.gd" id="1_j7spm"]
+[ext_resource type="PackedScene" uid="uid://cxa3h371mpkys" path="res://scenes/ui/manage_squad/inventory_panel.tscn" id="2_ffd2y"]
+[ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/warriors_panel.tscn" id="3_h6tn1"]
+[ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="4_h6tn1"]
+[ext_resource type="PackedScene" uid="uid://dkpgmwamw6ksr" path="res://scenes/ui/manage_squad/tactics_panel.tscn" id="5_dow3k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h6tn1"]
+bg_color = Color(0.4, 0.6, 0.9, 0.22)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.75, 1, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="NewManageSquad" type="Control" unique_id=1298811619]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_j7spm")
+
+[node name="Desktop" type="Control" parent="." unique_id=2123129232]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dgqwl")
+
+[node name="PanelLayer" type="Control" parent="Desktop" unique_id=1167770709]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SnapOverlay" type="Panel" parent="Desktop/PanelLayer" unique_id=2137870695]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_h6tn1")
+
+[node name="InventoryPanel" parent="Desktop/PanelLayer" unique_id=1097482328 instance=ExtResource("2_ffd2y")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 51.0
+
+[node name="WarriorsPanel" parent="Desktop/PanelLayer" unique_id=1689607094 instance=ExtResource("3_h6tn1")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 260.0
+offset_top = 298.0
+offset_right = 387.0
+offset_bottom = 349.0
+
+[node name="Tactics Panel" parent="Desktop/PanelLayer" unique_id=705955947 instance=ExtResource("5_dow3k")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 469.0
+offset_top = 129.0
+offset_right = 507.0
+offset_bottom = 167.0
+
+[node name="LeftTabBar" type="Control" parent="Desktop" unique_id=268218517]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+script = ExtResource("4_h6tn1")
+side = 1
+bulge = 0.0
+spread = 0.0
+
+[node name="RightTabBar" type="Control" parent="Desktop" unique_id=1781416349]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+script = ExtResource("4_h6tn1")
+side = 2
+bulge = 0.0
+spread = 0.0
+flip = true

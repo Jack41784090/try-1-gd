@@ -1,3 +1,4 @@
+@tool
 extends PanelContainer
 
 @export var item_config: CombatEquipment:
@@ -9,8 +10,8 @@ extends PanelContainer
 @onready var _name_label: RichTextLabel = $MarginContainer/RichTextLabel
 @onready var _draggable_comp = $DraggableComponent
 
-
 func _ready() -> void:
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	setup(item_config)
 
 

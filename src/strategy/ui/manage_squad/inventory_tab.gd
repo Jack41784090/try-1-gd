@@ -7,7 +7,7 @@ signal equip_armor_requested(warrior: StrategyEntity, armor: ArmorConfig)
 signal unequip_weapon_requested(warrior: StrategyEntity)
 signal unequip_armor_requested(warrior: StrategyEntity)
 
-const WARRIOR_CARD_SCENE = preload("res://scenes/ui/manage_squad/warrior_equipment_card.tscn")
+const WARRIOR_CARD_SCENE = preload("res://scenes/warrior_item.tscn")
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
 const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
 
@@ -28,7 +28,11 @@ const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
 @onready var _warriors_container: VBoxContainer = $MainHBox/WarriorsPanel/VBox/WarriorsScroll/WarriorsContainer
 @onready var _empty_label: Label = $MainHBox/InventoryPanel/VBox/EmptyLabel
 
-var _squad: StrategySquad
+var _squad: StrategySquad:
+	set(_s):
+		if _s:
+			_squad = _s
+			_rebuild_slots()
 
 
 func _build_demo_squad() -> StrategySquad:
@@ -57,9 +61,9 @@ func _rebuild_slots() -> void:
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint() and _squad == null:
-		_squad = _build_demo_squad()
-	#_rebuild_slots()
+	#if Engine.is_editor_hint() and _squad == null:
+		#_squad = _build_demo_squad()
+		#_rebuild_slots()
 	visibility_changed.connect(_on_visibility_changed)
 
 
@@ -114,10 +118,10 @@ func _refresh_warriors() -> void:
 	for child in _warriors_container.get_children():
 		child.queue_free()
 
-	_title_label.text = "WARRIORS — %d" % _squad.get_living_warriors().size()
+	#_title_label.text = "WARRIORS — %d" % _squad.get_living_warriors().size()
 
 	for warrior in _squad.get_living_warriors():
-		var card: WarriorEquipmentCard = WARRIOR_CARD_SCENE.instantiate()
+		var card = WARRIOR_CARD_SCENE.instantiate()
 		_warriors_container.add_child(card)
 		card.setup(warrior)
 		card.equip_weapon_requested.connect(func(w, wep): equip_weapon_requested.emit(w, wep))

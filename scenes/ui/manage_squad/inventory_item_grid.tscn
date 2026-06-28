@@ -1,20 +1,26 @@
 [gd_scene format=3 uid="uid://bi16xap1m3oub"]
 
-[ext_resource type="StyleBox" path="res://resources/theme/styles/item_panel.tres" id="1_ift5a"]
 [ext_resource type="Script" uid="uid://ck0060tnon8ib" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
 [ext_resource type="PackedScene" uid="uid://cyo4mnkw2uhl2" path="res://scenes/ui/reuse/draggable_component.tscn" id="4_4tjuw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hyd2s"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color(0, 0, 0, 1)
+border_blend = true
 
 [node name="InventoryItem" type="PanelContainer" unique_id=1854098293]
 custom_minimum_size = Vector2(128, 128)
 offset_right = 128.0
 offset_bottom = 128.0
-theme_override_styles/panel = ExtResource("1_ift5a")
 script = ExtResource("2_4tjuw")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1234567890]
+[node name="MarginContainer" type="PanelContainer" parent="." unique_id=1044325691]
 layout_mode = 2
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_bottom = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_hyd2s")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer" unique_id=518405272]
 custom_minimum_size = Vector2(64, 64)

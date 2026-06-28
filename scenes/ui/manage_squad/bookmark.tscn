@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://1xkpuv1n6nji"]
+
+[ext_resource type="Texture2D" uid="uid://cvmodmm7jie7g" path="res://assets/seamless-paper-texture-business-card-background-thumb47-461051118.png" id="1_e0g0f"]
+[ext_resource type="Script" uid="uid://c586d6rgajj2t" path="res://scenes/ui/reuse/bookmark.gd" id="2_h0cxv"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_mwwut"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pxk2j"]
+texture = ExtResource("1_e0g0f")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+modulate_color = Color(1, 0.22745098, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_hyd2s"]
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.39215687, 0, 0, 0.3529412)
+shadow_offset = Vector2(2, 1)
+
+[node name="BookmarkTexture" type="PanelContainer" unique_id=484981310]
+propagate_maximum_size = false
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxTexture_pxk2j")
+script = ExtResource("2_h0cxv")
+
+[node name="Rim" type="PanelContainer" parent="." unique_id=1657500290]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_mwwut")
+
+[node name="Label2" type="Label" parent="Rim" unique_id=1165408517]
+layout_mode = 2
+offset_transform_position_ratio = Vector2(0, -15)
+text = "Squad Inventory"
+label_settings = SubResource("LabelSettings_hyd2s")
+horizontal_alignment = 1

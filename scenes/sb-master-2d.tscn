@@ -1,10 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cuprv57c7djsl"]
 
-[ext_resource type="Script" path="res://src/squad-battle/view_2d.gd" id="1_view2d"]
-[ext_resource type="Script" path="res://src/squad-battle/battlefield_view.gd" id="2_bf2d"]
-[ext_resource type="Script" path="res://src/squad-battle/presenter.gd" id="3_prsnt"]
+[ext_resource type="Script" uid="uid://5luv6sayrq3m" path="res://src/squad-battle/view_2d.gd" id="1_view2d"]
+[ext_resource type="Script" uid="uid://ca44avxu6t7y3" path="res://src/squad-battle/battlefield_view.gd" id="2_bf2d"]
+[ext_resource type="Script" uid="uid://cici7u5behpgp" path="res://src/squad-battle/presenter.gd" id="3_prsnt"]
 
-[node name="SquadBattleView2D" type="Control"]
+[node name="SquadBattleView2D" type="Control" unique_id=2014457591]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_view2d")
 
-[node name="BattlefieldView2D" type="Control" parent="."]
+[node name="BattlefieldView2D" type="Control" parent="." unique_id=1570153065]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,5 +22,5 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_bf2d")
 
-[node name="SquadBattlePresenter" type="Node" parent="."]
+[node name="SquadBattlePresenter" type="Node" parent="." unique_id=1441381059]
 script = ExtResource("3_prsnt")

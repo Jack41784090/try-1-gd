@@ -1,13 +1,12 @@
-extends RefCounted
-
 class_name CombatBridge
+extends RefCounted
 
 # signal combat_requested(player_squad: StrategySquad, enemy_squad: StrategySquad, context: Dictionary)
 # signal combat_phase_completed(updates: Array[EntityUpdate])
 # signal combat_ended(result: Dictionary)
 
-var warrior_to_entity: Dictionary = {}
-var entity_to_warrior: Dictionary = {}
+var warrior_to_entity: Dictionary = { }
+var entity_to_warrior: Dictionary = { }
 var current_battle: SquadBattle = null
 var player_combat_squad: CombatSquad = null
 var enemy_combat_squad: CombatSquad = null
@@ -135,7 +134,7 @@ func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate])
 		"deaths": [],
 		"injuries": [],
 		"escaped": [],
-		"morale_changes": {},
+		"morale_changes": { },
 	}
 
 	for update in updates:
@@ -168,7 +167,7 @@ func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate])
 					var morale_loss = damage_ratio * 20.0
 					warrior.modify_morale(-morale_loss)
 					result.injuries.append(warrior_id)
-					result.morale_changes[warrior_id] = - morale_loss
+					result.morale_changes[warrior_id] = -morale_loss
 			SquadBattleTypes.EntityChangeable.ORG:
 				# Organization change → morale effect at 0.5x rate
 				# e.g., ORG from 50 to 30 (drop of 20) → morale change = -10
@@ -219,7 +218,7 @@ func clear_mappings() -> void:
 
 func get_battle_summary() -> Dictionary:
 	if not current_battle:
-		return {}
+		return { }
 
 	return {
 		"player_strength": current_battle.check_team_strength("player"),

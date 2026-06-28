@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EntityBaseStats" load_steps=2 format=3 uid="uid://cc7myluyxivt1"]
+[gd_resource type="Resource" script_class="EntityBaseStats" format=3 uid="uid://cc7myluyxivt1"]
 
-[ext_resource type="Script" uid="uid://cd8rsiutj3bsj" path="res://src/squad-battle/entity/bstats.gd" id="1_n5rdr"]
+[ext_resource type="Script" uid="uid://cd8rsiutj3bsj" path="res://src/character/bstats.gd" id="1_n5rdr"]
 
 [resource]
 script = ExtResource("1_n5rdr")

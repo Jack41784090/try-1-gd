@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://cxa3h371mpkys"]
+
+[ext_resource type="PackedScene" uid="uid://imjkd2tyhypl" path="res://src/squad-battle/items/weapon/ui.tscn" id="1_6c02b"]
+[ext_resource type="Script" uid="uid://cppp6ta5tgh20" path="res://src/strategy/ui/manage_squad/inventory_panel.gd" id="1_pxk2j"]
+[ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_qqdic"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_gca7n"]
+[ext_resource type="PackedScene" uid="uid://1xkpuv1n6nji" path="res://scenes/ui/manage_squad/bookmark.tscn" id="2_tcd2o"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxhmb"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qqdic"]
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+shadow_size = 12
+shadow_color = Color(0, 0, 0, 0.18039216)
+
+[node name="InventoryPanel" type="PanelContainer" unique_id=1097482328]
+offset_right = 660.0
+offset_bottom = 733.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yxhmb")
+script = ExtResource("1_pxk2j")
+bookmark_left_path = NodePath("HBoxContainer/BookmarkLeft")
+bookmark_right_path = NodePath("HBoxContainer/BookmarkRight")
+
+[node name="FloatControl" type="Control" parent="." unique_id=260615310]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("1_qqdic")
+window_path = NodePath("..")
+grab_node_path = NodePath("../HBoxContainer/Texture/Rim/VBox")
+bookmark_left_path = NodePath("../HBoxContainer/BookmarkLeft")
+bookmark_right_path = NodePath("../HBoxContainer/BookmarkRight")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=193311930]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="BookmarkLeft" parent="HBoxContainer" unique_id=484981310 instance=ExtResource("2_tcd2o")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Inv."
+
+[node name="Texture" type="PanelContainer" parent="HBoxContainer" unique_id=139203334]
+custom_minimum_size = Vector2(640, 640)
+layout_mode = 2
+
+[node name="Rim" type="PanelContainer" parent="HBoxContainer/Texture" unique_id=474870556]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_gca7n")
+
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/Texture/Rim" unique_id=1623094660]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="HBoxContainer/Texture/Rim/VBox" unique_id=1026996210]
+layout_mode = 2
+text = "SQUAD INVENTORY"
+label_settings = SubResource("LabelSettings_qqdic")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="HBoxContainer/Texture/Rim/VBox" unique_id=1438047101]
+layout_mode = 2
+
+[node name="EmptyLabel" type="Label" parent="HBoxContainer/Texture/Rim/VBox" unique_id=1843298431]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "No items in inventory"
+horizontal_alignment = 1
+
+[node name="Rim2" type="PanelContainer" parent="HBoxContainer/Texture/Rim/VBox" unique_id=361599015]
+custom_minimum_size = Vector2(640, 640)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_gca7n")
+
+[node name="InventoryScroll" type="ScrollContainer" parent="HBoxContainer/Texture/Rim/VBox/Rim2" unique_id=2098491324]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryContainer" type="GridContainer" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll" unique_id=1654714620]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 5
+
+[node name="WeaponInventoryItem" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=2115904342 instance=ExtResource("1_6c02b")]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="WeaponInventoryItem2" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1537127232 instance=ExtResource("1_6c02b")]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="WeaponInventoryItem3" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1711976172 instance=ExtResource("1_6c02b")]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="WeaponInventoryItem4" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1473708214 instance=ExtResource("1_6c02b")]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="WeaponInventoryItem5" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=140687215 instance=ExtResource("1_6c02b")]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="BookmarkRight" parent="HBoxContainer" unique_id=1467964620 instance=ExtResource("2_tcd2o")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Inv."

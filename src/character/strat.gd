@@ -1,5 +1,5 @@
 class_name StrategyEntity
-extends Node
+extends RefCounted
 
 var resource: StrategyEntityResource
 var morale: float:

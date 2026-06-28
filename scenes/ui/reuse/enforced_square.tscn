@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://d1h78ea7ty2df"]
+
+[ext_resource type="Script" uid="uid://dq0tyy7quvm60" path="res://scenes/ui/reuse/enforce_square.gd" id="1_vyhjo"]
+
+[node name="EnforcedSquare" type="Control" unique_id=77189196]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_vyhjo")

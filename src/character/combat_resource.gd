@@ -1,5 +1,6 @@
 @tool
-class_name CombatEntityResource extends Resource
+class_name CombatEntityResource
+extends Resource
 
 ## `identification` is a live dropdown (see _get_property_list) whose options are
 ## scanned from CombatEntityFactory's folder, so it auto-updates as templates are

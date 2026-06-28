@@ -1,3 +1,4 @@
+@tool
 class_name ManageSquadPage
 extends Control
 
@@ -25,7 +26,10 @@ var squad: StrategySquad
 var actor: ActivityRunner
 
 var _nav_buttons: Array[Button] = []
-var _active_tab: int = 0
+@export var _active_tab: int = 0:
+	set(value):
+		_active_tab = value
+		_switch_tab(value)
 
 
 func _build_demo_squad() -> StrategySquad:
@@ -47,11 +51,11 @@ func _ready() -> void:
 		UIAnimations.register_button(btn)
 	UIAnimations.register_button(close_button)
 
-	tab_tactics.pressed.connect(func(): _switch_tab(0))
-	tab_units.pressed.connect(func(): _switch_tab(1))
-	tab_formation.pressed.connect(func(): _switch_tab(2))
-	tab_recruitment.pressed.connect(func(): _switch_tab(3))
-	tab_inventory.pressed.connect(func(): _switch_tab(4))
+	tab_tactics.pressed.connect(func(): _active_tab = 0)
+	tab_units.pressed.connect(func(): _active_tab = 1)
+	tab_formation.pressed.connect(func(): _active_tab = 2)
+	tab_recruitment.pressed.connect(func(): _active_tab = 3)
+	tab_inventory.pressed.connect(func(): _active_tab = 4)
 	close_button.pressed.connect(func(): close())
 
 	tactics_tab.tactic_selected.connect(_on_tactic_selected)
@@ -76,7 +80,7 @@ func open(p_squad: StrategySquad, p_actor: ActivityRunner) -> void:
 	recruitment_tab.setup(squad, actor)
 	inventory_tab.setup(squad)
 	_active_tab = 0
-	_switch_tab(_active_tab)
+	_switch_tab(_active_tab)  # force, in case _active_tab was already 0
 	visible = true
 	await UIAnimations.show_overlay(self)
 
@@ -90,19 +94,23 @@ func close() -> void:
 
 
 func _switch_tab(tab: int) -> void:
-	_active_tab = tab
-	tactics_tab.visible = tab == 0
-	units_tab.visible = tab == 1
-	formation_tab.visible = tab == 2
-	recruitment_tab.visible = tab == 3
-	inventory_tab.visible = tab == 4
+	var base := "OverlayPanel/MainMargin/MainVBox/TabContainer/"
+	var tabs := ["TacticsTab", "UnitsTab", "FormationTab", "RecruitmentTab", "InventoryTab"]
+	for i in tabs.size():
+		var node := get_node_or_null(base + tabs[i]) as Control
+		if node:
+			node.visible = i == tab
 	_update_nav_highlight(tab)
 
 
 func _update_nav_highlight(tab: int) -> void:
-	var active_btn: Button = _nav_buttons[tab]
-	for btn in _nav_buttons:
-		if btn == active_btn:
+	var nav := "OverlayPanel/MainMargin/MainVBox/NavBar/"
+	var btns := ["TacticsBtn", "UnitsBtn", "FormationBtn", "RecruitmentBtn", "InventoryBtn"]
+	for i in btns.size():
+		var btn := get_node_or_null(nav + btns[i]) as Button
+		if btn == null:
+			continue
+		if i == tab:
 			btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6, 1.0))
 			btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.75, 1.0))
 		else:

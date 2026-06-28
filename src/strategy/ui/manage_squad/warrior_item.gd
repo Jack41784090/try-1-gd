@@ -1,6 +1,6 @@
-extends PanelContainer
-
+@tool
 class_name WarriorItem
+extends PanelContainer
 
 @onready var icon_rect: TextureRect = $MarginContainer/HBoxContainer/IconRect
 @onready var name_label: Label = $MarginContainer/HBoxContainer/InfoVBox/NameLabel
@@ -26,7 +26,7 @@ func _ready() -> void:
 		_pending_warrior_setup = null
 
 
-func setup_warrior(warrior_data: StrategyEntity) -> void:
+func setup(warrior_data: StrategyEntity) -> void:
 	warrior = warrior_data
 
 	if is_node_ready():

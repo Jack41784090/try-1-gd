@@ -1,4 +1,5 @@
-class_name SquadBattlePresenter extends Node
+class_name SquadBattlePresenter
+extends Node
 
 signal battle_completed(outcome: SquadBattleTypes.BattleOutcome)
 
@@ -9,12 +10,15 @@ var delay_between_rounds: float = 2.0
 var last_round_capitulated: Array[CombatEntity] = []
 var all_updates: Array[EntityUpdate] = []
 
+
 func bind_view(v) -> void:
 	view = v
+
 
 func request_retreat(team: SquadBattleTypes.Side) -> void:
 	if battle:
 		battle.order_retreat(team)
+
 
 func start(p_battle: SquadBattle, config: Dictionary) -> void:
 	if p_battle == null:
@@ -29,6 +33,7 @@ func start(p_battle: SquadBattle, config: Dictionary) -> void:
 	SBLog.section("CombatSquad Battle Started!", 0, 2, 1)
 	await view.get_tree().create_timer(1.0).timeout
 	_process_round()
+
 
 func _process_round() -> void:
 	var outcome = battle.get_battle_outcome()
@@ -59,34 +64,39 @@ func _process_round() -> void:
 	await view.wait_delay(delay_between_rounds)
 	_process_round()
 
+
 func _create_mock_battle() -> SquadBattle:
 	var battle_config = {
 		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [ {
-				"side": SquadBattleTypes.Side.ATTACKER,
-				"name": "Heroes",
-				"team": "heroes",
-				"entities": [
-					"landsknecht",
-					"landsknecht",
-					"landsknecht",
-					"healer"
-				]
-			}],
-			SquadBattleTypes.Side.DEFENDER: [ {
-				"side": SquadBattleTypes.Side.DEFENDER,
-				"name": "Monsters",
-				"team": "monsters",
-				"entities": [
-					"landsknecht",
-					"landsknecht",
-					"landsknecht",
-					"healer"
-				]
-			}]
+			SquadBattleTypes.Side.ATTACKER: [
+				{
+					"side": SquadBattleTypes.Side.ATTACKER,
+					"name": "Heroes",
+					"team": "heroes",
+					"entities": [
+						"landsknecht",
+						"landsknecht",
+						"landsknecht",
+						"healer",
+					],
+				},
+			],
+			SquadBattleTypes.Side.DEFENDER: [
+				{
+					"side": SquadBattleTypes.Side.DEFENDER,
+					"name": "Monsters",
+					"team": "monsters",
+					"entities": [
+						"landsknecht",
+						"landsknecht",
+						"landsknecht",
+						"healer",
+					],
+				},
+			],
 		},
 		"attacker_tactic": Tactic.create_balanced(),
-		"defender_tactic": Tactic.create_balanced()
+		"defender_tactic": Tactic.create_balanced(),
 	}
 
 	return SquadBattle.new(battle_config)

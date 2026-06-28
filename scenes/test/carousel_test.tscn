@@ -1,0 +1,174 @@
+[gd_scene format=3 uid="uid://cseqa4ebcq0du"]
+
+[ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="1_car"]
+[ext_resource type="PackedScene" uid="uid://twe8n00vr1ae" path="res://scenes/ui/reuse/floating_panel.tscn" id="2_panel"]
+
+[node name="CarouselTest" type="Control" unique_id=291823109]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelL3" parent="." unique_id=1610103915 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -62.22149
+offset_top = 90.782715
+offset_right = 217.7785
+offset_bottom = 290.7828
+rotation = 0.23998277
+pivot_offset = Vector2(140, 100.000046)
+
+[node name="Background" type="ColorRect" parent="." unique_id=1399882117]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.09, 0.09, 0.12, 1)
+
+[node name="LeftCarousel" type="Control" parent="." unique_id=888747672]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 460.0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_car")
+side = null
+bulge = 50.0
+spread = 0.625
+flip = true
+
+[node name="PanelL4" parent="LeftCarousel" unique_id=496462445 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -54.64469
+offset_top = 143.01515
+offset_right = 225.35538
+offset_bottom = 343.01514
+rotation = 0.19198622
+pivot_offset = Vector2(140.00003, 100)
+
+[node name="PanelL5" parent="LeftCarousel" unique_id=961180006 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -43.806053
+offset_top = 279.27295
+offset_right = 236.194
+offset_bottom = 479.27295
+rotation = 0.09599311
+pivot_offset = Vector2(140.00003, 100)
+
+[node name="PanelL6" parent="LeftCarousel" unique_id=720572163 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -40.00003
+offset_top = 440.0
+offset_right = 240.00003
+offset_bottom = 640.0
+pivot_offset = Vector2(140.00003, 100)
+
+[node name="PanelL7" parent="LeftCarousel" unique_id=1765733511 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -43.806053
+offset_top = 600.72705
+offset_right = 236.194
+offset_bottom = 800.72705
+rotation = -0.09599311
+pivot_offset = Vector2(140.00003, 100)
+
+[node name="PanelL8" parent="LeftCarousel" unique_id=887588294 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = -54.64466
+offset_top = 736.98486
+offset_right = 225.35535
+offset_bottom = 936.98486
+rotation = -0.19198622
+pivot_offset = Vector2(140, 100)
+
+[node name="RightCarousel" type="Control" parent="." unique_id=518907620]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -460.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_car")
+side = null
+bulge = 50.0
+
+[node name="PanelR1" parent="RightCarousel" unique_id=701668350 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 260.24536
+offset_top = 28.07016
+offset_right = 540.2456
+offset_bottom = 228.07019
+rotation = -0.3359759
+pivot_offset = Vector2(140.00012, 100.000015)
+
+[node name="PanelR2" parent="RightCarousel" unique_id=736979312 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 242.22144
+offset_top = 90.782745
+offset_right = 522.22156
+offset_bottom = 290.78278
+rotation = -0.23998277
+pivot_offset = Vector2(140.00006, 100.000015)
+
+[node name="PanelR3" parent="RightCarousel" unique_id=1412873002 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 228.42651
+offset_top = 206.66043
+offset_right = 508.4265
+offset_bottom = 406.66055
+rotation = -0.14398967
+pivot_offset = Vector2(140, 100.00006)
+
+[node name="PanelR4" parent="RightCarousel" unique_id=355803439 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 220.9607
+offset_top = 358.062
+offset_right = 500.96075
+offset_bottom = 558.06213
+rotation = -0.047996555
+pivot_offset = Vector2(140.00003, 100.00006)
+
+[node name="PanelR5" parent="RightCarousel" unique_id=2036417491 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 220.9607
+offset_top = 521.9379
+offset_right = 500.96075
+offset_bottom = 721.9379
+rotation = 0.047996555
+pivot_offset = Vector2(140.00003, 100)
+
+[node name="PanelR6" parent="RightCarousel" unique_id=1572812094 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 228.42651
+offset_top = 673.3395
+offset_right = 508.4265
+offset_bottom = 873.3395
+rotation = 0.14398967
+pivot_offset = Vector2(140, 100)
+
+[node name="PanelR7" parent="RightCarousel" unique_id=1676288842 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 242.2215
+offset_top = 789.2172
+offset_right = 522.2215
+offset_bottom = 989.2172
+rotation = 0.23998277
+pivot_offset = Vector2(140, 100)
+
+[node name="PanelR8" parent="RightCarousel" unique_id=1168876325 instance=ExtResource("2_panel")]
+layout_mode = 0
+offset_left = 260.24548
+offset_top = 851.9297
+offset_right = 540.2455
+offset_bottom = 1051.9299
+rotation = 0.3359759
+pivot_offset = Vector2(140, 100.00012)

@@ -28,6 +28,7 @@ theme_override_constants/separation = 10
 [node name="TitleLabel" type="Label" parent="ScrollContainer/VBox" unique_id=437811663]
 layout_mode = 2
 theme_type_variation = &"SectionLabel"
+text = "WARRIORS"
 
 [node name="WarriorsContainer" type="VBoxContainer" parent="ScrollContainer/VBox" unique_id=1732738143]
 layout_mode = 2
