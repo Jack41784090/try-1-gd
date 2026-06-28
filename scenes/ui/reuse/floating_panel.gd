@@ -17,7 +17,6 @@ signal drag_ended(panel: FloatingPanel, global_pos: Vector2)
 var original_size: Vector2:
 	set(_v):
 		original_size = _v
-		print('new os: ', _v)
 
 var floating_rect: Rect2 = Rect2()
 

@@ -35,7 +35,6 @@ func _register(handle: FloatingControl) -> void:
 func _on_drag_started(window: Control) -> void:
 	var state: Dictionary = _windows[window]
 	var bar: TabCarousel = state["bar"]
-	print("dragstart ", window.name, " bar=", bar.name if bar != null else "<free>")
 	if bar == null:
 		return
 	state["bar"] = null
@@ -60,15 +59,12 @@ func _collapse_side(global_pos: Vector2) -> int:
 func _on_dragging(_window: Control, global_pos: Vector2) -> void:
 	var side := _collapse_side(global_pos)
 	if side != 0:
-		print(_window.name," over:",side)
-		#print(_window.name," over:",side)
 		var w := collapse_gutter_px
 		_snap_overlay.show()
 		_snap_overlay.size = Vector2(w, _panel_layer.size.y)
 		_snap_overlay.position = Vector2(0.0 if side < 0 else _panel_layer.size.x - w, 0.0)
 	else:
 		var target := _target_rect(global_pos)
-		print(_window.name," target:",target)
 		if target.size == Vector2.ZERO:
 			_snap_overlay.hide()
 		else:
@@ -81,7 +77,6 @@ func _on_dragging(_window: Control, global_pos: Vector2) -> void:
 func _on_drag_ended(window: Control, global_pos: Vector2) -> void:
 	_snap_overlay.hide()
 	var side := _collapse_side(global_pos)
-	print("drag ends:",window.name," @:",side)
 	if side != 0:
 		_dock(window, _left_tab_bar if side < 0 else _right_tab_bar)
 		return
@@ -92,7 +87,6 @@ func _on_drag_ended(window: Control, global_pos: Vector2) -> void:
 
 
 func _dock(window: Control, bar: TabCarousel) -> void:
-	print("dock:",window.name," on:",bar.name)
 	var state: Dictionary = _windows[window]
 	if state["bar"] != null:
 		return

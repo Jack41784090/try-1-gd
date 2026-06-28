@@ -55,10 +55,8 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
 			MOUSE_BUTTON_WHEEL_UP:
-				print(name, "Scrolled Up!")
 				accept_event()
 			MOUSE_BUTTON_WHEEL_DOWN:
-				print(name, "Scrolled Down!")
 				accept_event()
 
 func add_item(item: Control) -> void:
