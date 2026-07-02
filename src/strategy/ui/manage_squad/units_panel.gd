@@ -2,16 +2,23 @@
 class_name UnitsFloatingPanel
 extends Control
 
-const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
+const WARRIOR_ITEM_SCENE = preload("res://scenes/ui/manage_squad/unit_item.tscn")
+@onready var _units_container: Control = %VBC
 
-@onready var _title_label: Label = $ScrollContainer/VBox/TitleLabel
-@onready var _units_container: VBoxContainer = $ScrollContainer/VBox/UnitsContainer
+var _item_windows: Array[Control] = []
 
-var _squad: StrategySquad
+var _squad: StrategySquad:
+	set(_s):
+		if _s:
+			_squad = _s
+			if is_node_ready():
+				_rebuild_units_container()
 
 
 func _ready() -> void:
 	visibility_changed.connect(_on_visibility_changed)
+	if _squad:
+		_rebuild_units_container()
 
 
 func setup(squad: StrategySquad) -> void:
@@ -19,12 +26,18 @@ func setup(squad: StrategySquad) -> void:
 
 
 func _rebuild_units_container() -> void:
-	for child in _units_container.get_children():
-		child.queue_free()
+	var dm := get_tree().get_first_node_in_group(&"desktop_manager")
+	for w in _item_windows:
+		if is_instance_valid(w):
+			if dm != null:
+				dm.unregister_window(w)
+			w.queue_free()
+	_item_windows.clear()
 	for warrior in _squad.warriors:
 		var item = WARRIOR_ITEM_SCENE.instantiate()
 		item.setup(warrior)
 		_units_container.add_child(item)
+		_item_windows.append(item)
 
 
 func _connect_signals() -> void:

@@ -152,7 +152,7 @@ func _test_warrior_location_label_data() -> void:
 
 #endregion
 
-#region Helpers (mirror WarriorItem logic for headless testing)
+#region Helpers (mirror UnitItem logic for headless testing)
 
 func _get_warrior_hp_percent(warrior_param: StrategyEntity) -> float:
 	if warrior_param.is_dead:

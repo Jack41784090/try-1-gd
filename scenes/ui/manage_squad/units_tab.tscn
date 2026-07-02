@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ci3mwytplg34m"]
 
 [ext_resource type="Script" uid="uid://bko401l6c8hv4" path="res://src/strategy/ui/manage_squad/units_tab.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://7wiqx3r6htjw" path="res://scenes/warrior_item.tscn" id="2_j8fhj"]
+[ext_resource type="PackedScene" uid="uid://7wiqx3r6htjw" path="res://scenes/ui/manage_squad/unit_item.tscn" id="2_j8fhj"]
 
 [node name="UnitsTab" type="Control" unique_id=1754053088]
 layout_mode = 3

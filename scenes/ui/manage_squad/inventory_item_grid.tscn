@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://bi16xap1m3oub"]
 
 [ext_resource type="Script" uid="uid://ck0060tnon8ib" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
+[ext_resource type="Texture2D" uid="uid://8m6w00lykyg" path="res://assets/Weapon Sprites/wep_ax011.png" id="3_qj7u1"]
 [ext_resource type="PackedScene" uid="uid://cyo4mnkw2uhl2" path="res://scenes/ui/reuse/draggable_component.tscn" id="4_4tjuw"]
+[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="4_7jw1u"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hyd2s"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -16,6 +18,7 @@ border_blend = true
 custom_minimum_size = Vector2(128, 128)
 offset_right = 128.0
 offset_bottom = 128.0
+size_flags_horizontal = 3
 script = ExtResource("2_4tjuw")
 
 [node name="MarginContainer" type="PanelContainer" parent="." unique_id=1044325691]
@@ -25,7 +28,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hyd2s")
 [node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer" unique_id=518405272]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
-text = "ITEM NAME"
 horizontal_alignment = 1
 vertical_alignment = 2
 
@@ -35,8 +37,15 @@ layout_mode = 2
 show_percentage = false
 
 [node name="Icon" type="TextureRect" parent="MarginContainer" unique_id=2130708404]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
-expand_mode = 3
+texture = ExtResource("3_qj7u1")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="DraggableComponent" parent="." unique_id=958131323 instance=ExtResource("4_4tjuw")]
 layout_mode = 2
+return_data = {
+"item": ExtResource("4_7jw1u")
+}

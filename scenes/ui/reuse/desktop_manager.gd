@@ -2,44 +2,66 @@
 class_name DesktopManager
 extends Control
 
-@export var snap_anim_time: float = 0.18
-@export var corner_band: float = 0.25
-@export var collapse_gutter_px: float = 56.0
+## Generic drag coordinator. Owns the float layer + snap overlay. On drag end it
+## finds the DockControl area under the cursor (by rect) and reparents the window
+## into it — no special-cased sides/corners. Current dock is derived from the
+## scene tree; a window's home is stored as node metadata.
 
 @onready var _panel_layer: Control = %PanelLayer
 @onready var _snap_overlay: Panel = %SnapOverlay
-@onready var _left_tab_bar: TabCarousel = %LeftTabBar
-@onready var _right_tab_bar: TabCarousel = %RightTabBar
 
 var _windows: Dictionary = { }
 
 
+func _enter_tree() -> void:
+	add_to_group(&"desktop_manager")
+
+
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
 	_snap_overlay.hide()
 	_snap_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for handle in get_tree().get_nodes_in_group(&"floating_control"):
-		_register(handle)
+		register_window(handle)
 
 
-func _register(handle: FloatingControl) -> void:
-	var window := handle.window
-	_windows[window] = {
-		"floating_rect": Rect2(window.position, window.size),
-		"bar": null,
-	}
+func register_window(handle: FloatingControl) -> void:
+	var control := handle.window
+	if _windows.has(control):
+		return
+	_windows[control] = handle
+	var parent := control.get_parent()
+	var dock := _dock_of_area(parent)
+	if dock != null and dock.side == DockControl.DockSide.NONE:
+		control.set_meta(&"home_area", parent)
+		control.set_meta(&"home_index", control.get_index())
 	handle.drag_started.connect(_on_drag_started)
 	handle.dragging.connect(_on_dragging)
 	handle.drag_ended.connect(_on_drag_ended)
 
 
-func _on_drag_started(window: Control) -> void:
-	var state: Dictionary = _windows[window]
-	var bar: TabCarousel = state["bar"]
-	if bar == null:
+func unregister_window(control: Control) -> void:
+	if not _windows.has(control):
 		return
-	state["bar"] = null
-	bar.kill_item_tween(window)
-	var keep_global: Vector2 = window.global_position
+	var dock := _dock_of_area(control.get_parent())
+	if dock != null:
+		dock.kill_item_tween(control)
+	_windows.erase(control)
+
+
+func _on_drag_started(window: Control) -> void:
+	if not _windows.has(window):
+		return
+	if window.get_parent() != _panel_layer:
+		_pop_out(window)
+
+
+func _pop_out(window: Control) -> void:
+	var dock := _dock_of_area(window.get_parent())
+	if dock != null:
+		dock.kill_item_tween(window)
+	var keep_global := window.global_position
 	window.reparent(_panel_layer, false)
 	window.rotation = 0.0
 	window.pivot_offset = Vector2.ZERO
@@ -47,76 +69,53 @@ func _on_drag_started(window: Control) -> void:
 	window.move_to_front()
 
 
-func _collapse_side(global_pos: Vector2) -> int:
-	var local_x := global_pos.x - _panel_layer.global_position.x
-	if local_x <= collapse_gutter_px:
-		return -1
-	if local_x >= _panel_layer.size.x - collapse_gutter_px:
-		return 1
-	return 0
-
-
-func _on_dragging(_window: Control, global_pos: Vector2) -> void:
-	var side := _collapse_side(global_pos)
-	if side != 0:
-		var w := collapse_gutter_px
-		_snap_overlay.show()
-		_snap_overlay.size = Vector2(w, _panel_layer.size.y)
-		_snap_overlay.position = Vector2(0.0 if side < 0 else _panel_layer.size.x - w, 0.0)
-	else:
-		var target := _target_rect(global_pos)
-		if target.size == Vector2.ZERO:
-			_snap_overlay.hide()
-		else:
-			_snap_overlay.show()
-			_snap_overlay.position = target.position
-			_snap_overlay.size = target.size
-	
+func _on_dragging(window: Control, global_pos: Vector2) -> void:
+	var dock := _target_dock(window, global_pos)
+	if dock == null:
+		_snap_overlay.hide()
+		return
+	var r := dock.area.get_global_rect()
+	_snap_overlay.show()
+	_snap_overlay.position = r.position - _panel_layer.global_position
+	_snap_overlay.size = r.size
 
 
 func _on_drag_ended(window: Control, global_pos: Vector2) -> void:
 	_snap_overlay.hide()
-	var side := _collapse_side(global_pos)
-	if side != 0:
-		_dock(window, _left_tab_bar if side < 0 else _right_tab_bar)
+	if not _windows.has(window):
 		return
-	_windows[window]["floating_rect"] = Rect2(window.position, window.size)
-	var target := _target_rect(global_pos)
-	if target.size != Vector2.ZERO:
-		_animate_to(window, target)
+	var dock := _target_dock(window, global_pos)
+	if dock != null:
+		_dock_into(window, dock)
 
 
-func _dock(window: Control, bar: TabCarousel) -> void:
-	var state: Dictionary = _windows[window]
-	if state["bar"] != null:
-		return
-	state["floating_rect"] = Rect2(window.position, window.size)
-	state["bar"] = bar
-	window.reparent(bar)
+func _dock_into(window: Control, dock: DockControl) -> void:
+	window.reparent(dock.area)
+	if window.has_meta(&"home_area") and window.get_meta(&"home_area") == dock.area:
+		var idx: int = clampi(int(window.get_meta(&"home_index")), 0, dock.area.get_child_count() - 1)
+		dock.area.move_child(window, idx)
 
 
-func _target_rect(global_pos: Vector2) -> Rect2:
-	var area := _panel_layer.size
-	var local := global_pos - _panel_layer.global_position
-	var fx := local.x / area.x
-	var fy := local.y / area.y
-	var c := corner_band
-	if fx <= c and fy <= c:
-		return _zone(0.0, 0.0, 0.5, 0.5, area)
-	if fx >= 1.0 - c and fy <= c:
-		return _zone(0.5, 0.0, 0.5, 0.5, area)
-	if fx <= c and fy >= 1.0 - c:
-		return _zone(0.0, 0.5, 0.5, 0.5, area)
-	if fx >= 1.0 - c and fy >= 1.0 - c:
-		return _zone(0.5, 0.5, 0.5, 0.5, area)
-	return Rect2()
+func _target_dock(window: Control, global_pos: Vector2) -> DockControl:
+	var best: DockControl = null
+	var best_area := 0.0
+	for d in get_tree().get_nodes_in_group(&"dock_control"):
+		var dock := d as DockControl
+		if dock.area == null or not dock.contains_point(global_pos):
+			continue
+		if dock.area == window or window.is_ancestor_of(dock.area):
+			continue
+		var a := dock.area.get_global_rect().get_area()
+		if best == null or a < best_area:
+			best = dock
+			best_area = a
+	return best
 
 
-func _zone(x: float, y: float, w: float, h: float, area: Vector2) -> Rect2:
-	return Rect2(Vector2(x, y) * area, Vector2(w, h) * area)
-
-
-func _animate_to(window: Control, target: Rect2) -> void:
-	var t := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.tween_property(window, "position", target.position, snap_anim_time)
-	t.tween_property(window, "size", target.size, snap_anim_time)
+func _dock_of_area(area: Node) -> DockControl:
+	if area == null:
+		return null
+	for c in area.get_children():
+		if c is DockControl:
+			return c
+	return null

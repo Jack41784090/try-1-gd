@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://dkpgmwamw6ksr"]
 
+[ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="1_written"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_utsc5"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 border_width_left = 10
@@ -9,59 +11,53 @@ border_width_bottom = 10
 border_color = Color(0, 0, 0, 1)
 border_blend = true
 
-[sub_resource type="LabelSettings" id="LabelSettings_sprr0"]
-font_size = 32
-font_color = Color(0, 0, 0, 1)
-shadow_size = 12
-shadow_color = Color(0, 0, 0, 0.18039216)
-
-[node name="PanelContainer" type="PanelContainer" unique_id=705955947]
+[node name="TacticsPanel" type="PanelContainer" unique_id=705955947]
 offset_right = 660.0
 offset_bottom = 733.0
 
-[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1308994022]
+[node name="Rim1" type="PanelContainer" parent="." unique_id=1308994022]
 custom_minimum_size = Vector2(640, 640)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_utsc5")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1286730395]
+[node name="VBoxContainer" type="VBoxContainer" parent="Rim1" unique_id=1286730395]
 visible = false
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1345372272]
+[node name="Label" type="Label" parent="Rim1/VBoxContainer" unique_id=1345372272]
 layout_mode = 2
 text = "Tactics"
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer" unique_id=1090377721]
+[node name="HSeparator" type="HSeparator" parent="Rim1/VBoxContainer" unique_id=1090377721]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/VBoxContainer" unique_id=704439850]
+[node name="ScrollContainer" type="ScrollContainer" parent="Rim1/VBoxContainer" unique_id=704439850]
 layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="PanelContainer" unique_id=1947750052]
+[node name="VBox" type="VBoxContainer" parent="Rim1" unique_id=1947750052]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Header" type="Label" parent="PanelContainer/VBox" unique_id=673682274]
+[node name="Header" type="Label" parent="Rim1/VBox" unique_id=673682274]
 layout_mode = 2
 text = "TACTICS"
-label_settings = SubResource("LabelSettings_sprr0")
+label_settings = ExtResource("1_written")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Separator" type="HSeparator" parent="PanelContainer/VBox" unique_id=2017920295]
+[node name="Separator" type="HSeparator" parent="Rim1/VBox" unique_id=2017920295]
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/VBox" unique_id=1738649444]
+[node name="Rim2" type="PanelContainer" parent="Rim1/VBox" unique_id=1738649444]
 custom_minimum_size = Vector2(640, 640)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_utsc5")
 
-[node name="Scroll" type="ScrollContainer" parent="PanelContainer/VBox/PanelContainer" unique_id=363544273]
+[node name="Scroll" type="ScrollContainer" parent="Rim1/VBox/Rim2" unique_id=363544273]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CardsContainer" type="VBoxContainer" parent="PanelContainer/VBox/PanelContainer/Scroll" unique_id=448821615]
+[node name="CardsContainer" type="VBoxContainer" parent="Rim1/VBox/Rim2/Scroll" unique_id=448821615]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

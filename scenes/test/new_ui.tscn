@@ -2,7 +2,16 @@
 
 [ext_resource type="Script" uid="uid://cmnhh1yx1ipk3" path="res://scenes/ui/reuse/desktop_manager.gd" id="1_mgr"]
 [ext_resource type="PackedScene" uid="uid://twe8n00vr1ae" path="res://scenes/ui/reuse/floating_panel.tscn" id="2_panel"]
-[ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="3_carousel"]
+[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="3_carousel"]
+[ext_resource type="Script" uid="uid://cn80baaeppup5" path="res://scenes/ui/reuse/arc_layout.gd" id="4_arc"]
+
+[sub_resource type="Resource" id="ArcLayout_left"]
+script = ExtResource("4_arc")
+flip = false
+
+[sub_resource type="Resource" id="ArcLayout_right"]
+script = ExtResource("4_arc")
+flip = true
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
 bg_color = Color(0.4, 0.6, 0.9, 0.22)
@@ -76,8 +85,14 @@ anchor_bottom = 1.0
 offset_right = 300.0
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="DockControl" type="Control" parent="LeftTabBar"]
+layout_mode = 1
+mouse_filter = 2
 script = ExtResource("3_carousel")
-spread = 0.25
+area_path = NodePath("..")
+side = 1
+layout = SubResource("ArcLayout_left")
 
 [node name="Panel2" parent="LeftTabBar" unique_id=442747232 instance=ExtResource("2_panel")]
 layout_mode = 0
@@ -98,9 +113,14 @@ offset_left = -300.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="DockControl" type="Control" parent="RightTabBar"]
+layout_mode = 1
+mouse_filter = 2
 script = ExtResource("3_carousel")
-spread = 0.25
-flip = true
+area_path = NodePath("..")
+side = 2
+layout = SubResource("ArcLayout_right")
 
 [node name="Panel4" parent="RightTabBar" unique_id=643791888 instance=ExtResource("2_panel")]
 layout_mode = 0

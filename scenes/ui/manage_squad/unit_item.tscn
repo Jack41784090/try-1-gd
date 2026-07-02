@@ -1,0 +1,103 @@
+[gd_scene format=3 uid="uid://7wiqx3r6htjw"]
+
+[ext_resource type="Script" uid="uid://bdnf0j73m3mmv" path="res://src/strategy/ui/manage_squad/unit_item.gd" id="1_warrior_item"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_m8if2"]
+[ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="3_tmfwr"]
+[ext_resource type="PackedScene" uid="uid://8jo3u8cdmgh3" path="res://scenes/ui/reuse/key_value_bar.tscn" id="4_hrwr6"]
+[ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="5_float"]
+
+[node name="WarriorItem" type="PanelContainer" unique_id=1265198803]
+custom_minimum_size = Vector2(0, 80)
+script = ExtResource("1_warrior_item")
+
+[node name="Rim" type="PanelContainer" parent="." unique_id=1622815913]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_m8if2")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Rim" unique_id=2077924240]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TitleBar" type="ColorRect" parent="Rim/HBoxContainer" unique_id=2077924241]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+mouse_filter = 2
+mouse_default_cursor_shape = 13
+color = Color(0.85, 0.7, 0.4, 0.5)
+
+[node name="IconRect" type="TextureRect" parent="Rim/HBoxContainer" unique_id=1204284743]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 2
+stretch_mode = 4
+
+[node name="InfoVBox" type="VBoxContainer" parent="Rim/HBoxContainer" unique_id=40851972]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox" unique_id=1707168940]
+layout_mode = 2
+theme_type_variation = &"SubsectionLabel"
+text = "Warrior Name"
+label_settings = ExtResource("3_tmfwr")
+
+[node name="StatsHBox" type="HBoxContainer" parent="Rim/HBoxContainer/InfoVBox" unique_id=1038752837]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HPBar" parent="Rim/HBoxContainer/InfoVBox/StatsHBox" unique_id=798410377 instance=ExtResource("4_hrwr6")]
+layout_mode = 2
+key = "HP:"
+show_bar = true
+
+[node name="MoraleBar" parent="Rim/HBoxContainer/InfoVBox/StatsHBox" unique_id=1234567890 instance=ExtResource("4_hrwr6")]
+layout_mode = 2
+key = "Morale:"
+
+[node name="LocationBar" parent="Rim/HBoxContainer/InfoVBox/StatsHBox" unique_id=987654321 instance=ExtResource("4_hrwr6")]
+layout_mode = 2
+key = "Pos:"
+
+[node name="MenuBar" type="MenuBar" parent="Rim/HBoxContainer" unique_id=1862901887]
+visible = false
+layout_mode = 2
+
+[node name="Actions ▼" type="PopupMenu" parent="Rim/HBoxContainer/MenuBar" unique_id=2080778194]
+item_count = 8
+item_0/text = "Rest"
+item_0/id = 0
+item_1/text = "Train"
+item_1/id = 1
+item_2/text = "Heal"
+item_2/id = 2
+item_3/id = 100
+item_3/separator = true
+item_4/text = "Move"
+item_4/id = 4
+item_5/id = 101
+item_5/separator = true
+item_6/text = "Transfer"
+item_6/id = 3
+item_7/text = "Dismiss"
+item_7/id = 5
+
+[node name="PopupMenu_move" type="PopupMenu" parent="Rim/HBoxContainer/MenuBar/Actions ▼" unique_id=1195610362]
+item_count = 3
+item_0/text = "Front"
+item_0/id = 10
+item_1/text = "Mid"
+item_1/id = 11
+item_2/text = "Back"
+item_2/id = 12
+
+[node name="FloatControl" type="Control" parent="." unique_id=2077924242]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("5_float")
+window_path = NodePath("..")
+grab_node_path = NodePath("../Rim")
+window_title = "Unit"
+
+[connection signal="id_pressed" from="Rim/HBoxContainer/MenuBar/Actions ▼" to="." method="_on_action_selected"]
+[connection signal="id_pressed" from="Rim/HBoxContainer/MenuBar/Actions ▼/PopupMenu_move" to="." method="_on_action_selected"]

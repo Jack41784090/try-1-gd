@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://imjkd2tyhypl"]
 
 [ext_resource type="Script" uid="uid://bo6jjhjmv8kbk" path="res://src/squad-battle/items/weapon/ui.gd" id="1_2hooc"]
-[ext_resource type="PackedScene" uid="uid://d1h78ea7ty2df" path="res://scenes/ui/reuse/enforced_square.tscn" id="3_inr15"]
 [ext_resource type="PackedScene" uid="uid://bi16xap1m3oub" path="res://scenes/ui/manage_squad/inventory_item_grid.tscn" id="3_yxan8"]
+[ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="4_float"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6c02b"]
 
@@ -17,7 +17,20 @@ script = ExtResource("1_2hooc")
 
 [node name="InventoryItem" parent="." unique_id=1854098293 instance=ExtResource("3_yxan8")]
 layout_mode = 2
-size_flags_horizontal = 3
 
-[node name="EnforcedSquare" parent="." unique_id=77189196 instance=ExtResource("3_inr15")]
+[node name="FloatControl" type="Control" parent="." unique_id=1854098294]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("4_float")
+window_path = NodePath("..")
+grab_node_path = NodePath("../InventoryItem")
+window_title = "Weapon"
+
+[node name="TitleBar" type="ColorRect" parent="FloatControl" unique_id=1854098295]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 18.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.85, 0.7, 0.4, 0.6)

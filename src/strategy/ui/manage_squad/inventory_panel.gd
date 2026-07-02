@@ -26,10 +26,16 @@ const WEAPON_SLOT_SCENE = preload("res://src/squad-battle/items/weapon/ui.tscn")
 		else:
 			push_warning("preview_in_editor can only be set in the editor.")
 
-@onready var _inventory_container: GridContainer = %InventoryContainer
+@onready var _inventory_container: Control = %InventoryContainer
 #@onready var _empty_label: Label = $MainHBox/InventoryPanel/VBox/EmptyLabel
 
-var _squad: StrategySquad
+var _item_windows: Array[Control] = []
+
+var _squad: StrategySquad:
+	set(_s):
+		if _s:
+			_squad = _s
+			_rebuild_inv()
 
 
 func _build_demo_squad() -> StrategySquad:
@@ -77,14 +83,20 @@ func _on_visibility_changed() -> void:
 
 
 func _rebuild_inv() -> void:
-	for child in _inventory_container.get_children():
-		child.queue_free()
+	var dm := get_tree().get_first_node_in_group(&"desktop_manager")
+	for w in _item_windows:
+		if is_instance_valid(w):
+			if dm != null:
+				dm.unregister_window(w)
+			w.queue_free()
+	_item_windows.clear()
 	var items: Array = _squad.inventory.get_all_items()
 	for i in items:
 		if i is WeaponResource:
 			var ws = WEAPON_SLOT_SCENE.instantiate()
 			ws.weapon_config = i
 			_inventory_container.add_child(ws)
+			_item_windows.append(ws)
 		elif i is ArmorConfig:
 			pass
 

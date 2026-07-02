@@ -1,18 +1,20 @@
 [gd_scene format=3 uid="uid://cxa3h371mpkys"]
 
-[ext_resource type="PackedScene" uid="uid://imjkd2tyhypl" path="res://src/squad-battle/items/weapon/ui.tscn" id="1_6c02b"]
 [ext_resource type="Script" uid="uid://cppp6ta5tgh20" path="res://src/strategy/ui/manage_squad/inventory_panel.gd" id="1_pxk2j"]
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_qqdic"]
 [ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_gca7n"]
 [ext_resource type="PackedScene" uid="uid://1xkpuv1n6nji" path="res://scenes/ui/manage_squad/bookmark.tscn" id="2_tcd2o"]
+[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="6_dock"]
+[ext_resource type="Script" uid="uid://bx06upca0xh74" path="res://scenes/ui/reuse/grid_layout.gd" id="7_grid"]
+[ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="5_pxk2j"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxhmb"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_qqdic"]
-font_size = 32
-font_color = Color(0, 0, 0, 1)
-shadow_size = 12
-shadow_color = Color(0, 0, 0, 0.18039216)
+[sub_resource type="Resource" id="GridLayout_inv"]
+script = ExtResource("7_grid")
+columns = 5
+h_sep = 4.0
+v_sep = 4.0
 
 [node name="InventoryPanel" type="PanelContainer" unique_id=1097482328]
 offset_right = 660.0
@@ -28,8 +30,6 @@ layout_mode = 2
 script = ExtResource("1_qqdic")
 window_path = NodePath("..")
 grab_node_path = NodePath("../HBoxContainer/Texture/Rim/VBox")
-bookmark_left_path = NodePath("../HBoxContainer/BookmarkLeft")
-bookmark_right_path = NodePath("../HBoxContainer/BookmarkRight")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=193311930]
 layout_mode = 2
@@ -41,6 +41,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Inv."
+show_on_side = 2
 
 [node name="Texture" type="PanelContainer" parent="HBoxContainer" unique_id=139203334]
 custom_minimum_size = Vector2(640, 640)
@@ -57,7 +58,7 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="HBoxContainer/Texture/Rim/VBox" unique_id=1026996210]
 layout_mode = 2
 text = "SQUAD INVENTORY"
-label_settings = SubResource("LabelSettings_qqdic")
+label_settings = ExtResource("5_pxk2j")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -82,36 +83,26 @@ layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="InventoryContainer" type="GridContainer" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll" unique_id=1654714620]
+[node name="InventoryContainer" type="Control" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll" unique_id=1654714620]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
-columns = 5
 
-[node name="WeaponInventoryItem" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=2115904342 instance=ExtResource("1_6c02b")]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
-
-[node name="WeaponInventoryItem2" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1537127232 instance=ExtResource("1_6c02b")]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
-
-[node name="WeaponInventoryItem3" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1711976172 instance=ExtResource("1_6c02b")]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
-
-[node name="WeaponInventoryItem4" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=1473708214 instance=ExtResource("1_6c02b")]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
-
-[node name="WeaponInventoryItem5" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=140687215 instance=ExtResource("1_6c02b")]
-custom_minimum_size = Vector2(0, 128)
-layout_mode = 2
+[node name="DockControl" type="Control" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer"]
+layout_mode = 1
+mouse_filter = 2
+script = ExtResource("6_dock")
+area_path = NodePath("..")
+layout = SubResource("GridLayout_inv")
 
 [node name="BookmarkRight" parent="HBoxContainer" unique_id=1467964620 instance=ExtResource("2_tcd2o")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "Inv."
+show_on_side = 1
+
+[connection signal="docked" from="FloatControl" to="HBoxContainer/BookmarkLeft" method="on_docked"]
+[connection signal="docked" from="FloatControl" to="HBoxContainer/BookmarkRight" method="on_docked"]
+[connection signal="undocked" from="FloatControl" to="HBoxContainer/BookmarkLeft" method="on_undocked"]
+[connection signal="undocked" from="FloatControl" to="HBoxContainer/BookmarkRight" method="on_undocked"]

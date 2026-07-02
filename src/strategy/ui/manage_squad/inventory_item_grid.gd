@@ -6,7 +6,7 @@ extends PanelContainer
 		if item_config != _ic:
 			item_config = _ic
 			setup(_ic)
-@onready var _icon: TextureRect = $MarginContainer/Icon
+@onready var _icon: TextureRect = %Icon
 @onready var _name_label: RichTextLabel = $MarginContainer/RichTextLabel
 @onready var _draggable_comp = $DraggableComponent
 

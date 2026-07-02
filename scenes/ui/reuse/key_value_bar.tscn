@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://8jo3u8cdmgh3"]
+
+[ext_resource type="Script" uid="uid://c8dsfagtf3tjk" path="res://scenes/ui/reuse/key_value_bar.gd" id="1_grycn"]
+
+[node name="HPContainer" type="HBoxContainer" unique_id=798410377]
+theme_override_constants/separation = 5
+script = ExtResource("1_grycn")
+
+[node name="Key" type="Label" parent="." unique_id=1663416314]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "HP:"
+
+[node name="ValueLabel" type="Label" parent="." unique_id=1617213214]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "HP:"
+
+[node name="ValueBar" type="ProgressBar" parent="." unique_id=595887336]
+custom_minimum_size = Vector2(100, 16)
+layout_mode = 2

@@ -41,6 +41,14 @@ project/assembly_name="try1"
 
 enabled=PackedStringArray("res://addons/GDQuest_GDScript_formatter/plugin.cfg", "res://addons/script-ide/addons/script-ide/plugin.cfg")
 
+[file_customization]
+
+folder_colors={
+"res://resources/": "yellow",
+"res://scenes/": "green",
+"res://src/": "blue"
+}
+
 [gui]
 
 theme/custom="res://resources/theme/condor_theme.tres"

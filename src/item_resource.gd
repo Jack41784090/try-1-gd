@@ -1,4 +1,5 @@
-class_name CrossItem extends Resource
+class_name ItemResource
+extends Resource
 
 @export var display_name: String;
 @export var max_durability: float;
@@ -10,5 +11,5 @@ var durability: float;
 var strategy_comp: StrategyItem;
 
 func _init() -> void:
-    strategy_comp = StrategyItem.new()
-    durability = max_durability
+	strategy_comp = StrategyItem.new()
+	durability = max_durability

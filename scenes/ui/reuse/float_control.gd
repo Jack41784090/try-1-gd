@@ -4,18 +4,16 @@ extends Control
 signal drag_started(window: Control)
 signal dragging(window: Control, global_pos: Vector2)
 signal drag_ended(window: Control, global_pos: Vector2)
+signal docked(dock: Control)
+signal undocked()
 
 @export var window_path: NodePath
 @export var grab_node_path: NodePath
 @export var grab_node_name: StringName = &"TitleBar"
-@export var bookmark_left_path: NodePath
-@export var bookmark_right_path: NodePath
 @export var window_title: String = "Panel"
 
 var window: Control
 var grab: Control
-var _bookmark_left: Control
-var _bookmark_right: Control
 
 var _dragging: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
@@ -27,22 +25,25 @@ func _ready() -> void:
 	assert(window != null,
 		"FloatingControl: no positionable window found — set window_path")
 	assert(not (window.get_parent() is Container),
-		"FloatingControl: window '%s' is inside a Container and can't be freely positioned" % window.name)
+		"FloatingControl: window '%s' parent must be a Dock area or PanelLayer, not a raw Container" % window.name)
 	grab = get_node(grab_node_path) if not grab_node_path.is_empty() else _find_grab(window)
 	assert(grab != null,
 		"FloatingControl: no grab node — add a Control named '%s' (or a Label), or set grab_node_path" % grab_node_name)
-	_bookmark_left = _resolve_bookmark(bookmark_left_path)
-	_bookmark_right = _resolve_bookmark(bookmark_right_path)
 	add_to_group(&"floating_control")
+	var dm := get_tree().get_first_node_in_group(&"desktop_manager")
+	if dm != null:
+		dm.register_window(self)
 
 
-func _resolve_bookmark(path: NodePath) -> Control:
-	return get_node_or_null(path) as Control if not path.is_empty() else null
+## Broadcast that this window entered/left a dock. Listeners (bookmarks, a parent
+## that interprets the target dock) react; FloatingControl no longer sets anything
+## directly.
+func notify_docked(dock: Control) -> void:
+	docked.emit(dock)
 
 
-func set_dock_side(side: int) -> void:
-	if _bookmark_left: _bookmark_left.visible = side == TabCarousel.CarouselSide.Right
-	if _bookmark_right: _bookmark_right.visible = side == TabCarousel.CarouselSide.Left
+func notify_undocked() -> void:
+	undocked.emit()
 
 
 func _resolve_window() -> Control:

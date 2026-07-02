@@ -1,7 +1,18 @@
 [gd_scene format=3 uid="uid://cseqa4ebcq0du"]
 
-[ext_resource type="Script" uid="uid://lcdtqdcpe2bq" path="res://scenes/ui/reuse/tab_carousel.gd" id="1_car"]
+[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="1_car"]
 [ext_resource type="PackedScene" uid="uid://twe8n00vr1ae" path="res://scenes/ui/reuse/floating_panel.tscn" id="2_panel"]
+[ext_resource type="Script" uid="uid://cn80baaeppup5" path="res://scenes/ui/reuse/arc_layout.gd" id="3_arc"]
+
+[sub_resource type="Resource" id="ArcLayout_left"]
+script = ExtResource("3_arc")
+bulge = 50.0
+flip = true
+
+[sub_resource type="Resource" id="ArcLayout_right"]
+script = ExtResource("3_arc")
+bulge = 50.0
+flip = false
 
 [node name="CarouselTest" type="Control" unique_id=291823109]
 layout_mode = 3
@@ -37,11 +48,14 @@ anchor_bottom = 1.0
 offset_right = 460.0
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="DockControl" type="Control" parent="LeftCarousel"]
+layout_mode = 1
+mouse_filter = 2
 script = ExtResource("1_car")
-side = null
-bulge = 50.0
-spread = 0.625
-flip = true
+area_path = NodePath("..")
+side = 0
+layout = SubResource("ArcLayout_left")
 
 [node name="PanelL4" parent="LeftCarousel" unique_id=496462445 instance=ExtResource("2_panel")]
 layout_mode = 0
@@ -97,9 +111,14 @@ offset_left = -460.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="DockControl" type="Control" parent="RightCarousel"]
+layout_mode = 1
+mouse_filter = 2
 script = ExtResource("1_car")
-side = null
-bulge = 50.0
+area_path = NodePath("..")
+side = 0
+layout = SubResource("ArcLayout_right")
 
 [node name="PanelR1" parent="RightCarousel" unique_id=701668350 instance=ExtResource("2_panel")]
 layout_mode = 0
