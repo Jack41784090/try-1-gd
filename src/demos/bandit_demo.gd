@@ -97,7 +97,7 @@ func _test_forced_spawn() -> void:
 	_assert("High pressure from low satisfaction", pressure > BanditSpawner.SPAWN_THRESHOLD)
 
 	var initial_bandit_count := spawner.count_total_bandits(world)
-	var squad: SquadData = spawner.create_bandit_squad(test_loc, world)
+	var squad: StrategySquad = spawner.create_bandit_squad(test_loc, world)
 	world.add_roaming_squad(squad)
 	bandit_faction.add_army(squad)
 	presenter.ai_fleet.register_squad(squad, BanditSpawner.BANDIT_PROFILE_PATH)

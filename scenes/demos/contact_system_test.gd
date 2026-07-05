@@ -9,8 +9,8 @@ var passed_count := 0
 var failed_count := 0
 
 var world: World
-var squad_a: SquadData
-var squad_b: SquadData
+var squad_a: StrategySquad
+var squad_b: StrategySquad
 
 func _ready() -> void:
 	Log.set_level(Log.Level.WARN)
@@ -69,8 +69,8 @@ func _make_warrior(background_id: StringName) -> StrategyEntity:
 	w.attributes = {"diplomacy": 30, "survival": 30, "perception": 40, "leadership": 50, "stealth": 35}
 	return w
 
-func _make_squad(id: String, role: StrategyTypes.SquadRole, background_id: StringName) -> SquadData:
-	var sd := SquadData.new()
+func _make_squad(id: String, role: StrategyTypes.SquadRole, background_id: StringName) -> StrategySquad:
+	var sd := StrategySquad.new()
 	sd.squad_id = id
 	sd.squad_name = id
 	sd.squad_role = role
@@ -273,7 +273,7 @@ func test_engagement_classification() -> void:
 	check(contact_ab.get_state() == StrategyTypes.ContactState.LOCKED, "A→B is LOCKED")
 	check(contact_ba.get_state() == StrategyTypes.ContactState.NONE, "B→A is NONE")
 
-	var all_squads: Array[SquadData] = [squad_a, combat_b]
+	var all_squads: Array[StrategySquad] = [squad_a, combat_b]
 	world.roaming_squads = all_squads
 	world.contact_tracker = tracker
 	var engagements: Array[Dictionary] = world.check_engagements()

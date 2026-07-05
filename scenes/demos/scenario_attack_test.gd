@@ -176,7 +176,7 @@ func test_verify_world_state() -> void:
 func test_find_forest_bandits() -> bool:
 	start_test("Search for Forest Bandits in roaming squads")
 	
-	var forest_bandits: SquadData = null
+	var forest_bandits: StrategySquad = null
 	for squad in game_scenario.world.roaming_squads:
 		print("    [SEARCH] Checking squad: %s" % squad.squad_name)
 		if squad.squad_name == "Forest Bandits":

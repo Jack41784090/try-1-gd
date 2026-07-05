@@ -34,7 +34,7 @@ const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
-var player_squad: SquadData
+var player_squad: StrategySquad
 var world: World
 
 var _events_fired: Array[String] = []
@@ -620,7 +620,7 @@ func _cmd_map():
 	_print_separator()
 
 
-const _RECRUIT_COSTS: Dictionary = {
+var _RECRUIT_COSTS: Dictionary = {
 	EntityClasses.Types.Landsknecht: 100.0,
 	EntityClasses.Types.Healer: 150.0,
 	EntityClasses.Types.Crossbowman: 120.0,
@@ -630,7 +630,7 @@ const _RECRUIT_COSTS: Dictionary = {
 	EntityClasses.Types.Gelehrter: 250.0,
 }
 
-const _RECRUIT_LOGIC: Dictionary = {
+var _RECRUIT_LOGIC: Dictionary = {
 	EntityClasses.Types.Landsknecht: LogicFactory.LogicAvailable.Frontline,
 	EntityClasses.Types.Healer: LogicFactory.LogicAvailable.BacklineHeal,
 	EntityClasses.Types.Crossbowman: LogicFactory.LogicAvailable.BacklineShooter,
@@ -640,7 +640,7 @@ const _RECRUIT_LOGIC: Dictionary = {
 	EntityClasses.Types.Gelehrter: LogicFactory.LogicAvailable.BacklineCaster,
 }
 
-const _RECRUIT_POS: Dictionary = {
+var _RECRUIT_POS: Dictionary = {
 	EntityClasses.Types.Landsknecht: SquadBattleTypes.SquadEntityInSquadLocation.Front,
 	EntityClasses.Types.Healer: SquadBattleTypes.SquadEntityInSquadLocation.Back,
 	EntityClasses.Types.Crossbowman: SquadBattleTypes.SquadEntityInSquadLocation.Back,
@@ -857,7 +857,7 @@ func _print_stat_delta(label: String, before_val, after_val, fmt: String):
 
 #region Helpers
 
-func _find_squad(squad_id: String) -> SquadData:
+func _find_squad(squad_id: String) -> StrategySquad:
 	for sq in world.roaming_squads:
 		if sq.squad_id == squad_id:
 			return sq

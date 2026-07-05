@@ -656,57 +656,15 @@ func test_scenario_priority_resolution() -> void:
 # Helper Functions
 # ============================================================================
 
-func create_test_entity(config: Dictionary) -> CharacterCombatStat:
-	# Create entity with proper stats initialization
-	var stats = CombatEntityBaseStats.new()
-	stats.endurance = 10.0 # Will give HP = 10*5 + 5*2 = 60
-	stats.siz = 5.0
-	stats.strength = 5.0
-	stats.dex = 5.0
-	stats.acr = 5.0
-	stats.spd = 5.0
-	stats.int_stat = 5.0
-	stats.spr = 5.0
-	stats.fai = 5.0
-	stats.cha = 5.0
-	stats.beu = 5.0
-	stats.wil = 5.0
-	
-	var entity_config = CombatEntityConfig.new(
-		CombatEntityFactory.EntityClasses.Landsknecht,
-		config.get("player_id", 0),
-		"Test Entity",
-		"test",
-		stats,
-		config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front),
-		LogicFactory.LogicAvailable.Frontline,
-		null,
-		WeaponFactory.WeaponClasses.Unarmed,
-		null,
-		ArmorFactory.ArmorClasses.Unarmored
-	)
-	
-	if config.has("max_hp"):
-		var desired_max = config["max_hp"]
-		stats.endurance = (desired_max - 3) / (stats.siz * 10)
-	
-	if config.has("max_org"):
-		var desired_max_org = config["max_org"]
-		stats.wil = (desired_max_org - 1) / stats.fai
-
-	var entity = CharacterCombatStat.new(entity_config)
-	
-	# Override HP if specified (after initialise_changeables is called by constructor)
-	if config.has("hp"):
-		entity.changeable_stats[SquadBattleTypes.EntityChangeable.HP] = config["hp"]
-	if config.has("org"):
-		entity.changeable_stats[SquadBattleTypes.EntityChangeable.ORG] = config["org"]
-	if config.has("location"):
-		entity.changeable_stats[SquadBattleTypes.EntityChangeable.LOC] = config["location"]
-	
+func create_test_entity(config: Dictionary) -> CombatEntity:
+	var resource := CombatEntityFactory.get_resource("landsknecht")
+	var player_id: int = config.get("player_id", 0)
+	var location: SquadBattleTypes.SquadEntityInSquadLocation = config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	var entity_config = CombatEntityConfig.new(resource, player_id, location)
+	var entity = CombatEntity.new(entity_config)
 	return entity
 
-func create_basic_context(entity: CharacterCombatStat) -> Dictionary:
+func create_basic_context(entity: CombatEntity) -> Dictionary:
 	var our_squad = {}
 	# var enemy_squad = {}
 
@@ -717,7 +675,7 @@ func create_basic_context(entity: CharacterCombatStat) -> Dictionary:
 		"enemy_squad": {}
 	}
 
-func create_outnumbered_scenario(entity: CharacterCombatStat, ally_count: int, enemy_count: int) -> Dictionary:
+func create_outnumbered_scenario(entity: CombatEntity, ally_count: int, enemy_count: int) -> Dictionary:
 	var allies = create_entities_at_location(ally_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	var enemies = create_entities_at_location(enemy_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	

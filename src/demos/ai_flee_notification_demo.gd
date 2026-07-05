@@ -13,7 +13,7 @@ const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
-var player_squad: SquadData
+var player_squad: StrategySquad
 
 var _pass_count: int = 0
 var _fail_count: int = 0
@@ -64,9 +64,7 @@ func _inject_fleeing_squad() -> void:
 	)
 
 	for i in range(3):
-		var stats = CombatEntityBaseStats.new(
-			"", 40, 40, 40, 50, 50, 50, 30, 30, 30, 30, 40, 40
-		)
+		var stats = CombatEntityBaseStats.new()
 		var warrior = StrategyEntityFactory.Create(
 			EntityClasses.Types.Landsknecht,
 			"scout_%d" % i,
@@ -107,7 +105,7 @@ func _assign_flee_profile() -> void:
 	config.fallback_action = rest_action
 
 	var runner_id := "retreating_scouts"
-	var runner_squad: SquadData = null
+	var runner_squad: StrategySquad = null
 	for sq in presenter.game_scenario.world.roaming_squads:
 		if sq.squad_id == runner_id:
 			runner_squad = sq

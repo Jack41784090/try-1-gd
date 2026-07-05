@@ -49,14 +49,16 @@ func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> Strat
 		class_id, warrior_name.to_lower(), warrior_name,
 		StrategyTypes.Religion.CATHOLIC, CombatEntityBaseStats.new())
 
-func _make_weapon(wc: SquadBattleTypes.WeaponClasses) -> WeaponResource:
+func _make_weapon(wc = SquadBattleTypes.WeaponClasses.Unarmed) -> WeaponResource:
 	var w := WeaponResource.new()
-	w.weapon_class = wc
+	if wc is int:
+		w.weapon_class = wc
 	return w
 
-func _make_armor(ac: SquadBattleTypes.ArmorClasses) -> ArmorConfig:
+func _make_armor(ac = SquadBattleTypes.ArmorClasses.Unarmored) -> ArmorConfig:
 	var a := ArmorConfig.new()
-	a.armor_class = ac
+	if ac is int:
+		a.armor_class = ac
 	return a
 
 #endregion

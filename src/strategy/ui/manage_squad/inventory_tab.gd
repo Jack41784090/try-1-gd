@@ -7,7 +7,7 @@ signal equip_armor_requested(warrior: StrategyEntity, armor: ArmorConfig)
 signal unequip_weapon_requested(warrior: StrategyEntity)
 signal unequip_armor_requested(warrior: StrategyEntity)
 
-const WARRIOR_CARD_SCENE = preload("res://scenes/warrior_item.tscn")
+const WARRIOR_CARD_SCENE = preload("res://scenes/ui/manage_squad/warrior_equipment_card.tscn")
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
 const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
 

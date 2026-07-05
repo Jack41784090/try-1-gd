@@ -9,8 +9,6 @@ signal closed
 @onready var classes_container: VBoxContainer = $OverlayPanel/MarginContainer/VBoxContainer/ScrollContainer/ClassesContainer
 @onready var close_button: Button = $OverlayPanel/MarginContainer/VBoxContainer/CloseButton
 
-const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
-
 var actor: ActivityRunner
 var current_squad: StrategySquad:
 	get:

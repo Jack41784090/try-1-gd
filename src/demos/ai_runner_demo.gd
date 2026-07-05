@@ -212,7 +212,7 @@ func create_test_scenario() -> GameScenario:
 
 	return scenario
 
-func create_test_squad(id: String, p_name: String, location: String) -> SquadData:
+func create_test_squad(id: String, p_name: String, location: String) -> StrategySquad:
 	var squad := SquadDataFactory.create_squad(
 		id,
 		p_name,

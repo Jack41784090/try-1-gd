@@ -1,7 +1,7 @@
 class_name UnitsTab
 extends Control
 
-const WARRIOR_ITEM_SCENE = preload("res://scenes/warrior_item.tscn")
+const WARRIOR_ITEM_SCENE = preload("res://scenes/ui/manage_squad/unit_item.tscn")
 
 @onready var _title_label: Label = $ScrollContainer/VBox/TitleLabel
 @onready var _warriors_container: VBoxContainer = $ScrollContainer/VBox/WarriorsContainer

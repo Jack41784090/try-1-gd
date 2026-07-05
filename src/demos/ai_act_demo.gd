@@ -11,7 +11,7 @@ const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
-var player_squad: SquadData
+var player_squad: StrategySquad
 
 var _events_fired_this_turn: Array[String] = []
 var _missions_completed_this_turn: Array[String] = []

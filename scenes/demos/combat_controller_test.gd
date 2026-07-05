@@ -112,8 +112,8 @@ func create_test_warrior(id: String, warrior_name: String) -> StrategyEntity:
 	
 	return warrior
 
-func create_test_player_squad() -> SquadData:
-	var squad = SquadData.new()
+func create_test_player_squad() -> StrategySquad:
+	var squad = StrategySquad.new()
 	squad.squad_id = "player_squad"
 	squad.squad_name = "Test Heroes"
 	squad.current_location_id = "test_location"
@@ -126,8 +126,8 @@ func create_test_player_squad() -> SquadData:
 	squad.update_aggregate_morale()
 	return squad
 
-func create_test_enemy_squad() -> SquadData:
-	var squad = SquadData.new()
+func create_test_enemy_squad() -> StrategySquad:
+	var squad = StrategySquad.new()
 	squad.squad_id = "enemy_squad"
 	squad.squad_name = "Test Enemies"
 	squad.current_location_id = "test_location"
@@ -192,7 +192,7 @@ func test_flee_mechanics() -> void:
 	var enemy_squad = create_test_enemy_squad()
 	
 	controller.start_combat(player_squad, enemy_squad)
-	var result = controller.process_intermission_choice(CombatController.IntermissionChoice.FLEE)
+	var result = await controller.process_intermission_choice(CombatController.IntermissionChoice.FLEE)
 	
 	assert_not_null(result, "result returned")
 	# Result should either be fled=true or fled=false with combat result
@@ -216,7 +216,7 @@ func test_negotiate_mechanics() -> void:
 	var enemy_squad = create_test_enemy_squad()
 	
 	controller.start_combat(player_squad, enemy_squad)
-	var result = controller.process_intermission_choice(CombatController.IntermissionChoice.NEGOTIATE)
+	var result = await controller.process_intermission_choice(CombatController.IntermissionChoice.NEGOTIATE)
 	
 	assert_not_null(result, "result returned")
 	# Result should either be negotiated=true or negotiated=false with combat
@@ -234,7 +234,7 @@ func test_combat_execution() -> void:
 	var enemy_squad = create_test_enemy_squad()
 	
 	controller.start_combat(player_squad, enemy_squad)
-	var result = controller.process_intermission_choice(CombatController.IntermissionChoice.FIGHT)
+	var result = await controller.process_intermission_choice(CombatController.IntermissionChoice.FIGHT)
 	
 	assert_not_null(result, "result returned")
 	assert_true(result.turns_elapsed > 0, "combat had at least 1 turn")

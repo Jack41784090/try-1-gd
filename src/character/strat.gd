@@ -1,24 +1,25 @@
 class_name StrategyEntity
-extends RefCounted
+extends Resource
 
-var resource: StrategyEntityResource
-var morale: float:
+@export var resource: StrategyEntityResource
+@export var morale: float:
 	set(_m):
 		morale = clamp(_m, 0.0, 1.0)
 
-var display_name: String
-var equipment_weapon: WeaponResource
-var equipment_armor: ArmorConfig
-var is_dead: bool
-var is_injured: bool
-var move_speed: float
+@export var display_name: String
+@export var equipment_weapon: WeaponResource
+@export var equipment_armor: ArmorConfig
+@export var is_dead: bool
+@export var is_injured: bool
+@export var move_speed: float
 
 
-func _init(_resource: StrategyEntityResource) -> void:
+func _init(_resource: StrategyEntityResource = null) -> void:
 	morale = .5
 	move_speed = 5.
 	resource = _resource
-	display_name = resource.name
+	if _resource:
+		display_name = _resource.name
 
 
 func _religion_tostring(_r):

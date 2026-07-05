@@ -19,7 +19,7 @@ const MAX_ROUNDS = 20
 
 var scenario: GameScenario
 var actor: ActivityRunner
-var player_squad: SquadData
+var player_squad: StrategySquad
 var player_brain: SquadBrain
 var ai_fleet: AISquadManager
 var rng := RandomNumberGenerator.new()
@@ -333,8 +333,8 @@ func _resolve_combat_from_results(
 
 
 func _resolve_headless_combat(
-		squad_a: SquadData,
-		squad_b: SquadData,
+		squad_a: StrategySquad,
+		squad_b: StrategySquad,
 		eng_type: StrategyTypes.EngagementType,
 ):
 	var a_living = squad_a.get_living_warriors()
@@ -350,8 +350,8 @@ func _resolve_headless_combat(
 	if eng_type == StrategyTypes.EngagementType.AMBUSH:
 		a_str *= 1.3
 
-	var winner: SquadData
-	var loser: SquadData
+	var winner: StrategySquad
+	var loser: StrategySquad
 	if a_str >= b_str:
 		winner = squad_a
 		loser = squad_b
@@ -383,7 +383,7 @@ func _resolve_headless_combat(
 
 #region Helpers
 
-func _find_enemy_squad(squad_id: String) -> SquadData:
+func _find_enemy_squad(squad_id: String) -> StrategySquad:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
@@ -446,7 +446,7 @@ func _print_all_squads():
 func _print_final_results():
 	Log.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Hour %d ===" % scenario.world.current_hour)
 
-	var survivors: Array[SquadData] = []
+	var survivors: Array[StrategySquad] = []
 	if player_squad.get_living_warriors().size() > 0:
 		survivors.append(player_squad)
 	for squad in scenario.world.roaming_squads:

@@ -141,8 +141,8 @@ func test_tax_collection() -> void:
 	print("\n--- Tax collection ---")
 	_setup_minimal_economy(true, 0)
 
-	var result := engine.tick(1)
-	var snap := result.location_snapshots[0]
+	var result = engine.tick(1)
+	var snap = result.location_snapshots[0]
 
 	check_float_gt(snap.government_treasury, 200.0, "Treasury grew after tax collection")
 	check_float_gt(snap.government_tax_collected, 0.0, "Tax collected > 0")
@@ -162,8 +162,8 @@ func test_government_plan_creates_directives() -> void:
 	## With 10 unemployed available and treasury of 200, it should create a directive
 	_setup_minimal_economy(true, 10)
 
-	var result := engine.tick(1)
-	var snap := result.location_snapshots[0]
+	var result = engine.tick(1)
+	var snap = result.location_snapshots[0]
 
 	check(snap.government_directives_count > 0, "Government created directives",
 		"directives=%d" % snap.government_directives_count)
@@ -173,8 +173,8 @@ func test_hire_workers_execution() -> void:
 	print("\n--- Hire workers execution ---")
 	_setup_minimal_economy(true, 10)
 
-	var result := engine.tick(1)
-	var snap := result.location_snapshots[0]
+	var result = engine.tick(1)
+	var snap = result.location_snapshots[0]
 
 	check(snap.government_workers_hired > 0, "Workers were hired",
 		"hired=%d" % snap.government_workers_hired)
@@ -193,8 +193,8 @@ func test_no_government_no_crash() -> void:
 	print("\n--- No government config — no crash ---")
 	_setup_minimal_economy(false, 5)
 
-	var result := engine.tick(1)
-	var snap := result.location_snapshots[0]
+	var result = engine.tick(1)
+	var snap = result.location_snapshots[0]
 
 	check_float_eq(snap.government_treasury, 0.0, "No gov → treasury = 0")
 	check_float_eq(snap.government_tax_collected, 0.0, "No gov → tax = 0")
@@ -219,8 +219,8 @@ func test_budget_constraint() -> void:
 	engine.enable_csharp()
 	world.economy_engine = engine
 
-	var result := engine.tick(1)
-	var snap := result.location_snapshots[0]
+	var result = engine.tick(1)
+	var snap = result.location_snapshots[0]
 
 	## With only 2.0 treasury and 0.5 budget ratio → 1.0 available budget
 	## At minimum wage of 0.5, can hire at most 0 workers for 12 turns
@@ -235,13 +235,13 @@ func test_treasury_accumulates_over_ticks() -> void:
 	print("\n--- Treasury accumulates over ticks ---")
 	_setup_minimal_economy(true, 0)
 
-	var result1 := engine.tick(1)
+	var result1 = engine.tick(1)
 	var treasury1: float = result1.location_snapshots[0].government_treasury
 
-	var result2 := engine.tick(2)
+	var result2 = engine.tick(2)
 	var treasury2: float = result2.location_snapshots[0].government_treasury
 
-	var result3 := engine.tick(3)
+	var result3 = engine.tick(3)
 	var treasury3: float = result3.location_snapshots[0].government_treasury
 
 	check_float_gt(treasury1, 0.0, "Treasury positive after tick 1 (%.2f)" % treasury1)
@@ -253,9 +253,9 @@ func test_government_snapshot_in_tick_result() -> void:
 	print("\n--- Government snapshot in tick result ---")
 	_setup_minimal_economy(true, 5)
 
-	var result := engine.tick(1)
+	var result = engine.tick(1)
 	check(result.location_snapshots.size() > 0, "Tick result has snapshots")
-	var snap := result.location_snapshots[0]
+	var snap = result.location_snapshots[0]
 
 	## Verify all 4 government fields are present and typed correctly
 	check(snap.government_treasury is float, "government_treasury is float")

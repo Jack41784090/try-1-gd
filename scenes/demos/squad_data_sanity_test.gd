@@ -1,6 +1,6 @@
 extends Node
 
-## Sanity tests for SquadData integrity after setup.
+## Sanity tests for StrategySquad integrity after setup.
 ## Verifies that warriors survive duplicate(true), morale is non-zero,
 ## and manage-squad data is correct.
 ## Run headless: godot --headless --path . -s scenes/demos/squad_data_sanity_test.gd
@@ -43,14 +43,14 @@ func _assert(condition: bool, msg: String) -> void:
 
 func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 	print("\n[1] Warriors survive duplicate(true)")
-	var squad := SquadData.new()
+	var squad := StrategySquad.new()
 	for i in range(3):
 		var w := StrategyEntity.new()
 		w.name = "StrategyEntity %d" % i
 		w.morale = 80.0
 		squad.add_warrior(w)
 
-	var duped: SquadData = squad.duplicate(true)
+	var duped: StrategySquad = squad.duplicate(true)
 	_assert(duped.warriors.size() == 3,
 		"duplicate(true) preserves warrior count (expected 3, got %d)" % duped.warriors.size())
 	if duped.warriors.size() > 0:
@@ -59,13 +59,13 @@ func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 
 func _test_squad_morale_is_nonzero_after_duplicate() -> void:
 	print("\n[2] Morale is non-zero after duplicate(true)")
-	var squad := SquadData.new()
+	var squad := StrategySquad.new()
 	for i in range(3):
 		var w := StrategyEntity.new()
 		w.morale = 80.0
 		squad.add_warrior(w)
 
-	var duped: SquadData = squad.duplicate(true)
+	var duped: StrategySquad = squad.duplicate(true)
 	var morale := duped.get_morale()
 	_assert(morale > 0.0,
 		"get_morale() > 0 after duplicate (got %.1f)" % morale)
@@ -73,12 +73,12 @@ func _test_squad_morale_is_nonzero_after_duplicate() -> void:
 		"get_morale() approx 80.0 (got %.1f)" % morale)
 
 func _test_squad_resource_has_warriors() -> void:
-	print("\n[3] SquadData .tres has warriors directly")
+	print("\n[3] StrategySquad .tres has warriors directly")
 	if not ResourceLoader.exists(FULL_SQUAD_PATH):
 		print("  SKIP: %s not found" % FULL_SQUAD_PATH)
 		return
 
-	var squad: SquadData = ResourceLoader.load(FULL_SQUAD_PATH)
+	var squad: StrategySquad = ResourceLoader.load(FULL_SQUAD_PATH)
 	_assert(squad != null, "Loaded squad resource")
 	if squad == null:
 		return
