@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ReactiveStat" format=3 uid="uid://b3e7cip15p2wt"]
+
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="1_pkjwx"]
+[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="2_7e83j"]
+
+[resource]
+script = ExtResource("1_pkjwx")
+stat_value = ExtResource("2_7e83j")
+stat_name = 3
+metadata/_custom_type_script = "uid://d2htk7jkqyc8k"

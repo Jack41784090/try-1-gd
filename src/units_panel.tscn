@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://dypmdthyxufvp"]
+
+[ext_resource type="Script" uid="uid://bwtae24dklfpf" path="res://src/units_panel.gd" id="1_2x87t"]
+[ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="2_yb6lr"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="3_hti3p"]
+[ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="4_ldr1p"]
+[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="5_gx5xx"]
+[ext_resource type="Script" uid="uid://b2buer3w84hmh" path="res://scenes/ui/reuse/list_layout.gd" id="6_463pn"]
+
+[sub_resource type="Resource" id="ListLayout_units"]
+script = ExtResource("6_463pn")
+
+[node name="UnitsPanel" type="PanelContainer" unique_id=1689607094]
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.55
+script = ExtResource("1_2x87t")
+
+[node name="FloatControl" type="Control" parent="." unique_id=1499632274]
+layout_mode = 2
+script = ExtResource("2_yb6lr")
+window_path = NodePath("..")
+
+[node name="DockControl" type="Control" parent="." unique_id=1424519769]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("5_gx5xx")
+area_path = NodePath("../Rim/VBox/Rim/Scroll/VBC")
+layout = SubResource("ListLayout_units")
+
+[node name="Rim" type="PanelContainer" parent="." unique_id=1175133966]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("3_hti3p")
+
+[node name="VBox" type="VBoxContainer" parent="Rim" unique_id=963133873]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Rim/VBox" unique_id=664786310]
+layout_mode = 2
+text = "UNITS"
+label_settings = ExtResource("4_ldr1p")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="Rim/VBox" unique_id=649803646]
+layout_mode = 2
+
+[node name="Rim" type="PanelContainer" parent="Rim/VBox" unique_id=766939377]
+custom_minimum_size = Vector2(640, 640)
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Rim/VBox/Rim" unique_id=2042464316]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBC" type="Control" parent="Rim/VBox/Rim/Scroll" unique_id=1530223201]
+unique_name_in_owner = true
+self_modulate = Color(1, 0, 0, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Timer" type="Timer" parent="." unique_id=759389416]
+autostart = true

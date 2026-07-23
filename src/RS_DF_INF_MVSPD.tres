@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ReactiveStat" format=3 uid="uid://bikyq7lsegwqc"]
+
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="1_gwc72"]
+
+[resource]
+script = ExtResource("1_gwc72")
+stat_value = 5.0
+stat_name = 1
+metadata/_custom_type_script = "uid://d2htk7jkqyc8k"

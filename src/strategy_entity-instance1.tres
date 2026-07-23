@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="TestStrategyEntity" format=3 uid="uid://byndwvbjfnvd8"]
+
+[ext_resource type="Resource" uid="uid://ddygifnpe5plb" path="res://src/strategy_entity_resource-instance1.tres" id="1_uw5c3"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="2_62gq3"]
+[ext_resource type="Script" uid="uid://bs5bioy2kn4hk" path="res://src/strategy_entity.gd" id="3_b5802"]
+
+[sub_resource type="Resource" id="Resource_uw5c3"]
+script = ExtResource("2_62gq3")
+stat_value = 1.0
+stat_name = null
+metadata/_custom_type_script = "uid://d2htk7jkqyc8k"
+
+[sub_resource type="Resource" id="Resource_62gq3"]
+script = ExtResource("2_62gq3")
+stat_value = 5.0
+stat_name = 1
+metadata/_custom_type_script = "uid://d2htk7jkqyc8k"
+
+[resource]
+script = ExtResource("3_b5802")
+display_name = "Testing"
+resource = ExtResource("1_uw5c3")
+rs_arr = Dictionary[int, ExtResource("2_62gq3")]({
+0: SubResource("Resource_uw5c3"),
+1: SubResource("Resource_62gq3")
+})
+metadata/_custom_type_script = "uid://bs5bioy2kn4hk"
