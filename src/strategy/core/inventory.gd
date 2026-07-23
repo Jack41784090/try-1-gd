@@ -1,10 +1,10 @@
 class_name SquadInventory
-extends RefCounted
+extends Resource
 
-signal changed
+# signal changed
 
-var weapons: Array[WeaponResource] = []
-var armors: Array[ArmorConfig] = []
+@export var weapons: Array[WeaponResource] = []
+@export var armors: Array[ArmorConfig] = []
 
 
 func add_weapon(weapon: WeaponResource) -> void:

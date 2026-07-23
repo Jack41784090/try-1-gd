@@ -26,6 +26,7 @@ CONDOR — squad-based narrative strategy game. **Godot 4.5**, **GDScript** + **
   - `economy_demo.tscn`, `economy_stress_test.tscn` — economy pipeline (use `godot-mono`)
   - `caravan_demo.tscn`, `bandit_demo.tscn` — caravan/bandit systems
   - `contact_system_test.tscn`, `government_test.tscn`, `guild_test.tscn` — unit tests
+  - `reactive_stat_ui_test.tscn` — ReactiveStat → units_panel/unit_item UI wiring regression test (headless ok)
   - `interactive_demo.tscn` — terminal game (stdin commands)
   - `canvas_demo.tscn` — SVG drawing canvas. Start: `bash tools/start_canvas.sh [session]`
 - **Autoload singletons**: `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`

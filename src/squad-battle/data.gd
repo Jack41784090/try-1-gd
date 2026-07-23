@@ -1,9 +1,7 @@
 class_name SquadBattle
-extends RefCounted
+extends Resource
 
-var Types := SquadBattleTypes
-
-var teams_and_squads: Dictionary = { }
+var teams_and_squads: Dictionary = {}
 var team_names: Array[Variant]
 var round_count: int = -1
 
@@ -21,7 +19,7 @@ func _init(config: Dictionary):
 	# e.g., config = { teams: {ATTACKER: [squad_config], DEFENDER: [squad_config]}, attacker_tactic: Aggressive, ... }
 	#   → creates CombatSquad for each squad, stores in teams_and_squads["player"] and ["enemy"]
 	#   → max_rounds = attacker_tactic.action_count (e.g., Aggressive → 4 rounds)
-	var teams = config.get("teams", { })
+	var teams = config.get("teams", {})
 
 	# Store tactics if provided
 	attacker_tactic = config.get("attacker_tactic", Tactic.create_balanced())
@@ -88,7 +86,7 @@ func choose_weighted_enemy_squad(current_team_name: String) -> CombatSquad:
 		for squad in enemy_squads:
 			var total_hp = 0.0
 			for entity in squad.entities:
-				total_hp += entity.get_changeable_stat_num(Types.EntityChangeable.HP)
+				total_hp += entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 
 			var avg_hp = total_hp / max(squad.entities.size(), 1)
 			weights.append(max(1, 100 - avg_hp))
@@ -117,7 +115,7 @@ func check_team_strength(team_name: Variant) -> float:
 	if teams_and_squads.has(team_name):
 		for squad in teams_and_squads[team_name]:
 			for entity in squad.entities:
-				strength += entity.get_changeable_stat_num(Types.EntityChangeable.HP)
+				strength += entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 
 	return strength
 
@@ -177,12 +175,12 @@ func _produce_retreat_updates(team_side) -> Array[EntityUpdate]:
 func squad_actions() -> Array[EntityUpdate]:
 	var updates: Array[EntityUpdate] = []
 
-	var attacker_squads: Array = teams_and_squads.get(Types.Side.ATTACKER, [])
-	var defender_squads: Array = teams_and_squads.get(Types.Side.DEFENDER, [])
+	var attacker_squads: Array = teams_and_squads.get(SquadBattleTypes.Side.ATTACKER, [])
+	var defender_squads: Array = teams_and_squads.get(SquadBattleTypes.Side.DEFENDER, [])
 
-	if retreating_team == Types.Side.ATTACKER:
+	if retreating_team == SquadBattleTypes.Side.ATTACKER:
 		SBLog.section("Round %d/%d - Attacker Retreating" % [round_count, max_rounds], 2, 1, 0)
-		for update in _produce_retreat_updates(Types.Side.ATTACKER):
+		for update in _produce_retreat_updates(SquadBattleTypes.Side.ATTACKER):
 			updates.append(update)
 	else:
 		SBLog.section("Round %d/%d - Attacker Phase" % [round_count, max_rounds], 2, 1, 0)
@@ -196,9 +194,9 @@ func squad_actions() -> Array[EntityUpdate]:
 			for update in squad_updates:
 				updates.append(update)
 
-	if retreating_team == Types.Side.DEFENDER:
+	if retreating_team == SquadBattleTypes.Side.DEFENDER:
 		SBLog.section("Round %d/%d - Defender Retreating" % [round_count, max_rounds], 2, 1, 0)
-		for update in _produce_retreat_updates(Types.Side.DEFENDER):
+		for update in _produce_retreat_updates(SquadBattleTypes.Side.DEFENDER):
 			updates.append(update)
 	else:
 		SBLog.section("Round %d/%d - Defender Phase (%d reactions)" % [round_count, max_rounds, defender_tactic.reaction_count], 2, 1, 0)
@@ -221,7 +219,7 @@ func remove_dead_entities() -> void:
 		for squad in squads:
 			var entities_to_remove = []
 			for i in range(squad.entities.size()):
-				if squad.entities[i].get_changeable_stat_num(Types.EntityChangeable.HP) == 0:
+				if squad.entities[i].get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) == 0:
 					entities_to_remove.append(i)
 
 			for i in range(entities_to_remove.size() - 1, -1, -1):

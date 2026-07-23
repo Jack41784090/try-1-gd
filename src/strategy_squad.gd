@@ -1,4 +1,4 @@
-class_name StrategySquad
+class_name TestStrategySquad
 extends Resource
 
 signal warriors_changed
@@ -9,7 +9,7 @@ signal tactic_changed
 
 @export var squad_id: String = ""
 @export var squad_name: String = ""
-@export var warriors: Array[StrategyEntity] = []
+@export var warriors: Array[TestStrategyEntity] = []
 @export var money: float = 100.0
 @export var karma: float = 0.0
 @export var food: int = 0
@@ -60,26 +60,6 @@ func consume_travel_tools(amount: int) -> bool:
 	return false
 
 
-func consume_supplies_by_demand(multiplier: float = 1.0) -> bool:
-	# Consumes food based on each warrior's demand attribute, scaled by multiplier
-	# Returns true if enough food was available, false if squad ran out
-	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=10 → food=3, returns true
-	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=5 → food=0, returns false
-	var total_demand := 0.0
-	for warrior in get_living_warriors():
-		var demand = warrior.get_demand()
-		total_demand += demand.get(StrategyTypes.SquadProperty.FOOD_SUPPLIES, 0.0)
-	var food_cost := int(ceil(total_demand * multiplier))
-	return consume_food(food_cost)
-
-
-func apply_travel_morale_penalty(base_penalty: float = -2.0) -> void:
-	for warrior in get_living_warriors():
-		var survival = float(warrior.get_attribute(StrategyTypes.WarriorAttribute.SURVIVAL))
-		var mitigation = survival / 200.0
-		var penalty = base_penalty * (1.0 - mitigation)
-		warrior.modify_morale(penalty)
-
 
 func gain_money(amount: float) -> void:
 	money = max(0.0, money + amount)
@@ -97,7 +77,6 @@ func spend_money(amount: float) -> bool:
 func modify_karma(amount: float) -> void:
 	karma = clamp(karma + amount, -100.0, 100.0)
 
-
 func update_aggregate_morale() -> void:
 	if warriors.size() == 0:
 		aggregate_morale = 0.0
@@ -109,35 +88,24 @@ func update_aggregate_morale() -> void:
 	for warrior in warriors:
 		if warrior == null:
 			continue
-		if not warrior.is_dead:
-			total_morale += warrior.morale
-			living_count += 1
+		#if not warrior.is_dead:
+			#total_morale += warrior.morale
+			#living_count += 1
 
 	if living_count > 0:
 		aggregate_morale = total_morale / living_count
 	else:
 		aggregate_morale = 0.0
 
-
-
-
 func get_morale() -> float:
 	return aggregate_morale
 
 
-func add_warrior(warrior: StrategyEntity) -> void:
+func add_warrior(warrior: TestStrategyEntity) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	warriors_changed.emit()
 	# update_aggregate_morale()
-
-
-func get_living_warriors() -> Array[StrategyEntity]:
-	var living: Array[StrategyEntity] = []
-	for warrior in warriors:
-		if not warrior.is_dead:
-			living.append(warrior)
-	return living
 
 
 
@@ -152,56 +120,6 @@ func get_tactic() -> Tactic:
 	return current_tactic
 
 
-func get_aggregate_scouting() -> float:
-	var total := 0.0
-	var living = get_living_warriors()
-	if living.is_empty():
-		return 0.0
-	for warrior in living:
-		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.PERCEPTION))
-	return total / living.size()
-
-
-func get_aggregate_stealth() -> float:
-	var total := 0.0
-	var living = get_living_warriors()
-	if living.is_empty():
-		return 0.0
-	for warrior in living:
-		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH))
-	return total / living.size()
-
-
-func get_aggregate_leadership() -> float:
-	var living = get_living_warriors()
-	if living.is_empty():
-		return 0.0
-	var total := 0.0
-	for warrior in living:
-		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP))
-	return total / living.size()
-
-
-func get_coordination() -> float:
-	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
-
-
-func attempt_stealth_return_failed(location: Location, destination_id: String, current_hour: int) -> Array[StrategyEntity]:
-	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
-	# Used when traveling to determine if enemies can track this squad's movement
-	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
-	# e.g., warrior stealth=80, roll=50 → 50 < 80 → PASSED, no clue left
-	var clues_left: Array[StrategyEntity] = []
-
-	for warrior in get_living_warriors():
-		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
-		var roll = randi_range(0, 100)
-
-		if roll > stealth_value:
-			var failure_margin = roll - stealth_value
-			clues_left.append(warrior)
-
-	return clues_left
 
 
 func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[StrategyEntity]:
@@ -236,16 +154,6 @@ func get_location_id() -> String:
 	return current_location_id
 
 
-func get_speed_kmh() -> float:
-	var living := get_living_warriors()
-	if living.is_empty():
-		return 0.0
-	var min_speed := INF
-	for warrior in living:
-		min_speed = min(min_speed, warrior.get_speed_kmh())
-	if is_caravan():
-		min_speed *= 0.5
-	return min_speed
 
 
 func is_traveling() -> bool:
