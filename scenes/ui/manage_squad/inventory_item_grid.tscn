@@ -1,35 +1,17 @@
 [gd_scene format=3 uid="uid://bi16xap1m3oub"]
 
 [ext_resource type="Script" uid="uid://ck0060tnon8ib" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
-[ext_resource type="Texture2D" uid="uid://8m6w00lykyg" path="res://assets/Weapon Sprites/wep_ax011.png" id="3_qj7u1"]
-[ext_resource type="PackedScene" uid="uid://cyo4mnkw2uhl2" path="res://scenes/ui/reuse/draggable_component.tscn" id="4_4tjuw"]
-[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="4_7jw1u"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hyd2s"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 10
-border_width_top = 10
-border_width_right = 10
-border_width_bottom = 10
-border_color = Color(0, 0, 0, 1)
-border_blend = true
+[ext_resource type="Texture2D" uid="uid://03bk01ppl6ba" path="res://assets/hoi4_icons/divisions.png" id="2_7jw1u"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_qj7u1"]
 
 [node name="InventoryItem" type="PanelContainer" unique_id=1854098293]
-custom_minimum_size = Vector2(128, 128)
 offset_right = 128.0
 offset_bottom = 128.0
 size_flags_horizontal = 3
 script = ExtResource("2_4tjuw")
 
-[node name="MarginContainer" type="PanelContainer" parent="." unique_id=1044325691]
+[node name="MarginContainer" type="VBoxContainer" parent="." unique_id=397569201]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_hyd2s")
-
-[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer" unique_id=518405272]
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-horizontal_alignment = 1
-vertical_alignment = 2
 
 [node name="ProgressBar" type="ProgressBar" parent="MarginContainer" unique_id=577109447]
 custom_minimum_size = Vector2(0, 12)
@@ -38,14 +20,26 @@ show_percentage = false
 
 [node name="Icon" type="TextureRect" parent="MarginContainer" unique_id=2130708404]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
-texture = ExtResource("3_qj7u1")
+size_flags_vertical = 3
+texture = ExtResource("2_7jw1u")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DraggableComponent" parent="." unique_id=958131323 instance=ExtResource("4_4tjuw")]
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer" unique_id=386526721]
+propagate_maximum_size = false
 layout_mode = 2
-return_data = {
-"item": ExtResource("4_7jw1u")
-}
+size_flags_vertical = 4
+theme_override_styles/panel = ExtResource("2_qj7u1")
+
+[node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer" unique_id=879672634]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+text = "NAME"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Rim" type="PanelContainer" parent="." unique_id=609669418]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_qj7u1")

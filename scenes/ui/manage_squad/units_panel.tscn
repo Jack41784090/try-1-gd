@@ -2,18 +2,10 @@
 
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_gvirj"]
 [ext_resource type="Script" uid="uid://dqeufe86kkugq" path="res://src/strategy/ui/manage_squad/units_panel.gd" id="1_i0ho6"]
+[ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="3_7pmsy"]
 [ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="3_atp3a"]
-[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="4_dock"]
+[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/typed_dock.gd" id="4_dock"]
 [ext_resource type="Script" uid="uid://b2buer3w84hmh" path="res://scenes/ui/reuse/list_layout.gd" id="5_list"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b2wls"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 10
-border_width_top = 10
-border_width_right = 10
-border_width_bottom = 10
-border_color = Color(0, 0, 0, 1)
-border_blend = true
 
 [sub_resource type="Resource" id="ListLayout_units"]
 script = ExtResource("5_list")
@@ -46,16 +38,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Control" type="Control" parent="." unique_id=1499632274]
+[node name="FloatControl" type="Control" parent="." unique_id=1499632274]
 layout_mode = 2
 script = ExtResource("1_gvirj")
 window_path = NodePath("..")
-grab_node_path = NodePath("../Rim")
 
-[node name="Rim" type="PanelContainer" parent="." unique_id=1749240511]
-custom_minimum_size = Vector2(640, 640)
+[node name="Rim" type="PanelContainer" parent="." unique_id=1175133966]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_b2wls")
+theme_override_styles/panel = ExtResource("3_7pmsy")
 
 [node name="VBox" type="VBoxContainer" parent="Rim" unique_id=963133873]
 layout_mode = 2
@@ -74,7 +64,6 @@ layout_mode = 2
 [node name="Rim" type="PanelContainer" parent="Rim/VBox" unique_id=766939377]
 custom_minimum_size = Vector2(640, 640)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_b2wls")
 
 [node name="Scroll" type="ScrollContainer" parent="Rim/VBox/Rim" unique_id=2042464316]
 layout_mode = 2
@@ -86,9 +75,11 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DockControl" type="Control" parent="Rim/VBox/Rim/Scroll/VBC"]
+[node name="DockControl" type="Control" parent="Rim/VBox/Rim/Scroll/VBC" unique_id=1424519769]
 layout_mode = 1
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("4_dock")
 area_path = NodePath("..")
 layout = SubResource("ListLayout_units")
+accepted = Array[int]([0])

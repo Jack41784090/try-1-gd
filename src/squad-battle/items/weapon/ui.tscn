@@ -7,7 +7,6 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6c02b"]
 
 [node name="WeaponInventoryItem" type="PanelContainer" unique_id=2115904342]
-custom_minimum_size = Vector2(0, 174)
 offset_right = 174.0
 offset_bottom = 168.0
 size_flags_horizontal = 3

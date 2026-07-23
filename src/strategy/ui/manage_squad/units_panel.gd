@@ -2,6 +2,11 @@
 class_name UnitsFloatingPanel
 extends Control
 
+signal weapon_window_received(warrior: StrategyEntity, window: Control)
+signal armor_window_received(warrior: StrategyEntity, window: Control)
+signal weapon_display_removed(warrior: StrategyEntity, window: Control)
+signal armor_display_removed(warrior: StrategyEntity, window: Control)
+
 const WARRIOR_ITEM_SCENE = preload("res://scenes/ui/manage_squad/unit_item.tscn")
 @onready var _units_container: Control = %VBC
 
@@ -36,6 +41,10 @@ func _rebuild_units_container() -> void:
 	for warrior in _squad.warriors:
 		var item = WARRIOR_ITEM_SCENE.instantiate()
 		item.setup(warrior)
+		item.weapon_window_received.connect(func(w, win): weapon_window_received.emit(w, win))
+		item.armor_window_received.connect(func(w, win): armor_window_received.emit(w, win))
+		item.weapon_display_removed.connect(func(w, win): weapon_display_removed.emit(w, win))
+		item.armor_display_removed.connect(func(w, win): armor_display_removed.emit(w, win))
 		_units_container.add_child(item)
 		_item_windows.append(item)
 

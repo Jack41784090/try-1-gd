@@ -12,6 +12,7 @@ signal unequip_armor_requested(warrior: StrategyEntity)
 
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
 const WEAPON_SLOT_SCENE = preload("res://src/squad-battle/items/weapon/ui.tscn")
+const ARMOR_SLOT_SCENE = preload("res://src/squad-battle/items/armor/ui.tscn")
 
 @export var preview_in_editor: bool = false:
 	set(v):
@@ -84,20 +85,49 @@ func _on_visibility_changed() -> void:
 
 func _rebuild_inv() -> void:
 	var dm := get_tree().get_first_node_in_group(&"desktop_manager")
-	for w in _item_windows:
-		if is_instance_valid(w):
-			if dm != null:
-				dm.unregister_window(w)
-			w.queue_free()
-	_item_windows.clear()
 	var items: Array = _squad.inventory.get_all_items()
+	var needed: Dictionary = {}
 	for i in items:
-		if i is WeaponResource:
-			var ws = WEAPON_SLOT_SCENE.instantiate()
-			ws.weapon_config = i
-			_inventory_container.add_child(ws)
-			_item_windows.append(ws)
-		elif i is ArmorConfig:
-			pass
+		needed[i] = int(needed.get(i, 0)) + 1
+	_item_windows.clear()
+	for c in _inventory_container.get_children():
+		if not (c is WeaponControl or c is ArmorControl):
+			continue
+		var cfg := _window_config(c)
+		if cfg != null and int(needed.get(cfg, 0)) > 0:
+			needed[cfg] -= 1
+			_item_windows.append(c)
+		else:
+			if dm != null:
+				dm.unregister_window(c)
+			c.queue_free()
+	for cfg in needed:
+		for n in range(int(needed[cfg])):
+			var win := _spawn_item_window(cfg)
+			if win != null:
+				_inventory_container.add_child(win)
+				_item_windows.append(win)
 
 	#_empty_label.visible = _squad.inventory.is_empty()
+
+
+func _window_config(w: Control) -> CombatEquipment:
+	if w is WeaponControl:
+		return w.weapon_config
+	if w is ArmorControl:
+		return w.armor_config
+	return null
+
+
+func _spawn_item_window(item: CombatEquipment) -> Control:
+	if item is WeaponResource:
+		var ws = WEAPON_SLOT_SCENE.instantiate()
+		ws.name = "WS_%s" % item
+		ws.weapon_config = item
+		return ws
+	if item is ArmorConfig:
+		var ar = ARMOR_SLOT_SCENE.instantiate()
+		ar.name = "AS_%s" % item
+		ar.armor_config = item
+		return ar
+	return null

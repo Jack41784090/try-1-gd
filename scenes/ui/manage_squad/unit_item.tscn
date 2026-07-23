@@ -2,9 +2,22 @@
 
 [ext_resource type="Script" uid="uid://bdnf0j73m3mmv" path="res://src/strategy/ui/manage_squad/unit_item.gd" id="1_warrior_item"]
 [ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_m8if2"]
-[ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="3_tmfwr"]
 [ext_resource type="PackedScene" uid="uid://8jo3u8cdmgh3" path="res://scenes/ui/reuse/key_value_bar.tscn" id="4_hrwr6"]
+[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/typed_dock.gd" id="5_typed"]
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="5_float"]
+[ext_resource type="Script" path="res://scenes/ui/reuse/fill_layout.gd" id="5_fill"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_iti3i"]
+font_size = 64
+font_color = Color(0, 0, 0, 1)
+shadow_size = 12
+shadow_color = Color(0, 0, 0, 0.18039216)
+
+[sub_resource type="Resource" id="FillLayout_weapon"]
+script = ExtResource("5_fill")
+
+[sub_resource type="Resource" id="FillLayout_armor"]
+script = ExtResource("5_fill")
 
 [node name="WarriorItem" type="PanelContainer" unique_id=1265198803]
 custom_minimum_size = Vector2(0, 80)
@@ -26,6 +39,7 @@ mouse_default_cursor_shape = 13
 color = Color(0.85, 0.7, 0.4, 0.5)
 
 [node name="IconRect" type="TextureRect" parent="Rim/HBoxContainer" unique_id=1204284743]
+visible = false
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 expand_mode = 2
@@ -37,10 +51,11 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
 [node name="NameLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox" unique_id=1707168940]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SubsectionLabel"
 text = "Warrior Name"
-label_settings = ExtResource("3_tmfwr")
+label_settings = SubResource("LabelSettings_iti3i")
 
 [node name="StatsHBox" type="HBoxContainer" parent="Rim/HBoxContainer/InfoVBox" unique_id=1038752837]
 layout_mode = 2
@@ -59,8 +74,35 @@ key = "Morale:"
 layout_mode = 2
 key = "Pos:"
 
+[node name="Rim" type="PanelContainer" parent="Rim/HBoxContainer" unique_id=370456162]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Rim/HBoxContainer/Rim" unique_id=1877177411]
+layout_mode = 2
+
+[node name="WeaponDock" type="Panel" parent="Rim/HBoxContainer/Rim/HBoxContainer" unique_id=1891450492]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("2_m8if2")
+script = ExtResource("5_typed")
+area_path = NodePath(".")
+layout = SubResource("FillLayout_weapon")
+accepted = Array[int]([1])
+
+[node name="ArmorDock" type="Panel" parent="Rim/HBoxContainer/Rim/HBoxContainer" unique_id=985837425]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("2_m8if2")
+script = ExtResource("5_typed")
+area_path = NodePath(".")
+layout = SubResource("FillLayout_armor")
+accepted = Array[int]([2])
+
 [node name="MenuBar" type="MenuBar" parent="Rim/HBoxContainer" unique_id=1862901887]
-visible = false
 layout_mode = 2
 
 [node name="Actions ▼" type="PopupMenu" parent="Rim/HBoxContainer/MenuBar" unique_id=2080778194]
@@ -92,6 +134,7 @@ item_2/text = "Back"
 item_2/id = 12
 
 [node name="FloatControl" type="Control" parent="." unique_id=2077924242]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("5_float")

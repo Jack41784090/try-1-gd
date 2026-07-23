@@ -4,17 +4,15 @@
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="1_qqdic"]
 [ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_gca7n"]
 [ext_resource type="PackedScene" uid="uid://1xkpuv1n6nji" path="res://scenes/ui/manage_squad/bookmark.tscn" id="2_tcd2o"]
-[ext_resource type="Script" uid="uid://crbqdwbhmqmal" path="res://scenes/ui/reuse/dock_control.gd" id="6_dock"]
-[ext_resource type="Script" uid="uid://bx06upca0xh74" path="res://scenes/ui/reuse/grid_layout.gd" id="7_grid"]
 [ext_resource type="LabelSettings" uid="uid://e6yhafchrcnv" path="res://resources/theme/written.tres" id="5_pxk2j"]
+[ext_resource type="Script" path="res://src/strategy/ui/manage_squad/typed_dock.gd" id="6_dock"]
+[ext_resource type="Script" uid="uid://bx06upca0xh74" path="res://scenes/ui/reuse/grid_layout.gd" id="7_grid"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxhmb"]
 
 [sub_resource type="Resource" id="GridLayout_inv"]
 script = ExtResource("7_grid")
-columns = 5
-h_sep = 4.0
-v_sep = 4.0
+square_cells = true
 
 [node name="InventoryPanel" type="PanelContainer" unique_id=1097482328]
 offset_right = 660.0
@@ -85,15 +83,18 @@ horizontal_scroll_mode = 0
 
 [node name="InventoryContainer" type="Control" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll" unique_id=1654714620]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(620, 530)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DockControl" type="Control" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer"]
+[node name="DockControl" type="Control" parent="HBoxContainer/Texture/Rim/VBox/Rim2/InventoryScroll/InventoryContainer" unique_id=838170784]
 layout_mode = 1
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("6_dock")
 area_path = NodePath("..")
 layout = SubResource("GridLayout_inv")
+accepted = Array[int]([1, 2])
 
 [node name="BookmarkRight" parent="HBoxContainer" unique_id=1467964620 instance=ExtResource("2_tcd2o")]
 unique_name_in_owner = true
