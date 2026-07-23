@@ -4,7 +4,7 @@ extends Control
 signal drag_started(window: Control)
 signal dragging(window: Control, global_pos: Vector2)
 signal drag_ended(window: Control, global_pos: Vector2)
-signal docked(dock: Control)
+signal docked(dock: DockControl)
 signal undocked()
 
 @export var window_path: NodePath
@@ -38,7 +38,8 @@ func _ready() -> void:
 ## Broadcast that this window entered/left a dock. Listeners (bookmarks, a parent
 ## that interprets the target dock) react; FloatingControl no longer sets anything
 ## directly.
-func notify_docked(dock: Control) -> void:
+func notify_docked(dock: DockControl) -> void:
+	print("fc docked for prt: ",get_parent().name)
 	docked.emit(dock)
 
 
