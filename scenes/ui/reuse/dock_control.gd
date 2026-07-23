@@ -47,7 +47,14 @@ func contains_point(global_pos: Vector2) -> bool:
 	return area != null and area.get_global_rect().has_point(global_pos)
 
 
+## Override to reject dragged windows. DesktopManager consults this before
+## showing the snap overlay and before docking.
+func can_accept(_window: Control) -> bool:
+	return true
+
+
 func _on_area_child_entered(node: Node) -> void:
+	print("child entered docker: ",node.name," -> ", get_parent().name)
 	if _is_window(node):
 		_notify.call_deferred(node, true)
 	_relayout.call_deferred()
@@ -81,7 +88,7 @@ func _relayout() -> void:
 func _items() -> Array[Control]:
 	var out: Array[Control] = []
 	for c in area.get_children():
-		if c is Control and _is_window(c):
+		if c is Control and not c.is_queued_for_deletion() and _is_window(c):
 			out.append(c)
 	return out
 

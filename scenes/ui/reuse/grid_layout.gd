@@ -17,6 +17,10 @@ extends DockLayout
 	set(v):
 		v_sep = v
 		emit_changed()
+@export var square_cells: bool = false:
+	set(v):
+		square_cells = v
+		emit_changed()
 
 
 func place(area: Control, items: Array[Control], apply: Callable) -> void:
@@ -33,12 +37,16 @@ func place(area: Control, items: Array[Control], apply: Callable) -> void:
 		cell_h = maxf(cell_h, item.size.y)
 	if avail > 0.0:
 		cell_w = maxf(0.0, (avail - float(cols - 1) * h_sep) / float(cols))
+	if square_cells and avail > 0.0:
+		cell_h = cell_w
 	for i in n:
 		var item := items[i]
 		var c := i % cols
 		var r := i / cols
 		if avail > 0.0:
 			item.size.x = cell_w
+			if square_cells:
+				item.size.y = cell_w
 		item.pivot_offset = Vector2.ZERO
 		apply.call(item, Vector2(float(c) * (cell_w + h_sep), float(r) * (cell_h + v_sep)), 0.0)
 	var rows := int(ceil(float(n) / float(cols)))

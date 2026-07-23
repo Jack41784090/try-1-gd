@@ -10,7 +10,7 @@ extends Control
 @onready var _panel_layer: Control = %PanelLayer
 @onready var _snap_overlay: Panel = %SnapOverlay
 
-var _windows: Dictionary = { }
+var _windows: Dictionary = {}
 
 
 func _enter_tree() -> void:
@@ -70,23 +70,21 @@ func _pop_out(window: Control) -> void:
 
 
 func _on_dragging(window: Control, global_pos: Vector2) -> void:
-	var dock := _target_dock(window, global_pos)
-	if dock == null:
-		_snap_overlay.hide()
-		return
-	var r := dock.area.get_global_rect()
-	_snap_overlay.show()
-	_snap_overlay.position = r.position - _panel_layer.global_position
-	_snap_overlay.size = r.size
+	var dock := _find_best_dock_for_dragging_win(window, global_pos)
+	if dock != null:
+		var dock_area_rect := dock.area.get_global_rect()
+		_snap_overlay.show()
+		# adjust snap overlay to render over where the dock area is
+		_snap_overlay.position = dock_area_rect.position - _panel_layer.global_position
+		_snap_overlay.size = dock_area_rect.size
 
 
 func _on_drag_ended(window: Control, global_pos: Vector2) -> void:
 	_snap_overlay.hide()
-	if not _windows.has(window):
-		return
-	var dock := _target_dock(window, global_pos)
-	if dock != null:
-		_dock_into(window, dock)
+	if _windows.has(window):
+		var dock := _find_best_dock_for_dragging_win(window, global_pos)
+		if dock != null:
+			_dock_into(window, dock)
 
 
 func _dock_into(window: Control, dock: DockControl) -> void:
@@ -96,19 +94,23 @@ func _dock_into(window: Control, dock: DockControl) -> void:
 		dock.area.move_child(window, idx)
 
 
-func _target_dock(window: Control, global_pos: Vector2) -> DockControl:
+func _find_best_dock_for_dragging_win(dragging_window: Control, at_glob_pos: Vector2) -> DockControl:
 	var best: DockControl = null
-	var best_area := 0.0
-	for d in get_tree().get_nodes_in_group(&"dock_control"):
+	var best_area := INF
+	var docks_group = get_tree().get_nodes_in_group(&"dock_control")
+	for d in docks_group:
 		var dock := d as DockControl
-		if dock.area == null or not dock.contains_point(global_pos):
-			continue
-		if dock.area == window or window.is_ancestor_of(dock.area):
-			continue
-		var a := dock.area.get_global_rect().get_area()
-		if best == null or a < best_area:
-			best = dock
-			best_area = a
+		if \
+			dock.area != null and dock.area != dragging_window \
+			and dock.contains_point(at_glob_pos) \
+			and dock.can_accept(dragging_window) \
+			and not dragging_window.is_ancestor_of(dock.area):
+			var dock_area_size := dock.area.get_global_rect().get_area()
+			if dock_area_size < best_area:
+				best = dock
+				best_area = dock_area_size
+
+	# print("best targeted: ", best.get_parent().name if best else "null")
 	return best
 
 
