@@ -98,13 +98,14 @@ anchor_bottom = 1.0
 offset_right = 300.0
 grow_vertical = 2
 
-[node name="DockControl" type="Control" parent="Desktop/LeftTabBar"]
+[node name="DockControl" type="Control" parent="Desktop/LeftTabBar" unique_id=582367032]
 layout_mode = 1
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("4_h6tn1")
 area_path = NodePath("..")
-side = 1
 layout = SubResource("ArcLayout_left")
+side = 1
 
 [node name="RightTabBar" type="Control" parent="Desktop" unique_id=1781416349]
 unique_name_in_owner = true
@@ -117,10 +118,18 @@ offset_left = -300.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="DockControl" type="Control" parent="Desktop/RightTabBar"]
+[node name="DockControl" type="Control" parent="Desktop/RightTabBar" unique_id=1868018687]
 layout_mode = 1
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("4_h6tn1")
 area_path = NodePath("..")
-side = 2
 layout = SubResource("ArcLayout_right")
+side = 2
+
+[node name="CloseButton" type="Button" parent="." unique_id=797899118]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 40.0
+text = "Close"
