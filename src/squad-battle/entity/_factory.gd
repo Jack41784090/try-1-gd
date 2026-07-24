@@ -30,49 +30,28 @@ static func get_resource(id: String) -> CombatEntityResource:
 	return res
 
 
+## Template-only path — no Character, no StrategyEntity. Used by CombatSquad's
+## scripted/demo-battle path (monsters/bandits, no persistent campaign identity):
+## the template's own base-attribute ReactiveStats are the resolved constants,
+## with nothing from a tier-2 StrategyEntity to override them.
+static func build_config_from_resource(
+		res: CombatEntityResource,
+		side: SquadBattleTypes.Side,
+		player_id: int,
+		starting_location: SquadBattleTypes.SquadEntityInSquadLocation,
+) -> CombatEntityConfig:
+	var resolved: Dictionary[StatName.I, Variant] = {}
+	for key in StatName.BASE_ATTRIBUTE_STATS:
+		resolved[key] = res.get_stat_value(key)
+	return CombatEntityConfig.new(res, side, player_id, starting_location, resolved)
+
+
 ## Builds a runtime CombatEntity from the template named `id`.
-## DISABLED: CombatEntity.from_resource() is commented out during the
-## runtime/template rewrite. Stubbed to keep callers parsing.
-static func get_by_identification(_id: String) -> CombatEntity:
-	push_error("CombatEntityFactory.get_by_identification disabled during CombatEntity rewrite")
-	return null
-	# return CombatEntity.from_resource(get_resource(id))
-
-
-static var pathlib = {
-	"Landsknecht": "res://resources/combat/classes/landsknecht.tres",
-	"Healer": "res://resources/combat/classes/healer.tres",
-	"Crossbowman": "res://resources/combat/classes/crossbowman.tres",
-	"Arquebusier": "res://resources/combat/classes/arquebusier.tres",
-	"Pikeman": "res://resources/combat/classes/pikeman.tres",
-	"Feldprediger": "res://resources/combat/classes/feldprediger.tres",
-	"Gelehrter": "res://resources/combat/classes/gelehrter.tres",
-}
-
-# static var _cached_key = EntityClasses.Types.keys()
-
-
-# static func get_entity(_entity: EntityClasses.Types) -> CombatEntity:
-# 	var path = pathlib.get(_cached_key[_entity])
-# 	var entity_template = load(path)
-# 	assert(entity_template != null, "Failed to load entity from path: %s" % path)
-# 	assert(entity_template is CombatEntityResource, "Path %s loaded wrong type; got %s instead of CombatEntityResource" % [path, entity_template.get_class()])
-# 	return CombatEntity.from_resource(entity_template)
-
-
-# static func quick_dummy():
-# 	return CombatEntity.new(
-# 		EntityConfig.new(
-# 			EntityClasses.Types.Landsknecht,
-# 			0,
-# 			"Dummy",
-# 			"Dummy",
-# 			CombatEntityBaseStats.new(),
-# 			SquadBattleTypes.SquadEntityInSquadLocation.Front,
-# 			LogicFactory.LogicAvailable.Frontline,
-# 			null,
-# 			SquadBattleTypes.WeaponClasses.Unarmed,
-# 			null,
-# 			SquadBattleTypes.ArmorClasses.Unarmored,
-# 		),
-# 	)
+static func get_by_identification(
+		id: String,
+		side: SquadBattleTypes.Side,
+		player_id: int,
+		starting_location: SquadBattleTypes.SquadEntityInSquadLocation,
+) -> CombatEntity:
+	var res := get_resource(id)
+	return CombatEntity.new(build_config_from_resource(res, side, player_id, starting_location))

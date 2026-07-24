@@ -4,12 +4,76 @@
 [ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/logic/test-frontline.tres" id="2_8tqtp"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_q2fet"]
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="3_q2fet"]
-[ext_resource type="Resource" uid="uid://cc7myluyxivt1" path="res://resources/combat/classes/base_stats/BS_test-Landsnecht.tres" id="5_tyx70"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="weapon_ref"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_strength"]
+script = ExtResource("rs")
+stat_value = 1.25
+stat_name = 10
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_dex"]
+script = ExtResource("rs")
+stat_value = 1.1
+stat_name = 11
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_acr"]
+script = ExtResource("rs")
+stat_value = 1.1
+stat_name = 12
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_spd"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 13
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_siz"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 14
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_int_stat"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 15
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_spr"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 16
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_fai"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 17
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_cha"]
+script = ExtResource("rs")
+stat_value = 1.5
+stat_name = 18
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_beu"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 19
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_wil"]
+script = ExtResource("rs")
+stat_value = 1.5
+stat_name = 20
+
+[sub_resource type="Resource" id="ReactiveStat_landsknecht_endurance"]
+script = ExtResource("rs")
+stat_value = 1.25
+stat_name = 21
 
 [resource]
 script = ExtResource("3_q2fet")
 codename = "Landsknecht"
-stats = ExtResource("5_tyx70")
 icon = ExtResource("1_ly5kv")
+weapon_class = ExtResource("weapon_ref")
+armor_class = ExtResource("armor_ref")
 logic_config = ExtResource("2_8tqtp")
+rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_landsknecht_strength"), SubResource("ReactiveStat_landsknecht_dex"), SubResource("ReactiveStat_landsknecht_acr"), SubResource("ReactiveStat_landsknecht_spd"), SubResource("ReactiveStat_landsknecht_siz"), SubResource("ReactiveStat_landsknecht_int_stat"), SubResource("ReactiveStat_landsknecht_spr"), SubResource("ReactiveStat_landsknecht_fai"), SubResource("ReactiveStat_landsknecht_cha"), SubResource("ReactiveStat_landsknecht_beu"), SubResource("ReactiveStat_landsknecht_wil"), SubResource("ReactiveStat_landsknecht_endurance")])
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

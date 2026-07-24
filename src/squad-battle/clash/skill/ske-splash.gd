@@ -27,7 +27,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 		var roll_defence = randf() * hit_def
 
 		if roll_defence >= roll_offence:
-			print("  [splash] %s → %s BLOCKED (pen %.2f vs arm %.2f)" % [source.entity_name, enemy.entity_name, roll_offence, roll_defence])
+			print("  [splash] %s → %s BLOCKED (pen %.2f vs arm %.2f)" % [source.display_name, enemy.display_name, roll_offence, roll_defence])
 			if updates_collector != null:
 				updates_collector.append(
 					EntityUpdate.new(source.player_id, enemy.player_id,
@@ -46,7 +46,7 @@ func commit(_data = null) -> Array[EntityUpdate]:
 				updates_collector.append(u)
 
 		splash_count += 1
-		print("  [splash] %s → %s dealt %.2f — HP %.1f→%.1f" % [source.entity_name, enemy.entity_name, dm, hp_before, hp_after])
+		print("  [splash] %s → %s dealt %.2f — HP %.1f→%.1f" % [source.display_name, enemy.display_name, dm, hp_before, hp_after])
 
 	print("  [splash] %s hit %d extra targets" % [_debug_id, splash_count])
 	return updates_collector if updates_collector else []

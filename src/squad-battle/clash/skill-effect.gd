@@ -23,7 +23,7 @@ func set_attacker_and_target(attacker: CombatEntity, target: CombatEntity, _cont
 	affected = target
 	battle_context = _context
 	if source and affected:
-		_debug_id = "[%s→%s:%s]" % [source.entity_name, affected.entity_name, name]
+		_debug_id = "[%s→%s:%s]" % [source.display_name, affected.display_name, name]
 
 func setup_connections(collector = null) -> void:
 	"""Call this after the resource is loaded to connect triggers to the event bus.

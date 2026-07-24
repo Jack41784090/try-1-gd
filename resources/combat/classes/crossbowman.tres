@@ -1,15 +1,76 @@
-[gd_resource type="Resource" script_class="SquadEntity" format=3]
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3]
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
 [ext_resource type="Resource" uid="uid://b3petjyua7whd" path="res://resources/combat/logic/logic/backline-shooter.tres" id="2_logic"]
-[ext_resource type="Resource" path="res://resources/combat/classes/base_stats/BS_crossbowman.tres" id="3_stats"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
+[ext_resource type="Resource" uid="uid://mndwnjoe8idb" path="res://resources/combat/weapon/config/crossbow.tres" id="weapon"]
+[ext_resource type="Resource" uid="uid://b4tst6xe311gc" path="res://resources/combat/armor/padded-armor.tres" id="armor"]
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_strength"]
+script = ExtResource("rs")
+stat_value = 0.8
+stat_name = 10
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_dex"]
+script = ExtResource("rs")
+stat_value = 2.0
+stat_name = 11
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_acr"]
+script = ExtResource("rs")
+stat_value = 1.8
+stat_name = 12
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_spd"]
+script = ExtResource("rs")
+stat_value = 1.2
+stat_name = 13
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_siz"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 14
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_int_stat"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 15
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_spr"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 16
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_fai"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 17
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_cha"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 18
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_beu"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 19
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_wil"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 20
+
+[sub_resource type="Resource" id="ReactiveStat_crossbowman_endurance"]
+script = ExtResource("rs")
+stat_value = 0.9
+stat_name = 21
 
 [resource]
 script = ExtResource("1_combat")
-class_id = 2
-entity_name = "Crossbowman"
-stats = ExtResource("3_stats")
-weapon_class = 2
-armor_class = 2
+codename = "Crossbowman"
+weapon_class = ExtResource("weapon")
+armor_class = ExtResource("armor")
 logic_config = ExtResource("2_logic")
+rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_crossbowman_strength"), SubResource("ReactiveStat_crossbowman_dex"), SubResource("ReactiveStat_crossbowman_acr"), SubResource("ReactiveStat_crossbowman_spd"), SubResource("ReactiveStat_crossbowman_siz"), SubResource("ReactiveStat_crossbowman_int_stat"), SubResource("ReactiveStat_crossbowman_spr"), SubResource("ReactiveStat_crossbowman_fai"), SubResource("ReactiveStat_crossbowman_cha"), SubResource("ReactiveStat_crossbowman_beu"), SubResource("ReactiveStat_crossbowman_wil"), SubResource("ReactiveStat_crossbowman_endurance")])
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

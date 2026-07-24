@@ -333,9 +333,8 @@ func _get_squad_survival_stat(squad: StrategySquad) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
-		if warrior.combat_stats:
-			# Survival based on ACR (agility) + WIL
-			total += warrior.combat_stats.acr + warrior.combat_stats.wil
+		# Survival based on ACR (agility) + WIL — tier-2/tier-1 cascade via Character
+		total += warrior.get_constant_stat_value(StatName.I.ACR) + warrior.get_constant_stat_value(StatName.I.WIL)
 		count += 1
 	return total / max(count, 1) / 2.0 # Average of ACR+WIL
 
@@ -344,9 +343,8 @@ func _get_squad_diplomacy_stat(squad: StrategySquad) -> float:
 	var total: float = 0.0
 	var count: int = 0
 	for warrior in squad.get_living_warriors():
-		if warrior.combat_stats:
-			# Diplomacy based on CHA + INT
-			total += warrior.combat_stats.cha + warrior.combat_stats.int_stat
+		# Diplomacy based on CHA + INT — tier-2/tier-1 cascade via Character
+		total += warrior.get_constant_stat_value(StatName.I.CHA) + warrior.get_constant_stat_value(StatName.I.INT_STAT)
 		count += 1
 	return total / max(count, 1) / 2.0 # Average of CHA+INT
 
@@ -372,7 +370,7 @@ func _get_entity_name(entity_id: int) -> String:
 	if combat_bridge.current_battle:
 		var entity = combat_bridge.current_battle.get_entity_by_id(entity_id)
 		if entity:
-			return entity.entity_name
+			return entity.display_name
 	return "Entity#%d" % entity_id
 
 

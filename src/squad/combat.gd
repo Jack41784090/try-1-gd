@@ -1,41 +1,47 @@
 class_name CombatSquad
 extends RefCounted
 
-var resource: CombatSquadResource
-var entities: Array[CombatEntity]
+var entities: Array[CombatEntity] = []
 var squad_name: String
 var last_round_received_attack: int = -1
 
+var _next_local_player_id: int = randi() % 1000 + 1
 
-func _init(_r: CombatSquadResource) -> void:
-	resource = _r
-	entities = _r.entities.map(func(_cer): return CombatEntity.new(_cer))
-	squad_name = _r.name
 
-	#func _init(config: Dictionary = { }):
-	#squad_name = config.get("name", "")
-	#var entity_configs = config.get("entities", [])
-	#var next_player_id = randi() % 1000 + 1
-	#
-	#for entity_config in entity_configs:
-	#var entity: CombatEntity
-	#if entity_config is String:
-	#entity = CombatEntityFactory.get_by_identification(entity_config)
-	#entity.set_player_id(next_player_id)
-	#next_player_id += 1
-	## elif entity_config is EntityConfig:
-	## 	entity = CombatEntity.new(entity_config)
-	#elif entity_config is CombatEntity:
-	#entity = entity_config
-	#entity.set_player_id(next_player_id)
-	#next_player_id += 1
-	#else:
-	#push_error("Invalid entity config: %s" % [entity_config, entity_config.get_class()])
-	#continue
-	#
-	#entity.side = config.get("side")
-	#assert(entity.side != null)
-	#entities.append(entity)
+## config: { "name": String, "side": SquadBattleTypes.Side, "entities": Array }
+## Each "entities" element is one of:
+##  - String: a CombatEntityFactory identification, built fresh (demo/scripted squads)
+##  - CombatEntityResource: built fresh via CombatEntityFactory.build_config_from_resource()
+##  - CombatEntity: already fully built (the real CombatBridge route, via Character.enter_battle())
+func _init(config: Dictionary = {}) -> void:
+	squad_name = config.get("name", "")
+	var side: SquadBattleTypes.Side = config.get("side", SquadBattleTypes.Side.NULL)
+	var entity_configs: Array = config.get("entities", [])
+
+	for entity_config in entity_configs:
+		var entity := _build_entity(entity_config, side)
+		if entity != null:
+			entities.append(entity)
+
+
+func _build_entity(entity_config, side: SquadBattleTypes.Side) -> CombatEntity:
+	if entity_config is CombatEntity:
+		return entity_config
+
+	if entity_config is String:
+		var entity := CombatEntityFactory.get_by_identification(
+			entity_config, side, _next_local_player_id, SquadBattleTypes.SquadEntityInSquadLocation.Front)
+		_next_local_player_id += 1
+		return entity
+
+	if entity_config is CombatEntityResource:
+		var built_config := CombatEntityFactory.build_config_from_resource(
+			entity_config, side, _next_local_player_id, SquadBattleTypes.SquadEntityInSquadLocation.Front)
+		_next_local_player_id += 1
+		return CombatEntity.new(built_config)
+
+	push_error("CombatSquad: invalid entity config %s" % [entity_config])
+	return null
 
 
 func is_crippled() -> bool:
@@ -74,7 +80,7 @@ func _format_enemy_positions(metadata: Dictionary) -> String:
 		if metadata.has(loc):
 			var names = []
 			for e in metadata[loc]:
-				names.append("%s(ID:%d,HP:%.0f)" % [e.entity_name, e.player_id, e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)])
+				names.append("%s(ID:%d,HP:%.0f)" % [e.display_name, e.player_id, e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)])
 			parts.append("LOC%d:[%s]" % [loc, ", ".join(names)])
 	return "{%s}" % " ".join(parts)
 

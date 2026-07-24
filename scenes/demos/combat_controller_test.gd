@@ -87,31 +87,27 @@ func end_test() -> void:
 
 #region Test Data Creation
 
-func create_test_warrior(id: String, warrior_name: String) -> Character:
-	var entity = StrategyEntity.new()
+func create_test_warrior(id: String, warrior_name: String, class_identification: String = "landsknecht") -> Character:
+	# Base attack attributes (strength/endurance/etc.) now live on the class template
+	# (resources/combat/classes/<class_identification>.tres) and resolve automatically
+	# via Character's tier-2/tier-1 cascade — no need to author them per test warrior.
+	var res := StrategyEntityResource.new()
+	res.name = warrior_name
+	res.identification = class_identification
+
+	var morale_stat := ReactiveStat.new()
+	morale_stat.stat_name = StatName.I.MORALE
+	morale_stat.stat_value = 0.5
+	var speed_stat := ReactiveStat.new()
+	speed_stat.stat_name = StatName.I.MV_SPD
+	speed_stat.stat_value = 5.0
+	res.rs_array = [morale_stat, speed_stat]
+
+	var entity := StrategyEntity.new(res)
 	entity.id = id
-	entity.display_name = warrior_name
 	entity.is_dead = false
 
-	# Create combat stats using CombatEntityBaseStats
-	var stats = CombatEntityBaseStats.new()
-	stats.strength = 10.0
-	stats.endurance = 10.0
-	stats.siz = 10.0
-	stats.dex = 10.0
-	stats.acr = 10.0 # agility substitute
-	stats.spd = 10.0
-	stats.int_stat = 10.0
-	stats.wil = 10.0
-	stats.cha = 10.0
-	stats.fai = 10.0
-	stats.spr = 10.0
-	stats.beu = 10.0
-	entity.combat_stats = stats
-
-	var warrior := Character.new(entity)
-	warrior.get_stat(StatName.I.MORALE).stat_value = 0.5
-	return warrior
+	return Character.new(entity)
 
 func create_test_player_squad() -> StrategySquad:
 	var squad = StrategySquad.new()

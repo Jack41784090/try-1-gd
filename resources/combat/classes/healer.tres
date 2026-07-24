@@ -4,11 +4,76 @@
 [ext_resource type="Texture2D" uid="uid://bubk1q5x1n63h" path="res://assets/Healer-idle.png" id="1_wgf35"]
 [ext_resource type="Resource" uid="uid://cdedndmtxq6m8" path="res://resources/combat/logic/logic/stay-backline-heal.tres" id="2_j0mvx"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_x2x1t"]
-[ext_resource type="Resource" uid="uid://dik83s4x16vw6" path="res://resources/combat/classes/base_stats/BS_healer.tres" id="5_c58rk"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
+[ext_resource type="Resource" uid="uid://wtjmoptcuffo" path="res://resources/combat/weapon/config/unarmed.tres" id="weapon"]
+[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="armor"]
+
+[sub_resource type="Resource" id="ReactiveStat_healer_strength"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 10
+
+[sub_resource type="Resource" id="ReactiveStat_healer_dex"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 11
+
+[sub_resource type="Resource" id="ReactiveStat_healer_acr"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 12
+
+[sub_resource type="Resource" id="ReactiveStat_healer_spd"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 13
+
+[sub_resource type="Resource" id="ReactiveStat_healer_siz"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 14
+
+[sub_resource type="Resource" id="ReactiveStat_healer_int_stat"]
+script = ExtResource("rs")
+stat_value = 1.25
+stat_name = 15
+
+[sub_resource type="Resource" id="ReactiveStat_healer_spr"]
+script = ExtResource("rs")
+stat_value = 2.0
+stat_name = 16
+
+[sub_resource type="Resource" id="ReactiveStat_healer_fai"]
+script = ExtResource("rs")
+stat_value = 2.0
+stat_name = 17
+
+[sub_resource type="Resource" id="ReactiveStat_healer_cha"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 18
+
+[sub_resource type="Resource" id="ReactiveStat_healer_beu"]
+script = ExtResource("rs")
+stat_value = 1.5
+stat_name = 19
+
+[sub_resource type="Resource" id="ReactiveStat_healer_wil"]
+script = ExtResource("rs")
+stat_value = 1.2
+stat_name = 20
+
+[sub_resource type="Resource" id="ReactiveStat_healer_endurance"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 21
 
 [resource]
 script = ExtResource("1_24hxr")
-stats = ExtResource("5_c58rk")
+codename = "Healer"
 icon = ExtResource("1_wgf35")
+weapon_class = ExtResource("weapon")
+armor_class = ExtResource("armor")
 logic_config = ExtResource("2_j0mvx")
+rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_healer_strength"), SubResource("ReactiveStat_healer_dex"), SubResource("ReactiveStat_healer_acr"), SubResource("ReactiveStat_healer_spd"), SubResource("ReactiveStat_healer_siz"), SubResource("ReactiveStat_healer_int_stat"), SubResource("ReactiveStat_healer_spr"), SubResource("ReactiveStat_healer_fai"), SubResource("ReactiveStat_healer_cha"), SubResource("ReactiveStat_healer_beu"), SubResource("ReactiveStat_healer_wil"), SubResource("ReactiveStat_healer_endurance")])
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

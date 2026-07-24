@@ -736,17 +736,20 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_squad.squad_id = "enemy"
 	enemy_squad.squad_name = "Enemy CombatSquad"
 	
-	# Create warriors with combat stats
-	var warrior_entity = StrategyEntity.new()
+	# Create warriors — base attack attributes resolve from the "landsknecht" class
+	# template via Character's tier-2/tier-1 cascade, so only identification is needed.
+	var warrior_res := StrategyEntityResource.new()
+	warrior_res.name = "Test StrategyEntity"
+	warrior_res.identification = "landsknecht"
+	var warrior_entity = StrategyEntity.new(warrior_res)
 	warrior_entity.id = "w1"
-	warrior_entity.display_name = "Test StrategyEntity"
-	warrior_entity.combat_stats = CombatEntityBaseStats.new()
 	player_squad.warriors.append(Character.new(warrior_entity))
 
-	var enemy_warrior_entity = StrategyEntity.new()
+	var enemy_res := StrategyEntityResource.new()
+	enemy_res.name = "Enemy StrategyEntity"
+	enemy_res.identification = "landsknecht"
+	var enemy_warrior_entity = StrategyEntity.new(enemy_res)
 	enemy_warrior_entity.id = "e1"
-	enemy_warrior_entity.display_name = "Enemy StrategyEntity"
-	enemy_warrior_entity.combat_stats = CombatEntityBaseStats.new()
 	enemy_squad.warriors.append(Character.new(enemy_warrior_entity))
 	
 	# Test with aggressive charge tactic

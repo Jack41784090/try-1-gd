@@ -23,7 +23,7 @@ var _debug_id: String = ""
 
 func setup(entity: CombatEntity) -> void:
 	squad_entity = entity
-	_debug_id = "[BattleDisplay:%s[%d]]" % [entity.entity_name, entity.player_id]
+	_debug_id = "[BattleDisplay:%s[%d]]" % [entity.display_name, entity.player_id]
 
 	rig = WarriorRigFactory.create_rig_for_entity(null, str(entity.player_id))
 	add_child(rig)
@@ -108,14 +108,11 @@ func _initialize_hp_bar() -> void:
 func _update_hp_bar_display() -> void:
 	if not squad_entity or not _hp_bar_fill:
 		return
-	# DISABLED: get_ceiling_changeable_stat is commented out during the CombatEntity
-	# stat-system rewrite, so the HP ratio cannot be computed. Skipping bar update.
-	return
-	# var hp := squad_entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
-	# var max_hp := squad_entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
-	# var hp_ratio := clampf(hp / max_hp, 0.0, 1.0) if max_hp > 0 else 0.0
-	# _hp_bar_fill.size.x = HP_BAR_WIDTH * hp_ratio
-	# _update_hp_bar_color(hp_ratio)
+	var hp := squad_entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+	var max_hp := squad_entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	var hp_ratio := clampf(hp / max_hp, 0.0, 1.0) if max_hp > 0 else 0.0
+	_hp_bar_fill.size.x = HP_BAR_WIDTH * hp_ratio
+	_update_hp_bar_color(hp_ratio)
 
 
 func _update_hp_bar_color(hp_ratio: float) -> void:
@@ -174,48 +171,44 @@ func _rebuild_org_icons(new_count: int) -> void:
 #region Change handlers
 
 func _handle_hp_change(_old_val: float, _new_val: float) -> void:
-	# DISABLED: get_ceiling_changeable_stat is commented out during the CombatEntity
-	# stat-system rewrite, so the HP ratio cannot be computed. Emit completion so the
-	# animation pipeline keeps flowing.
-	animation_completed.emit.call_deferred()
-	# var max_hp := squad_entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
-	# if max_hp <= 0:
-	# 	animation_completed.emit.call_deferred()
-	# 	return
-	#
-	# var new_ratio := clampf(_new_val / max_hp, 0.0, 1.0)
-	# var target_width := HP_BAR_WIDTH * new_ratio
-	# var change := _new_val - _old_val
-	#
-	# var tween := create_tween()
-	# tween.set_parallel(true)
-	# tween.tween_property(_hp_bar_fill, "size:x", target_width, 0.3) \
-	# 	.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	#
-	# if rig:
-	# 	var flash_color := Color(1.5, 0.5, 0.5) if change < 0 else Color(0.5, 1.5, 0.5)
-	# 	rig.modulate = flash_color
-	# 	tween.tween_property(rig, "modulate", Color.WHITE, 0.2)
-	#
-	# var completion := {"bar": false, "jump": false}
-	# tween.finished.connect(func():
-	# 	completion["bar"] = true
-	# 	_update_hp_bar_color(new_ratio)
-	# 	if completion["jump"]:
-	# 		animation_completed.emit()
-	# , CONNECT_ONE_SHOT)
-	#
-	# if rig:
-	# 	var jump_tween := create_tween()
-	# 	jump_tween.tween_property(rig, "scale", Vector2(1.2, 1.2), 0.1)
-	# 	jump_tween.tween_property(rig, "scale", Vector2(1.0, 1.0), 0.1)
-	# 	jump_tween.finished.connect(func():
-	# 		completion["jump"] = true
-	# 		if completion["bar"]:
-	# 			animation_completed.emit()
-	# 	, CONNECT_ONE_SHOT)
-	# else:
-	# 	completion["jump"] = true
+	var max_hp := squad_entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+	if max_hp <= 0:
+		animation_completed.emit.call_deferred()
+		return
+
+	var new_ratio := clampf(_new_val / max_hp, 0.0, 1.0)
+	var target_width := HP_BAR_WIDTH * new_ratio
+	var change := _new_val - _old_val
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_hp_bar_fill, "size:x", target_width, 0.3) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	if rig:
+		var flash_color := Color(1.5, 0.5, 0.5) if change < 0 else Color(0.5, 1.5, 0.5)
+		rig.modulate = flash_color
+		tween.tween_property(rig, "modulate", Color.WHITE, 0.2)
+
+	var completion := {"bar": false, "jump": false}
+	tween.finished.connect(func():
+		completion["bar"] = true
+		_update_hp_bar_color(new_ratio)
+		if completion["jump"]:
+			animation_completed.emit()
+	, CONNECT_ONE_SHOT)
+
+	if rig:
+		var jump_tween := create_tween()
+		jump_tween.tween_property(rig, "scale", Vector2(1.2, 1.2), 0.1)
+		jump_tween.tween_property(rig, "scale", Vector2(1.0, 1.0), 0.1)
+		jump_tween.finished.connect(func():
+			completion["jump"] = true
+			if completion["bar"]:
+				animation_completed.emit()
+		, CONNECT_ONE_SHOT)
+	else:
+		completion["jump"] = true
 
 
 func _handle_sta_change(_old_val: float, _new_val: float) -> void:

@@ -62,7 +62,7 @@ func spawn_all_entities(p_battle: SquadBattle) -> void:
 
 				var display = battlefield_controller.add_unit_to_row(
 					row_node, row_node.get_child_count(),
-					entity.entity_name, entity
+					entity.display_name, entity
 				)
 				entity_displays_dict[entity.player_id] = display
 				_update_row_positions(row_node)
@@ -84,7 +84,7 @@ func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> voi
 
 		if hp_changed:
 			if attacker_entity:
-				_play_attack_sfx(attacker_entity.weapon_class)
+				_play_attack_sfx(attacker_entity.weapon.resource.weapon_class)
 			if attackers_display:
 				attackers_display.play_behavior(AnimTypes.Behavior.ATTACKING)
 				await battlefield_controller.animate_attack_lunge(attackers_display)

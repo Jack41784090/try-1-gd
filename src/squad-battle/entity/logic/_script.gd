@@ -53,9 +53,9 @@ func choose_skill() -> Skill:
 
 	if best_skill:
 		best_skill = best_skill.duplicate()
-		print("  [%d] %s → '%s' (score %.2f)" % [entity.player_id, entity.entity_name, best_skill.name, best_score])
+		print("  [%d] %s → '%s' (score %.2f)" % [entity.player_id, entity.display_name, best_skill.name, best_score])
 	else:
-		print("  [%d] %s → default attack (no considerations scored)" % [entity.player_id, entity.entity_name])
+		print("  [%d] %s → default attack (no considerations scored)" % [entity.player_id, entity.display_name])
 		best_skill = get_default_attack()
 
 	return best_skill

@@ -50,7 +50,7 @@ func roll_for_hit() -> bool:
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
 
-	Log.trace("OneClash", "Hit roll: %s vs %s — attacker %.2f / weapon base %.2f, defender evasion %.2f" % [attacker.entity_name, target.entity_name, roll_offence_hit, try_hit, roll_defence_hit])
+	Log.trace("OneClash", "Hit roll: %s vs %s — attacker %.2f / weapon base %.2f, defender evasion %.2f" % [attacker.display_name, target.display_name, roll_offence_hit, try_hit, roll_defence_hit])
 
 	if roll_defence_hit >= roll_offence_hit:
 		Log.trace("OneClash", "✗ DODGED")
@@ -121,14 +121,14 @@ func damage_calculation() -> void:
 		updates.append(update)
 
 	var hp_after = target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
-	Log.trace("OneClash", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, target.entity_name, hp_before, hp_after])
+	Log.trace("OneClash", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, target.display_name, hp_before, hp_after])
 	StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.TargetTookDamage, dm)
 
 
 func _get_attacker_skill_level() -> float:
 	if attacker.skill_set == null:
 		return 0.0
-	var skill_type := WeaponFactory.get_skill_used(attacker.weapon_class)
+	var skill_type := WeaponFactory.get_skill_used(attacker.weapon.resource.weapon_class)
 	return float(attacker.skill_set.get_level(skill_type))
 
 
@@ -160,9 +160,9 @@ func commit() -> Array[EntityUpdate]:
 
 	var is_self_cast = attacker.player_id == targeted.player_id
 	if is_self_cast:
-		Log.debug("OneClash", "[%d]%s ‹%s› on self" % [attacker.player_id, attacker.entity_name, skill.name if skill else "?"])
+		Log.debug("OneClash", "[%d]%s ‹%s› on self" % [attacker.player_id, attacker.display_name, skill.name if skill else "?"])
 	else:
-		Log.debug("OneClash", "[%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.entity_name, targeted.player_id, targeted.entity_name, skill.name if skill else "?"])
+		Log.debug("OneClash", "[%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.display_name, targeted.player_id, targeted.display_name, skill.name if skill else "?"])
 
 	# 1. Setup skill effect connections (must be done after resource loading completes)
 	var real_effects = skill.return_appropriate_skill_effects()
