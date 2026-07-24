@@ -13,7 +13,7 @@ func test_basic_headless_combat():
 	# Create attacker squad (3 Landsknechts)
 	var attacker_entities = []
 	for i in range(3):
-		attacker_entities.append(EntityClasses.Types.Landsknecht)
+		attacker_entities.append("landsknecht")
 	
 	var attacker_squad_config = {
 		"entities": attacker_entities,
@@ -25,8 +25,8 @@ func test_basic_headless_combat():
 	# Create defender squad (2 Landsknechts + 1 Healer)
 	var defender_entities = []
 	for i in range(2):
-		defender_entities.append(EntityClasses.Types.Landsknecht)
-	defender_entities.append(EntityClasses.Types.Healer)
+		defender_entities.append("landsknecht")
+	defender_entities.append("healer")
 	
 	var defender_squad_config = {
 		"entities": defender_entities,

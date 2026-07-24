@@ -29,10 +29,10 @@ func _create_demo_battle() -> SquadBattle:
 				"name": "Player Squad",
 				"team": "player",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Healer,
-					EntityClasses.Types.Landsknecht,
+					"landsknecht",
+					"landsknecht",
+					"healer",
+					"landsknecht",
 				]
 			}],
 			SquadBattleTypes.Side.DEFENDER: [{
@@ -40,9 +40,9 @@ func _create_demo_battle() -> SquadBattle:
 				"name": "Enemy Warband",
 				"team": "enemy",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
+					"landsknecht",
+					"landsknecht",
+					"landsknecht",
 				]
 			}]
 		},

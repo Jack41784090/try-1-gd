@@ -14,7 +14,7 @@ extends Node
 ##   6. Engagement detection & headless combat
 ##   7. Advance turn (StrategyEventBus.hour_advanced)
 
-const SCENARIO_PATH := "res://resources/scenarios/combat-test/combat-test-scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/combat-test/combat-test-scenario.tres"
 const MAX_ROUNDS = 20
 
 var scenario: GameScenario

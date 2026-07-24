@@ -36,11 +36,11 @@ func _create_sfx_battle() -> SquadBattle:
 				"name": "Player Warband",
 				"team": "player",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Healer,
-					EntityClasses.Types.Landsknecht,
+					"landsknecht",
+					"landsknecht",
+					"landsknecht",
+					"healer",
+					"landsknecht",
 				]
 			}],
 			SquadBattleTypes.Side.DEFENDER: [{
@@ -48,11 +48,11 @@ func _create_sfx_battle() -> SquadBattle:
 				"name": "Enemy Warband",
 				"team": "enemy",
 				"entities": [
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Landsknecht,
-					EntityClasses.Types.Healer,
-					EntityClasses.Types.Landsknecht,
+					"landsknecht",
+					"landsknecht",
+					"landsknecht",
+					"healer",
+					"landsknecht",
 				]
 			}]
 		},

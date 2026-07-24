@@ -9,19 +9,19 @@ func run_aoe_battle():
 	print("Setting up squads with Gelehrter mage units...\n")
 
 	var attacker_entities = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Gelehrter,
-		EntityClasses.Types.Gelehrter,
-		EntityClasses.Types.Healer,
+		"landsknecht",
+		"landsknecht",
+		"gelehrter",
+		"gelehrter",
+		"healer",
 	]
 
 	var defender_entities = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Pikeman,
-		EntityClasses.Types.Crossbowman,
+		"landsknecht",
+		"landsknecht",
+		"landsknecht",
+		"pikeman",
+		"crossbowman",
 	]
 
 	var attacker_squad_config = {

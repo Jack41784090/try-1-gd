@@ -78,7 +78,7 @@ func roll_for_pierce() -> bool:
 	var try_hit: float
 	var hit_def: float
 	var skill_level: float = _get_attacker_skill_level()
-	if chosen_weapon.is_magical:
+	if chosen_weapon.resource.is_magical:
 		try_hit = chosen_weapon.get_magical_penetration_value(attacker) + skill_level * 2.0
 		hit_def = armour.get_magical_PV()
 	else:
@@ -87,7 +87,7 @@ func roll_for_pierce() -> bool:
 	var roll_offence_hit = randf() * try_hit
 	var roll_defence_hit = randf() * hit_def
 
-	Log.trace("OneClash", "Pierce roll: pen %.2f/%.2f vs arm %.2f/%.2f%s" % [roll_offence_hit, try_hit, roll_defence_hit, hit_def, " [magical]" if chosen_weapon.is_magical else ""])
+	Log.trace("OneClash", "Pierce roll: pen %.2f/%.2f vs arm %.2f/%.2f%s" % [roll_offence_hit, try_hit, roll_defence_hit, hit_def, " [magical]" if chosen_weapon.resource.is_magical else ""])
 
 	if roll_defence_hit >= roll_offence_hit:
 		Log.trace("OneClash", "✗ BLOCKED")

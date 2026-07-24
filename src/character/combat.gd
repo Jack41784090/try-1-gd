@@ -40,6 +40,14 @@ func _init(config: CombatEntityConfig) -> void:
 	side = config.side
 	player_id = config.player_id
 	skill_set = SkillSet.new()
+	_logic_override = SimplifiedSquadLogic.new(
+		{
+			"entity": self,
+			"our_squad": {},
+			"enemy_squad": {},
+		},
+		resource.logic_config,
+	)
 	_seed_constants(config.resolved_constants)
 	init_after(config.starting_location)
 	_validate_existence()

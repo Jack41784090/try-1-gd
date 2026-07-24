@@ -4,8 +4,8 @@ extends Node
 ## Simulates booting up combat-test-scenario and attacking the Forest Bandits
 ## Run with: godot --headless --path . -s scenes/demos/scenario_attack_test.gd
 
-const SCENARIO_PATH = "res://resources/scenarios/combat-test/combat-test-scenario.tres"
-const PLAYER_SQUAD_PATH = "res://resources/strategy-squads/test-player-squad-full.tres"
+const SCENARIO_PATH = "res://resources/strategy/scenarios/combat-test/combat-test-scenario.tres"
+const PLAYER_SQUAD_PATH = "res://resources/strategy/squads-presets/test-player-squad-full.tres"
 
 var test_count := 0
 var passed_count := 0

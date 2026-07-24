@@ -9,19 +9,19 @@ func run_ranged_battle():
 	print("Setting up mixed squads with ranged units...\n")
 
 	var attacker_entities = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Crossbowman,
-		EntityClasses.Types.Pikeman,
-		EntityClasses.Types.Feldprediger,
+		"landsknecht",
+		"landsknecht",
+		"crossbowman",
+		"pikeman",
+		"feldprediger",
 	]
 
 	var defender_entities = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Arquebusier,
-		EntityClasses.Types.Healer,
+		"landsknecht",
+		"landsknecht",
+		"landsknecht",
+		"arquebusier",
+		"healer",
 	]
 
 	var attacker_squad_config = {

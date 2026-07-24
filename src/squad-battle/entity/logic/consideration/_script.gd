@@ -12,7 +12,9 @@ enum SkillOrTarget {
 @export var op: CsdrTypes.OP = CsdrTypes.OP.ADD
 @export var glances: Array[Glance] = []
 @export var entity_limiter: String = "all"
-@export var returning: Resource = null
+## Skill (a Resource) when should_return == Skill; a CombatEntity (a RefCounted,
+## not a Resource) when should_return == Target — must stay untyped for both.
+@export var returning: Variant = null
 @export var average_score_between_glances: bool = false
 @export var limited_by_weapon_loc: bool = true
 
