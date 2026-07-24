@@ -77,9 +77,12 @@ func _check_bandit_disband(squad: StrategySquad) -> bool:
 			break
 	return all_injured
 
-func _create_warrior(squad_id: String, index: int, background_id: StringName) -> StrategyEntity:
-	var warrior = super._create_warrior(squad_id, index, background_id)
-	warrior.morale = randf_range(20.0, 30.0)
+func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Character:
+	var background := WarriorBackgroundFactory.get_background(background_id)
+	var entity := StrategyEntityFactory.Create(background, StrategyTypes.Religion.CATHOLIC)
+	entity.id = "%s_w%d" % [squad_id, index]
+	var warrior := Character.new(entity)
+	warrior.get_stat(StatName.I.MORALE).stat_value = randf_range(0.2, 0.3)
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, randi_range(20, 40))
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, randi_range(10, 15))
 	warrior.set_attribute(StrategyTypes.WarriorAttribute.SURVIVAL, randi_range(30, 50))

@@ -5,7 +5,7 @@ extends Node
 ## and manage-squad data is correct.
 ## Run headless: godot --headless --path . -s scenes/demos/squad_data_sanity_test.gd
 
-const FULL_SQUAD_PATH = "res://resources/strategy-squads/test-player-squad-full.tres"
+const FULL_SQUAD_PATH = "res://resources/strategy/squads-presets/test-player-squad-full.tres"
 
 var passed := 0
 var failed := 0
@@ -39,38 +39,51 @@ func _assert(condition: bool, msg: String) -> void:
 		print("  FAIL: %s" % msg)
 		failed += 1
 
+#region Helpers
+
+func _make_warrior(display_name: String, morale: float = 0.8) -> Character:
+	var res := StrategyEntityResource.new()
+	res.name = display_name
+
+	var morale_stat := ReactiveStat.new()
+	morale_stat.stat_name = StatName.I.MORALE
+	morale_stat.stat_value = morale
+	var speed_stat := ReactiveStat.new()
+	speed_stat.stat_name = StatName.I.MV_SPD
+	speed_stat.stat_value = 5.0
+	res.rs_array = [morale_stat, speed_stat]
+
+	return Character.new(StrategyEntity.new(res))
+
+#endregion
+
 #region Tests
 
 func _test_squad_strategic_data_warriors_survive_duplicate() -> void:
 	print("\n[1] Warriors survive duplicate(true)")
 	var squad := StrategySquad.new()
 	for i in range(3):
-		var w := StrategyEntity.new()
-		w.name = "StrategyEntity %d" % i
-		w.morale = 80.0
-		squad.add_warrior(w)
+		squad.add_warrior(_make_warrior("StrategyEntity %d" % i))
 
 	var duped: StrategySquad = squad.duplicate(true)
 	_assert(duped.warriors.size() == 3,
 		"duplicate(true) preserves warrior count (expected 3, got %d)" % duped.warriors.size())
 	if duped.warriors.size() > 0:
-		_assert(duped.warriors[0].name == "StrategyEntity 0",
+		_assert(duped.warriors[0].display_name == "StrategyEntity 0",
 			"first warrior name preserved after duplicate")
 
 func _test_squad_morale_is_nonzero_after_duplicate() -> void:
 	print("\n[2] Morale is non-zero after duplicate(true)")
 	var squad := StrategySquad.new()
 	for i in range(3):
-		var w := StrategyEntity.new()
-		w.morale = 80.0
-		squad.add_warrior(w)
+		squad.add_warrior(_make_warrior("StrategyEntity %d" % i, 0.8))
 
 	var duped: StrategySquad = squad.duplicate(true)
 	var morale := duped.get_morale()
 	_assert(morale > 0.0,
-		"get_morale() > 0 after duplicate (got %.1f)" % morale)
-	_assert(abs(morale - 80.0) < 1.0,
-		"get_morale() approx 80.0 (got %.1f)" % morale)
+		"get_morale() > 0 after duplicate (got %.2f)" % morale)
+	_assert(abs(morale - 0.8) < 0.01,
+		"get_morale() approx 0.8 (got %.2f)" % morale)
 
 func _test_squad_resource_has_warriors() -> void:
 	print("\n[3] StrategySquad .tres has warriors directly")
@@ -112,19 +125,19 @@ func _test_demo_scenario_player_squad_morale() -> void:
 
 	var morale := squad.get_morale()
 	_assert(morale > 0.0,
-		"player_squad.get_morale() > 0 (got %.1f)" % morale)
+		"player_squad.get_morale() > 0 (got %.2f)" % morale)
 
 func _test_warrior_item_hp_percent_logic() -> void:
-	print("\n[6] StrategyEntity HP percent: dead=0, injured=0.5, alive=1.0")
-	var alive := StrategyEntity.new()
+	print("\n[6] Character HP percent: dead=0, injured=0.5, alive=1.0")
+	var alive := _make_warrior("Alive")
 	alive.is_dead = false
 	alive.is_injured = false
 
-	var injured := StrategyEntity.new()
+	var injured := _make_warrior("Injured")
 	injured.is_dead = false
 	injured.is_injured = true
 
-	var dead := StrategyEntity.new()
+	var dead := _make_warrior("Dead")
 	dead.is_dead = true
 
 	_assert(_get_warrior_hp_percent(alive) == 1.0,
@@ -135,8 +148,8 @@ func _test_warrior_item_hp_percent_logic() -> void:
 		"dead warrior HP percent = 0.0 (got %.1f)" % _get_warrior_hp_percent(dead))
 
 func _test_warrior_location_label_data() -> void:
-	print("\n[7] StrategyEntity location_prebattle maps to correct label text")
-	var w := StrategyEntity.new()
+	print("\n[7] Character location_prebattle maps to correct label text")
+	var w := _make_warrior("Positioned")
 
 	w.location_prebattle = SquadBattleTypes.SquadEntityInSquadLocation.Front
 	_assert(_location_to_label(w) == "Front",
@@ -154,14 +167,14 @@ func _test_warrior_location_label_data() -> void:
 
 #region Helpers (mirror UnitItem logic for headless testing)
 
-func _get_warrior_hp_percent(warrior_param: StrategyEntity) -> float:
+func _get_warrior_hp_percent(warrior_param: Character) -> float:
 	if warrior_param.is_dead:
 		return 0.0
 	if warrior_param.is_injured:
 		return 0.5
 	return 1.0
 
-func _location_to_label(warrior_param: StrategyEntity) -> String:
+func _location_to_label(warrior_param: Character) -> String:
 	match warrior_param.location_prebattle:
 		SquadBattleTypes.SquadEntityInSquadLocation.Front:
 			return "Front"

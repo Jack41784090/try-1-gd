@@ -20,7 +20,7 @@ const BEHAVIOR_MAP: Dictionary = {
 
 var _frame_count: int = 0
 var _test_phase: int = 0
-var _warriors: Array[StrategyEntity] = []
+var _warriors: Array[Character] = []
 var _rigs: Dictionary = {}
 var _container: Node2D
 var _pass_count: int = 0
@@ -68,10 +68,10 @@ func _process(_delta: float) -> void:
 func _create_test_warriors() -> void:
 	var names = ["goetz", "franz", "hilda", "konrad"]
 	for n in names:
-		var w = StrategyEntity.new()
-		w.id = n
-		w.name = n.capitalize()
-		w.class_id = EntityClasses.Types.Landsknecht
+		var e = StrategyEntity.new()
+		e.id = n
+		e.display_name = n.capitalize()
+		var w = Character.new(e)
 		_warriors.append(w)
 	print("[TEST] Created %d test warriors: %s" % [_warriors.size(), names])
 

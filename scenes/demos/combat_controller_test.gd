@@ -87,13 +87,12 @@ func end_test() -> void:
 
 #region Test Data Creation
 
-func create_test_warrior(id: String, warrior_name: String) -> StrategyEntity:
-	var warrior = StrategyEntity.new()
-	warrior.id = id
-	warrior.name = warrior_name
-	warrior.morale = 50.0
-	warrior.is_dead = false
-	
+func create_test_warrior(id: String, warrior_name: String) -> Character:
+	var entity = StrategyEntity.new()
+	entity.id = id
+	entity.display_name = warrior_name
+	entity.is_dead = false
+
 	# Create combat stats using CombatEntityBaseStats
 	var stats = CombatEntityBaseStats.new()
 	stats.strength = 10.0
@@ -108,8 +107,10 @@ func create_test_warrior(id: String, warrior_name: String) -> StrategyEntity:
 	stats.fai = 10.0
 	stats.spr = 10.0
 	stats.beu = 10.0
-	warrior.combat_stats = stats
-	
+	entity.combat_stats = stats
+
+	var warrior := Character.new(entity)
+	warrior.get_stat(StatName.I.MORALE).stat_value = 0.5
 	return warrior
 
 func create_test_player_squad() -> StrategySquad:

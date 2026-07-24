@@ -78,7 +78,7 @@ func _check_warrior_status(context: Dictionary) -> bool:
 	var morale_max = parameters.get("warrior_morale_max", 999.0)
 	
 	for warrior in squad.warriors:
-		if warrior.morale < morale_min or warrior.morale > morale_max:
+		if float(warrior.get_stat_value(StatName.I.MORALE)) < morale_min or float(warrior.get_stat_value(StatName.I.MORALE)) > morale_max:
 			return false
 	
 	return true

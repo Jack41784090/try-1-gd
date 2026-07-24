@@ -33,7 +33,7 @@ func _build_demo_squad() -> StrategySquad:
 	squad = StrategySquad.new()
 	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
 	for i in range(5):
-		var nw = StrategyEntity.new(w)
+		var nw = Character.new(StrategyEntity.new(w))
 		squad.add_warrior(nw)
 
 	var mace = load("res://resources/combat/weapon/config/mace.tres")
@@ -114,7 +114,7 @@ func _on_tactic_selected(tactic: Tactic) -> void:
 	Log.info("ManageSquadPage", "Tactic set to %s" % tactic.tactic_id)
 
 
-func _on_formation_changed(warrior: StrategyEntity, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
+func _on_formation_changed(warrior: Character, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
 	warrior.location_prebattle = new_pos
 
 
@@ -136,7 +136,7 @@ func _on_recruit(background: WarriorBackground) -> void:
 	# recruitment_completed.emit(new_warrior)
 
 
-func _on_weapon_window_received(warrior: StrategyEntity, window: Control) -> void:
+func _on_weapon_window_received(warrior: Character, window: Control) -> void:
 	var cfg: WeaponResource = (window as WeaponControl).weapon_config
 	if cfg == null or warrior == null:
 		return
@@ -147,7 +147,7 @@ func _on_weapon_window_received(warrior: StrategyEntity, window: Control) -> voi
 		_on_equip_weapon(warrior, cfg)
 
 
-func _on_armor_window_received(warrior: StrategyEntity, window: Control) -> void:
+func _on_armor_window_received(warrior: Character, window: Control) -> void:
 	var cfg: ArmorConfig = (window as ArmorControl).armor_config
 	if cfg == null or warrior == null:
 		return
@@ -158,45 +158,45 @@ func _on_armor_window_received(warrior: StrategyEntity, window: Control) -> void
 		_on_equip_armor(warrior, cfg)
 
 
-func _on_weapon_display_removed(warrior: StrategyEntity, _window: Control) -> void:
+func _on_weapon_display_removed(warrior: Character, _window: Control) -> void:
 	_on_unequip_weapon(warrior)
 
 
-func _on_armor_display_removed(warrior: StrategyEntity, _window: Control) -> void:
+func _on_armor_display_removed(warrior: Character, _window: Control) -> void:
 	_on_unequip_armor(warrior)
 
 
-func _find_weapon_owner(cfg: WeaponResource) -> StrategyEntity:
+func _find_weapon_owner(cfg: WeaponResource) -> Character:
 	for w in squad.warriors:
-		if w.equipment_weapon == cfg:
+		if w.get_equipped_weapon() == cfg:
 			return w
 	return null
 
 
-func _find_armor_owner(cfg: ArmorConfig) -> StrategyEntity:
+func _find_armor_owner(cfg: ArmorConfig) -> Character:
 	for w in squad.warriors:
-		if w.equipment_armor == cfg:
+		if w.get_equipped_armor() == cfg:
 			return w
 	return null
 
 
-func _on_equip_weapon(warrior: StrategyEntity, weapon: WeaponResource) -> void:
+func _on_equip_weapon(warrior: Character, weapon: WeaponResource) -> void:
 	squad.inventory.equip_weapon(warrior, weapon)
 	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
 
 
-func _on_equip_armor(warrior: StrategyEntity, armor: ArmorConfig) -> void:
+func _on_equip_armor(warrior: Character, armor: ArmorConfig) -> void:
 	squad.inventory.equip_armor(warrior, armor)
 	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
 
 
-func _on_unequip_weapon(warrior: StrategyEntity) -> void:
-	var weapon_name = SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class] if warrior.equipment_weapon else "nothing"
+func _on_unequip_weapon(warrior: Character) -> void:
+	var weapon_name = SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class] if warrior.get_equipped_weapon() else "nothing"
 	squad.inventory.unequip_weapon(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.display_name])
 
 
-func _on_unequip_armor(warrior: StrategyEntity) -> void:
-	var armor_name = SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class] if warrior.equipment_armor else "nothing"
+func _on_unequip_armor(warrior: Character) -> void:
+	var armor_name = SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class] if warrior.get_equipped_armor() else "nothing"
 	squad.inventory.unequip_armor(warrior)
 	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.display_name])

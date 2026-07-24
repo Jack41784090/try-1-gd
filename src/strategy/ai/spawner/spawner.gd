@@ -44,7 +44,7 @@ func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> A
 
 #region SPAWNING
 
-func _create_warrior(_squad_id: String, _index: int, _background_id: StringName) -> StrategyEntity:
+func _create_warrior(_squad_id: String, _index: int, _background_id: StringName) -> Character:
 	# DISABLED: StrategyEntityFactory does not exist during the StrategyEntity rewrite.
 	push_error("Spawner._create_warrior disabled during StrategyEntity rewrite")
 	return null

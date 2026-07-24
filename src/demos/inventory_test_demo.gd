@@ -44,10 +44,12 @@ func _check(condition: bool, test_name: String) -> void:
 		_fail_count += 1
 		_print("  FAIL: %s" % test_name)
 
-func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> StrategyEntity:
-	return StrategyEntityFactory.Create(
-		class_id, warrior_name.to_lower(), warrior_name,
-		StrategyTypes.Religion.CATHOLIC, CombatEntityBaseStats.new())
+func _make_warrior(class_id: EntityClasses.Types, warrior_name: String) -> Character:
+	var background_id := StringName(EntityClasses.Types.keys()[class_id].to_lower())
+	var background := WarriorBackgroundFactory.get_background(background_id)
+	var entity := StrategyEntityFactory.Create(background, StrategyTypes.Religion.CATHOLIC)
+	entity.id = warrior_name.to_lower()
+	return Character.new(entity)
 
 func _make_weapon(wc = SquadBattleTypes.WeaponClasses.Unarmed) -> WeaponResource:
 	var w := WeaponResource.new()
@@ -94,16 +96,17 @@ func _test_inventory_equip_weapon() -> void:
 	_print("")
 	_print("--- SquadInventory: equip weapon ---")
 	var inv = SquadInventory.new()
-	var warrior := StrategyEntity.new()
-	warrior.name = "Test StrategyEntity"
-	warrior.equipment_weapon = null
+	var entity := StrategyEntity.new()
+	entity.id = "test_strategy_entity"
+	var warrior := Character.new(entity)
+	warrior.unequip_weapon()
 
 	var sword := _make_weapon("Iron Sword")
 	inv.add_weapon(sword)
 	_check(inv.weapons.size() == 1, "weapon in inventory before equip")
 
 	inv.equip_weapon(warrior, sword)
-	_check(warrior.equipment_weapon == sword, "warrior has weapon after equip")
+	_check(warrior.get_equipped_weapon() == sword, "warrior has weapon after equip")
 	_check(inv.weapons.size() == 0, "weapon removed from inventory after equip")
 
 
@@ -111,17 +114,18 @@ func _test_inventory_equip_armor_swap() -> void:
 	_print("")
 	_print("--- SquadInventory: equip armor with swap ---")
 	var inv = SquadInventory.new()
-	var warrior := StrategyEntity.new()
-	warrior.name = "Test StrategyEntity"
+	var entity := StrategyEntity.new()
+	entity.id = "test_strategy_entity"
+	var warrior := Character.new(entity)
 
 	var old_armor := _make_armor("Old Leather")
-	warrior.equipment_armor = old_armor
+	warrior.equip_armor(old_armor)
 
 	var new_armor := _make_armor("New Plate")
 	inv.add_armor(new_armor)
 
 	inv.equip_armor(warrior, new_armor)
-	_check(warrior.equipment_armor == new_armor, "warrior has new armor")
+	_check(warrior.get_equipped_armor() == new_armor, "warrior has new armor")
 	_check(inv.armors.size() == 1, "old armor swapped back to inventory")
 	_check(inv.armors[0] == old_armor, "swapped armor is the old one")
 
@@ -130,14 +134,15 @@ func _test_inventory_unequip() -> void:
 	_print("")
 	_print("--- SquadInventory: unequip ---")
 	var inv = SquadInventory.new()
-	var warrior := StrategyEntity.new()
-	warrior.name = "Test StrategyEntity"
+	var entity := StrategyEntity.new()
+	entity.id = "test_strategy_entity"
+	var warrior := Character.new(entity)
 
 	var sword := _make_weapon("Iron Sword")
-	warrior.equipment_weapon = sword
+	warrior.equip_weapon(sword)
 
 	inv.unequip_weapon(warrior)
-	_check(warrior.equipment_weapon == null, "warrior weapon null after unequip")
+	_check(warrior.get_equipped_weapon() == null, "warrior weapon null after unequip")
 	_check(inv.weapons.size() == 1, "weapon moved to inventory")
 	_check(inv.weapons[0] == sword, "correct weapon in inventory")
 
@@ -145,9 +150,9 @@ func _test_inventory_unequip() -> void:
 	_check(inv.weapons.size() == 1, "unequip null weapon is no-op")
 
 	var plate := _make_armor("Test Plate")
-	warrior.equipment_armor = plate
+	warrior.equip_armor(plate)
 	inv.unequip_armor(warrior)
-	_check(warrior.equipment_armor == null, "warrior armor null after unequip")
+	_check(warrior.get_equipped_armor() == null, "warrior armor null after unequip")
 	_check(inv.armors.size() == 1, "armor moved to inventory")
 
 
@@ -189,21 +194,21 @@ func _test_default_equipment_assignment() -> void:
 	_print("")
 	_print("--- StrategyEntityFactory: default equipment ---")
 	var lk := _make_warrior(EntityClasses.Types.Landsknecht, "TestLK")
-	_check(lk.equipment_weapon != null, "Landsknecht gets weapon")
-	_check(lk.equipment_armor != null, "Landsknecht gets armor")
-	_check(lk.equipment_weapon.weapon_class != SquadBattleTypes.WeaponClasses.Unarmed, "Landsknecht weapon is not Unarmed")
+	_check(lk.get_equipped_weapon() != null, "Landsknecht gets weapon")
+	_check(lk.get_equipped_armor() != null, "Landsknecht gets armor")
+	_check(lk.get_equipped_weapon().weapon_class != SquadBattleTypes.WeaponClasses.Unarmed, "Landsknecht weapon is not Unarmed")
 
 	var healer := _make_warrior(EntityClasses.Types.Healer, "TestHealer")
-	_check(healer.equipment_weapon == null, "Healer has no weapon")
-	_check(healer.equipment_armor == null, "Healer has no armor")
+	_check(healer.get_equipped_weapon() == null, "Healer has no weapon")
+	_check(healer.get_equipped_armor() == null, "Healer has no armor")
 
 	var pike := _make_warrior(EntityClasses.Types.Pikeman, "TestPike")
-	_check(pike.equipment_weapon != null, "Pikeman gets weapon")
-	_check(pike.equipment_armor != null, "Pikeman gets armor")
+	_check(pike.get_equipped_weapon() != null, "Pikeman gets weapon")
+	_check(pike.get_equipped_armor() != null, "Pikeman gets armor")
 
 	var arq := _make_warrior(EntityClasses.Types.Arquebusier, "TestArq")
-	_check(arq.equipment_weapon != null, "Arquebusier gets weapon")
-	_check(arq.equipment_armor == null, "Arquebusier has no armor")
+	_check(arq.get_equipped_weapon() != null, "Arquebusier gets weapon")
+	_check(arq.get_equipped_armor() == null, "Arquebusier has no armor")
 
 #endregion
 
@@ -224,7 +229,7 @@ func _test_loot_collector_dead_enemies() -> void:
 	var loot_armors: Array = loot.get("armors", [])
 	_check(loot_weapons.size() == 1, "looted 1 weapon from dead Landsknecht")
 	_check(loot_armors.size() == 1, "looted 1 armor from dead Landsknecht")
-	_check(loot_weapons[0].weapon_class == dead_warrior.equipment_weapon.weapon_class, "looted weapon matches source")
+	_check(loot_weapons[0].weapon_class == dead_warrior.get_equipped_weapon().weapon_class, "looted weapon matches source")
 
 
 func _test_loot_collector_skips_alive() -> void:
@@ -266,7 +271,7 @@ func _test_loot_collector_duplicates_items() -> void:
 	w.is_dead = true
 	enemy_squad.warriors.append(w)
 
-	var original_weapon := w.equipment_weapon
+	var original_weapon := w.get_equipped_weapon()
 	var casualties: Array[String] = [w.id]
 	var loot = LootCollector.collect_equipment_loot(enemy_squad, casualties)
 	var loot_weapons: Array = loot.get("weapons", [])

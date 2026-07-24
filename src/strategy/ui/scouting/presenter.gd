@@ -138,7 +138,7 @@ func _get_warrior_details(squad: StrategySquad) -> Array[Dictionary]:
 			status = "Dead"
 		elif warrior.is_injured:
 			status = "Injured"
-		details.append({"name": warrior.name, "status": status})
+		details.append({"name": warrior.display_name, "status": status})
 	return details
 
 func _find_squad(squad_id: String, world: World) -> StrategySquad:

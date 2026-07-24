@@ -193,18 +193,17 @@ func _test_bandit_lifecycle() -> void:
 		StrategyTypes.SquadRole.BANDIT,
 	)
 
-	var warrior := StrategyEntityFactory.Create(
-		EntityClasses.Types.Landsknecht,
-		"bandit_test_w0", "Test Bandit",
-		StrategyTypes.Religion.CATHOLIC,
-		CombatEntityBaseStats.new(),
-	)
-	warrior.morale = 5.0
+	var background := WarriorBackgroundFactory.get_background(&"landsknecht")
+	var entity := StrategyEntityFactory.Create(background, StrategyTypes.Religion.CATHOLIC)
+	entity.id = "bandit_test_w0"
+	entity.display_name = "Test Bandit"
+	var warrior := Character.new(entity)
+	warrior.get_stat(StatName.I.MORALE).stat_value = 0.05
 	test_squad.add_warrior(warrior)
 
 	_assert("Low morale triggers disband", spawner.check_disband(test_squad))
 
-	warrior.morale = 50.0
+	warrior.get_stat(StatName.I.MORALE).stat_value = 0.5
 	_assert("Normal morale does not disband", not spawner.check_disband(test_squad))
 
 	warrior.is_injured = true

@@ -8,12 +8,12 @@ static func collect_equipment_loot(enemy_squad: StrategySquad, enemy_casualties:
 	for warrior in enemy_squad.warriors:
 		if not warrior.is_dead:
 			continue
-		if warrior.equipment_weapon != null:
-			looted_weapons.append(warrior.equipment_weapon.duplicate(true))
-			Log.debug("LootCollector", "Looted weapon '%s' from %s" % [SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class], warrior.name])
-		if warrior.equipment_armor != null:
-			looted_armors.append(warrior.equipment_armor.duplicate(true))
-			Log.debug("LootCollector", "Looted armor '%s' from %s" % [SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class], warrior.name])
+		if warrior.get_equipped_weapon() != null:
+			looted_weapons.append(warrior.get_equipped_weapon().duplicate(true))
+			Log.debug("LootCollector", "Looted weapon '%s' from %s" % [SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class], warrior.display_name])
+		if warrior.get_equipped_armor() != null:
+			looted_armors.append(warrior.get_equipped_armor().duplicate(true))
+			Log.debug("LootCollector", "Looted armor '%s' from %s" % [SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class], warrior.display_name])
 
 	return {
 		"weapons": looted_weapons,

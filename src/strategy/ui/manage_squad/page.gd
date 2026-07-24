@@ -3,7 +3,7 @@ class_name ManageSquadPage
 extends Control
 
 signal closed
-signal recruitment_completed(warrior: StrategyEntity)
+signal recruitment_completed(warrior: Character)
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
 
@@ -36,7 +36,7 @@ func _build_demo_squad() -> StrategySquad:
 	squad = StrategySquad.new()
 	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
 	for i in range(5):
-		var nw = StrategyEntity.new(w)
+		var nw = Character.new(StrategyEntity.new(w))
 		squad.add_warrior(nw)
 
 	var mace = load("res://resources/combat/weapon/config/mace.tres")
@@ -123,7 +123,7 @@ func _on_tactic_selected(tactic: Tactic) -> void:
 	Log.info("ManageSquadPage", "Tactic set to %s" % tactic.tactic_id)
 
 
-func _on_formation_changed(warrior: StrategyEntity, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
+func _on_formation_changed(warrior: Character, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
 	warrior.location_prebattle = new_pos
 
 
@@ -132,36 +132,32 @@ func _on_recruit(background: WarriorBackground) -> void:
 	if not squad.spend_money(cost):
 		return
 
-	# DISABLED: recruitment needs the StrategyEntity runtime-build bridge
-	# (StrategyEntityFactory) which does not exist during the StrategyEntity rewrite.
-	# var new_warrior := StrategyEntityFactory.Create(
-	# 	background.background_id,
-	# 	"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
-	# 	"%s Recruit" % background.display_name,
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# )
-	# squad.add_warrior(new_warrior)
-	# Log.info("ManageSquadPage", "Recruited %s for %d gold" % [new_warrior.name, cost])
-	# recruitment_completed.emit(new_warrior)
+	var new_warrior := Character.new(StrategyEntityFactory.Create(
+		background,
+		StrategyTypes.Religion.CATHOLIC,
+	))
+	squad.add_warrior(new_warrior)
+	Log.info("ManageSquadPage", "Recruited %s for %d gold" % [new_warrior.display_name, cost])
+	recruitment_completed.emit(new_warrior)
 
 
-func _on_equip_weapon(warrior: StrategyEntity, weapon: WeaponResource) -> void:
+func _on_equip_weapon(warrior: Character, weapon: WeaponResource) -> void:
 	squad.inventory.equip_weapon(warrior, weapon)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
 
 
-func _on_equip_armor(warrior: StrategyEntity, armor: ArmorConfig) -> void:
+func _on_equip_armor(warrior: Character, armor: ArmorConfig) -> void:
 	squad.inventory.equip_armor(warrior, armor)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
+	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
 
 
-func _on_unequip_weapon(warrior: StrategyEntity) -> void:
-	var weapon_name = SquadBattleTypes.WeaponClasses.keys()[warrior.equipment_weapon.weapon_class] if warrior.equipment_weapon else "nothing"
+func _on_unequip_weapon(warrior: Character) -> void:
+	var weapon_name = SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class] if warrior.get_equipped_weapon() else "nothing"
 	squad.inventory.unequip_weapon(warrior)
-	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.name])
+	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.display_name])
 
 
-func _on_unequip_armor(warrior: StrategyEntity) -> void:
-	var armor_name = SquadBattleTypes.ArmorClasses.keys()[warrior.equipment_armor.armor_class] if warrior.equipment_armor else "nothing"
+func _on_unequip_armor(warrior: Character) -> void:
+	var armor_name = SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class] if warrior.get_equipped_armor() else "nothing"
 	squad.inventory.unequip_armor(warrior)
-	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.name])
+	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.display_name])

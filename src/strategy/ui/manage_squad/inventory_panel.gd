@@ -5,10 +5,10 @@ extends PanelContainer
 @export var bookmark_left_path: NodePath
 @export var bookmark_right_path: NodePath
 
-signal equip_weapon_requested(warrior: StrategyEntity, weapon: WeaponResource)
-signal equip_armor_requested(warrior: StrategyEntity, armor: ArmorConfig)
-signal unequip_weapon_requested(warrior: StrategyEntity)
-signal unequip_armor_requested(warrior: StrategyEntity)
+signal equip_weapon_requested(warrior: Character, weapon: WeaponResource)
+signal equip_armor_requested(warrior: Character, armor: ArmorConfig)
+signal unequip_weapon_requested(warrior: Character)
+signal unequip_armor_requested(warrior: Character)
 
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
 const WEAPON_SLOT_SCENE = preload("res://src/squad-battle/items/weapon/ui.tscn")
@@ -43,7 +43,7 @@ func _build_demo_squad() -> StrategySquad:
 	_squad = StrategySquad.new()
 	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
 	for i in range(5):
-		var nw = StrategyEntity.new(w)
+		var nw = Character.new(StrategyEntity.new(w))
 		_squad.add_warrior(nw)
 
 	var mace = load("res://resources/combat/weapon/config/mace.tres")

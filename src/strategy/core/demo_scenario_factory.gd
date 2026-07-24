@@ -176,37 +176,33 @@ static func _create_world(start_hour: int, locations: Array[Location]) -> World:
 
 	return world
 
-static func _create_warriors() -> Array[StrategyEntity]:
-	var warriors: Array[StrategyEntity] = []
-	# DISABLED: StrategyEntity is now built from a StrategyEntityResource and no longer
-	# exposes id/name/religion/combat_stats/set_attribute/logic_type. Needs the
-	# StrategyEntityResource-driven build path before warriors can be seeded here.
-	# var names = ["Marcus", "Giovanni", "Alessandro", "Francesco", "Lorenzo"]
-	# var religions = [
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# 	StrategyTypes.Religion.PROTESTANT,
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# 	StrategyTypes.Religion.MUSLIM
-	# ]
-	#
-	# for i in range(5):
-	# 	var warrior = StrategyEntity.new()
-	# 	warrior.id = "warrior_%d" % i
-	# 	warrior.name = names[i]
-	# 	warrior.morale = randf_range(70.0, 100.0)
-	# 	warrior.religion = religions[i]
-	#
-	# 	warrior.combat_stats = CombatEntityBaseStats.new()
-	# 	warrior.combat_stats.strength = randi_range(5, 10)
-	# 	warrior.combat_stats.dex = randi_range(5, 10)
-	# 	warrior.combat_stats.endurance = randi_range(5, 10)
-	#
-	# 	warrior.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, randi_range(30, 70))
-	# 	warrior.set_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP, randi_range(20, 60))
-	# 	warrior.logic_type = "frontline" if i < 3 else "archer"
-	#
-	# 	warriors.append(warrior)
+static func _create_warriors() -> Array[Character]:
+	var warriors: Array[Character] = []
+	var names = ["Marcus", "Giovanni", "Alessandro", "Francesco", "Lorenzo"]
+	var religions = [
+		StrategyTypes.Religion.CATHOLIC,
+		StrategyTypes.Religion.CATHOLIC,
+		StrategyTypes.Religion.PROTESTANT,
+		StrategyTypes.Religion.CATHOLIC,
+		StrategyTypes.Religion.MUSLIM,
+	]
+
+	for i in range(5):
+		var res := StrategyEntityResource.new()
+		res.name = names[i]
+		res.religion = religions[i]
+		res.social_class = StrategyTypes.SocialClass.SOLDIER
+
+		var morale_stat := ReactiveStat.new()
+		morale_stat.stat_name = StatName.I.MORALE
+		morale_stat.stat_value = randf_range(0.7, 1.0)
+		var speed_stat := ReactiveStat.new()
+		speed_stat.stat_name = StatName.I.MV_SPD
+		speed_stat.stat_value = 5.0
+		res.rs_array = [morale_stat, speed_stat]
+
+		warriors.append(Character.new(StrategyEntity.new(res)))
+
 	return warriors
 
 static func _create_squad(squad_id: String, squad_name: String, money: float, food: int, travel_tools: int, karma: float, starting_location_id: String) -> StrategySquad:

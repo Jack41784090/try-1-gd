@@ -369,7 +369,7 @@ func _cmd_warriors():
 		elif w.is_dead:
 			status = " [DEAD]"
 		_print_line("  %d. %s — %s | Position: %s | Morale: %.0f%s" % [
-			i + 1, w.name, EntityClasses.Types.keys()[w.class_id], pos_name, w.morale, status])
+			i + 1, w.display_name, w.identification, pos_name, float(w.get_stat_value(StatName.I.MORALE)), status])
 	_print_separator()
 
 
@@ -393,11 +393,13 @@ func _cmd_inventory():
 	for w in player_squad.get_living_warriors():
 		var weapon_name := "None"
 		var armor_name := "None"
-		if w.equipment_weapon:
-			weapon_name = SquadBattleTypes.WeaponClasses.keys()[w.equipment_weapon.weapon_class]
-		if w.equipment_armor:
-			armor_name = SquadBattleTypes.ArmorClasses.keys()[w.equipment_armor.armor_class]
-		_print_line("  %s — W: %s | A: %s" % [w.name, weapon_name, armor_name])
+		var equipped_weapon := w.get_equipped_weapon()
+		var equipped_armor := w.get_equipped_armor()
+		if equipped_weapon:
+			weapon_name = SquadBattleTypes.WeaponClasses.keys()[equipped_weapon.weapon_class]
+		if equipped_armor:
+			armor_name = SquadBattleTypes.ArmorClasses.keys()[equipped_armor.armor_class]
+		_print_line("  %s — W: %s | A: %s" % [w.display_name, weapon_name, armor_name])
 	_print_separator()
 
 
@@ -675,15 +677,12 @@ func _cmd_recruit(arg: String):
 		_print_line("Not enough gold! Need %d, have %.0f" % [cost, player_squad.money])
 		return
 
-	var new_warrior := StrategyEntityFactory.Create(
-		selected.background_id,
-		"warrior_%d_%d" % [world.current_hour, randi()],
-		"%s Recruit" % selected.display_name,
-		StrategyTypes.Religion.CATHOLIC
-	)
+	var new_entity := StrategyEntityFactory.Create(selected, StrategyTypes.Religion.CATHOLIC)
+	new_entity.id = "warrior_%d_%d" % [world.current_hour, randi()]
+	var new_warrior := Character.new(new_entity)
 	player_squad.add_warrior(new_warrior)
 	player_squad.money -= cost
-	_print_line("Recruited %s for %d gold! (%.0f gold remaining)" % [new_warrior.name, cost, player_squad.money])
+	_print_line("Recruited %s for %d gold! (%.0f gold remaining)" % [new_warrior.display_name, cost, player_squad.money])
 
 
 func _cmd_quit():

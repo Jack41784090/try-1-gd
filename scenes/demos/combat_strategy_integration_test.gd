@@ -582,20 +582,22 @@ func test_squad_get_warrior_by_id() -> void:
 	var squad = StrategySquad.new()
 	squad.warriors.clear()
 	
-	var warrior1 = StrategyEntity.new()
-	warrior1.id = "w1"
-	warrior1.name = "StrategyEntity One"
-	
-	var warrior2 = StrategyEntity.new()
-	warrior2.id = "w2"
-	warrior2.name = "StrategyEntity Two"
-	
+	var entity1 = StrategyEntity.new()
+	entity1.id = "w1"
+	entity1.display_name = "StrategyEntity One"
+	var warrior1 = Character.new(entity1)
+
+	var entity2 = StrategyEntity.new()
+	entity2.id = "w2"
+	entity2.display_name = "StrategyEntity Two"
+	var warrior2 = Character.new(entity2)
+
 	squad.warriors.append(warrior1)
 	squad.warriors.append(warrior2)
-	
+
 	var found = squad.get_warrior_by_id("w1")
 	assert_not_null(found, "warrior found")
-	assert_equal(found.name, "StrategyEntity One", "correct warrior returned")
+	assert_equal(found.display_name, "StrategyEntity One", "correct warrior returned")
 	
 	var not_found = squad.get_warrior_by_id("nonexistent")
 	assert_true(not_found == null, "null for nonexistent id")
@@ -735,17 +737,17 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_squad.squad_name = "Enemy CombatSquad"
 	
 	# Create warriors with combat stats
-	var warrior = StrategyEntity.new()
-	warrior.id = "w1"
-	warrior.name = "Test StrategyEntity"
-	warrior.combat_stats = CombatEntityBaseStats.new()
-	player_squad.warriors.append(warrior)
-	
-	var enemy_warrior = StrategyEntity.new()
-	enemy_warrior.id = "e1"
-	enemy_warrior.name = "Enemy StrategyEntity"
-	enemy_warrior.combat_stats = CombatEntityBaseStats.new()
-	enemy_squad.warriors.append(enemy_warrior)
+	var warrior_entity = StrategyEntity.new()
+	warrior_entity.id = "w1"
+	warrior_entity.display_name = "Test StrategyEntity"
+	warrior_entity.combat_stats = CombatEntityBaseStats.new()
+	player_squad.warriors.append(Character.new(warrior_entity))
+
+	var enemy_warrior_entity = StrategyEntity.new()
+	enemy_warrior_entity.id = "e1"
+	enemy_warrior_entity.display_name = "Enemy StrategyEntity"
+	enemy_warrior_entity.combat_stats = CombatEntityBaseStats.new()
+	enemy_squad.warriors.append(Character.new(enemy_warrior_entity))
 	
 	# Test with aggressive charge tactic
 	var aggressive = Tactic.create_aggressive_charge()

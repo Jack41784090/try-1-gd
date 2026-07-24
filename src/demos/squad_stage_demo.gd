@@ -2,7 +2,7 @@ extends Control
 
 @onready var stage_view: StageView = $StageView
 
-var _demo_warriors: Array[StrategyEntity] = []
+var _demo_warriors: Array[Character] = []
 
 func _ready() -> void:
 	_create_demo_warriors()
@@ -29,13 +29,13 @@ func _input(event: InputEvent) -> void:
 				if stage_view.presenter.current_mode == StagePresenter.StageMode.VN:
 					var speaker = _demo_warriors[randi() % _demo_warriors.size()]
 					stage_view.presenter.dismiss_all_speech()
-					stage_view.presenter.show_speech(speaker.id, speaker.name, "This is a test speech bubble from %s!" % speaker.name)
-					print("[StageDemo] Showing speech bubble for %s" % speaker.name)
+					stage_view.presenter.show_speech(speaker.id, speaker.display_name, "This is a test speech bubble from %s!" % speaker.display_name)
+					print("[StageDemo] Showing speech bubble for %s" % speaker.display_name)
 			KEY_C:
 				if stage_view.presenter.current_mode == StagePresenter.StageMode.VN and not _demo_warriors.is_empty():
 					var speaker = _demo_warriors[randi() % _demo_warriors.size()]
 					stage_view.presenter.focus_speaker(speaker.id)
-					print("[StageDemo] Camera focus on %s" % speaker.name)
+					print("[StageDemo] Camera focus on %s" % speaker.display_name)
 			KEY_R:
 				stage_view.presenter.return_to_wide()
 				print("[StageDemo] Camera reset to wide")
@@ -45,10 +45,9 @@ func _input(event: InputEvent) -> void:
 
 func _create_demo_warriors() -> void:
 	var names = ["Faust", "Heinrich", "Elara", "Konrad"]
-	var classes = [EntityClasses.Types.Landsknecht, EntityClasses.Types.Healer, EntityClasses.Types.Landsknecht, EntityClasses.Types.Healer]
 	for i in names.size():
-		var warrior = StrategyEntity.new()
-		warrior.id = names[i].to_lower()
-		warrior.name = names[i]
-		warrior.class_id = classes[i]
+		var entity = StrategyEntity.new()
+		entity.id = names[i].to_lower()
+		entity.display_name = names[i]
+		var warrior = Character.new(entity)
 		_demo_warriors.append(warrior)

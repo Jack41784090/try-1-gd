@@ -1,21 +1,20 @@
 extends Node
 
 ## Regression test for ReactiveStat -> units_panel/unit_item UI wiring.
-## Simulates the exact scene the user manually tested (units_panel.tscn with
-## its Timer driving units_panel.gd's _change_random_squad_member_prop) and
-## verifies the MoraleBar in unit_item.tscn actually reflects stat changes.
+## Promoted from the src/test_reactive_stat.gd prototype harness onto the real
+## production UnitsFloatingPanel/UnitItem + StrategySquad/Character/StrategyEntity
+## stack, to confirm the `changed`-signal reactivity survives the promotion.
 
-const UNITS_PANEL_SCENE := preload("res://src/units_panel.tscn")
-const ENTITY_RESOURCE_PATH := "res://src/strategy_entity_resource-instance1.tres"
+const UNITS_PANEL_SCENE := preload("res://scenes/ui/manage_squad/units_panel.tscn")
 
 var test_count := 0
 var passed_count := 0
 var failed_count := 0
 
-var panel: TestUnitsFloatingPanel
-var squad: TestStrategySquad
-var warrior: TestStrategyEntity
-var item: TestUnitItem
+var panel: UnitsFloatingPanel
+var squad: StrategySquad
+var warrior: Character
+var item: UnitItem
 var morale_bar
 
 
@@ -28,7 +27,7 @@ func _ready() -> void:
 	test_key_resolution()
 	test_initial_render()
 	test_direct_stat_mutation_updates_ui()
-	test_timer_driven_mutation_updates_ui()
+	test_external_driver_mutation_updates_ui()
 
 	print("\n" + "=".repeat(70))
 	print("TEST RESULTS: %d passed, %d failed, %d total" % [passed_count, failed_count, test_count])
@@ -56,13 +55,27 @@ func check(condition: bool, test_name: String, detail: String = "") -> void:
 		print(msg)
 
 
-func _setup_scene() -> void:
-	var res := load(ENTITY_RESOURCE_PATH) as TestStrategyEntityResource
-	warrior = TestStrategyEntity.new(res)
-	warrior.display_name = "Test Warrior"
+func _make_warrior(display_name: String, morale: float = 1.0) -> Character:
+	var res := StrategyEntityResource.new()
+	res.name = display_name
 
-	squad = TestStrategySquad.new()
+	var morale_stat := ReactiveStat.new()
+	morale_stat.stat_name = StatName.I.MORALE
+	morale_stat.stat_value = morale
+	var speed_stat := ReactiveStat.new()
+	speed_stat.stat_name = StatName.I.MV_SPD
+	speed_stat.stat_value = 5.0
+	res.rs_array = [morale_stat, speed_stat]
+
+	return Character.new(StrategyEntity.new(res))
+
+
+func _setup_scene() -> void:
+	squad = StrategySquad.new()
+	warrior = _make_warrior("Test Warrior", 1.0)
 	squad.add_warrior(warrior)
+	for i in range(4):
+		squad.add_warrior(_make_warrior("Filler %d" % i, 0.5))
 
 	# Mirrors real usage: instance the panel scene, add it to the tree, then
 	# hand it a squad — same sequence units_panel.gd relies on for @onready
@@ -71,37 +84,45 @@ func _setup_scene() -> void:
 	add_child(panel)
 	panel.setup(squad)
 
-	check(panel._item_windows.size() == 1, "Panel builds one unit_item for the one warrior", "got %d" % panel._item_windows.size())
-	item = panel._item_windows[0] as TestUnitItem
+	check(panel._item_windows.size() == 5, "Panel builds one unit_item per warrior", "got %d" % panel._item_windows.size())
+	item = panel._item_windows[0] as UnitItem
 	morale_bar = item.morale_bar
 
 #endregion
 
 
 func test_key_resolution() -> void:
-	print("\n--- Test 1: ReactiveStat key resolution ---")
+	print("\n--- Test 1: ReactiveStat key resolution through Character → StrategyEntity ---")
 	var stat := warrior.get_stat(StatName.I.MORALE)
-	check(stat != null, "get_stat(MORALE) resolves to a ReactiveStat", "RS_DF_START_MORALE.tres stat_name must be int 0, not a StringName")
+	check(stat != null, "get_stat(MORALE) resolves to a ReactiveStat")
 	if stat:
 		check(stat.stat_value == 1.0, "Initial morale stat_value is 1.0", "got %s" % str(stat.stat_value))
 
 
 func test_initial_render() -> void:
 	print("\n--- Test 2: Initial panel render reflects entity state ---")
-	check(morale_bar.value == 1.0, "MoraleBar reads initial stat_value on setup", "got %s" % str(morale_bar.value))
+	# UnitItem._refresh_morale_speed() displays morale as a 0-100 percentage.
+	check(is_equal_approx(morale_bar.value, 100.0), "MoraleBar reads initial stat_value on setup", "got %s" % str(morale_bar.value))
 
 
 func test_direct_stat_mutation_updates_ui() -> void:
 	print("\n--- Test 3: Direct ReactiveStat mutation propagates to UI ---")
 	var stat := warrior.get_stat(StatName.I.MORALE)
-	stat.stat_value = 5.0
-	check(morale_bar.value == 5.0, "MoraleBar updates when stat_value is set directly", "got %s" % str(morale_bar.value))
+	stat.stat_value = 0.4
+	check(is_equal_approx(morale_bar.value, 40.0), "MoraleBar updates when stat_value is set directly", "got %s" % str(morale_bar.value))
 
 
-func test_timer_driven_mutation_updates_ui() -> void:
-	print("\n--- Test 4: Timer-callback flow (units_panel._change_random_squad_member_prop) ---")
-	var before: float = morale_bar.value
-	panel._change_random_squad_member_prop()
-	var after: float = morale_bar.value
-	check(after != before, "MoraleBar value changes after a simulated timer tick", "before=%s after=%s" % [str(before), str(after)])
-	check(after == warrior.get_stat(StatName.I.MORALE).stat_value, "MoraleBar matches underlying stat_value exactly", "bar=%s stat=%s" % [str(after), str(warrior.get_stat(StatName.I.MORALE).stat_value)])
+func test_external_driver_mutation_updates_ui() -> void:
+	print("\n--- Test 4: External-driver-style flow (random squad member mutated externally) ---")
+	var idx := randi() % squad.warriors.size()
+	var target: Character = squad.warriors[idx]
+	var target_item := panel._item_windows[idx] as UnitItem
+	var target_bar = target_item.morale_bar
+
+	var before: float = target_bar.value
+	var new_value: float = fmod(before / 100.0 + 0.37, 1.0)
+	target.get_stat(StatName.I.MORALE).stat_value = new_value
+	var after: float = target_bar.value
+
+	check(after != before, "MoraleBar value changes after an external mutation", "before=%s after=%s" % [str(before), str(after)])
+	check(is_equal_approx(after, new_value * 100.0), "MoraleBar matches underlying stat_value exactly", "bar=%s stat=%s" % [str(after), str(new_value * 100.0)])

@@ -465,7 +465,7 @@ func _print_final_results():
 		])
 		for w in winner.get_living_warriors():
 			Log.info("BattleRoyale", "  - %s (Injured: %s)" % [
-				w.name,
+				w.display_name,
 				"Yes" if w.is_injured else "No",
 			])
 	elif survivors.size() > 1:

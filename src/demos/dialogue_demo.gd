@@ -12,7 +12,7 @@ extends Control
 
 var _presenter: VnPresenter
 var _playback: GroupPlayback
-var _demo_warriors: Array[StrategyEntity] = []
+var _demo_warriors: Array[Character] = []
 var _is_headless: bool = false
 
 
@@ -80,16 +80,11 @@ func _update_status(text: String) -> void:
 
 func _create_demo_warriors() -> void:
 	var names = ["Faust", "Heinrich", "Elara"]
-	var classes = [
-		EntityClasses.Types.Landsknecht,
-		EntityClasses.Types.Healer,
-		EntityClasses.Types.Landsknecht,
-	]
 	for i in names.size():
-		var warrior = StrategyEntity.new()
-		warrior.id = names[i].to_lower()
-		warrior.name = names[i]
-		warrior.class_id = classes[i]
+		var entity = StrategyEntity.new()
+		entity.id = names[i].to_lower()
+		entity.display_name = names[i]
+		var warrior = Character.new(entity)
 		_demo_warriors.append(warrior)
 
 

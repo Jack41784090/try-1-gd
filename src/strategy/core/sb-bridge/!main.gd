@@ -82,7 +82,7 @@ func apply_injury_penalties(strategic_squad: StrategySquad) -> void:
 		var max_hp = entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 		var penalty = max_hp * 0.5
 		entity.mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -penalty)
-		Log.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.name, max_hp - penalty, max_hp])
+		Log.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.display_name, max_hp - penalty, max_hp])
 
 
 func _build_squad_config(strategic_squad: StrategySquad, team: String, side: SquadBattleTypes.Side) -> Dictionary:
@@ -157,10 +157,10 @@ func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate])
 				var from_hp = update.change.from
 				var to_hp = update.change.to
 
-				if to_hp <= 0:
-					warrior.is_dead = true
-					warrior.morale = 0.0
-					result.deaths.append(warrior_id)
+			if to_hp <= 0:
+				warrior.is_dead = true
+				warrior.get_stat(StatName.I.MORALE).stat_value = 0.0
+				result.deaths.append(warrior_id)
 				elif to_hp < from_hp:
 					warrior.is_injured = true
 					var damage_ratio = (from_hp - to_hp) / from_hp if from_hp > 0 else 0.0
@@ -181,7 +181,7 @@ func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate])
 			SquadBattleTypes.EntityChangeable.DIE:
 				# Explicit death flag (from skills like Execute)
 				warrior.is_dead = true
-				warrior.morale = 0.0
+				warrior.get_stat(StatName.I.MORALE).stat_value = 0.0
 				if not result.deaths.has(warrior_id):
 					result.deaths.append(warrior_id)
 			SquadBattleTypes.EntityChangeable.CAPITULATE:

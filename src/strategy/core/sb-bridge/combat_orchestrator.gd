@@ -35,14 +35,14 @@ func apply_result(result: CombatController.CombatResult, squad: StrategySquad, l
 	for casualty_id in result.player_casualties:
 		var warrior = squad.get_warrior_by_id(casualty_id)
 		if warrior:
-			turn_log.append("CASUALTY %s" % warrior.name)
-			Log.info("Combat", "Casualty: %s" % warrior.name)
+			turn_log.append("CASUALTY %s" % warrior.display_name)
+			Log.info("Combat", "Casualty: %s" % warrior.display_name)
 
 	for escaped_id in result.escaped_warriors:
 		var warrior = squad.get_warrior_by_id(escaped_id)
 		if warrior:
-			turn_log.append("ESCAPED %s (injured)" % warrior.name)
-			Log.info("Combat", "Escaped (injured): %s" % warrior.name)
+			turn_log.append("ESCAPED %s (injured)" % warrior.display_name)
+			Log.info("Combat", "Escaped (injured): %s" % warrior.display_name)
 
 	if result.loot:
 		Log.debug("Combat", "Loot collected: %s" % [result.loot])

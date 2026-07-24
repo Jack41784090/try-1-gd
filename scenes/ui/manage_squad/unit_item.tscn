@@ -48,14 +48,33 @@ stretch_mode = 4
 [node name="InfoVBox" type="VBoxContainer" parent="Rim/HBoxContainer" unique_id=40851972]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="NameLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox" unique_id=1707168940]
+[node name="HeaderHBox" type="HBoxContainer" parent="Rim/HBoxContainer/InfoVBox" unique_id=1707168940]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/HeaderHBox" unique_id=1707168941]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"SubsectionLabel"
 text = "Warrior Name"
 label_settings = SubResource("LabelSettings_iti3i")
+
+[node name="StatusLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/HeaderHBox" unique_id=1707168942]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+
+[node name="SubtitleLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox" unique_id=1707168943]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "Class • Social • Religion"
 
 [node name="StatsHBox" type="HBoxContainer" parent="Rim/HBoxContainer/InfoVBox" unique_id=1038752837]
 layout_mode = 2
@@ -70,9 +89,54 @@ show_bar = true
 layout_mode = 2
 key = "Morale:"
 
-[node name="LocationBar" parent="Rim/HBoxContainer/InfoVBox/StatsHBox" unique_id=987654321 instance=ExtResource("4_hrwr6")]
+[node name="SpeedLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/StatsHBox" unique_id=1038752838]
+unique_name_in_owner = true
 layout_mode = 2
-key = "Pos:"
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Spd: 5.0"
+
+[node name="EquipStatsHBox" type="HBoxContainer" parent="Rim/HBoxContainer/InfoVBox" unique_id=1038752839]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="AtkLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/EquipStatsHBox" unique_id=1038752840]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.75, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+text = "Atk: —"
+
+[node name="DefLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/EquipStatsHBox" unique_id=1038752841]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Def: —"
+
+[node name="PenLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/EquipStatsHBox" unique_id=1038752842]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.7, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "Pen: —"
+
+[node name="MagLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/EquipStatsHBox" unique_id=1038752843]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.6, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Mag: —"
+
+[node name="PosLabel" type="Label" parent="Rim/HBoxContainer/InfoVBox/EquipStatsHBox" unique_id=1038752844]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1
+theme_override_colors/font_color = Color(0.5, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "Pos: —"
+horizontal_alignment = 2
 
 [node name="Rim" type="PanelContainer" parent="Rim/HBoxContainer" unique_id=370456162]
 layout_mode = 2

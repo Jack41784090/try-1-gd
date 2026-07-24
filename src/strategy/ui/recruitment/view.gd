@@ -1,6 +1,6 @@
 class_name RecruitmentView extends Control
 
-signal recruitment_completed(warrior: StrategyEntity)
+signal recruitment_completed(warrior: Character)
 signal closed
 
 @onready var overlay_panel: PanelContainer = $OverlayPanel
@@ -60,18 +60,14 @@ func _on_recruit_pressed_from_item(background: WarriorBackground) -> void:
 	if current_squad.money < cost:
 		return
 
-	# DISABLED: recruitment needs the StrategyEntity runtime-build bridge
-	# (StrategyEntityFactory) which does not exist during the StrategyEntity rewrite.
-	# var new_warrior = StrategyEntityFactory.Create(
-	# 	background.background_id,
-	# 	"warrior_%d_%d" % [actor.aem.world.current_hour, randi()],
-	# 	"%s Recruit" % background.display_name,
-	# 	StrategyTypes.Religion.CATHOLIC
-	# )
-	# current_squad.add_warrior(new_warrior)
-	# current_squad.money -= cost
-	# print("[RecruitmentView] Recruited %s for %d gold" % [new_warrior.name, cost])
-	# recruitment_completed.emit(new_warrior)
+	var new_warrior := Character.new(StrategyEntityFactory.Create(
+		background,
+		StrategyTypes.Religion.CATHOLIC,
+	))
+	current_squad.add_warrior(new_warrior)
+	current_squad.money -= cost
+	print("[RecruitmentView] Recruited %s for %d gold" % [new_warrior.display_name, cost])
+	recruitment_completed.emit(new_warrior)
 	hide_recruitment_menu()
 
 func _on_close_pressed() -> void:

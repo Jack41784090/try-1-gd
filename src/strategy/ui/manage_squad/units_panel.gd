@@ -2,10 +2,10 @@
 class_name UnitsFloatingPanel
 extends Control
 
-signal weapon_window_received(warrior: StrategyEntity, window: Control)
-signal armor_window_received(warrior: StrategyEntity, window: Control)
-signal weapon_display_removed(warrior: StrategyEntity, window: Control)
-signal armor_display_removed(warrior: StrategyEntity, window: Control)
+signal weapon_window_received(warrior: Character, window: Control)
+signal armor_window_received(warrior: Character, window: Control)
+signal weapon_display_removed(warrior: Character, window: Control)
+signal armor_display_removed(warrior: Character, window: Control)
 
 const WARRIOR_ITEM_SCENE = preload("res://scenes/ui/manage_squad/unit_item.tscn")
 @onready var _units_container: Control = %VBC

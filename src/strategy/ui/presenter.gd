@@ -231,10 +231,9 @@ func on_investigation_closed() -> void:
 	view.hide_investigation_menu()
 
 
-func on_recruitment_completed(warrior: StrategyEntity) -> void:
-	Log.info("Presenter", "Recruited warrior: %s" % warrior.name)
-	var display_class: String = str(warrior.background_id) if not warrior.background_id.is_empty() else warrior.identification
-	view.log_squad_event("Recruited: %s (%s)" % [warrior.name, display_class], Color(0.3, 0.8, 1.0))
+func on_recruitment_completed(warrior: Character) -> void:
+	Log.info("Presenter", "Recruited warrior: %s" % warrior.display_name)
+	view.log_squad_event("Recruited: %s (%s)" % [warrior.display_name, warrior.identification], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
 	_update_ui()

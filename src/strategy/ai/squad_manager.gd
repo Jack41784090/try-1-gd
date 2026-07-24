@@ -239,7 +239,7 @@ func cleanup_defeated_squads() -> void:
 		if squad.get_morale() <= 0.0 and living_count > 0:
 			var deserters := 0
 			for warrior in squad.get_living_warriors():
-				if warrior.morale <= 0.0:
+				if float(warrior.get_stat_value(StatName.I.MORALE)) <= 0.0:
 					warrior.is_dead = true
 					deserters += 1
 			if deserters > 0:
@@ -286,11 +286,11 @@ const WARRIOR_NAMES := [
 ]
 
 func _ensure_unique_warriors(squad: StrategySquad) -> void:
-	var unique_warriors: Array[StrategyEntity] = []
+	var unique_warriors: Array[Character] = []
 	for i in range(squad.warriors.size()):
-		var copy: StrategyEntity = squad.warriors[i].duplicate(true)
-		copy.id = "%s_w%d" % [squad.squad_id, i]
-		copy.name = WARRIOR_NAMES[(squad.squad_id.hash() + i) % WARRIOR_NAMES.size()]
+		var copy: Character = squad.warriors[i].duplicate(true)
+		copy.strategy.id = "%s_w%d" % [squad.squad_id, i]
+		copy.strategy.display_name = WARRIOR_NAMES[(squad.squad_id.hash() + i) % WARRIOR_NAMES.size()]
 		unique_warriors.append(copy)
 	squad.warriors = unique_warriors
 

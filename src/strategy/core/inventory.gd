@@ -37,43 +37,41 @@ func remove_armor(armor: ArmorConfig) -> bool:
 	return true
 
 
-func equip_weapon(warrior: StrategyEntity, weapon: WeaponResource) -> void:
+func equip_weapon(warrior: Character, weapon: WeaponResource) -> void:
 	assert(warrior != null, "Cannot equip to null warrior")
 	assert(weapon != null, "Cannot equip null weapon")
 	assert(weapons.has(weapon), "Weapon not in inventory")
 	weapons.remove_at(weapons.find(weapon))
-	if warrior.equipment_weapon != null:
-		weapons.append(warrior.equipment_weapon)
-	warrior.equipment_weapon = weapon
+	if warrior.get_equipped_weapon() != null:
+		weapons.append(warrior.get_equipped_weapon())
+	warrior.equip_weapon(weapon)
 	changed.emit()
 
 
-func equip_armor(warrior: StrategyEntity, armor: ArmorConfig) -> void:
+func equip_armor(warrior: Character, armor: ArmorConfig) -> void:
 	assert(warrior != null, "Cannot equip to null warrior")
 	assert(armor != null, "Cannot equip null armor")
 	assert(armors.has(armor), "Armor not in inventory")
 	armors.remove_at(armors.find(armor))
-	if warrior.equipment_armor != null:
-		armors.append(warrior.equipment_armor)
-	warrior.equipment_armor = armor
+	if warrior.get_equipped_armor() != null:
+		armors.append(warrior.get_equipped_armor())
+	warrior.equip_armor(armor)
 	changed.emit()
 
 
-func unequip_weapon(warrior: StrategyEntity) -> void:
+func unequip_weapon(warrior: Character) -> void:
 	assert(warrior != null, "Cannot unequip from null warrior")
-	if warrior.equipment_weapon == null:
+	if warrior.get_equipped_weapon() == null:
 		return
-	weapons.append(warrior.equipment_weapon)
-	warrior.equipment_weapon = null
+	weapons.append(warrior.unequip_weapon())
 	changed.emit()
 
 
-func unequip_armor(warrior: StrategyEntity) -> void:
+func unequip_armor(warrior: Character) -> void:
 	assert(warrior != null, "Cannot unequip from null warrior")
-	if warrior.equipment_armor == null:
+	if warrior.get_equipped_armor() == null:
 		return
-	armors.append(warrior.equipment_armor)
-	warrior.equipment_armor = null
+	armors.append(warrior.unequip_armor())
 	changed.emit()
 
 

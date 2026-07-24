@@ -1,10 +1,10 @@
 class_name FormationSlot
 extends PanelContainer
 
-signal warrior_dropped(warrior: StrategyEntity, slot: Variant)
+signal warrior_dropped(warrior: Character, slot: Variant)
 signal slot_clicked(slot: Variant)
 
-var warrior: StrategyEntity = null
+var warrior: Character = null
 var row_position: SquadBattleTypes.SquadEntityInSquadLocation
 var slot_index: int = 0
 
@@ -79,7 +79,7 @@ func setup(pos: SquadBattleTypes.SquadEntityInSquadLocation, idx: int) -> void:
 	slot_index = idx
 
 
-func set_warrior(w: StrategyEntity) -> void:
+func set_warrior(w: Character) -> void:
 	warrior = w
 	_refresh_display()
 
@@ -103,7 +103,7 @@ func _refresh_display() -> void:
 		return
 
 	if warrior:
-		_name_label.text = warrior.name
+		_name_label.text = warrior.display_name
 		_class_label.text = warrior.identification
 		if warrior.is_dead:
 			_hp_label.text = "DEAD"
@@ -129,7 +129,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 		return null
 
 	var preview := Label.new()
-	preview.text = warrior.name
+	preview.text = warrior.display_name
 	preview.add_theme_font_size_override("font_size", 14)
 	preview.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7, 1.0))
 
@@ -171,7 +171,7 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if not data is Dictionary:
 		return
-	var dropped_warrior: StrategyEntity = data["warrior"]
+	var dropped_warrior: Character = data["warrior"]
 	var source_slot = data["source_slot"]
 
 	if source_slot == self:
