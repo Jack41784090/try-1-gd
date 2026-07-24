@@ -1,8 +1,22 @@
 [gd_resource type="Resource" script_class="StrategyEntityResource" format=3 uid="uid://jcikf8f3hc56"]
 
 [ext_resource type="Script" uid="uid://caiy8nrf8p8cv" path="res://src/character/strat_resource.gd" id="1_kqsbc"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="2_rs"]
+
+[sub_resource type="Resource" id="ReactiveStat_cb_morale"]
+script = ExtResource("2_rs")
+stat_value = 0.5
+stat_name = 0
+
+[sub_resource type="Resource" id="ReactiveStat_cb_mvspd"]
+script = ExtResource("2_rs")
+stat_value = 5.0
+stat_name = 1
 
 [resource]
 script = ExtResource("1_kqsbc")
 name = "Crossbowstrat"
+social_class = 1
+identification = "crossbowman"
+rs_array = Array[ExtResource("2_rs")]([SubResource("ReactiveStat_cb_morale"), SubResource("ReactiveStat_cb_mvspd")])
 metadata/_custom_type_script = "uid://caiy8nrf8p8cv"

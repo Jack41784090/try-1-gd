@@ -2,13 +2,39 @@
 
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="1_48kqx"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="2_0jl8n"]
+[ext_resource type="Script" uid="uid://bvueo5thigtj3" path="res://src/character/character.gd" id="9_char"]
 [ext_resource type="Resource" uid="uid://cob1exkhexah3" path="res://resources/strategy/warrior-presets/test-Siegmund.tres" id="3_1syff"]
+
+[sub_resource type="Resource" id="StrategyEntity_0"]
+script = ExtResource("2_0jl8n")
+resource = ExtResource("3_1syff")
+
+[sub_resource type="Resource" id="Character_0"]
+script = ExtResource("9_char")
+strategy = SubResource("StrategyEntity_0")
+
+[sub_resource type="Resource" id="StrategyEntity_1"]
+script = ExtResource("2_0jl8n")
+resource = ExtResource("3_1syff")
+
+[sub_resource type="Resource" id="Character_1"]
+script = ExtResource("9_char")
+strategy = SubResource("StrategyEntity_1")
+
+[sub_resource type="Resource" id="StrategyEntity_2"]
+script = ExtResource("2_0jl8n")
+resource = ExtResource("3_1syff")
+
+[sub_resource type="Resource" id="Character_2"]
+script = ExtResource("9_char")
+strategy = SubResource("StrategyEntity_2")
+
 
 [resource]
 script = ExtResource("1_48kqx")
 squad_id = "test-player"
 squad_name = "Player's Squad"
-warriors = Array[ExtResource("2_0jl8n")]([ExtResource("3_1syff"), ExtResource("3_1syff"), ExtResource("3_1syff")])
+warriors = Array[ExtResource("9_char")]([SubResource("Character_0"), SubResource("Character_1"), SubResource("Character_2")])
 food = 10
 travel_tools = 3
 formation = Array[int]([1, 2, 2])

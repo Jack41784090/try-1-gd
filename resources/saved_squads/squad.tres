@@ -7,47 +7,54 @@
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="5_d64rg"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="6_avsdn"]
 [ext_resource type="Resource" uid="uid://jcikf8f3hc56" path="res://resources/strategy/warrior-presets/_crossbowman.tres" id="7_8ou0c"]
+[ext_resource type="Script" uid="uid://bvueo5thigtj3" path="res://src/character/character.gd" id="8_char"]
 
 [sub_resource type="Resource" id="Resource_uqni0"]
 script = ExtResource("2_3ofmj")
 weapons = Array[ExtResource("3_qgub8")]([ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6"), ExtResource("4_oo1r6")])
 
-[sub_resource type="Resource" id="Resource_y2k61"]
+[sub_resource type="Resource" id="StrategyEntity_y2k61"]
 script = ExtResource("6_avsdn")
 resource = ExtResource("7_8ou0c")
-morale = 0.5
-display_name = "Crossbowstrat"
-move_speed = 5.0
 
-[sub_resource type="Resource" id="Resource_sstwq"]
-script = ExtResource("6_avsdn")
-resource = ExtResource("7_8ou0c")
-morale = 0.5
-display_name = "Crossbowstrat"
-move_speed = 5.0
+[sub_resource type="Resource" id="Character_y2k61"]
+script = ExtResource("8_char")
+strategy = SubResource("StrategyEntity_y2k61")
 
-[sub_resource type="Resource" id="Resource_r3d2m"]
+[sub_resource type="Resource" id="StrategyEntity_sstwq"]
 script = ExtResource("6_avsdn")
 resource = ExtResource("7_8ou0c")
-morale = 0.5
-display_name = "Crossbowstrat"
 
-[sub_resource type="Resource" id="Resource_h3ole"]
-script = ExtResource("6_avsdn")
-resource = ExtResource("7_8ou0c")
-morale = 0.5
-display_name = "Crossbowstrat"
-move_speed = 5.0
+[sub_resource type="Resource" id="Character_sstwq"]
+script = ExtResource("8_char")
+strategy = SubResource("StrategyEntity_sstwq")
 
-[sub_resource type="Resource" id="Resource_o8a1b"]
+[sub_resource type="Resource" id="StrategyEntity_r3d2m"]
 script = ExtResource("6_avsdn")
 resource = ExtResource("7_8ou0c")
-morale = 0.5
-display_name = "Crossbowstrat"
-move_speed = 5.0
+
+[sub_resource type="Resource" id="Character_r3d2m"]
+script = ExtResource("8_char")
+strategy = SubResource("StrategyEntity_r3d2m")
+
+[sub_resource type="Resource" id="StrategyEntity_h3ole"]
+script = ExtResource("6_avsdn")
+resource = ExtResource("7_8ou0c")
+
+[sub_resource type="Resource" id="Character_h3ole"]
+script = ExtResource("8_char")
+strategy = SubResource("StrategyEntity_h3ole")
+
+[sub_resource type="Resource" id="StrategyEntity_o8a1b"]
+script = ExtResource("6_avsdn")
+resource = ExtResource("7_8ou0c")
+
+[sub_resource type="Resource" id="Character_o8a1b"]
+script = ExtResource("8_char")
+strategy = SubResource("StrategyEntity_o8a1b")
 
 [resource]
 script = ExtResource("5_d64rg")
-warriors = Array[ExtResource("6_avsdn")]([SubResource("Resource_y2k61"), SubResource("Resource_sstwq"), SubResource("Resource_r3d2m"), SubResource("Resource_h3ole"), SubResource("Resource_o8a1b")])
+warriors = Array[ExtResource("8_char")]([SubResource("Character_y2k61"), SubResource("Character_sstwq"), SubResource("Character_r3d2m"), SubResource("Character_h3ole"), SubResource("Character_o8a1b")])
 formation = Array[int]([1, 1, 1, 1, 1])
 inventory = SubResource("Resource_uqni0")

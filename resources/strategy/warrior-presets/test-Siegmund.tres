@@ -1,22 +1,35 @@
-[gd_resource type="Resource" script_class="Warrior" format=3 uid="uid://cob1exkhexah3"]
+[gd_resource type="Resource" script_class="StrategyEntityResource" format=3 uid="uid://cob1exkhexah3"]
 
-[ext_resource type="Resource" uid="uid://cc7myluyxivt1" path="res://resources/combat/classes/base_stats/BS_test-Landsnecht.tres" id="1_ftabk"]
-[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="1_twsyk"]
-[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="2_tqwuc"]
-[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="3_dmeqs"]
+[ext_resource type="Script" uid="uid://caiy8nrf8p8cv" path="res://src/character/strat_resource.gd" id="1_res"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="2_rs"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="3_wpn"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="4_arm"]
+
+[sub_resource type="Resource" id="ReactiveStat_sieg_morale"]
+script = ExtResource("2_rs")
+stat_value = 0.8
+stat_name = 0
+
+[sub_resource type="Resource" id="ReactiveStat_sieg_mvspd"]
+script = ExtResource("2_rs")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="ReactiveStat_sieg_weapon"]
+script = ExtResource("2_rs")
+stat_value = ExtResource("3_wpn")
+stat_name = 2
+
+[sub_resource type="Resource" id="ReactiveStat_sieg_armour"]
+script = ExtResource("2_rs")
+stat_value = ExtResource("4_arm")
+stat_name = 3
 
 [resource]
-script = ExtResource("1_twsyk")
-id = "landsknecht"
+script = ExtResource("1_res")
 name = "Siegmund"
-attributes = {
-"diplomacy": 3,
-"leadership": 3,
-"perception": 2,
-"stealth": 4,
-"survival": 5
-}
-combat_stats = ExtResource("1_ftabk")
-equipment_weapon = ExtResource("3_dmeqs")
-equipment_armor = ExtResource("2_tqwuc")
-metadata/_custom_type_script = "uid://daf2liv8hyncx"
+social_class = 1
+religion = 1
+identification = "landsknecht"
+rs_array = Array[ExtResource("2_rs")]([SubResource("ReactiveStat_sieg_morale"), SubResource("ReactiveStat_sieg_mvspd"), SubResource("ReactiveStat_sieg_weapon"), SubResource("ReactiveStat_sieg_armour")])
+metadata/_custom_type_script = "uid://caiy8nrf8p8cv"
