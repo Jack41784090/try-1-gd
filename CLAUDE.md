@@ -6,13 +6,14 @@ This file provides guidance to Claude Code when working with this repository. Up
 
 ## Project
 
-CONDOR — squad-based narrative strategy game. **Godot 4.5**, **GDScript** + **C#**. Requires `godot-mono` + `dotnet build` (`try1.csproj`, Godot.NET.Sdk/4.6.0, net8.0).
+CONDOR — squad-based narrative strategy game. **Godot 4.7**, **GDScript** + **C#**. Requires `godot-mono` + `dotnet build` (`try1.csproj`, Godot.NET.Sdk/4.7.0, net8.0).
 
 ## Running & Testing
 
 - **Main scene**: F5 runs `scenario.tscn`
 - **Demo scenes** in `scenes/demos/` — run with F6 (or `godot --headless --path . scenes/demos/<name>.tscn`):
   - `combat_controller_test.tscn`, `combat_strategy_integration_test.tscn`, `scenario_attack_test.tscn` — combat tests
+  - `combat_entity_rs_test.tscn` — CombatEntity ReactiveStat cascade: template resolution, `_REALITY_TABLE` math, floor/ceiling clamping, per-instance independence, `Character.enter_battle()` tier-2/tier-1 fallback (headless ok)
   - `ai_runner_demo.tscn` — AI brain decisions; `ai_battle_royale_demo.tscn` — fleet sim; `ai_stress_test_demo.tscn` — 50-turn stress
   - `pause_system_test.tscn` — pause/unpause/menu auto-pause (headless ok)
   - `squad_battle_2d_demo.tscn` — 2D WarriorRig battle
@@ -32,6 +33,7 @@ CONDOR — squad-based narrative strategy game. **Godot 4.5**, **GDScript** + **
 - **Autoload singletons**: `StrategyEventBus`, `StatusEffectEventBus`, `DamageNumbersManager`, `SceneManager`, `SFX`, `GrimdarkFX`
 - **Sound generation**: `python3 tools/sound_designer.py` (`--list`, `--preset <name>`, `--format wav|mp3|ogg`)
 - Run relevant demos after logic changes.
+- **Hyprland**: any GUI Godot window (editor, `--gui` runs, `start_canvas.sh`) auto-routes to workspace 10 without stealing focus, via silent windowrules on class `Godot`/`try1` in `~/.config/hypr/userprefs.conf`. Launcher: `godot-ws` (`~/.local/bin`).
 
 ### AI Interactive Play (`tools/play.sh`)
 - `bash tools/play.sh "status"` — auto-starts game per `CONDOR_SESSION`. Set `export CONDOR_SESSION=<id>` for persistence.
@@ -68,15 +70,26 @@ CONDOR — squad-based narrative strategy game. **Godot 4.5**, **GDScript** + **
    - `World` (core/world.gd) — location graph, roaming squads, `current_hour`, `is_paused`, `speed_multiplier`
    - `GameClock` (core/game_clock.gd) — drives hour progression, emits `hour_ticked`. `pause()/unpause()/set_speed()`
    - **Hourly tick**: `hour_ticked` → `StrategyPresenter._on_hour_tick()`. Economy every 24h
-   - **Activity toggle**: `SquadData.current_activity_type`. SPACE toggles pause. Selecting activity does NOT auto-unpause
+   - **Activity toggle**: `StrategySquad.current_activity_type`. SPACE toggles pause. Selecting activity does NOT auto-unpause
    - **Menu auto-pause**: opening any menu pauses. Closing does NOT auto-unpause
    - `ActivityExecuteManager` (ui/actor/!main.gd) — `exec_before/activity/after()`. AI skips triggerables
    - `ActivityHandler` base → `ActivityRegistry` maps ActivityType→handler (10 handlers + 5 pass-through)
    - **Travel**: km-based, `TownConnection.distance_km`, `EntityClasses.SPEED_TABLE`, `TravelGraph` distance-weighted A*
 
 3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
-   - `CombatBridge` (!main.gd) — stateless strategic↔tactical translation. CAPITULATE → `is_injured=true`
-   - `CombatController` (control.gd) — stateful. `CombatResult` includes `escaped_warriors`, `equipment_loot`
+   - `CombatBridge` (!main.gd) — translates `StrategySquad` ↔ `SquadBattle` via `Character.enter_battle()`/`exit_battle()`. CAPITULATE → `is_injured=true`
+   - `CombatController` (control.gd) — stateful, entry point `inject_context()`. `CombatResult` includes `escaped_warriors`, `equipment_loot`
+
+### Character & the ReactiveStat Cascade (`src/character/`)
+
+Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`ReactiveStat` — `src/test_reactive_stat.gd`, a tiny `Resource` wrapping a `Variant` + `StatName.I`, emits `changed` on write):
+- **Tier 1 — Template**: `StrategyEntityResource.rs_array` / `CombatEntityResource.rs_array` (`resources/combat/classes/*.tres`). Shared, never mutated
+- **Tier 2 — Constant/Nature**: `StrategyEntity.rs_arr`. Persistent campaign warrior, duplicated from tier 1 once at creation (`StrategyEntityFactory.Create()`), rarely changes
+- **Tier 3 — Current/Battle**: `CombatEntity.rs_arr`. Ephemeral per-battle runtime, duplicated fresh on `enter_battle()`, discarded on `exit_battle()`
+- `StatName.I` enum (`statname_global.gd`): `MORALE, MV_SPD, WEAPON, ARMOUR, HP, STA, ORG, POS, MAG, LOC` (mutable/current) + 12 base attributes `STRENGTH..ENDURANCE` (`StatName.BASE_ATTRIBUTE_STATS`). Append-only — values are baked into `.tres` files
+- **`Character`** (`character.gd`) mediates `strategy: StrategyEntity` (nullable) + `combat: CombatEntity` (nullable) — the only class that knows about both; `StrategyEntity`/`CombatEntity` never reference each other. `enter_battle(side, player_id, loc)` resolves each base attribute tier-2→tier-1 via `get_constant_stat_value()` (falls through to the class template whenever the persistent character has no override), builds a `CombatEntityConfig`, constructs `CombatEntity`. `exit_battle()` drops the reference. `StrategySquad.warriors: Array[Character]`. `combat_identification` lets a `Character` with `strategy=null` resolve straight from a template (monsters/bandits/demo combatants)
+- `is_dead`/`is_injured` stay plain `bool` fields on `StrategyEntity`/`Character` (not `StatName` entries) — `not warrior.is_dead` must stay a real bool check, not a `Callable`
+- `CombatEntity._REALITY_TABLE`: `Dictionary[Reality, [base, MUL|ADD, [[StatName.I, weight], ...]]]` drives `calculate_reality_value()` → `get_ceiling_changeable_stat()`. `CombatEntityFactory.build_config_from_resource()` is the template-only construction path (no `Character`) for scripted/demo battles
 
 ### Supporting Systems
 
@@ -85,7 +98,7 @@ CONDOR — squad-based narrative strategy game. **Godot 4.5**, **GDScript** + **
 - **UIAnimations** (`src/utils/ui_animations.gd`): static — `register_button()`, `show/hide_overlay()`, `stagger_buttons()`, `slide_in/out_panel()`, `pulse()`, `animate_label_number()`
 - **Log** (`src/singletons/log.gd`): `class_name Log`. Levels: TRACE/DEBUG/INFO/WARN/ERROR. `Log.info("Source", "msg")`. Default: DEBUG
 - **Theme** (`resources/theme/condor_theme.tres`): EB Garamond. `ThemeConstants` (`src/utils/theme_constants.gd`)
-- **Data models**: `SquadData` (squad/social.gd), `CombatSquad` (squad/combat.gd), `Warrior` (character/social.gd), `CombatEntity` (character/combat.gd)
+- **Data models**: `StrategySquad` (squad/social.gd, tier 2), `CombatSquad` (squad/combat.gd, tier 3), `StrategyEntity`+`Character` (character/strat.gd, character/character.gd — see Character & the ReactiveStat Cascade below), `CombatEntity` (character/combat.gd, tier 3)
 
 ### Animation System (`src/animation/`)
 
@@ -169,9 +182,9 @@ HOI4-inspired: 0-100 → NONE/SUSPECTED/TRACKED/LOCKED. ATTACK requires LOCKED.
 
 ### Key Enums
 
-- Classes: `src/character/classes-enum.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter
-- Weapons: `src/squad-battle/weapon/_factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
-- Armor: `src/squad-battle/armor/_factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
+- Classes: `src/character/entity_classes.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter. `CombatEntityFactory` identifies templates by lowercase string (`"landsknecht"`), scanned from `resources/combat/classes/*.tres`
+- Weapons: `src/squad-battle/items/weapon/factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
+- Armor: `src/squad-battle/items/armor/factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
 - Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole
 - Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType
@@ -197,6 +210,7 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - **RefCounted** for logic — **Resource** for serializable data — **Node** for scene-attached UI
 
 ### Coding Rules
+- **Composition over inheritance**: prefer composing behavior from small resources/components (e.g. keyed `ReactiveStat` dictionaries) over deep subclass hierarchies. Reach for inheritance only when Godot's own architecture requires it (Node/Resource base types, `@tool` plugin hooks)
 - **Fail-fast**: `assert()` for requirements. No fallback values or stubs
 - **Enums over strings**. **Typed arrays**: `Array[EntityUpdate]` not `Array`
 - **No comments** unless `##` doc or complex algorithms
@@ -238,6 +252,7 @@ docs: update CLAUDE.md with face/expression system + add AGENTS.md
 
 ### Terminal / File Operations
 - **Never use `cat` heredoc** for GDScript files (strips tabs). Use Python `with open()` or `replace_string_in_file`
+- **Mass renames** (many files/symbols across the tree): write a Python script to do it programmatically instead of editing occurrences one by one
 - Commit after each code update. Only add+commit your own changes
 - **Sprint logging**: After committing, append to `~/Documents/schwarzwagen/CONDOR/Development/Sprints/2026/Q<Q>/<Month>/W<N>.md`. Add under `## Commits`
 
@@ -252,7 +267,7 @@ docs: update CLAUDE.md with face/expression system + add AGENTS.md
 
 ## Testing Conventions
 
-**All tests MUST use `HeadlessStrategyView` + `StrategyPresenter`** — same code path as real game. Load real scenario: `presenter.scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"`. Drive time: `game_clock.force_tick()` + `await presenter.tick_completed`.
+**All tests MUST use `HeadlessStrategyView` + `StrategyPresenter`** — same code path as real game. Load real scenario: `presenter.scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"`. Drive time: `game_clock.force_tick()` + `await presenter.tick_completed`.
 
 ```gdscript
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -279,16 +294,17 @@ func _ready():
 - `src/strategy/ui/actor/` — ActivityExecuteManager (!main.gd), ActivityRunner, AI executors
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, glances, actions, caravan brain
 - `src/animation/` — WarriorRig, configs, expressions, actions, controller
-- `src/character/` — Warrior (social.gd), CombatEntity (combat.gd), classes enum
-- `src/squad/` — SquadData, CombatSquad, CargoManifest
+- `src/character/` — StrategyEntity+StrategyEntityResource (strat.gd/strat_resource.gd, tier 2/1), Character mediator (character.gd), CombatEntity+CombatEntityResource (combat.gd/combat_resource.gd, tier 3/1), classes enum
+- `src/squad/` — StrategySquad (social.gd), CombatSquad (combat.gd), CargoManifest
 - `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge; `csharp/` (CsGovernment, CsGuild, GovernmentBrain, GuildBrain)
 - `src/singletons/` — event buses, SFX, Log
 - `assets/rig_textures/` — SVG bone textures per class (15 bones × 7 classes)
 - `assets/scenery/` — backdrop/prop SVGs; generator `tools/generate_scenery_svgs.py`
 - `assets/shaders/fx/` — world_atmosphere, vignette, film_grain, damage_pulse, combat_atmosphere
 - `assets/shaders/canvas/` — canvas shader experiments
-- `resources/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
+- `resources/strategy/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
 - `resources/ai/strategic/` — AI behavior `.tres` files
-- `resources/generic-activities/` — Activity `.tres` files
+- `resources/strategy/generic-activities/` — Activity `.tres` files
+- `resources/combat/classes/` — 7 `CombatEntityResource` class templates (tier 1); `resources/strategy/warrior-presets/`, `resources/strategy/squads-presets/` — `StrategyEntityResource`/`StrategySquad` preset data
 - `resources/theme/` — condor_theme.tres, styles/, bold_font.tres
 - `scenes/demos/canvas/` — SVG drawing canvas layouts + `svgs/rig/<class>/` bone SVGs
