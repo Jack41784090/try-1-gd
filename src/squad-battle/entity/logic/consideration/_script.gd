@@ -39,6 +39,11 @@ func _score_with_glances(entity, situation, _context) -> float:
 	#   → if Target: returning = Fritz (highest entity_score=0.7)
 	var entities_to_evaluate = _get_entities_to_evaluate(entity, situation)
 
+	# Reset so a stale target/skill from a previous score() call on this shared
+	# Resource (e.g. an entity that has since died) never leaks into this pass.
+	if should_return == SkillOrTarget.Target:
+		returning = null
+
 	if entities_to_evaluate.is_empty():
 		print("  [Consideration] No entities to evaluate, returning 0.0")
 		return 0.0
