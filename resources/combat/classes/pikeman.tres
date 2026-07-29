@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CombatEntityResource" format=3]
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
-[ext_resource type="Resource" uid="uid://dwm3hgj8uwbos" path="res://resources/combat/logic/logic/defensive-frontline.tres" id="2_logic"]
+[ext_resource type="Resource" uid="uid://dwm3hgj8uwbos" path="res://resources/combat/logic/defensive-frontline.tres" id="2_logic"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://bdyqacr8yaiqx" path="res://resources/combat/weapon/config/pike.tres" id="weapon"]
 [ext_resource type="Resource" uid="uid://duqnpcd70gla1" path="res://resources/combat/armor/half-plate.tres" id="armor"]

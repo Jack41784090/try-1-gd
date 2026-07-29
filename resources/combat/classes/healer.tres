@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_24hxr"]
 [ext_resource type="Texture2D" uid="uid://bubk1q5x1n63h" path="res://assets/Healer-idle.png" id="1_wgf35"]
-[ext_resource type="Resource" uid="uid://cdedndmtxq6m8" path="res://resources/combat/logic/logic/stay-backline-heal.tres" id="2_j0mvx"]
+[ext_resource type="Resource" uid="uid://cdedndmtxq6m8" path="res://resources/combat/logic/stay-backline-heal.tres" id="2_j0mvx"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="2_x2x1t"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://wtjmoptcuffo" path="res://resources/combat/weapon/config/unarmed.tres" id="weapon"]

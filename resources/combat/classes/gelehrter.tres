@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CombatEntityResource" format=3]
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
-[ext_resource type="Resource" uid="uid://ddsvebolwomtc" path="res://resources/combat/logic/logic/backline-caster.tres" id="2_logic"]
+[ext_resource type="Resource" uid="uid://ddsvebolwomtc" path="res://resources/combat/logic/backline-caster.tres" id="2_logic"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://ch8m2icxkiqrf" path="res://resources/combat/weapon/config/alchemical-fire.tres" id="weapon"]
 [ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="armor"]

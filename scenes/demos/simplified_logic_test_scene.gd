@@ -512,7 +512,7 @@ func test_logic_configuration_resources() -> void:
 func test_load_stay_backline_heal_resource() -> void:
 	start_test("Load stay-backline-heal.tres resource")
 	
-	var logic_conf = load("res://resources/combat/logic/logic/stay-backline-heal.tres") as SimplifiedLogicConfig
+	var logic_conf = load("res://resources/combat/logic/stay-backline-heal.tres") as SimplifiedLogicConfig
 	
 	assert_not_null(logic_conf, "Resource should load successfully")
 	assert_true(logic_conf.considerations.size() > 0, "Should have considerations")

@@ -11,13 +11,13 @@ enum LogicAvailable {
 }
 
 static var pathlib = {
-	"Frontline": "res://resources/combat/logic/logic/test-frontline.tres",
-	"BacklineHeal": "res://resources/combat/logic/logic/stay-backline-heal.tres",
-	"BacklineShooter": "res://resources/combat/logic/logic/backline-shooter.tres",
-	"DefensiveFrontline": "res://resources/combat/logic/logic/defensive-frontline.tres",
-	"BacklineSupport": "res://resources/combat/logic/logic/backline-support.tres",
-	"BacklineGunner": "res://resources/combat/logic/logic/backline-gunner.tres",
-	"BacklineCaster": "res://resources/combat/logic/logic/backline-caster.tres",
+	"Frontline": "res://resources/combat/logic/frontline.tres",
+	"BacklineHeal": "res://resources/combat/logic/stay-backline-heal.tres",
+	"BacklineShooter": "res://resources/combat/logic/backline-shooter.tres",
+	"DefensiveFrontline": "res://resources/combat/logic/defensive-frontline.tres",
+	"BacklineSupport": "res://resources/combat/logic/backline-support.tres",
+	"BacklineGunner": "res://resources/combat/logic/backline-gunner.tres",
+	"BacklineCaster": "res://resources/combat/logic/backline-caster.tres",
 }
 static var _cached_key = LogicAvailable.keys()
 static func get_logic(_logic: LogicAvailable):
