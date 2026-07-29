@@ -14,7 +14,7 @@ Turn-based Model + View in `src/squad-battle/`, coupled by signal (no Presenter)
 - External consumers await `battle.battle_completed` through the owning object, not a relay signal on the View
 - `BattlefieldView2D` (battlefield_view.gd) — 2D battlefield: SubViewport + Camera2D, row containers (Front/Middle/Back), tween animations
 - `BattleEntityDisplay` (entity/battle_display.gd) — wraps WarriorRig + HP bar + ORG icons
-- `SquadBattleMasterFactory` (_factory.gd) — loads `sb-master-2d.tscn`, returns Control
+- `SquadBattleMasterFactory` (squad_battle_master_factory.gd) — loads `sb-master-2d.tscn`, returns Control
 
 ## Flow
 
@@ -24,7 +24,7 @@ All state changes produce immutable `EntityUpdate`/`EntityChange` objects.
 
 ## Documentation Sync
 
-- When editing `src/squad-battle/**`, update matching architecture notes in `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/` in the same task.
+- When editing `src/squad_battle/**`, update matching architecture notes in `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/` in the same task.
 - Update impacted notes under `Systems/Combat/` and `Systems/Data/Combat Types.md`.
 - If strategy-combat integration flow changes, also update `Systems/Runtime/Combat Flow.md` and related hub notes.
 
@@ -39,15 +39,15 @@ All state changes produce immutable `EntityUpdate`/`EntityChange` objects.
 
 ## Combat Bridge
 
-`src/strategy/core/sb-bridge/` — connects tactical↔strategic:
-- `CombatBridge` (!main.gd) — stateless data translation. CAPITULATE → `is_injured=true`
+`src/strategy/core/sb_bridge/` — connects tactical↔strategic:
+- `CombatBridge` (combat_bridge.gd) — stateless data translation. CAPITULATE → `is_injured=true`
 - `CombatController` (control.gd) — stateful orchestration. `CombatResult` includes `escaped_warriors`, `equipment_loot`
 
 ## Enums & Factories
 
-- Weapons: `weapon/_factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
-- Armor: `armor/_factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
-- Logic: `entity/logic/_factory.gd` — Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster
+- Weapons: `items/weapon/factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
+- Armor: `items/armor/factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
+- Logic: `entity/logic/logic_factory.gd` — Frontline, BacklineHeal, BacklineShooter, DefensiveFrontline, BacklineSupport, BacklineGunner, BacklineCaster
 
 ## Unit Classes
 

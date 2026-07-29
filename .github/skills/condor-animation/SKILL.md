@@ -9,7 +9,7 @@ description: "CONDOR animation system: WarriorRig, skeletal animations, art styl
 
 `src/animation/` — 5-layer system: Clips→iExpression→AnimAction→Behavior→WarriorAnimController.
 
-- `WarriorRig` (warrior_rig.gd) — generates placeholder Polygon2D body parts, `apply_config()` replaces with textures
+- `WarriorRig` (src/animation/warrior_rig.gd) — generates placeholder Polygon2D body parts, `apply_config()` replaces with textures
 - `WarriorRigConfig/Factory` for per-class configs
 
 ### Animation Behaviors

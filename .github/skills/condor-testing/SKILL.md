@@ -38,7 +38,7 @@ All demo scenes in `scenes/demos/` — run with F6 in editor or via command line
 
 **All demo/test scenes MUST use `HeadlessStrategyView` + `StrategyPresenter`** — the same code path as the real game. Never hand-build World/EconomyEngine/Population manually in tests.
 
-**Load the real scenario**: `presenter.scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"`. Let `GameScenario._setup_economy()` initialize population, natural resources, government config, and the economy engine.
+**Load the real scenario**: `presenter.scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"`. Let `GameScenario._setup_economy()` initialize population, natural resources, government config, and the economy engine.
 
 **Drive time with `game_clock.force_tick()` + `await presenter.tick_completed`** — this runs the full hourly pipeline: AI turns, world systems (economy every 24h), contacts, activities, missions.
 

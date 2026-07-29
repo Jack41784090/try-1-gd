@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6uuefkxyjnog"
-path="res://.godot/imported/Landsknecht-defend.png-05a116b5f81b1dfd6a9ef54f04f7337c.ctex"
+path="res://.godot/imported/Landsknecht-defend.png-c410bfed0ebed833637e36a4370c5abc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Landsknecht-defend.png"
-dest_files=["res://.godot/imported/Landsknecht-defend.png-05a116b5f81b1dfd6a9ef54f04f7337c.ctex"]
+source_file="res://assets/_deprecated/Landsknecht-defend.png"
+dest_files=["res://.godot/imported/Landsknecht-defend.png-c410bfed0ebed833637e36a4370c5abc.ctex"]
 
 [params]
 

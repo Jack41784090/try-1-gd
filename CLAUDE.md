@@ -56,7 +56,7 @@ CONDOR — squad-based narrative strategy game. **Godot 4.7**, **GDScript** + **
 
 ### Three-Layer System
 
-1. **Tactical Combat** (`src/squad-battle/`) — Turn-based Model + View, coupled by signal
+1. **Tactical Combat** (`src/squad_battle/`) — Turn-based Model + View, coupled by signal
    - `SquadBattle` (data.gd) — Model (Resource): battle state, round logic. Owns `battle_completed(outcome)`, emitted once from `evaluate_outcome()` on the ONGOING→terminal transition. Held as a plain property on the View, never a scene child
    - `SquadBattleView2D` (view_2d.gd) — 2D WarriorRig battle view + round loop (`_start_battle()`/`_process_round()`, needs `get_tree()` timers). `all_updates`, `delay_between_rounds`, `request_retreat(team)`
    - External consumers await the domain event through its owner: `battle.battle_completed`, not a View relay signal
@@ -74,12 +74,12 @@ CONDOR — squad-based narrative strategy game. **Godot 4.7**, **GDScript** + **
    - **Hourly tick**: `hour_ticked` → `StrategyPresenter._on_hour_tick()`. Economy every 24h
    - **Activity toggle**: `StrategySquad.current_activity_type`. SPACE toggles pause. Selecting activity does NOT auto-unpause
    - **Menu auto-pause**: opening any menu pauses. Closing does NOT auto-unpause
-   - `ActivityExecuteManager` (ui/actor/!main.gd) — `exec_before/activity/after()`. AI skips triggerables
+   - `ActivityExecuteManager` (ui/actor/activity_execute_manager.gd) — `exec_before/activity/after()`. AI skips triggerables
    - `ActivityHandler` base → `ActivityRegistry` maps ActivityType→handler (10 handlers + 5 pass-through)
    - **Travel**: km-based, `TownConnection.distance_km`, `EntityClasses.SPEED_TABLE`, `TravelGraph` distance-weighted A*
 
-3. **Combat Bridge** (`src/strategy/core/sb-bridge/`)
-   - `CombatBridge` (!main.gd) — translates `StrategySquad` ↔ `SquadBattle` via `Character.enter_battle()`/`exit_battle()`. CAPITULATE → `is_injured=true`
+3. **Combat Bridge** (`src/strategy/core/sb_bridge/`)
+   - `CombatBridge` (activity_execute_manager.gd) — translates `StrategySquad` ↔ `SquadBattle` via `Character.enter_battle()`/`exit_battle()`. CAPITULATE → `is_injured=true`
    - `CombatController` (control.gd) — stateful, entry point `inject_context()`. `CombatResult` includes `escaped_warriors`, `equipment_loot`
 
 ### Character & the ReactiveStat Cascade (`src/character/`)
@@ -107,8 +107,8 @@ Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`Re
 5-layer: Clips→iExpression→AnimAction→Behavior→WarriorAnimController.
 
 **`WarriorRig` dual mode**:
-- **Baked** (`warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`
-- **Legacy** (`warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`
+- **Baked** (`scenes/rig/warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`
+- **Legacy** (`scenes/rig/warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`
 
 **Inspector-driven** (`@tool`): `config` export or `character_name`+`emotion` dropdowns (scanned from `assets/rig_textures/<name>/`). Baked rigs preview live in editor. `RigTextureLibrary` (`rig_texture_library.gd`): `build_config(name, emotion, base=null)`, `apply_textures()`.
 
@@ -179,15 +179,15 @@ HOI4-inspired: 0-100 → NONE/SUSPECTED/TRACKED/LOCKED. ATTACK requires LOCKED.
 - **Government** (`CsGovernment`): 3 phases — GovernmentTax, GovernmentPlan (HireWorkers directives), GovernmentExecute. `GovernmentConfig` Resource on Location
 - **Guilds** (`CsGuild`): 2 phases — PhaseGuildRecruit, PhaseGuildProduce. `GuildConfig` Resource on Location. First guild: Nürnberg Smithing (swords from 2 iron + 1 wood)
 - **PersonBrain**: `NobleBrain` (loan scoring), `CommonBrain` (singleton no-op). `PhasePersonDecisions` runs all brains each tick
-- **Caravan Bridge** (`caravan_bridge.gd`): materializes trade dispatches as MERCHANT squads. Uses `caravan-courier` brain profile
+- **Caravan Bridge** (`strategy_bridge/caravan_bridge.gd`): materializes trade dispatches as MERCHANT squads. Uses `caravan-courier` brain profile
 - **Bandit System** (`bandit_spawner.gd`, `mercenary_demand.gd`): desperation-driven spawning. `BanditSpawner.calculate_pressure(location)`. `bandit-raider.tres` brain. Lifecycle: pressure→spawn→roam→attack merchants→disband
 
 ### Key Enums
 
 - Classes: `src/character/entity_classes.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter. `CombatEntityFactory` identifies templates by lowercase string (`"landsknecht"`), scanned from `resources/combat/classes/*.tres`
-- Weapons: `src/squad-battle/items/weapon/factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
-- Armor: `src/squad-battle/items/armor/factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
-- Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
+- Weapons: `src/squad_battle/items/weapon/factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire
+- Armor: `src/squad_battle/items/armor/factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate
+- Combat: `src/squad_battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole
 - Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
@@ -213,8 +213,8 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 
 ### Coding Rules
 - **Composition over inheritance**: prefer composing behavior from small resources/components (e.g. keyed `ReactiveStat` dictionaries) over deep subclass hierarchies. Reach for inheritance only when Godot's own architecture requires it (Node/Resource base types, `@tool` plugin hooks)
-- **Signals over direct calls for composed Resources**: a game-logic Resource composed into a Node as a plain property (never a scene child) announces its own state changes via its own signal — a custom one, or inherited `changed`/`emit_changed()` for simple cases. The owning Node connects/awaits; neither side reaches into the other to call methods for notification, and no intermediary Node exists just to shuttle calls between them. Worked examples: `ReactiveStat.changed` (`src/test_reactive_stat.gd`), `_squad.inventory.changed` (`manage_squad/inventory_panel.gd`, `unit_item.gd`, `inventory_tab.gd`), `SquadBattle.battle_completed` (`src/squad-battle/data.gd`) awaited by external consumers as `battle_scene.battle.battle_completed`
-- **MVP (View/Presenter) is a sanctioned exception, not the default**: reach for a separate Presenter class only when a UI screen's orchestration is complex enough to warrant it — `strategy/ui/{market,travel,shop,scouting,stage,vn}` and `strategy/ui/presenter.gd` itself earn it. Everywhere else, default to composition-over-inheritance + signal-announced state (the two rules above). `src/squad-battle/` dropped its Presenter tier for exactly this reason — a headless, signal-driven simulation didn't need one; the round loop now lives directly on the View
+- **Signals over direct calls for composed Resources**: a game-logic Resource composed into a Node as a plain property (never a scene child) announces its own state changes via its own signal — a custom one, or inherited `changed`/`emit_changed()` for simple cases. The owning Node connects/awaits; neither side reaches into the other to call methods for notification, and no intermediary Node exists just to shuttle calls between them. Worked examples: `ReactiveStat.changed` (`src/test_reactive_stat.gd`), `_squad.inventory.changed` (`manage_squad/inventory_panel.gd`, `unit_item.gd`, `inventory_tab.gd`), `SquadBattle.battle_completed` (`src/squad_battle/data.gd`) awaited by external consumers as `battle_scene.battle.battle_completed`
+- **MVP (View/Presenter) is a sanctioned exception, not the default**: reach for a separate Presenter class only when a UI screen's orchestration is complex enough to warrant it — `strategy/ui/{market,travel,shop,scouting,stage,vn}` and `strategy/ui/presenter.gd` itself earn it. Everywhere else, default to composition-over-inheritance + signal-announced state (the two rules above). `src/squad_battle/` dropped its Presenter tier for exactly this reason — a headless, signal-driven simulation didn't need one; the round loop now lives directly on the View
 - **Fail-fast**: `assert()` for requirements. No fallback values or stubs
 - **Enums over strings**. **Typed arrays**: `Array[EntityUpdate]` not `Array`
 - **No comments** unless `##` doc or complex algorithms
@@ -225,7 +225,7 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - **Pre-built hidden nodes** for bounded lists; scene instantiation only for unbounded/compositional needs
 - **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`
 - **Custom-drawn Controls must also be `.tscn` scenes** — prefer SVG assets over runtime `_draw()`
-- **No single-use functions**: don't extract a named function/method unless the code is called from more than one call site across the entire project. A block used once stays inline where it's used; if it needs a name for clarity, use a comment above it instead of a function signature. Exempt: Godot-invoked entry points the engine or scene tree calls directly even though the script has no second call site — virtual/lifecycle methods (`_ready`, `_process`, `_input`, `_draw`, ...), signal-callback handlers (`_on_*` wired via `connect()`/editor signal), and `@tool`/exported methods invoked from the inspector. Not exempt: ordinary helper methods called from exactly one place in the same script — inline those. Worked example: `SquadBattleNode._start_battle()` (`src/squad-battle/view_2d.gd`) had one call site (`_ready()`) and was folded back into `_ready()` with a comment marking the former boundary
+- **No single-use functions**: don't extract a named function/method unless the code is called from more than one call site across the entire project. A block used once stays inline where it's used; if it needs a name for clarity, use a comment above it instead of a function signature. Exempt: Godot-invoked entry points the engine or scene tree calls directly even though the script has no second call site — virtual/lifecycle methods (`_ready`, `_process`, `_input`, `_draw`, ...), signal-callback handlers (`_on_*` wired via `connect()`/editor signal), and `@tool`/exported methods invoked from the inspector. Not exempt: ordinary helper methods called from exactly one place in the same script — inline those. Worked example: `SquadBattleNode._start_battle()` (`src/squad_battle/view_2d.gd`) had one call site (`_ready()`) and was folded back into `_ready()` with a comment marking the former boundary
 
 ### Commit Message Format
 
@@ -293,10 +293,10 @@ func _ready():
 
 ## File Organization
 
-- `src/squad-battle/` — combat engine (data.gd, presenter.gd, view_2d.gd, entity/, weapon/, armor/, clash/)
+- `src/squad_battle/` — combat engine (data.gd, view_2d.gd, entity/, items/, clash/)
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable, shop, contact, activity handlers
 - `src/strategy/ui/` — View/Presenter per feature (stage/, vn/, travel/, shop/, scouting/, squad_log/, missions/, market/, manage_squad/)
-- `src/strategy/ui/actor/` — ActivityExecuteManager (!main.gd), ActivityRunner, AI executors
+- `src/strategy/ui/actor/` — ActivityExecuteManager (activity_execute_manager.gd), ActivityRunner, AI executors
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, glances, actions, caravan brain
 - `src/animation/` — WarriorRig, configs, expressions, actions, controller
 - `src/character/` — StrategyEntity+StrategyEntityResource (strat.gd/strat_resource.gd, tier 2/1), Character mediator (character.gd), CombatEntity+CombatEntityResource (combat.gd/combat_resource.gd, tier 3/1), classes enum

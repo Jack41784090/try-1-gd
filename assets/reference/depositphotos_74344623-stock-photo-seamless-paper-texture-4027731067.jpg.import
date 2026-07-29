@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsoi7ywg6r8q0"
-path="res://.godot/imported/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg-7d9ffca31a8abeeb3b9489e1053efd48.ctex"
+path="res://.godot/imported/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg-460a337a2a57c4a8eee928f7f9aa50e8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg"
-dest_files=["res://.godot/imported/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg-7d9ffca31a8abeeb3b9489e1053efd48.ctex"]
+source_file="res://assets/reference/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg"
+dest_files=["res://.godot/imported/depositphotos_74344623-stock-photo-seamless-paper-texture-4027731067.jpg-460a337a2a57c4a8eee928f7f9aa50e8.ctex"]
 
 [params]
 

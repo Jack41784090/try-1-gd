@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ci4qeq5que0ct"
-path="res://.godot/imported/faust-anger.jpg-2791c97c4adecf8c18f917549e826394.ctex"
+path="res://.godot/imported/faust-anger.jpg-daf0bb5875e64a884f9ff1f6ed5386ec.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/faust-anger.jpg"
-dest_files=["res://.godot/imported/faust-anger.jpg-2791c97c4adecf8c18f917549e826394.ctex"]
+source_file="res://assets/reference/faust-anger.jpg"
+dest_files=["res://.godot/imported/faust-anger.jpg-daf0bb5875e64a884f9ff1f6ed5386ec.ctex"]
 
 [params]
 

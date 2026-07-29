@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvmodmm7jie7g"
-path="res://.godot/imported/seamless-paper-texture-business-card-background-thumb47-461051118.png-6e057dbb0095e9abcdb555212588c913.ctex"
+path="res://.godot/imported/seamless-paper-texture-business-card-background-thumb47-461051118.png-426cd5d26c35a35c301116a7c1668acb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/seamless-paper-texture-business-card-background-thumb47-461051118.png"
-dest_files=["res://.godot/imported/seamless-paper-texture-business-card-background-thumb47-461051118.png-6e057dbb0095e9abcdb555212588c913.ctex"]
+source_file="res://assets/reference/seamless-paper-texture-business-card-background-thumb47-461051118.png"
+dest_files=["res://.godot/imported/seamless-paper-texture-business-card-background-thumb47-461051118.png-426cd5d26c35a35c301116a7c1668acb.ctex"]
 
 [params]
 

@@ -61,19 +61,19 @@ For detailed architecture of each subsystem, see file-specific instructions (aut
 
 ## Key Enums
 
-- Entity Classes: `src/character/classes-enum.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter
-- Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
+- Entity Classes: `src/character/entity_classes.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter
+- Combat: `src/squad_battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole
 - Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType
 - Animation: `src/animation/types.gd` — AnimTypes.Behavior (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING)
 
 ## File Organization
 
-- `src/squad-battle/` — combat engine (data.gd, presenter.gd, view_2d.gd, entity/, weapon/, armor/, clash/)
+- `src/squad_battle/` — combat engine (data.gd, view_2d.gd, entity/, items/, clash/)
 - `src/strategy/core/` — world, scenario, faction, travel, triggerable, shop, contact, activity handlers
 - `src/strategy/ui/` — View/Presenter per feature (stage/, vn/, travel/, shop/, scouting/, squad_log/, missions/, market/, manage_squad/)
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, caravan brain
 - `src/animation/` — WarriorRig, configs, expressions, actions, controller
 - `src/economy/` — engine, types, populations, inventory, caravan bridge; `csharp/` for C# engine
 - `src/singletons/` — event buses, SFX, Log
-- `resources/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
+- `resources/strategy/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)

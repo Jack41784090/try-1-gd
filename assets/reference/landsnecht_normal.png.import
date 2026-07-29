@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qg02rhuxk25h"
-path.s3tc="res://.godot/imported/landsnecht_normal.png-6efd1ce62a18e908940e22b08b6b2fad.s3tc.ctex"
+path.s3tc="res://.godot/imported/landsnecht_normal.png-295a9b5c31d4dbe9195494e4483bb525.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/landsnecht_normal.png"
-dest_files=["res://.godot/imported/landsnecht_normal.png-6efd1ce62a18e908940e22b08b6b2fad.s3tc.ctex"]
+source_file="res://assets/reference/landsnecht_normal.png"
+dest_files=["res://.godot/imported/landsnecht_normal.png-295a9b5c31d4dbe9195494e4483bb525.s3tc.ctex"]
 
 [params]
 

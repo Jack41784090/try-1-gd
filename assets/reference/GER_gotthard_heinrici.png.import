@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://v8qmy8s7gxuh"
-path.s3tc="res://.godot/imported/GER_gotthard_heinrici.png-13fc9b964aea5277c1ae7b2e0007d269.s3tc.ctex"
+path.s3tc="res://.godot/imported/GER_gotthard_heinrici.png-ca5764f3bac1c0cad3b6f9efd0a7ff06.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/GER_gotthard_heinrici.png"
-dest_files=["res://.godot/imported/GER_gotthard_heinrici.png-13fc9b964aea5277c1ae7b2e0007d269.s3tc.ctex"]
+source_file="res://assets/reference/GER_gotthard_heinrici.png"
+dest_files=["res://.godot/imported/GER_gotthard_heinrici.png-ca5764f3bac1c0cad3b6f9efd0a7ff06.s3tc.ctex"]
 
 [params]
 

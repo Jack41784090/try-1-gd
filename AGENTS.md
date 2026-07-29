@@ -4,7 +4,7 @@ This file is the single-source reference for AI coding agents working on the CON
 
 For deep subsystem details, prefer the modular guidance files:
 
-- `.github/instructions/combat.instructions.md` — `src/squad-battle/**`
+- `.github/instructions/combat.instructions.md` — `src/squad_battle/**`
 - `.github/instructions/strategy.instructions.md` — `src/strategy/**`
 - `.github/instructions/economy.instructions.md` — `src/economy/**`
 - `.github/skills/condor-testing/SKILL.md` — test conventions and demo catalog
@@ -131,7 +131,7 @@ Main scene: `scenario.tscn`.
 
 ### Three-Layer Architecture
 
-1. **Tactical Combat** (`src/squad-battle/`) — turn-based Model + View, coupled by signal
+1. **Tactical Combat** (`src/squad_battle/`) — turn-based Model + View, coupled by signal
    - `SquadBattle` (`data.gd`) — Model (Resource): battle state, round logic. Owns `battle_completed(outcome)`, emitted once from `evaluate_outcome()` on the ONGOING→terminal transition. Held as a plain property on the View, never a scene child.
    - `SquadBattleView2D` (`view_2d.gd`) / `BattlefieldView2D` — round loop (`_start_battle()`/`_process_round()`), SubViewport + Camera2D, row containers (Front/Middle/Back). `all_updates`, `delay_between_rounds`, `request_retreat(team)`.
    - External consumers await `battle.battle_completed` — the owner of the event, not a View relay signal.
@@ -141,7 +141,7 @@ Main scene: `scenario.tscn`.
    - **RetreatTracker**: FIGHTING → RETREATING → LAST_STAND → CAPITULATED.
    - **Reality calculation**: table-driven via `CombatEntity._REALITY_TABLE` — `[base, op, terms]`.
    - `CombatEntity` data lives in `src/character/combat.gd`; social/campaign data in `src/character/social.gd`.
-   - `CombatBridge` (`src/strategy/core/sb-bridge/combat_bridge.gd`) — stateless strategic↔tactical translation; CAPITULATE → `is_injured=true`.
+   - `CombatBridge` (`src/strategy/core/sb_bridge/combat_bridge.gd`) — stateless strategic↔tactical translation; CAPITULATE → `is_injured=true`.
    - `CombatController` (`control.gd`) — stateful; `CombatResult` includes `escaped_warriors`, `equipment_loot`.
 
 2. **Strategic Campaign** (`src/strategy/`) — hour-based real-time, Paradox-style speed controls
@@ -151,7 +151,7 @@ Main scene: `scenario.tscn`.
    - **Hourly tick**: `hour_ticked` → `StrategyPresenter._on_hour_tick()`. Economy every 24h.
    - **Activity toggle**: `SquadData.current_activity_type`. SPACE toggles pause (handled in `_input`, not `_unhandled_input`). Selecting an activity does **not** auto-unpause.
    - **Menu auto-pause**: opening any menu pauses the clock; closing does **not** auto-unpause.
-   - `ActivityExecuteManager` (`ui/actor/!main.gd`) — `exec_before/activity/after()`. AI executors (`_IS_AI=true`) skip triggerables.
+   - `ActivityExecuteManager` (`ui/actor/activity_execute_manager.gd`) — `exec_before/activity/after()`. AI executors (`_IS_AI=true`) skip triggerables.
    - `ActivityHandler` base → `ActivityRegistry` maps `ActivityType` → handler (10 handlers + 5 pass-through).
    - **Travel**: km-based (`TownConnection.distance_km`), class-specific speeds (`EntityClasses.SPEED_TABLE`), `TravelGraph` distance-weighted A*. `SquadData.get_speed_kmh()` returns slowest warrior speed, ×0.5 for caravans.
 
@@ -176,8 +176,8 @@ Main scene: `scenario.tscn`.
 5-layer pipeline: Clips → iExpression → AnimAction → Behavior → `WarriorAnimController`.
 
 **`WarriorRig` dual mode**:
-- **Baked** (`warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`.
-- **Legacy** (`warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`.
+- **Baked** (`scenes/rig/warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`.
+- **Legacy** (`scenes/rig/warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`.
 
 **Inspector-driven** (`@tool`): `config` export or `character_name`+`emotion` dropdowns (scanned from `assets/rig_textures/<name>/`). Baked rigs preview live in editor. `RigTextureLibrary` (`rig_texture_library.gd`): `build_config(name, emotion, base=null)`, `apply_textures()`.
 
@@ -223,7 +223,7 @@ Main scene: `scenario.tscn`.
 
 - Activities (REST, PATROL, DRILL, etc.) are persistent state on `SquadData.current_activity_type`. Player toggles; clock runs automatically.
 - REST is default. Active buttons show `[ACTIVE]` text + green modulate tint.
-- Activities in `resources/generic-activities/`: rest, drill, travelling, patrol, investigate, attack, force-march, hold-mass, recruit, forage, heal, mercenary-work, buy-supplies.
+- Activities in `resources/strategy/generic-activities/`: rest, drill, travelling, patrol, investigate, attack, force-march, hold-mass, recruit, forage, heal, mercenary-work, buy-supplies.
 - `ActivityType` enum: REST=0 through CUSTOM=12, HEAL=13, BUY_SUPPLIES=14.
 - Execution in `Activity._execute_generic()` dispatches to `_execute_forage()`, `_execute_heal()`, `_execute_buy_supplies()`, `_execute_mercenary_work()`, etc.
 - Forage yields food by location type: VILLAGE 2-4, ROAD/FORT 1-2, TOWN 0-1, CITY 0.
@@ -259,7 +259,7 @@ Main scene: `scenario.tscn`.
 
 ### Caravan & Bandit Systems
 
-- `CaravanBridge` (`caravan_bridge.gd`) materializes C# trade dispatches as MERCHANT squads. Caravans use `SquadBrain` with the `caravan-courier` profile.
+- `CaravanBridge` (`strategy_bridge/caravan_bridge.gd`) materializes C# trade dispatches as MERCHANT squads. Caravans use `SquadBrain` with the `caravan-courier` profile.
 - `BanditSpawner` (`bandit_spawner.gd`) calculates pressure from population satisfaction + peasant ratio and spawns BANDIT squads (desperation-driven). Brain: `bandit-raider.tres`.
 - `RouteDangerCalculator` applies 1.5× threat for BANDIT role.
 - `MercenaryDemandCalculator` (`mercenary_demand.gd`) dynamically adds/removes MERCENARY_WORK based on trade loss vs hire cost.
@@ -281,9 +281,9 @@ Main scene: `scenario.tscn`.
 ### Key Enums
 
 - Classes: `src/character/entity_classes.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter.
-- Weapons: `src/squad-battle/weapon/_factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire.
-- Armor: `src/squad-battle/armor/_factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate.
-- Combat: `src/squad-battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome.
+- Weapons: `src/squad_battle/items/weapon/factory.gd` — Unarmed, Flammenschwert, Crossbow, Arquebus, Pike, Mace, AlchemicalFire.
+- Armor: `src/squad_battle/items/armor/factory.gd` — Unarmored, LeatherArmor, PaddedArmor, HalfPlate.
+- Combat: `src/squad_battle/types.gd` — Potency, DamageType, Reality, EntityChangeable, BattleOutcome.
 - Strategy: `src/strategy/types.gd` — LocationType, ActivityType, ContactState, EngagementType, SquadRole.
 - Economy: `src/economy/types.gd` — SocialClass, JobType, MoveState, ThingType, DirectiveType.
 - Animation: `src/animation/types.gd` — `AnimTypes.Behavior` (IDLE, WALKING, ATTACKING, DEFENDING, HURT, DYING, TALKING, GESTURING).
@@ -312,7 +312,7 @@ src/
 ├── economy/            # Economy engine (GDScript + C#), trade, caravans, population
 ├── singletons/         # Autoloads: event buses, SFX, Log, GrimdarkFX logic
 ├── squad/              # SquadData, CombatSquad, CargoManifest, factories
-├── squad-battle/       # Tactical combat model/presenter/view, entities, weapons, armour
+├── squad_battle/       # Tactical combat model/presenter/view, entities, weapons, armour
 └── strategy/           # Campaign: core, ai, ui (views/presenters), activity, contact
 
 resources/
@@ -473,7 +473,7 @@ All demo/test scenes **must** use `HeadlessStrategyView` + `StrategyPresenter`, 
 Canonical setup:
 
 ```gdscript
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
@@ -514,7 +514,7 @@ When you change architecture, runtime flow, data contracts, or behavior, keep th
 - `AGENTS.md` (this file)
 - `CLAUDE.md` (main project guidance)
 - `.github/copilot-instructions.md`
-- `.github/instructions/combat.instructions.md` — for `src/squad-battle/**`
+- `.github/instructions/combat.instructions.md` — for `src/squad_battle/**`
 - `.github/instructions/strategy.instructions.md` — for `src/strategy/**`
 - `.github/instructions/economy.instructions.md` — for `src/economy/**`
 - `.github/skills/condor-testing/SKILL.md` — testing conventions
@@ -524,19 +524,19 @@ When you change architecture, runtime flow, data contracts, or behavior, keep th
 The project also maintains Obsidian architecture notes under `/home/ikec/Documents/schwarzwagen/CONDOR/Systems/`. Subsystem mappings:
 
 - `src/strategy/**` → `Systems/Core/`, `Systems/Activities/`, `Systems/AI/`, `Systems/Contact/`, `Systems/Runtime/`, `Systems/UI/`, `Systems/Data/Strategy Types.md`
-- `src/squad-battle/**` and combat bridge → `Systems/Combat/`, `Systems/Data/Combat Types.md`, `Systems/Runtime/Combat Flow.md`
+- `src/squad_battle/**` and combat bridge → `Systems/Combat/`, `Systems/Data/Combat Types.md`, `Systems/Runtime/Combat Flow.md`
 - `src/economy/**` → `Systems/Economy/`, `Systems/Runtime/Economy Tick 24h.md`
 
 ## Useful References
 
-- Main scenario: `resources/scenarios/goetz-official/scenario.tres`
+- Main scenario: `resources/strategy/scenarios/goetz-official/scenario.tres`
 - Main theme: `resources/theme/condor_theme.tres`
 - Unit classes: `src/character/entity_classes.gd`
-- Combat types: `src/squad-battle/types.gd`
+- Combat types: `src/squad_battle/types.gd`
 - Strategy types: `src/strategy/types.gd`
 - Economy types: `src/economy/types.gd`
 - Animation types: `src/animation/types.gd`
 - Log singleton: `src/singletons/log.gd`
 - AI profiles: `resources/ai/strategic/`
-- Activity definitions: `resources/generic-activities/`
+- Activity definitions: `resources/strategy/generic-activities/`
 - Stage sets: `resources/stage_sets/`

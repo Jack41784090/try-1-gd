@@ -29,7 +29,7 @@ Hour-based real-time with Paradox-style speed controls in `src/strategy/`.
 - Active button shows `[ACTIVE]` text + green modulate tint. REST is default (no REST button — RESTING banner shown instead)
 - SPACE key toggles pause (via `_input`, not `_unhandled_input`). Selecting an activity does NOT auto-unpause
 - **Menu auto-pause**: Opening any menu auto-pauses the game clock. Closing does NOT auto-unpause
-- `ActivityExecuteManager` (ui/actor/!main.gd) — shared execution with `exec_before/activity/after()`. AI executors (`_IS_AI=true`) skip triggerables
+- `ActivityExecuteManager` (ui/actor/activity_execute_manager.gd) — shared execution with `exec_before/activity/after()`. AI executors (`_IS_AI=true`) skip triggerables
 - **Activity Strategy Pattern** (`core/activity/`): `ActivityHandler` base → `ActivityRegistry` maps ActivityType→handler. 10 handlers + 5 pass-through types
 
 ## Travel System
