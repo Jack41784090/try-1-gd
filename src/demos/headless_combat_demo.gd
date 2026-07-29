@@ -14,39 +14,25 @@ func test_basic_headless_combat():
 	var attacker_entities = []
 	for i in range(3):
 		attacker_entities.append("landsknecht")
-	
-	var attacker_squad_config = {
-		"entities": attacker_entities,
-		"name": "Attacker CombatSquad",
-		"team": "player",
-		"side": SquadBattleTypes.Side.ATTACKER
-	}
-	
+
 	# Create defender squad (2 Landsknechts + 1 Healer)
 	var defender_entities = []
 	for i in range(2):
 		defender_entities.append("landsknecht")
 	defender_entities.append("healer")
-	
-	var defender_squad_config = {
-		"entities": defender_entities,
-		"name": "Defender CombatSquad",
-		"team": "enemy",
-		"side": SquadBattleTypes.Side.DEFENDER
-	}
-	
+
 	# Create battle configuration
-	var battle_config = {
-		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [attacker_squad_config],
-			SquadBattleTypes.Side.DEFENDER: [defender_squad_config]
-		},
-		"attacker_tactic": Tactic.create_aggressive_charge(),
-		"defender_tactic": Tactic.create_defensive_formation()
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [
+			["Attacker CombatSquad", SquadBattleTypes.Side.ATTACKER, attacker_entities],
+		],
+		SquadBattleTypes.Side.DEFENDER: [
+			["Defender CombatSquad", SquadBattleTypes.Side.DEFENDER, defender_entities],
+		],
 	}
-	
+
 	print("Initializing SquadBattle...")
-	var battle = SquadBattle.new(battle_config)
+	var battle = SquadBattle.new(teams, Tactic.create_aggressive_charge(), Tactic.create_defensive_formation())
 	
 	print("\nStarting headless combat simulation...\n")
 	var all_updates = battle.run_headless()

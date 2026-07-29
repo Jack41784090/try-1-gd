@@ -64,11 +64,6 @@ func connect_signals(presenter) -> void:
 			_play_sfx("play_ui_confirm")
 			presenter.on_combat_choice(CombatController.IntermissionChoice.FIGHT)
 		)
-	if _close_button:
-		_close_button.pressed.connect(func():
-			_play_sfx("play_ui_cancel")
-			presenter.on_retreat_requested()
-		)
 
 
 func show_ui() -> void:
@@ -199,7 +194,7 @@ func _cleanup_battle_children() -> void:
 	for child in viewport.get_children():
 		child.queue_free()
 	for child in overlay.get_children():
-		if child is SquadBattleView2D:
+		if child is SquadBattleNode:
 			child.queue_free()
 
 

@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code when working with this repository. Update it whenever making project changes.
 
+This is a one-man project that changes very frequently — these instructions will drift out of sync with the code. If something in the codebase doesn't align with what's written here, make the opportunistic change: fix the doc (or the code, if the doc is right and the code is the outlier) on the spot rather than working around the mismatch silently.
+
 > **Copilot**: Modularized in `.github/` — `copilot-instructions.md` (always-loaded), `instructions/*.instructions.md` (domain-specific), `skills/` (slash commands). Prefer modular additions over expanding this file.
 
 ## Project
@@ -54,10 +56,10 @@ CONDOR — squad-based narrative strategy game. **Godot 4.7**, **GDScript** + **
 
 ### Three-Layer System
 
-1. **Tactical Combat** (`src/squad-battle/`) — Turn-based View/Presenter/Model
-   - `SquadBattle` (data.gd) — Model: battle state, round logic
-   - `SquadBattleView2D` (view_2d.gd) — 2D WarriorRig battle view
-   - `SquadBattlePresenter` (presenter.gd) — round loop, `battle_completed` signal. Duck-typed `var view`
+1. **Tactical Combat** (`src/squad-battle/`) — Turn-based Model + View, coupled by signal
+   - `SquadBattle` (data.gd) — Model (Resource): battle state, round logic. Owns `battle_completed(outcome)`, emitted once from `evaluate_outcome()` on the ONGOING→terminal transition. Held as a plain property on the View, never a scene child
+   - `SquadBattleView2D` (view_2d.gd) — 2D WarriorRig battle view + round loop (`_start_battle()`/`_process_round()`, needs `get_tree()` timers). `all_updates`, `delay_between_rounds`, `request_retreat(team)`
+   - External consumers await the domain event through its owner: `battle.battle_completed`, not a View relay signal
    - `BattlefieldView2D` — SubViewport + Camera2D, row containers (Front/Middle/Back)
    - `BattleEntityDisplay` — wraps WarriorRig + HP bar + ORG icons
    - Flow: `squad_actions() → choose_action() → OneClash.execute() → Array[EntityUpdate]`
@@ -211,6 +213,8 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 
 ### Coding Rules
 - **Composition over inheritance**: prefer composing behavior from small resources/components (e.g. keyed `ReactiveStat` dictionaries) over deep subclass hierarchies. Reach for inheritance only when Godot's own architecture requires it (Node/Resource base types, `@tool` plugin hooks)
+- **Signals over direct calls for composed Resources**: a game-logic Resource composed into a Node as a plain property (never a scene child) announces its own state changes via its own signal — a custom one, or inherited `changed`/`emit_changed()` for simple cases. The owning Node connects/awaits; neither side reaches into the other to call methods for notification, and no intermediary Node exists just to shuttle calls between them. Worked examples: `ReactiveStat.changed` (`src/test_reactive_stat.gd`), `_squad.inventory.changed` (`manage_squad/inventory_panel.gd`, `unit_item.gd`, `inventory_tab.gd`), `SquadBattle.battle_completed` (`src/squad-battle/data.gd`) awaited by external consumers as `battle_scene.battle.battle_completed`
+- **MVP (View/Presenter) is a sanctioned exception, not the default**: reach for a separate Presenter class only when a UI screen's orchestration is complex enough to warrant it — `strategy/ui/{market,travel,shop,scouting,stage,vn}` and `strategy/ui/presenter.gd` itself earn it. Everywhere else, default to composition-over-inheritance + signal-announced state (the two rules above). `src/squad-battle/` dropped its Presenter tier for exactly this reason — a headless, signal-driven simulation didn't need one; the round loop now lives directly on the View
 - **Fail-fast**: `assert()` for requirements. No fallback values or stubs
 - **Enums over strings**. **Typed arrays**: `Array[EntityUpdate]` not `Array`
 - **No comments** unless `##` doc or complex algorithms
@@ -221,6 +225,7 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - **Pre-built hidden nodes** for bounded lists; scene instantiation only for unbounded/compositional needs
 - **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`
 - **Custom-drawn Controls must also be `.tscn` scenes** — prefer SVG assets over runtime `_draw()`
+- **No single-use functions**: don't extract a named function/method unless the code is called from more than one call site across the entire project. A block used once stays inline where it's used; if it needs a name for clarity, use a comment above it instead of a function signature. Exempt: Godot-invoked entry points the engine or scene tree calls directly even though the script has no second call site — virtual/lifecycle methods (`_ready`, `_process`, `_input`, `_draw`, ...), signal-callback handlers (`_on_*` wired via `connect()`/editor signal), and `@tool`/exported methods invoked from the inspector. Not exempt: ordinary helper methods called from exactly one place in the same script — inline those. Worked example: `SquadBattleNode._start_battle()` (`src/squad-battle/view_2d.gd`) had one call site (`_ready()`) and was folded back into `_ready()` with a comment marking the former boundary
 
 ### Commit Message Format
 

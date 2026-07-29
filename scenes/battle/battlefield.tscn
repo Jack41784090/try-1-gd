@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://bwduq52sc0f7o"]
+
+[ext_resource type="Script" uid="uid://ca44avxu6t7y3" path="res://src/squad-battle/battlefield_view.gd" id="1_yrl3y"]
+
+[node name="BattlefieldView2D" type="Control" unique_id=2095246234]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yrl3y")
+
+[node name="BattleViewportContainer" type="SubViewportContainer" parent="." unique_id=1440355602]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="BattleViewport" type="SubViewport" parent="BattleViewportContainer" unique_id=669420315]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="Background" type="ColorRect" parent="BattleViewportContainer/BattleViewport" unique_id=633033756]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.25, 0.2, 0.15, 1)
+
+[node name="Ground" type="ColorRect" parent="BattleViewportContainer/BattleViewport" unique_id=826025362]
+offset_top = 400.0
+offset_right = 1920.0
+offset_bottom = 900.0
+color = Color(0.35, 0.3, 0.2, 1)
+
+[node name="BattleCamera" type="Camera2D" parent="BattleViewportContainer/BattleViewport" unique_id=542483660]
+position = Vector2(960, 400)
+zoom = Vector2(1.4, 1.4)
+
+[node name="BattleArena" type="Node2D" parent="BattleViewportContainer/BattleViewport" unique_id=265810853]
+
+[node name="AttackerSide" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena" unique_id=1623321565]
+position = Vector2(600, 400)
+
+[node name="BackRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/AttackerSide" unique_id=1449575369]
+position = Vector2(-200, 0)
+
+[node name="MiddleRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/AttackerSide" unique_id=665648607]
+
+[node name="FrontRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/AttackerSide" unique_id=331197996]
+position = Vector2(200, 0)
+
+[node name="DefenderSide" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena" unique_id=845595659]
+position = Vector2(1320, 400)
+
+[node name="FrontRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/DefenderSide" unique_id=1550031956]
+position = Vector2(-200, 0)
+
+[node name="MiddleRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/DefenderSide" unique_id=148413924]
+
+[node name="BackRow" type="Node2D" parent="BattleViewportContainer/BattleViewport/BattleArena/DefenderSide" unique_id=1752182843]
+position = Vector2(200, 0)

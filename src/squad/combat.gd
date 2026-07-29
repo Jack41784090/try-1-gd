@@ -1,5 +1,5 @@
 class_name CombatSquad
-extends RefCounted
+extends Resource
 
 var entities: Array[CombatEntity] = []
 var squad_name: String
@@ -13,13 +13,11 @@ var _next_local_player_id: int = randi() % 1000 + 1
 ##  - String: a CombatEntityFactory identification, built fresh (demo/scripted squads)
 ##  - CombatEntityResource: built fresh via CombatEntityFactory.build_config_from_resource()
 ##  - CombatEntity: already fully built (the real CombatBridge route, via Character.enter_battle())
-func _init(config: Dictionary = {}) -> void:
-	squad_name = config.get("name", "")
-	var side: SquadBattleTypes.Side = config.get("side", SquadBattleTypes.Side.NULL)
-	var entity_configs: Array = config.get("entities", [])
-
-	for entity_config in entity_configs:
-		var entity := _build_entity(entity_config, side)
+func _init(_name: String, _side: SquadBattleTypes.Side, _entities_config: Array) -> void:
+	squad_name = _name
+	
+	for entity_config in _entities_config:
+		var entity := _build_entity(entity_config, _side)
 		if entity != null:
 			entities.append(entity)
 
@@ -49,7 +47,7 @@ func is_crippled() -> bool:
 
 
 func get_all_entities() -> Dictionary:
-	var result = { }
+	var result = {}
 
 	for entity in entities:
 		if entity.is_dead():
@@ -160,6 +158,9 @@ func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: i
 		return updates
 
 	SBLog.line(3, "Performing %d reaction(s)" % reaction_count, "[%s]" % squad_name)
+
+	for entity in entities:
+		entity.new_round_reset()
 
 	# Each entity gets to react up to reaction_count times
 	for reaction_num in range(reaction_count):

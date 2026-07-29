@@ -342,20 +342,18 @@ func on_speed_changed(speed: float) -> void:
 
 func on_retreat_requested() -> void:
 	Log.info("Presenter", "Player requested retreat mid-battle")
-	var battle_presenter = _get_active_battle_presenter()
-	if battle_presenter:
-		battle_presenter.request_retreat(SquadBattleTypes.Side.ATTACKER)
+	var battle_view = _get_active_battle_view()
+	if battle_view:
+		battle_view.request_retreat(SquadBattleTypes.Side.ATTACKER)
 
 
-func _get_active_battle_presenter():
+func _get_active_battle_view() -> SquadBattleNode:
 	for child in view.combat_overlay.get_children():
-		var bp = child.get_node_or_null("SquadBattlePresenter")
-		if bp:
-			return bp
+		if child is SquadBattleNode:
+			return child
 	for child in view.battle_viewport.get_children():
-		var bp = child.get_node_or_null("SquadBattlePresenter")
-		if bp:
-			return bp
+		if child is SquadBattleNode:
+			return child
 	return null
 
 #endregion

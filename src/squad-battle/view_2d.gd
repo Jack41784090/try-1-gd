@@ -1,74 +1,112 @@
-class_name SquadBattleView2D extends Control
+class_name SquadBattleNode
+extends Control
 
+@onready var battlefield_controller := $BattlefieldView2D
 var battle: SquadBattle
-var config: Dictionary
 
-var battlefield_controller
 var entity_displays_dict: Dictionary = {}
-
-@onready var presenter: SquadBattlePresenter = $SquadBattlePresenter
+var is_running: bool = false
+var delay_between_rounds: float = 2.0
+var last_round_capitulated: Array[CombatEntity] = []
+var all_updates: Array[EntityUpdate] = []
 
 
 func _ready() -> void:
-	battlefield_controller = $BattlefieldView2D
-	_setup_row_mappings()
-	presenter.bind_view(self)
-	presenter.start(battle, config)
-
-
-func _setup_row_mappings() -> void:
+	var sbt_Location = SquadBattleTypes.SquadEntityInSquadLocation
 	var attacker_rows = {
-		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.attacker_front,
-		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.attacker_middle,
-		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.attacker_back
+		sbt_Location.Front: battlefield_controller.attacker_front,
+		sbt_Location.Middle: battlefield_controller.attacker_middle,
+		sbt_Location.Back: battlefield_controller.attacker_back
 	}
 
 	var defender_rows = {
-		SquadBattleTypes.SquadEntityInSquadLocation.Front: battlefield_controller.defender_front,
-		SquadBattleTypes.SquadEntityInSquadLocation.Middle: battlefield_controller.defender_middle,
-		SquadBattleTypes.SquadEntityInSquadLocation.Back: battlefield_controller.defender_back
+		sbt_Location.Front: battlefield_controller.defender_front,
+		sbt_Location.Middle: battlefield_controller.defender_middle,
+		sbt_Location.Back: battlefield_controller.defender_back
 	}
 
 	set_meta("attacker_rows", attacker_rows)
 	set_meta("defender_rows", defender_rows)
 
+	# Build battle
+	if battle == null:
+		battle = _create_mock_battle()
 
-func spawn_all_entities(p_battle: SquadBattle) -> void:
-	var all_rows = [
-		battlefield_controller.attacker_front,
-		battlefield_controller.attacker_middle,
-		battlefield_controller.attacker_back,
-		battlefield_controller.defender_front,
-		battlefield_controller.defender_middle,
-		battlefield_controller.defender_back
-	]
+	# just in case clear out any exsiting displays
+	battlefield_controller.clear_all_rownodes()
 
-	for row in all_rows:
-		battlefield_controller.clear_row(row)
-
-	for team_name in p_battle.teams_and_squads.keys():
-		var squads: Array = p_battle.teams_and_squads[team_name]
+	# setting new displays in each row
+	for team_name in battle.side_squads_dict:
+		var squads = battle.side_squads_dict.get(team_name) as Array[CombatSquad]
 		var is_attacker = (team_name == SquadBattleTypes.Side.ATTACKER)
 		var row_map = get_meta("attacker_rows" if is_attacker else "defender_rows")
 
 		for squad: CombatSquad in squads:
 			for entity: CombatEntity in squad.entities:
-				var location = entity.get_changeable_stat_num(
-					SquadBattleTypes.EntityChangeable.LOC
-				) as int
+				var location := entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)
 				var row_node: Node2D = row_map.get(location)
-				if not row_node:
-					continue
 
 				var display = battlefield_controller.add_unit_to_row(
 					row_node, row_node.get_child_count(),
 					entity.display_name, entity
 				)
-				entity_displays_dict[entity.player_id] = display
+				entity_displays_dict.set(entity.player_id, display)
 				_update_row_positions(row_node)
 
+	is_running = true
 
-func process_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> void:
+	SBLog.section("CombatSquad Battle Started!", 0, 2, 1)
+	await get_tree().create_timer(1.0).timeout
+	_loop_round()
+
+
+func request_retreat(team: SquadBattleTypes.Side) -> void:
+	if battle:
+		battle.order_retreat(team)
+
+
+func _loop_round() -> void:
+	var outcome = battle.evaluate_outcome()
+	if outcome != SquadBattleTypes.BattleOutcome.ONGOING:
+		show_outcome(outcome, battle)
+		is_running = false
+		return
+
+	SBLog.section("Round %d / %d" % [battle.round_count + 1, battle.max_rounds], 1, 1, 1)
+	battle.round_count += 1
+
+	battle.remove_dead_entities()
+	battle.remove_capitulated_entities(last_round_capitulated)
+	last_round_capitulated.clear()
+
+	var updates := battle.squad_actions()
+	for update in updates:
+		all_updates.append(update)
+		if update.change.property == SquadBattleTypes.EntityChangeable.CAPITULATE:
+			var entity = battle.get_entity_by_id(update.affected)
+			if entity:
+				last_round_capitulated.append(entity)
+
+	battle.squad_recoveries()
+	await _animate_updates(updates, battle)
+	await animate_return_all()
+	await wait_delay(delay_between_rounds)
+	_loop_round()
+
+
+func _create_mock_battle() -> SquadBattle:
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [
+			["Heroes", SquadBattleTypes.Side.ATTACKER, ["landsknecht", "landsknecht", "landsknecht", "healer"]],
+		],
+		SquadBattleTypes.Side.DEFENDER: [
+			["Monsters", SquadBattleTypes.Side.DEFENDER, ["landsknecht", "landsknecht", "landsknecht", "healer"]],
+		],
+	}
+
+	return SquadBattle.new(teams, Tactic.create_balanced(), Tactic.create_balanced())
+
+func _animate_updates(updates: Array[EntityUpdate], p_battle: SquadBattle) -> void:
 	for update in updates:
 		var attackers_display = entity_displays_dict.get(update.source)
 		var targets_display = entity_displays_dict.get(update.affected)

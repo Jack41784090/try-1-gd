@@ -5,13 +5,13 @@ applyTo: "src/squad-battle/**"
 
 # Tactical Combat System
 
-Turn-based View/Presenter/Model in `src/squad-battle/`.
+Turn-based Model + View in `src/squad-battle/`, coupled by signal (no Presenter).
 
 ## Core Architecture
 
-- `SquadBattle` (data.gd) — Model: battle state, round logic. `order_retreat(team)`, `squad_actions()`, `_produce_retreat_updates()`
-- `SquadBattleView2D` (view_2d.gd) — 2D WarriorRig-based battle view (extends Control)
-- `SquadBattlePresenter` (presenter.gd) — round loop, victory checks, `battle_completed` signal. Duck-typed `var view`
+- `SquadBattle` (data.gd) — Model (Resource): battle state, round logic. `order_retreat(team)`, `squad_actions()`, `_produce_retreat_updates()`. Owns `battle_completed(outcome)`, emitted once from `evaluate_outcome()` on the ONGOING→terminal transition; `get_battle_outcome()`/`check_victory()`/`run_headless()` stay pure queries
+- `SquadBattleView2D` (view_2d.gd) — 2D WarriorRig-based battle view (extends Control) + round loop: `_start_battle()`/`_process_round()` (need `get_tree()` timers, which the Resource can't provide). Holds `battle` as a plain property, never a scene child. `all_updates`, `delay_between_rounds`, `request_retreat(team)`
+- External consumers await `battle.battle_completed` through the owning object, not a relay signal on the View
 - `BattlefieldView2D` (battlefield_view.gd) — 2D battlefield: SubViewport + Camera2D, row containers (Front/Middle/Back), tween animations
 - `BattleEntityDisplay` (entity/battle_display.gd) — wraps WarriorRig + HP bar + ORG icons
 - `SquadBattleMasterFactory` (_factory.gd) — loads `sb-master-2d.tscn`, returns Control

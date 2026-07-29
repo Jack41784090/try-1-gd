@@ -118,7 +118,7 @@ func process_intermission_choice(choice: IntermissionChoice) -> CombatResult:
 
 func _execute_combat() -> CombatResult:
 	# Runs a full tactical combat: creates battle via bridge, spawns 3D scene, awaits outcome, applies results
-	# Flow: bridge.create_battle() → scene spawned in SubViewport → await presenter.battle_completed → apply_results()
+	# Flow: bridge.create_battle() → scene spawned in SubViewport → await battle.battle_completed → apply_results()
 	# e.g., "Wolves" vs "Raiders" → 5 rounds of combat → ATTACKER_VICTORY → 2 enemy casualties, 1 player injured
 	print("\n[CombatController] EXECUTING TACTICAL COMBAT")
 	print("-".repeat(40))
@@ -136,8 +136,7 @@ func _execute_combat() -> CombatResult:
 	combat_overlay.visible = true
 
 	print("[CombatController] Awaiting battle completion...")
-	var battle_presenter = battle_scene.get_node("SquadBattlePresenter")
-	var outcome = await battle_presenter.battle_completed
+	var outcome = await battle.battle_completed
 	print("[CombatController] Battle outcome: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
 
 	# NOTE: Battle scene and overlay are kept visible for the summary display
@@ -145,7 +144,7 @@ func _execute_combat() -> CombatResult:
 	print("[CombatController] Battle scene kept for summary display")
 
 	# Collect all updates from the completed battle
-	all_updates = battle_presenter.all_updates.duplicate()
+	all_updates = battle_scene.all_updates.duplicate()
 	combat_phase = battle.round_count
 	print("[CombatController] Battle completed after %d rounds, %d updates collected" % [combat_phase, all_updates.size()])
 

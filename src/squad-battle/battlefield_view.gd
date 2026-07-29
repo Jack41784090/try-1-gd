@@ -1,5 +1,5 @@
-extends Control
 class_name BattlefieldView2D
+extends Control
 
 const UNIT_Y_SPACING: float = 120.0
 const MOVE_ANIMATION_DURATION: float = 0.5
@@ -8,104 +8,12 @@ const RETURN_ANIMATION_DURATION: float = 0.4
 const LUNGE_DISTANCE: float = 40.0
 const META_ORIGINAL_POSITION: String = "original_position"
 
-var attacker_front: Node2D
-var attacker_middle: Node2D
-var attacker_back: Node2D
-var defender_front: Node2D
-var defender_middle: Node2D
-var defender_back: Node2D
-
-var _viewport: SubViewport
-var _arena: Node2D
-var _camera: Camera2D
-
-
-func _ready() -> void:
-	_build_scene_tree()
-
-
-func _build_scene_tree() -> void:
-	var vpc := SubViewportContainer.new()
-	vpc.name = "BattleViewportContainer"
-	vpc.set_anchors_preset(PRESET_FULL_RECT)
-	vpc.stretch = true
-	add_child(vpc)
-
-	_viewport = SubViewport.new()
-	_viewport.name = "BattleViewport"
-	_viewport.transparent_bg = true
-	_viewport.handle_input_locally = false
-	_viewport.size = Vector2i(1920, 1080)
-	vpc.add_child(_viewport)
-
-	_camera = Camera2D.new()
-	_camera.name = "BattleCamera"
-	_camera.position = Vector2(960, 400)
-	_camera.zoom = Vector2(1.8, 1.8)
-	_viewport.add_child(_camera)
-
-	_build_background()
-
-	_arena = Node2D.new()
-	_arena.name = "BattleArena"
-	_viewport.add_child(_arena)
-
-	var attacker_side := Node2D.new()
-	attacker_side.name = "AttackerSide"
-	attacker_side.position = Vector2(600, 400)
-	_arena.add_child(attacker_side)
-
-	attacker_back = Node2D.new()
-	attacker_back.name = "BackRow"
-	attacker_back.position = Vector2(-200, 0)
-	attacker_side.add_child(attacker_back)
-
-	attacker_middle = Node2D.new()
-	attacker_middle.name = "MiddleRow"
-	attacker_middle.position = Vector2(0, 0)
-	attacker_side.add_child(attacker_middle)
-
-	attacker_front = Node2D.new()
-	attacker_front.name = "FrontRow"
-	attacker_front.position = Vector2(200, 0)
-	attacker_side.add_child(attacker_front)
-
-	var defender_side := Node2D.new()
-	defender_side.name = "DefenderSide"
-	defender_side.position = Vector2(1320, 400)
-	_arena.add_child(defender_side)
-
-	defender_front = Node2D.new()
-	defender_front.name = "FrontRow"
-	defender_front.position = Vector2(-200, 0)
-	defender_side.add_child(defender_front)
-
-	defender_middle = Node2D.new()
-	defender_middle.name = "MiddleRow"
-	defender_middle.position = Vector2(0, 0)
-	defender_side.add_child(defender_middle)
-
-	defender_back = Node2D.new()
-	defender_back.name = "BackRow"
-	defender_back.position = Vector2(200, 0)
-	defender_side.add_child(defender_back)
-
-
-func _build_background() -> void:
-	var bg := ColorRect.new()
-	bg.name = "Background"
-	bg.color = Color(0.25, 0.2, 0.15, 1.0)
-	bg.size = Vector2(1920, 1080)
-	_viewport.add_child(bg)
-	_viewport.move_child(bg, 0)
-
-	var ground := ColorRect.new()
-	ground.name = "Ground"
-	ground.color = Color(0.35, 0.30, 0.20, 1.0)
-	ground.size = Vector2(1920, 500)
-	ground.position = Vector2(0, 400)
-	_viewport.add_child(ground)
-	_viewport.move_child(ground, 1)
+@onready var attacker_front: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/AttackerSide/FrontRow
+@onready var attacker_middle: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/AttackerSide/MiddleRow
+@onready var attacker_back: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/AttackerSide/BackRow
+@onready var defender_front: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/DefenderSide/FrontRow
+@onready var defender_middle: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/DefenderSide/MiddleRow
+@onready var defender_back: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/DefenderSide/BackRow
 
 
 func add_unit_to_row(row_node: Node2D, unit_index: int,
@@ -329,6 +237,13 @@ func animate_return_all_to_positions() -> void:
 	if units_to_animate.size() > 0:
 		await get_tree().create_timer(RETURN_ANIMATION_DURATION).timeout
 
+func clear_all_rownodes() -> void:
+	clear_row(attacker_back)
+	clear_row(attacker_front)
+	clear_row(attacker_middle)
+	clear_row(defender_back)
+	clear_row(defender_front)
+	clear_row(defender_middle)
 
 func clear_row(row_node: Node2D) -> void:
 	for child in row_node.get_children():

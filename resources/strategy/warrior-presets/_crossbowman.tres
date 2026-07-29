@@ -6,7 +6,6 @@
 [sub_resource type="Resource" id="ReactiveStat_cb_morale"]
 script = ExtResource("2_rs")
 stat_value = 0.5
-stat_name = 0
 
 [sub_resource type="Resource" id="ReactiveStat_cb_mvspd"]
 script = ExtResource("2_rs")

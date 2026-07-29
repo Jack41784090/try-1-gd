@@ -1,7 +1,9 @@
 class_name SquadBattle
 extends Resource
 
-var teams_and_squads: Dictionary = {}
+signal battle_completed(outcome: SquadBattleTypes.BattleOutcome)
+
+var side_squads_dict: Dictionary[SquadBattleTypes.Side, Array] = {}
 var team_names: Array[Variant]
 var round_count: int = -1
 
@@ -13,35 +15,44 @@ var defender_tactic: Tactic = null
 var max_rounds: int = 3
 var retreating_team: Variant = null
 
+var _outcome_notified: bool = false
 
-func _init(config: Dictionary):
+func _init(teams: Dictionary[SquadBattleTypes.Side, Array], _attacker_tactic: Tactic, _defender_tactic: Tactic):
 	# Initializes a squad battle from a config dict containing teams and tactics
 	# e.g., config = { teams: {ATTACKER: [squad_config], DEFENDER: [squad_config]}, attacker_tactic: Aggressive, ... }
-	#   → creates CombatSquad for each squad, stores in teams_and_squads["player"] and ["enemy"]
+	#   → creates CombatSquad for each squad, stores in side_squads_dict["player"] and ["enemy"]
 	#   → max_rounds = attacker_tactic.action_count (e.g., Aggressive → 4 rounds)
-	var teams = config.get("teams", {})
-
+	# var teams = config.get("teams", {})
 	# Store tactics if provided
-	attacker_tactic = config.get("attacker_tactic", Tactic.create_balanced())
-	defender_tactic = config.get("defender_tactic", Tactic.create_balanced())
+	attacker_tactic = _attacker_tactic
+	defender_tactic = _defender_tactic
 
 	# Max rounds comes from attacker's action_count
 	max_rounds = attacker_tactic.action_count
 
-	for team_name in teams:
-		var squad_configs = teams[team_name]
-		teams_and_squads[team_name] = []
+	for side in teams:
+		assert(side != SquadBattleTypes.Side.NULL)
 
-		for squad_config in squad_configs:
-			var squad = CombatSquad.new(squad_config)
-			teams_and_squads[team_name].append(squad)
+		var squad_config_tuples := teams[side]
+		
+		side_squads_dict.set(side, squad_config_tuples.map(func(squad_config_tuple):
+			assert(squad_config_tuple.size() == 3)
+			assert(squad_config_tuple[0] is String) 	# name
+			assert(squad_config_tuple[1] is SquadBattleTypes.Side) 	# side
+			assert(squad_config_tuple[2] is Array) 	# entities
+			return CombatSquad.new(
+				squad_config_tuple[0], 	# name
+				squad_config_tuple[1], 	# side
+				squad_config_tuple[2], 	# entities
+			)
+		))
 
-		team_names.append(team_name)
+		team_names.append(side)
 
 
 func get_entity_by_id(entity_id: int) -> CombatEntity:
-	for team_name in teams_and_squads:
-		var squads = teams_and_squads[team_name]
+	for team_name in side_squads_dict:
+		var squads = side_squads_dict[team_name]
 		for squad in squads:
 			for entity in squad.entities:
 				if entity.player_id == entity_id:
@@ -53,8 +64,8 @@ func get_entity_by_id(entity_id: int) -> CombatEntity:
 
 func remove_capitulated_entities(capitulated_entities: Array[CombatEntity]) -> void:
 	for entity in capitulated_entities:
-		for team_name in teams_and_squads:
-			var squads = teams_and_squads[team_name]
+		for team_name in side_squads_dict:
+			var squads = side_squads_dict[team_name]
 			for squad in squads:
 				var entities_to_remove = []
 				for i in range(squad.entities.size()):
@@ -71,7 +82,7 @@ func get_all_enemy_squads(current_team_name: Variant) -> Array[CombatSquad]:
 
 	for team_name in team_names:
 		if team_name != current_team_name:
-			for squad in teams_and_squads[team_name]:
+			for squad in side_squads_dict[team_name]:
 				enemy_squads.append(squad)
 
 	return enemy_squads
@@ -112,8 +123,8 @@ func choose_weighted_enemy_squad(current_team_name: String) -> CombatSquad:
 func check_team_strength(team_name: Variant) -> float:
 	var strength = 0.0
 
-	if teams_and_squads.has(team_name):
-		for squad in teams_and_squads[team_name]:
+	if side_squads_dict.has(team_name):
+		for squad in side_squads_dict[team_name]:
 			for entity in squad.entities:
 				strength += entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 
@@ -145,12 +156,21 @@ func get_battle_outcome() -> SquadBattleTypes.BattleOutcome:
 
 	return SquadBattleTypes.BattleOutcome.ONGOING
 
+## Same query as [method get_battle_outcome], but emits [signal battle_completed]
+## exactly once on the ONGOING → terminal transition.
+func evaluate_outcome() -> SquadBattleTypes.BattleOutcome:
+	var outcome = get_battle_outcome()
+	if outcome != SquadBattleTypes.BattleOutcome.ONGOING and not _outcome_notified:
+		_outcome_notified = true
+		battle_completed.emit(outcome)
+	return outcome
+
 
 func squad_recoveries() -> void:
 	# Between rounds, squads that weren't attacked last round recover some stats
 	# e.g., squad "enemy" last_attacked_at=2, round_count=4 → recovery() restores some STA/ORG
-	for team_name in teams_and_squads:
-		var squads = teams_and_squads[team_name]
+	for team_name in side_squads_dict:
+		var squads = side_squads_dict[team_name]
 		for squad in squads:
 			if squad.get_last_attacked_at_round() < round_count:
 				squad.recovery()
@@ -162,7 +182,7 @@ func order_retreat(team: SquadBattleTypes.Side) -> void:
 
 func _produce_retreat_updates(team_side) -> Array[EntityUpdate]:
 	var updates: Array[EntityUpdate] = []
-	var squads: Array = teams_and_squads.get(team_side, [])
+	var squads: Array = side_squads_dict.get(team_side, [])
 	for squad in squads:
 		for entity in squad.entities:
 			if entity.is_dead():
@@ -171,20 +191,17 @@ func _produce_retreat_updates(team_side) -> Array[EntityUpdate]:
 				updates.append(u)
 	return updates
 
-
-func squad_actions() -> Array[EntityUpdate]:
-	var updates: Array[EntityUpdate] = []
-
-	var attacker_squads: Array = teams_and_squads.get(SquadBattleTypes.Side.ATTACKER, [])
-	var defender_squads: Array = teams_and_squads.get(SquadBattleTypes.Side.DEFENDER, [])
-
-	if retreating_team == SquadBattleTypes.Side.ATTACKER:
+func _determine_actions(side: SquadBattleTypes.Side) -> Array[EntityUpdate]:
+	if retreating_team == side:
 		SBLog.section("Round %d/%d - Attacker Retreating" % [round_count, max_rounds], 2, 1, 0)
-		for update in _produce_retreat_updates(SquadBattleTypes.Side.ATTACKER):
-			updates.append(update)
+		return _produce_retreat_updates(side)
 	else:
 		SBLog.section("Round %d/%d - Attacker Phase" % [round_count, max_rounds], 2, 1, 0)
-		for squad in attacker_squads:
+		var attacker_squads: Array = side_squads_dict.get(SquadBattleTypes.Side.ATTACKER, [])
+		var defender_squads: Array = side_squads_dict.get(SquadBattleTypes.Side.DEFENDER, [])
+		var performing_squad = attacker_squads if side == SquadBattleTypes.Side.ATTACKER else  defender_squads
+		var updates = []
+		for squad in performing_squad:
 			var squad_updates = squad.perform_actions(
 				defender_squads,
 				round_count,
@@ -193,29 +210,18 @@ func squad_actions() -> Array[EntityUpdate]:
 			)
 			for update in squad_updates:
 				updates.append(update)
+		return updates
 
-	if retreating_team == SquadBattleTypes.Side.DEFENDER:
-		SBLog.section("Round %d/%d - Defender Retreating" % [round_count, max_rounds], 2, 1, 0)
-		for update in _produce_retreat_updates(SquadBattleTypes.Side.DEFENDER):
-			updates.append(update)
-	else:
-		SBLog.section("Round %d/%d - Defender Phase (%d reactions)" % [round_count, max_rounds, defender_tactic.reaction_count], 2, 1, 0)
-		for squad in defender_squads:
-			var squad_updates = squad.perform_reactions(
-				attacker_squads,
-				round_count,
-				defender_tactic.reaction_count,
-				defender_tactic.defense_modifier,
-			)
-			for update in squad_updates:
-				updates.append(update)
-
+func squad_actions() -> Array[EntityUpdate]:
+	var updates: Array[EntityUpdate] = []
+	updates.append_array(_determine_actions(SquadBattleTypes.Side.ATTACKER))
+	updates.append_array(_determine_actions(SquadBattleTypes.Side.DEFENDER))
 	return updates
 
 
 func remove_dead_entities() -> void:
-	for team_name in teams_and_squads:
-		var squads = teams_and_squads[team_name]
+	for team_name in side_squads_dict:
+		var squads = side_squads_dict[team_name]
 		for squad in squads:
 			var entities_to_remove = []
 			for i in range(squad.entities.size()):

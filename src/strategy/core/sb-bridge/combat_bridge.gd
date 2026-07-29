@@ -24,12 +24,12 @@ func create_battle(
 	current_tactic = tactic
 
 	# 2. Convert each squad's warriors into CombatEntity instances for the tactical layer
-	var player_squad_config = _build_squad_config(player_squad, SquadBattleTypes.Side.ATTACKER)
-	var enemy_squad_config = _build_squad_config(enemy_squad, SquadBattleTypes.Side.DEFENDER)
+	var player_squad_tuple = _build_squad_config(player_squad, SquadBattleTypes.Side.ATTACKER)
+	var enemy_squad_tuple = _build_squad_config(enemy_squad, SquadBattleTypes.Side.DEFENDER)
 
 	print("[CombatBridge] Creating battle with config:")
-	print("[CombatBridge]   Player squad: %s (%d entities)" % [player_squad_config.name, player_squad_config.entities.size()])
-	print("[CombatBridge]   Enemy squad: %s (%d entities)" % [enemy_squad_config.name, enemy_squad_config.entities.size()])
+	print("[CombatBridge]   Player squad: %s (%d entities)" % [player_squad_tuple[0], player_squad_tuple[2].size()])
+	print("[CombatBridge]   Enemy squad: %s (%d entities)" % [enemy_squad_tuple[0], enemy_squad_tuple[2].size()])
 	print(
 		"[CombatBridge]   Attacker Tactic: %s (actions=%d, reactions=%d)" % [
 			tactic.tactic_name,
@@ -42,22 +42,17 @@ func create_battle(
 	var enemy_tactic = Tactic.create_balanced()
 
 	# 4. Construct the actual SquadBattle with both teams' configs and tactics
-	current_battle = SquadBattle.new(
-		{
-			"teams": {
-				SquadBattleTypes.Side.ATTACKER: [player_squad_config],
-				SquadBattleTypes.Side.DEFENDER: [enemy_squad_config],
-			},
-			"attacker_tactic": tactic,
-			"defender_tactic": enemy_tactic,
-		},
-	)
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [player_squad_tuple],
+		SquadBattleTypes.Side.DEFENDER: [enemy_squad_tuple],
+	}
+	current_battle = SquadBattle.new(teams, tactic, enemy_tactic)
 
 	# 5. Cache references to CombatSquad for later result retrieval
-	var attacker_squads: Array = current_battle.teams_and_squads.get(SquadBattleTypes.Side.ATTACKER, [])
+	var attacker_squads: Array = current_battle.side_squads_dict.get(SquadBattleTypes.Side.ATTACKER, [])
 	if attacker_squads.size() > 0:
 		player_combat_squad = attacker_squads[0]
-	var defender_squads: Array = current_battle.teams_and_squads.get(SquadBattleTypes.Side.DEFENDER, [])
+	var defender_squads: Array = current_battle.side_squads_dict.get(SquadBattleTypes.Side.DEFENDER, [])
 	if defender_squads.size() > 0:
 		enemy_combat_squad = defender_squads[0]
 
@@ -81,7 +76,7 @@ func apply_injury_penalties(strategic_squad: StrategySquad) -> void:
 		Log.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.display_name, max_hp - penalty, max_hp])
 
 
-func _build_squad_config(strategic_squad: StrategySquad, side: SquadBattleTypes.Side) -> Dictionary:
+func _build_squad_config(strategic_squad: StrategySquad, side: SquadBattleTypes.Side) -> Array:
 	# Converts a strategic squad's warriors into pre-built CombatEntity instances
 	# Maps each Character warrior → CombatEntity via Character.enter_battle()
 	# Also builds the bi-directional ID mapping: warrior_id ↔ entity_id
@@ -108,11 +103,7 @@ func _build_squad_config(strategic_squad: StrategySquad, side: SquadBattleTypes.
 
 		combat_entities.append(character.enter_battle(side, entity_id, starting_loc))
 
-	return {
-		"entities": combat_entities,
-		"name": strategic_squad.squad_name,
-		"side": side,
-	}
+	return [strategic_squad.squad_name, side, combat_entities]
 
 
 func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate]) -> Dictionary:
@@ -157,7 +148,7 @@ func apply_results(strategic_squad: StrategySquad, updates: Array[EntityUpdate])
 					var morale_loss = damage_ratio * 20.0
 					warrior.modify_morale(-morale_loss)
 					result.injuries.append(warrior_id)
-					result.morale_changes[warrior_id] = -morale_loss
+					result.morale_changes[warrior_id] = - morale_loss
 			SquadBattleTypes.EntityChangeable.ORG:
 				# Organization change → morale effect at 0.5x rate
 				# e.g., ORG from 50 to 30 (drop of 20) → morale change = -10

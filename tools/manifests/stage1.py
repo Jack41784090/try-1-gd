@@ -1,0 +1,17 @@
+RENAMES = [
+    ("src/squad/_factory.gd", "src/squad/squad_data_factory.gd", "file"),
+    ("src/squad-battle/_factory.gd", "src/squad-battle/squad_battle_master_factory.gd", "file"),
+    ("src/squad-battle/_utils.gd", "src/squad-battle/squad_battle_utils.gd", "file"),
+    ("src/squad-battle/entity/_factory.gd", "src/squad-battle/entity/combat_entity_factory.gd", "file"),
+    ("src/squad-battle/entity/_types.gd", "src/squad-battle/entity/combat_entity_config.gd", "file"),
+    ("src/squad-battle/entity/logic/_factory.gd", "src/squad-battle/entity/logic/logic_factory.gd", "file"),
+    ("src/squad-battle/entity/logic/_script.gd", "src/squad-battle/entity/logic/simplified_squad_logic.gd", "file"),
+    ("src/squad-battle/entity/logic/consideration/_script.gd", "src/squad-battle/entity/logic/consideration/consideration.gd", "file"),
+    ("src/squad-battle/entity/logic/consideration/_types.gd", "src/squad-battle/entity/logic/consideration/csdr_types.gd", "file"),
+    ("src/squad-battle/entity/logic/situation/_script.gd", "src/squad-battle/entity/logic/situation/situation.gd", "file"),
+    ("src/strategy/core/sb-bridge/!main.gd", "src/strategy/core/sb-bridge/combat_bridge.gd", "file"),
+    ("src/strategy/core/town/_script.gd", "src/strategy/core/town/location.gd", "file"),
+    ("src/strategy/core/triggerable/!main.gd", "src/strategy/core/triggerable/triggerable.gd", "file"),
+    ("src/strategy/core/triggerable/!main-result.gd", "src/strategy/core/triggerable/generic_result.gd", "file"),
+    ("src/strategy/ui/actor/!main.gd", "src/strategy/ui/actor/activity_execute_manager.gd", "file"),
+]

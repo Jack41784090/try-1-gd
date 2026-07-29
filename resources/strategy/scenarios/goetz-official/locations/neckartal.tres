@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Location" format=3 uid="uid://3bs6sse2ke7l"]
 
 [ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="1_0385e"]
-[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/_script.gd" id="1_loc"]
+[ext_resource type="Script" uid="uid://bn7qr1j0qoawu" path="res://src/strategy/core/town/location.gd" id="1_loc"]
 [ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="2_conn"]
 [ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="3_conns"]
 [ext_resource type="Resource" path="res://resources/strategy/scenarios/goetz-official/goods/food.tres" id="5_food"]

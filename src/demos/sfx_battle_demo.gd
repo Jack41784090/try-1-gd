@@ -1,7 +1,7 @@
 extends Node3D
 
 ## Battle demo to test combat SFX: sword_hit, combat clink, death,
-## victory_fanfare / defeat. Uses the graphical View/Presenter pipeline
+## victory_fanfare / defeat. Uses the graphical battle view
 ## so sounds actually play through the SFX autoload.
 ## Run with F6 in the Godot editor (NOT headless — needs audio output).
 
@@ -15,10 +15,9 @@ func _ready() -> void:
 	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)
 	add_child(battle_scene)
 
-	var presenter = battle_scene.get_node("SquadBattlePresenter")
-	presenter.delay_between_rounds = 1.8
+	battle_scene.delay_between_rounds = 1.8
 
-	var outcome = await presenter.battle_completed
+	var outcome = await battle.battle_completed
 
 	print("\n" + "=".repeat(60))
 	print("[SfxDemo] Battle finished: %s" % SquadBattleTypes.BattleOutcome.keys()[outcome])
@@ -29,34 +28,12 @@ func _ready() -> void:
 
 
 func _create_sfx_battle() -> SquadBattle:
-	var config = {
-		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [{
-				"side": SquadBattleTypes.Side.ATTACKER,
-				"name": "Player Warband",
-				"team": "player",
-				"entities": [
-					"landsknecht",
-					"landsknecht",
-					"landsknecht",
-					"healer",
-					"landsknecht",
-				]
-			}],
-			SquadBattleTypes.Side.DEFENDER: [{
-				"side": SquadBattleTypes.Side.DEFENDER,
-				"name": "Enemy Warband",
-				"team": "enemy",
-				"entities": [
-					"landsknecht",
-					"landsknecht",
-					"landsknecht",
-					"healer",
-					"landsknecht",
-				]
-			}]
-		},
-		"attacker_tactic": Tactic.create_full_assault(),
-		"defender_tactic": Tactic.create_aggressive_charge(),
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [
+			["Player Warband", SquadBattleTypes.Side.ATTACKER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
+		],
+		SquadBattleTypes.Side.DEFENDER: [
+			["Enemy Warband", SquadBattleTypes.Side.DEFENDER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
+		],
 	}
-	return SquadBattle.new(config)
+	return SquadBattle.new(teams, Tactic.create_full_assault(), Tactic.create_aggressive_charge())

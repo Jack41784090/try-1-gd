@@ -35,7 +35,7 @@ two incompatible roles:
 2. **Two-phase init.** `_init()` calls `init_after()`; the resource path calls
    `init_from_resource()` which *also* calls `init_after()`. The `if weapon != null: return`
    guard in `init_from_resource()` exists only to detect "have I already been hydrated?"
-3. **`EntityConfig` already exists as the template-ish object** (`src/squad-battle/entity/_types.gd`,
+3. **`EntityConfig` already exists as the template-ish object** (`src/squad-battle/entity/combat_entity_config.gd`,
    RefCounted) — but it duplicates fields rather than *being* the authored data, and it's a
    positional 13-arg constructor.
 4. **Resource semantics leak — and there's already a band-aid for it.**
@@ -88,7 +88,7 @@ The goal is to never have a broken `main`. Order matters.
 2. **Re-author the `.tres` files** as `EntityTemplate` resources. The live authored
    templates are `resources/combat/classes/{landsknecht,healer,crossbowman,arquebusier,
    pikeman,feldprediger,gelehrter}.tres` (7 files, currently *modified* on this branch),
-   loaded by `EntityFactory.get_entity()` (`src/squad-battle/entity/_factory.gd`) via
+   loaded by `EntityFactory.get_entity()` (`src/squad-battle/entity/combat_entity_factory.gd`) via
    `load(path).duplicate(true)`. The deleted `resources/strategy-warrior/BS_*.tres` are a
    *different*, strategy-layer set and are not the combat templates — ignore them here.
 3. **Change `CombatEntity` to `extends RefCounted`** and route all three construction paths in
@@ -109,11 +109,11 @@ The goal is to never have a broken `main`. Order matters.
 |---|---|---|
 | 3 construction branches | `src/squad/combat.gd:13` | medium — central, but well-contained |
 | Quick-dummy + `_init` + `init_from_resource` | `src/character/combat.gd:49,130,174` | medium |
-| Entity DTO | `src/squad-battle/entity/_types.gd` (EntityConfig) | low — 3 refs |
+| Entity DTO | `src/squad-battle/entity/combat_entity_config.gd` (EntityConfig) | low — 3 refs |
 | Strategy→combat conversion | `src/character/social.gd:93` | low |
 | `EntityFactory.get_entity()` | (factory) | medium — returns Resource today |
 | Authored `.tres` (7) | `resources/combat/classes/*.tres` | medium — re-typed to EntityTemplate |
-| Factory load+duplicate | `src/squad-battle/entity/_factory.gd:15` | low — `duplicate(true)` trick removed |
+| Factory load+duplicate | `src/squad-battle/entity/combat_entity_factory.gd:15` | low — `duplicate(true)` trick removed |
 
 Validation per step: `combat_controller_test.tscn`,
 `combat_strategy_integration_test.tscn`, `scenario_attack_test.tscn`, plus

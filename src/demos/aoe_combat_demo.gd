@@ -24,31 +24,17 @@ func run_aoe_battle():
 		"crossbowman",
 	]
 
-	var attacker_squad_config = {
-		"entities": attacker_entities,
-		"name": "Alchemists' Guild",
-		"team": "player",
-		"side": SquadBattleTypes.Side.ATTACKER
-	}
-
-	var defender_squad_config = {
-		"entities": defender_entities,
-		"name": "Town Militia",
-		"team": "enemy",
-		"side": SquadBattleTypes.Side.DEFENDER
-	}
-
-	var battle_config = {
-		"teams": {
-			SquadBattleTypes.Side.ATTACKER: [attacker_squad_config],
-			SquadBattleTypes.Side.DEFENDER: [defender_squad_config]
-		},
-		"attacker_tactic": Tactic.create_full_assault(),
-		"defender_tactic": Tactic.create_aggressive_charge()
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [
+			["Alchemists' Guild", SquadBattleTypes.Side.ATTACKER, attacker_entities],
+		],
+		SquadBattleTypes.Side.DEFENDER: [
+			["Town Militia", SquadBattleTypes.Side.DEFENDER, defender_entities],
+		],
 	}
 
 	print("Initializing SquadBattle...")
-	var battle = SquadBattle.new(battle_config)
+	var battle = SquadBattle.new(teams, Tactic.create_full_assault(), Tactic.create_aggressive_charge())
 
 	print("\n--- INITIAL POSITIONS ---")
 	_print_squad_positions(battle, SquadBattleTypes.Side.ATTACKER, "Alchemists' Guild")
@@ -105,7 +91,7 @@ func run_aoe_battle():
 	print("\n=== DEMO COMPLETE ===\n")
 
 func _print_squad_positions(battle: SquadBattle, side: SquadBattleTypes.Side, label: String):
-	var squads = battle.teams_and_squads.get(side, [])
+	var squads = battle.side_squads_dict.get(side, [])
 	print("  %s:" % label)
 	for squad in squads:
 		for entity in squad.entities:

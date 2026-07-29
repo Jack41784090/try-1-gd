@@ -1,5 +1,5 @@
 class_name CombatEntity
-extends RefCounted
+extends Resource
 
 var _debug_id := "Entity_script_unknown"
 var resource: CombatEntityResource
