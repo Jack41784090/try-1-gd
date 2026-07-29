@@ -268,7 +268,7 @@ func _update_parallax() -> void:
 #region Speech Bubbles
 
 func show_bubble(character_id: String, speaker_name: String, text: String) -> SpeechBubble:
-	var bubble_scene = load("res://scenes/speech_bubble.tscn") as PackedScene
+	var bubble_scene = load("res://scenes/stage/speech_bubble.tscn") as PackedScene
 	var bubble = bubble_scene.instantiate() as SpeechBubble
 	bubble_layer.add_child(bubble)
 	bubble.setup(character_id, speaker_name, text)

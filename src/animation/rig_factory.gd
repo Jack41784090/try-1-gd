@@ -1,6 +1,6 @@
 class_name WarriorRigFactory extends RefCounted
 
-const WARRIOR_RIG_SCENE_PATH = "res://scenes/warrior_rig.tscn"
+const WARRIOR_RIG_SCENE_PATH = "res://scenes/rig/warrior_rig.tscn"
 
 static var _scene_cache: PackedScene
 

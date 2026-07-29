@@ -439,7 +439,7 @@ func _cmd_rig(class_name_arg: String) -> void:
 	_mode = "rig"
 	_rig_class_name = cn
 
-	var scene: PackedScene = load("res://scenes/warrior_rig.tscn")
+	var scene: PackedScene = load("res://scenes/rig/warrior_rig.tscn")
 	assert(scene, "Failed to load warrior_rig.tscn")
 	_rig = scene.instantiate() as WarriorRig
 	_rig.position = Vector2(960, 700)

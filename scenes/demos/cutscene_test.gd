@@ -12,7 +12,7 @@ extends Control
 ##
 ## Controls: SPACE / click = advance gate   R = replay
 
-const RIG_2_SCENE_PATH := "res://scenes/warrior_rig_2.tscn"
+const RIG_2_SCENE_PATH := "res://scenes/rig/warrior_rig_2.tscn"
 const POLL_INTERVAL := 0.4
 const SVG_RENDER_SCALE := 4.0
 

@@ -13,7 +13,7 @@ extends SceneTree
 ## Reuses WarriorRig's own size/scale/z helpers (run on the instantiated, not-yet-
 ## ready scene root) so the baked values match the runtime apply exactly.
 
-const SCENE_PATH := "res://scenes/warrior_rig_2.tscn"
+const SCENE_PATH := "res://scenes/rig/warrior_rig_2.tscn"
 const CONFIG_PATH := "res://resources/character/wcr_adventurer_rachelle.tres"
 # Asset folder the baked default is drawn from — also the editor-preview default
 # for the character_name/emotion dropdowns.

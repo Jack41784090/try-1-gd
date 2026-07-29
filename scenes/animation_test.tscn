@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c04x2gbdr1w8l"]
 
 [ext_resource type="Script" uid="uid://c3oteoxj5rnuv" path="res://src/demos/animation_test.gd" id="1_test"]
-[ext_resource type="PackedScene" uid="uid://b04gp0a05nh1i" path="res://scenes/warrior_rig_2.tscn" id="2_rig2"]
+[ext_resource type="PackedScene" uid="uid://b04gp0a05nh1i" path="res://scenes/rig/warrior_rig_2.tscn" id="2_rig2"]
 [ext_resource type="Resource" uid="uid://ce3nlulj7r8s5" path="res://resources/animation/configs/wcr_adventurer_rachelle.tres" id="2_x2dv1"]
 [ext_resource type="Script" uid="uid://b5wh8qikrxtib" path="res://src/animation/expression.gd" id="3_expr"]
 [ext_resource type="Resource" uid="uid://b1n7rcllneutr" path="res://resources/animation/expressions/rachelle/neutral.tres" id="4_neutral"]
