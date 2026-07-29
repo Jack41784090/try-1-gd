@@ -6,7 +6,7 @@
 [ext_resource type="Resource" uid="uid://xkhk1tlejr0w" path="res://resources/combat/weapon/config/mace.tres" id="4_oo1r6"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="5_d64rg"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="6_avsdn"]
-[ext_resource type="Resource" uid="uid://jcikf8f3hc56" path="res://resources/strategy/warrior-presets/_crossbowman.tres" id="7_8ou0c"]
+[ext_resource type="Resource" uid="uid://jcikf8f3hc56" path="res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres" id="7_8ou0c"]
 [ext_resource type="Script" uid="uid://bvueo5thigtj3" path="res://src/character/character.gd" id="8_char"]
 
 [sub_resource type="Resource" id="Resource_uqni0"]

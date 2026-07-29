@@ -1,6 +1,6 @@
 class_name WarriorBackgroundFactory extends RefCounted
 
-const BACKGROUNDS_DIR := "res://resources/character/backgrounds/"
+const BACKGROUNDS_DIR := "res://resources/strategy/warrior-presets/"
 
 static var _registry: Dictionary = {}
 static var _loaded: bool = false

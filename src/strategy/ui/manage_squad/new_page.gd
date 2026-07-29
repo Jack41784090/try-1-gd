@@ -31,7 +31,7 @@ func _process(_d) -> void:
 
 func _build_demo_squad() -> StrategySquad:
 	squad = StrategySquad.new()
-	var w = load("res://resources/strategy/warrior-presets/_crossbowman.tres")
+	var w = load("res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres")
 	for i in range(5):
 		var nw = Character.new(StrategyEntity.new(w))
 		squad.add_warrior(nw)
