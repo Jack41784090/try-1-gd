@@ -8,6 +8,6 @@ script = ExtResource("1_result")
 squad_stat_changes = Dictionary[int, float]({
 6: -20.0
 })
-event_chain_path = "res://resources/event_chains/starvation_event_chain.tres"
+event_chain_path = "res://resources/strategy/event-chains/starvation_event_chain.tres"
 requires_async = true
 metadata/_custom_type_script = "uid://bid5uxwt6tojw"

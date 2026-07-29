@@ -23,7 +23,7 @@ metadata/_custom_type_script = "uid://bttrmws06n1o1"
 
 [sub_resource type="Resource" id="result"]
 script = ExtResource("3_result")
-event_chain_path = "res://resources/scenarios/goetz-official/event-chains/tutorials/tutorial_first_travel_chain.tres"
+event_chain_path = "res://resources/strategy/scenarios/goetz-official/event-chains/tutorials/tutorial_first_travel_chain.tres"
 requires_async = true
 metadata/_custom_type_script = "uid://bid5uxwt6tojw"
 

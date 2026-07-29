@@ -12,7 +12,7 @@ location_requirements = Array[int]([0, 1, 2, 3])
 base_effects = Dictionary[int, float]({
 0: 10.0
 })
-event_chain_path = "res://resources/event_chains/hold_mass_activity_chain.tres"
+event_chain_path = "res://resources/strategy/event-chains/hold_mass_activity_chain.tres"
 trigger_id = "hold-mass-generic"
 trigger_name = "Hold Mass"
 description = "Conduct a religious ceremony. Effects vary based on warrior religions and morale."

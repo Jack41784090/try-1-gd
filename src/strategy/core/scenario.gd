@@ -349,7 +349,7 @@ func _get_connected_ids(loc: Location) -> Array[String]:
 
 func _load_generic_events() -> Array[GameEvent]:
 	var events: Array[GameEvent] = []
-	_collect_event_resources("res://resources/generic-events", events)
+	_collect_event_resources("res://resources/strategy/generic-events", events)
 	return events
 
 func _collect_event_resources(base_path: String, target: Array) -> void:
