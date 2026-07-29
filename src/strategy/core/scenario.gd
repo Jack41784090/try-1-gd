@@ -375,7 +375,7 @@ func _collect_event_resources(base_path: String, target: Array) -> void:
 
 func _load_generic_activities() -> Array[Activity]:
 	var activities: Array[Activity] = []
-	_collect_activity_resources("res://resources/generic-activities", activities)
+	_collect_activity_resources("res://resources/strategy/generic-activities", activities)
 	Log.debug("Scenario", "Loaded %d generic activities" % activities.size())
 	return activities
 
