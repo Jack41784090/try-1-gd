@@ -82,4 +82,4 @@ Guild-produced goods flow into LocationInventory → TradeMatcher → merchant c
 
 ## Caravan Bridge
 
-`src/economy/caravan_bridge.gd`: `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn.
+`src/economy/strategy_bridge/caravan_bridge.gd`: `CaravanBridge` materializes trade dispatches as MERCHANT squads. `CaravanBrain` (src/strategy/ai/caravan_brain.gd) pathfinds to destination. Lifecycle: dispatch → spawn/reassign → pathfind → deliver → idle → reassign/despawn.
