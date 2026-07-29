@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="StrategySquad" format=3 uid="uid://cstwv8e0rwugl"]
 
-[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad-battle/items/armor/resource.gd" id="1_d3o73"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad_battle/items/armor/resource.gd" id="1_d3o73"]
 [ext_resource type="Script" uid="uid://bhskd5mgwjl6k" path="res://src/strategy/core/inventory.gd" id="2_3ofmj"]
-[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad-battle/items/weapon/resource.gd" id="3_qgub8"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad_battle/items/weapon/resource.gd" id="3_qgub8"]
 [ext_resource type="Resource" uid="uid://xkhk1tlejr0w" path="res://resources/combat/weapon/config/mace.tres" id="4_oo1r6"]
 [ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="5_d64rg"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="6_avsdn"]

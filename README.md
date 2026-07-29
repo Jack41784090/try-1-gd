@@ -235,7 +235,7 @@ while not battle.check_victory():
 
 ## Original Source
 
-Migrated from: `life-is-roblox/src/squad-battle/`
+Migrated from: `life-is-roblox/src/squad_battle/`
 
 The original TypeScript implementation was designed for Roblox with:
 - roblox-ts for TypeScript → Luau compilation

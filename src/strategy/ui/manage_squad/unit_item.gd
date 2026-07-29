@@ -7,8 +7,8 @@ signal armor_window_received(warrior: Character, window: Control)
 signal weapon_display_removed(warrior: Character, window: Control)
 signal armor_display_removed(warrior: Character, window: Control)
 
-const WEAPON_SLOT_SCENE = preload("res://src/squad-battle/items/weapon/ui.tscn")
-const ARMOR_SLOT_SCENE = preload("res://src/squad-battle/items/armor/ui.tscn")
+const WEAPON_SLOT_SCENE = preload("res://src/squad_battle/items/weapon/ui.tscn")
+const ARMOR_SLOT_SCENE = preload("res://src/squad_battle/items/armor/ui.tscn")
 
 @onready var icon_rect: TextureRect = $Rim/HBoxContainer/IconRect
 @onready var name_label: Label = %NameLabel

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bwduq52sc0f7o"]
 
-[ext_resource type="Script" uid="uid://ca44avxu6t7y3" path="res://src/squad-battle/battlefield_view.gd" id="1_yrl3y"]
+[ext_resource type="Script" uid="uid://ca44avxu6t7y3" path="res://src/squad_battle/battlefield_view.gd" id="1_yrl3y"]
 
 [node name="BattlefieldView2D" type="Control" unique_id=2095246234]
 layout_mode = 3

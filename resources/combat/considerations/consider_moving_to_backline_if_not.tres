@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Consideration" load_steps=5 format=3 uid="uid://cds4shncbtjre"]
 
-[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="1_xuvp5"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/consideration.gd" id="2_a34yr"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_xuvp5"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="2_a34yr"]
 [ext_resource type="Resource" uid="uid://b2a3c4k5l6i7n" path="res://resources/combat/logic/skills/move-backline-skill.tres" id="2_p0rmf"]
 [ext_resource type="Resource" uid="uid://fxbtjqapfb1x" path="res://resources/combat/logic/glances/not-at-backline.tres" id="2_yuyxy"]
 

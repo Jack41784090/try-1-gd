@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="GameEvent" format=3 uid="uid://cyn8um0qvhbow"]
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_condition"]
-[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="2_event"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game_event/script.gd" id="2_event"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="2_xk062"]
-[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="3_result"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game_event/result.gd" id="3_result"]
 [ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/core/triggerable/chain.gd" id="4_m1b80"]
 
 [sub_resource type="Resource" id="Resource_condition"]

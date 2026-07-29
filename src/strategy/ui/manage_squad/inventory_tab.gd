@@ -9,7 +9,7 @@ signal unequip_armor_requested(warrior: Character)
 
 const WARRIOR_CARD_SCENE = preload("res://scenes/ui/manage_squad/warrior_equipment_card.tscn")
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
-const weapon_slot = preload("res://src/squad-battle/items/weapon/ui.tscn")
+const weapon_slot = preload("res://src/squad_battle/items/weapon/ui.tscn")
 
 @export var preview_in_editor: bool = false:
 	set(v):

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SkillEffectFlat" load_steps=2 format=3 uid="uid://d1ybpp1g5020n"]
 
-[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad-battle/clash/skill/ske-flat.gd" id="1_g73j1"]
+[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad_battle/clash/skill/ske-flat.gd" id="1_g73j1"]
 
 [resource]
 script = ExtResource("1_g73j1")

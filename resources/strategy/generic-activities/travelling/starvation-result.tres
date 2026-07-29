@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EventResult" format=3 uid="uid://b8x2lavpn5wqh"]
 
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="1_32duv"]
-[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="1_result"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game_event/result.gd" id="1_result"]
 
 [resource]
 script = ExtResource("1_result")

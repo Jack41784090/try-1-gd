@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_03b57"]
 [ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="2_2cun2"]
-[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game-event/script.gd" id="2_4dscv"]
-[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game-event/result.gd" id="3_syq6c"]
+[ext_resource type="Script" uid="uid://be7sjfrk5uh5g" path="res://src/strategy/core/triggerable/game_event/script.gd" id="2_4dscv"]
+[ext_resource type="Script" uid="uid://bid5uxwt6tojw" path="res://src/strategy/core/triggerable/game_event/result.gd" id="3_syq6c"]
 
 [sub_resource type="Resource" id="cond_time"]
 script = ExtResource("1_03b57")

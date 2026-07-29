@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="Skill" format=3 uid="uid://c454lwh84b130"]
 
-[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_ske"]
-[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="2_skill"]
-[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="3_glance"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
-[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad-battle/clash/skill/ske-flat.gd" id="5_flat"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_ske"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
+[ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad_battle/clash/skill/ske-flat.gd" id="5_flat"]
 
 [sub_resource type="Resource" id="Resource_damage"]
 script = ExtResource("1_ske")

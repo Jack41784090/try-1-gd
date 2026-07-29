@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cuprv57c7djsl"]
 
-[ext_resource type="Script" uid="uid://5luv6sayrq3m" path="res://src/squad-battle/view_2d.gd" id="1_view2d"]
+[ext_resource type="Script" uid="uid://5luv6sayrq3m" path="res://src/squad_battle/view_2d.gd" id="1_view2d"]
 [ext_resource type="PackedScene" uid="uid://bwduq52sc0f7o" path="res://scenes/battle/battlefield.tscn" id="2_icfhr"]
 
 [node name="SquadBattleNode" type="Control" unique_id=2014457591]

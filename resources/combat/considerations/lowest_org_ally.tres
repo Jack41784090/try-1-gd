@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="Consideration" load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad-battle/entity/logic/consideration/glance.gd" id="1_glance"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_glance"]
 [ext_resource type="Resource" path="res://resources/combat/logic/glances/org_proportional.tres" id="2_orggl"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad-battle/entity/logic/consideration/consideration.gd" id="3_csdr"]
+[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_csdr"]
 
 [resource]
 script = ExtResource("3_csdr")

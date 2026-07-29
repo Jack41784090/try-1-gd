@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d0f8s15q6aoek"]
 
-[ext_resource type="Script" uid="uid://cunf4qjjfuxg8" path="res://src/squad-battle/items/armor/ui.gd" id="1_rodn6"]
+[ext_resource type="Script" uid="uid://cunf4qjjfuxg8" path="res://src/squad_battle/items/armor/ui.gd" id="1_rodn6"]
 [ext_resource type="PackedScene" uid="uid://bi16xap1m3oub" path="res://scenes/ui/manage_squad/inventory_item_grid.tscn" id="2_38jxx"]
 [ext_resource type="Script" uid="uid://d3wa31b71rofx" path="res://scenes/ui/reuse/float_control.gd" id="3_ktw3p"]
 

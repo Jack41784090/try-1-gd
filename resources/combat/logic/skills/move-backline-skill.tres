@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Skill" load_steps=5 format=3 uid="uid://b2a3c4k5l6i7n"]
 
-[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad-battle/clash/skill-effect.gd" id="1_56u0s"]
-[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad-battle/clash/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_56u0s"]
+[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="1_skill"]
 [ext_resource type="Resource" uid="uid://d1ybpp1g5020n" path="res://resources/combat/logic/skill-effects/move-backward.tres" id="2_effect"]
 [ext_resource type="Resource" uid="uid://cf667axp7g2jh" path="res://resources/combat/considerations/self-consider.tres" id="4_jhi0d"]
 
