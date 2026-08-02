@@ -10,15 +10,16 @@ extends SceneTree
 ##
 ## Re-run whenever the default character's textures or *_size values change:
 ##   godot --headless --path . --script res://tools/bake_rig_scene.gd
+##   godot --headless --path . --script res://tools/bake_rig_scene.gd -- rachelle
 ##
-## Reuses WarriorRig's own size/scale/z helpers (run on the instantiated, not-yet-
-## ready scene root) so the baked values match the runtime apply exactly.
+## Accepts an optional character id (resolved via resources/characters/<id>.tres);
+## defaults to rachelle. Reuses WarriorRig's own size/scale/z helpers (run on the
+## instantiated, not-yet-ready scene root) so the baked values match the runtime
+## apply exactly.
 
 const SCENE_PATH := "res://scenes/rig/warrior_rig_2.tscn"
-const CONFIG_PATH := "res://resources/animation/configs/wcr_adventurer_rachelle.tres"
-# Asset folder the baked default is drawn from — also the editor-preview default
-# for the character_name/emotion dropdowns.
-const CHARACTER := "rachelle"
+const MANIFEST_DIR := "res://resources/characters/"
+const DEFAULT_CHARACTER := "rachelle"
 const FACE_DIR := "res://assets/rig_textures/%s/face/"
 const DEFAULT_EMOTION := "neutral"
 
@@ -34,18 +35,47 @@ const DEAD_ANIMATIONS := ["eyes_neutral", "mouth_neutral"]
 
 
 func _initialize() -> void:
-	var ok := _bake()
+	var character := _resolve_character()
+	if character.is_empty():
+		quit(1)
+		return
+	var ok := _bake(character)
 	if ok:
-		print("[bake_rig_scene] Baked %s from %s" % [SCENE_PATH, CONFIG_PATH])
+		print("[bake_rig_scene] Baked %s for '%s'" % [SCENE_PATH, character])
 	else:
 		push_error("[bake_rig_scene] FAILED")
 	quit(0 if ok else 1)
 
 
-func _bake() -> bool:
-	var config := load(CONFIG_PATH) as WarriorRigConfig
+func _resolve_character() -> String:
+	var args := OS.get_cmdline_args()
+	var id := DEFAULT_CHARACTER
+	for i in args.size():
+		if args[i] == "--" and i + 1 < args.size():
+			id = args[i + 1]
+			break
+		elif not args[i].begins_with("-"):
+			id = args[i]
+			break
+	var manifest_path := MANIFEST_DIR + id + ".tres"
+	if not FileAccess.file_exists(manifest_path):
+		push_error("No manifest for '%s' — expected %s" % [id, manifest_path])
+		return ""
+	return id
+
+
+func _config_for(id: String) -> WarriorRigConfig:
+	var manifest := load(MANIFEST_DIR + id + ".tres") as CharacterManifest
+	if manifest and manifest.rig_config:
+		return manifest.rig_config
+	var fallback_path := "res://resources/animation/configs/" + id + ".tres"
+	return load(fallback_path) as WarriorRigConfig
+
+
+func _bake(character: String) -> bool:
+	var config := _config_for(character)
 	if not config:
-		push_error("Could not load config: " + CONFIG_PATH)
+		push_error("Could not resolve WarriorRigConfig for: " + character)
 		return false
 	var packed := load(SCENE_PATH) as PackedScene
 	if not packed:
@@ -95,7 +125,7 @@ func _bake() -> bool:
 		sprite.owner = root
 		print("  %s: scale=%s z=%d tex=%s" % [bone_name, str(ds), sprite.z_index, texture.resource_path.get_file()])
 
-	if not _bake_face(root, skeleton, config, bone_sizes):
+	if not _bake_face(root, skeleton, config, bone_sizes, character):
 		return false
 	_strip_face_from_anim(root)
 
@@ -103,7 +133,7 @@ func _bake() -> bool:
 	# @tool editor preview keeps these sizes and the emotion dropdown works out of
 	# the box. Setters no-op here (root isn't in the tree yet).
 	root.config = config
-	root.character_name = CHARACTER
+	root.character_name = character
 	root.emotion = DEFAULT_EMOTION
 
 	var out := PackedScene.new()
@@ -128,15 +158,15 @@ func _bake() -> bool:
 ## on the Face origin; the pivot only moves where a part scales and rotates ABOUT,
 ## which is why a pupil can shrink toward itself instead of toward the nose.
 func _bake_face(root: WarriorRig, skeleton: Skeleton2D, config: WarriorRigConfig,
-		bone_sizes: Dictionary) -> bool:
+		bone_sizes: Dictionary, character: String) -> bool:
 	var head_bone := root._find_bone_recursive(skeleton, "Head")
 	if not head_bone:
 		push_error("No Head bone — cannot bake face")
 		return false
 
-	var parts := _scan_face_parts(FACE_DIR % CHARACTER)
+	var parts := _scan_face_parts(FACE_DIR % character)
 	if parts.is_empty():
-		push_error("No face parts found in " + (FACE_DIR % CHARACTER))
+		push_error("No face parts found in " + (FACE_DIR % character))
 		return false
 
 	# Hand-tuned reactions live on the scene nodes, so carry them across a rebake;
@@ -150,7 +180,7 @@ func _bake_face(root: WarriorRig, skeleton: Skeleton2D, config: WarriorRigConfig
 
 	var face := Face.new()
 	face.name = "Face"
-	face.character = CHARACTER
+	face.character = character
 	head_bone.add_child(face)
 	face.position = Vector2.ZERO
 	face.scale = root.limb_display_scale(

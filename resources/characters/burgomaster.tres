@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterManifest" format=3]
+
+[ext_resource type="Script" path="res://src/animation/character_manifest.gd" id="1_script"]
+[ext_resource type="Resource" path="res://resources/animation/configs/rig2_burgomaster.tres" id="cfg"]
+
+[resource]
+script = ExtResource("1_script")
+character_id = "burgomaster"
+art_dir = ""
+rig_config = ExtResource("cfg")
+has_face = false

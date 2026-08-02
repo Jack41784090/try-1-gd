@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterManifest" format=3]
+
+[ext_resource type="Script" path="res://src/animation/character_manifest.gd" id="1_script"]
+[ext_resource type="Resource" path="res://resources/animation/configs/crossbowman.tres" id="cfg"]
+[ext_resource type="Resource" path="res://resources/combat/classes/crossbowman.tres" id="cmb"]
+[ext_resource type="Resource" path="res://resources/strategy/warrior-presets/crossbowman.tres" id="prs"]
+
+[resource]
+script = ExtResource("1_script")
+character_id = "crossbowman"
+art_dir = "res://assets/rig_textures/crossbowman/"
+rig_config = ExtResource("cfg")
+combat_template = ExtResource("cmb")
+warrior_preset = ExtResource("prs")
+has_face = false

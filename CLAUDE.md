@@ -107,8 +107,12 @@ Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`Re
 
 Body: Clips→Behavior→`WarriorAnimController` (AnimTree state machine). Face: a separate, signal-driven system (below) — the AnimTree does not touch it.
 
+**Character registry** (`resources/characters/<id>.tres`): one `CharacterManifest` per character — the single place that lists every file making them up (art dir, rig config, combat template, warrior preset, has_face). To add a character: create the manifest, add art to `assets/rig_textures/<id>/`, then run `tools/bake_character.sh <id>`.
+
+**One-command bake**: `tools/bake_character.sh <id>` runs the full pipeline (SVG clip bake → face split → rig scene bake with RESET rebuild). Replaces the old multi-step manual process. `bake_rig_scene.gd` resolves the character via its manifest; defaults to rachelle when run without args.
+
 **`WarriorRig` dual mode**:
-- **Baked** (`scenes/rig/warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`
+- **Baked** (`scenes/rig/warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `tools/bake_character.sh <id>` (or `godot --headless --path . --script res://tools/bake_rig_scene.gd -- <id>`)
 - **Legacy** (`scenes/rig/warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`. No face parts; only `canvas_demo` still instantiates it
 
 **Inspector-driven** (`@tool`): `config` export or `character_name`+`emotion` dropdowns (scanned from `assets/rig_textures/<name>/`). Baked rigs preview live in editor. `RigTextureLibrary` (`rig_texture_library.gd`): `build_config(name, base=null)`, `apply_textures()` — bone + head textures only; face art is baked into the rig scene, not carried on the config.
@@ -317,6 +321,7 @@ func _ready():
 - `resources/strategy/scenarios/goetz-official/` — main campaign (7 locations, ~7420 population)
 - `resources/ai/strategic/` — AI behavior `.tres` files
 - `resources/strategy/generic-activities/` — Activity `.tres` files
+- `resources/characters/` — one `CharacterManifest` `.tres` per character (single registry entry listing all their files)
 - `resources/combat/classes/` — 7 `CombatEntityResource` class templates (tier 1); `resources/strategy/warrior-presets/`, `resources/strategy/squads-presets/` — `StrategyEntityResource`/`StrategySquad` preset data
 - `resources/theme/` — condor_theme.tres, styles/, bold_font.tres
 - `scenes/demos/canvas/` — SVG drawing canvas layouts + `svgs/rig/<class>/` bone SVGs
