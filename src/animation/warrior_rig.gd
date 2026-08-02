@@ -90,16 +90,10 @@ var _applied_config: WarriorRigConfig
 var _baked_z: Dictionary = {}
 
 @onready var skeleton: Skeleton2D = $Skeleton2D
-## Face/feature refs are resolved by name (recursive) so they work whether Face is
-## a root child (legacy warrior_rig) or baked under the Head bone (warrior_rig_2).
-@onready var face_node: Node2D = find_child("Face", true, false)
-## Left (near) and right (far) eyes are separate overlay sprites.
-@onready var eye_l: Sprite2D = find_child("EyeL", true, false)
-@onready var eye_r: Sprite2D = find_child("EyeR", true, false)
-@onready var mouth: Sprite2D = find_child("Mouth", true, false)
-## Optional — only the new-proportion rig (warrior_rig_2) has these overlays.
-@onready var brows: Sprite2D = find_child("Brows", true, false)
-@onready var hair_back: Sprite2D = find_child("HairBack", true, false)
+## The composable face, baked under the Head bone on warrior_rig_2. Null on the
+## legacy rig, which has no face parts — every call site treats that as "this rig
+## has nothing to express with", not as an error.
+@onready var face: Face = find_child("Face", true, false) as Face
 @onready var anim_player: AnimationPlayer = $AnimPlayer
 @onready var anim_tree: AnimationTree = $AnimTree
 @onready var anim_controller: WarriorAnimController = $WarriorAnimController
@@ -230,11 +224,19 @@ func _apply_inspector_config() -> void:
 		## `config` as the size/offset base, else reuse the last-applied config so an
 		## emotion change doesn't reset limbs to the default sizes.
 		var size_base: WarriorRigConfig = config if config else _applied_config
-		resolved = RigTextureLibrary.build_config(character_name, emotion, size_base)
+		resolved = RigTextureLibrary.build_config(character_name, size_base)
+		## build_config hands back a private copy, so this can't leak into the base:
+		## the baked face parts are one character's, and picking a different
+		## character must not leave that character wearing them.
+		resolved.has_face_components = face != null and character_name == face.character
 	elif config:
 		resolved = config
 	if resolved:
 		_apply_config_internal(resolved)
+		## The emotion dropdown is just an intent by another name, so picking one
+		## exercises the same path a cutscene does.
+		if resolved.has_face_components and face:
+			face.express(StringName(emotion))
 
 func _apply_config_internal(cfg: WarriorRigConfig) -> void:
 	_applied_config = cfg
@@ -281,48 +283,12 @@ func _apply_config_internal(cfg: WarriorRigConfig) -> void:
 					add_child(sprite)
 					_limb_nodes[bone_name] = [sprite]
 					_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
-	## Facial-feature overlays (texture-swap expressions) — opt-in via config face
-	## slots. Only the new-proportion rig uses them; the legacy rig has no face
-	## textures, so this block (and _fit_face_to_head) is skipped and its existing
-	## RemoteTransform2D-driven Face is left untouched.
-	if cfg.eye_l_texture or cfg.eye_r_texture or cfg.mouth_texture or cfg.brows_texture or cfg.hair_back_texture:
-		if eye_l and cfg.eye_l_texture:
-			eye_l.texture = cfg.eye_l_texture
-		if eye_r and cfg.eye_r_texture:
-			eye_r.texture = cfg.eye_r_texture
-		if mouth and cfg.mouth_texture:
-			mouth.texture = cfg.mouth_texture
-		if brows and cfg.brows_texture:
-			brows.texture = cfg.brows_texture
-		if hair_back and cfg.hair_back_texture:
-			hair_back.texture = cfg.hair_back_texture
-		## Baked rigs parent Face under the Head bone (so it tracks the head in the
-		## editor); only the legacy top_level Face needs the per-frame fit.
-		if not (face_node != null and face_node.get_parent() is Bone2D):
-			if face_node:
-				var head_bone := _find_bone_recursive(skeleton, "Head")
-				if head_bone:
-					var target: Vector2 = BONE_DISPLAY_SIZES["Head"]
-					var head_size: Vector3 = cfg.get_bone_sizes().get("Head", Vector3.ZERO)
-					if Vector2(head_size.x, head_size.y) != Vector2.ZERO:
-						target = Vector2(head_size.x, head_size.y)
-					var face_display_scale := Vector2.ONE
-					if cfg.head_texture:
-						var tex_size := Vector2(cfg.head_texture.get_width(), cfg.head_texture.get_height())
-						if tex_size.x > 0 and tex_size.y > 0:
-							face_display_scale = Vector2(target.x / tex_size.x, target.y / tex_size.y)
-					face_node.top_level = true
-					for sprite in [eye_l, eye_r, mouth, brows, hair_back]:
-						if sprite:
-							sprite.centered = true
-							sprite.position = Vector2.ZERO
-							sprite.scale = Vector2.ONE
-					_synced_parts = _synced_parts.filter(func(p: Dictionary) -> bool:
-						return p.node != face_node
-					)
-					_synced_parts.append({"node": face_node, "bone": head_bone, "display_scale": face_display_scale})
-	if cfg.default_expression:
-		set_expression(cfg.default_expression)
+	## The Face subtree belongs to whichever character it was baked from, and every
+	## character shares this one scene — so a config that isn't that character's
+	## hides it outright. Without this the face of whoever was rigged last bleeds
+	## through onto everyone else.
+	if face:
+		face.visible = cfg.has_face_components
 
 func play_behavior(behavior: AnimTypes.Behavior) -> void:
 	if anim_tree and not anim_tree.active:
@@ -344,29 +310,13 @@ func _apply_rest_recursive(node: Node) -> void:
 			child.apply_rest()
 		_apply_rest_recursive(child)
 
-## Swaps the per-feature overlay textures for an expression. Null features are
-## left unchanged, so an expression can alter just the brows, just the eyes, etc.
-func set_expression(expr: iExpression) -> void:
-	if not expr:
-		return
-	if eye_l and expr.eye_l_texture:
-		eye_l.texture = expr.eye_l_texture
-	if eye_r and expr.eye_r_texture:
-		eye_r.texture = expr.eye_r_texture
-	if mouth and expr.mouth_texture:
-		mouth.texture = expr.mouth_texture
-	if brows and expr.brows_texture:
-		brows.texture = expr.brows_texture
-	anim_controller.set_expression(expr)
-
-## Resolves a named expression (by iExpression.expression_id) against the applied
-## config's expression set and applies it. Used by the EXPRESSION cinematic action.
+## Broadcasts an expression intent to the face. What it looks like is each face
+## part's own business (see FaceComponent); an intent no part answers is a no-op.
+## Entry point for the EXPRESSION cinematic action.
 func set_expression_by_name(expression_id: String) -> void:
-	if expression_id.is_empty() or not _applied_config:
+	if expression_id.is_empty() or not face:
 		return
-	var expr := _applied_config.get_expression(expression_id)
-	if expr:
-		set_expression(expr)
+	face.express(StringName(expression_id.to_lower()))
 
 func get_head_position() -> Vector2:
 	if skeleton:

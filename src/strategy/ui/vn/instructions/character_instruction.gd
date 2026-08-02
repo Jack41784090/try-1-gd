@@ -41,8 +41,8 @@ enum StageAnchor {
 ## Valid: idle, walking, attacking, defending, hurt, dying, talking, gesturing
 @export var behavior: String = ""
 
-## Expression id for EXPRESSION action (resolved against the rig config's
-## expressions / default_expression by iExpression.expression_id).
+## Expression intent for EXPRESSION action, broadcast to the rig's Face. Each
+## face part answers for itself; an intent no part answers changes nothing.
 @export var expression: String = ""
 
 ## Named anchor for position resolution. Overrides raw target_position when set.

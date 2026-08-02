@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="iExpression" load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://b5wh8qikrxtib" path="res://src/animation/expression.gd" id="1"]
-
-[resource]
-script = ExtResource("1")
-expression_id = "shocked"
-eye_clip = &"eyes_neutral"
-mouth_clip = &"mouth_neutral"

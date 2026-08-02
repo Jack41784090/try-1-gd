@@ -4,7 +4,6 @@ extends Node
 signal behavior_changed(new_behavior: AnimTypes.Behavior)
 
 var current_behavior: AnimTypes.Behavior = AnimTypes.Behavior.IDLE
-var current_expression: iExpression
 
 var _anim_tree: AnimationTree
 var _anim_player: AnimationPlayer
@@ -31,44 +30,6 @@ func play_behavior(behavior: AnimTypes.Behavior) -> void:
 	if _state_machine:
 		_state_machine.travel(state_name)
 	behavior_changed.emit(behavior)
-
-
-## Facial expressions are applied as overlay sprite textures by WarriorRig
-## (which owns the face sprites); the controller only tracks the current one so
-## play_action's body/face stay in sync. The rig calls this after swapping.
-func set_expression(expr: iExpression) -> void:
-	if not expr:
-		return
-	current_expression = expr
-
-
-func play_action(action: AnimAction) -> void:
-	if not action:
-		return
-	if action.expression:
-		set_expression(action.expression)
-	var state_name: StringName
-	match action.body_clip:
-		&"idle_body":
-			state_name = &"idle"
-		&"walk_body":
-			state_name = &"walking"
-		&"attack_swing_body":
-			state_name = &"attacking"
-		&"defend_body":
-			state_name = &"defending"
-		&"hurt_body":
-			state_name = &"hurt"
-		&"die_body":
-			state_name = &"dying"
-		&"talk_body":
-			state_name = &"talking"
-		&"gesture_wave_body":
-			state_name = &"gesturing"
-		_:
-			state_name = &"idle"
-	if _state_machine:
-		_state_machine.travel(state_name)
 
 
 func _behavior_to_state(behavior: AnimTypes.Behavior) -> StringName:

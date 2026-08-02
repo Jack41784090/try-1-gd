@@ -29,8 +29,10 @@ const POLL_INTERVAL := 0.4
 const SVG_RENDER_SCALE := 4.0
 
 @export var config: WarriorRigConfig
-## Expressions to cycle with the [E] key (texture-swap facial expressions).
-@export var expressions: Array[iExpression] = []
+## Expression intents to broadcast with the [E] key. Each face part answers for
+## itself, so what you should see is several parts reacting at once — and
+## &"neutral" always landing back exactly on the baked pose.
+@export var expression_ids: Array[String] = ["neutral", "wide", "blink"]
 
 @onready var rig: WarriorRig = $Rig
 @onready var status_label: Label = $UI/StatusLabel
@@ -41,6 +43,7 @@ var _tpose: bool = false # showing static rest/T-pose instead of an animation
 var _poll_accum: float = 0.0
 var _mtimes: Dictionary = {} # abs_path -> modified_time (config .tres + each source texture)
 var _last_sig: String = "" # signature of the live config's sizes/offsets/texture paths
+var _face_slots: Array[Dictionary] = [] # {node|reaction, path} per face texture slot
 
 func _ready() -> void:
 	if config:
@@ -99,22 +102,22 @@ func _config_signature() -> String:
 	for bone_name in textures:
 		var tex: Texture2D = textures[bone_name]
 		parts.append("%s=%s" % [bone_name, tex.resource_path if tex else ""])
-	for tex in _face_textures():
-		parts.append("face=%s" % tex.resource_path)
 	return "/".join(parts)
 
-## All face/expression texture resources, so edits to them trigger a reload too.
-func _face_textures() -> Array[Texture2D]:
-	var out: Array[Texture2D] = []
-	for tex in [config.eye_l_texture, config.eye_r_texture, config.mouth_texture, config.brows_texture, config.hair_back_texture]:
-		if tex:
-			out.append(tex)
-	for expr in expressions:
-		if expr:
-			for tex in [expr.eye_l_texture, expr.eye_r_texture, expr.mouth_texture, expr.brows_texture]:
-				if tex:
-					out.append(tex)
-	return out
+## Every texture slot in the baked Face subtree paired with the SVG it came from
+## — a component's own art plus each reaction's swap — so editing any face part
+## hot-reloads like the body textures do. Captured once, because a reload
+## replaces the imported texture with a path-less one rasterized from disk.
+func _snapshot_face_slots() -> void:
+	_face_slots.clear()
+	if not rig.face:
+		return
+	for node in _find_all(rig.face, FaceComponent):
+		if node.texture and not node.texture.resource_path.is_empty():
+			_face_slots.append({"node": node, "path": node.texture.resource_path})
+		for reaction in node.reactions:
+			if reaction and reaction.texture and not reaction.texture.resource_path.is_empty():
+				_face_slots.append({"reaction": reaction, "path": reaction.texture.resource_path})
 
 #region Live texture reload
 
@@ -133,9 +136,8 @@ func _watched_paths() -> Array[String]:
 	for tex in config.get_bone_textures().values():
 		if tex and not tex.resource_path.is_empty():
 			paths.append(ProjectSettings.globalize_path(tex.resource_path))
-	for tex in _face_textures():
-		if not tex.resource_path.is_empty():
-			paths.append(ProjectSettings.globalize_path(tex.resource_path))
+	for slot in _face_slots:
+		paths.append(ProjectSettings.globalize_path(slot.path))
 	return paths
 
 func _refresh(reload_config: bool) -> void:
@@ -147,43 +149,31 @@ func _refresh(reload_config: bool) -> void:
 			config = fresh
 
 	## Use the config's imported textures directly (skip disk reload for now).
-	var rebuilt: WarriorRigConfig = config.duplicate()
-	rebuilt.default_expression = null
-
-	rig.apply_config(rebuilt)
+	rig.apply_config(config.duplicate())
+	if _face_slots.is_empty():
+		_snapshot_face_slots()
+	if reload_config:
+		for slot in _face_slots:
+			var tex := _load_texture_from_disk(ProjectSettings.globalize_path(slot.path))
+			if not tex:
+				continue
+			if slot.has("node"):
+				slot.node.texture = tex
+			else:
+				slot.reaction.texture = tex
 	_apply_expression(_expr_index)
 	_snapshot_mtimes()
 	_last_sig = _config_signature()
 	if reload_config:
 		Log.info("AnimationTest", "Textures reloaded from disk")
 
-## Re-rasterizes a texture from its source .svg/.png on disk, falling back to the
-## given texture when there's no source path.
-func _disk_or(tex: Texture2D) -> Texture2D:
-	if not tex or tex.resource_path.is_empty():
-		return tex
-	var abs_path := ProjectSettings.globalize_path(tex.resource_path)
-	if not FileAccess.file_exists(abs_path):
-		return tex
-	var reloaded := _load_texture_from_disk(abs_path)
-	return reloaded if reloaded else tex
-
-## Applies expressions[idx] with its feature textures re-read from disk so live
-## edits to the expression SVGs show immediately.
+## Broadcasts expression_ids[idx]. Every face part answers on its own, so one
+## call can move brows, shrink pupils and swap lashes together.
 func _apply_expression(idx: int) -> void:
-	if expressions.is_empty():
+	if expression_ids.is_empty():
 		return
-	_expr_index = wrapi(idx, 0, expressions.size())
-	var src: iExpression = expressions[_expr_index]
-	if not src:
-		return
-	var live := iExpression.new()
-	live.expression_id = src.expression_id
-	live.eye_l_texture = _disk_or(src.eye_l_texture)
-	live.eye_r_texture = _disk_or(src.eye_r_texture)
-	live.mouth_texture = _disk_or(src.mouth_texture)
-	live.brows_texture = _disk_or(src.brows_texture)
-	rig.set_expression(live)
+	_expr_index = wrapi(idx, 0, expression_ids.size())
+	rig.set_expression_by_name(expression_ids[_expr_index])
 	_update_label()
 
 func _snapshot_mtimes() -> void:
@@ -208,24 +198,6 @@ func _load_texture_from_disk(abs_path: String) -> Texture2D:
 		return null
 	return ImageTexture.create_from_image(img)
 
-func _set_slot(cfg: WarriorRigConfig, bone_name: String, tex: Texture2D) -> void:
-	match bone_name:
-		"Head": cfg.head_texture = tex
-		"Torso": cfg.torso_texture = tex
-		"Hips": cfg.hips_texture = tex
-		"LeftArm": cfg.left_arm_texture = tex
-		"LeftForearm": cfg.left_forearm_texture = tex
-		"LeftHand": cfg.left_hand_texture = tex
-		"RightArm": cfg.right_arm_texture = tex
-		"RightForearm": cfg.right_forearm_texture = tex
-		"RightHand": cfg.right_hand_texture = tex
-		"LeftLeg": cfg.left_leg_texture = tex
-		"LeftShin": cfg.left_shin_texture = tex
-		"LeftFoot": cfg.left_foot_texture = tex
-		"RightLeg": cfg.right_leg_texture = tex
-		"RightShin": cfg.right_shin_texture = tex
-		"RightFoot": cfg.right_foot_texture = tex
-
 #endregion
 
 #region Animation controls
@@ -242,10 +214,8 @@ func _update_label() -> void:
 	lines.append("Animation: %s" % current)
 	lines.append("")
 	lines.append("[1-8] select   [←/→] cycle   [R] replay   [T] T-pose")
-	if not expressions.is_empty():
-		var expr: iExpression = expressions[_expr_index]
-		var ename := expr.expression_id if expr and not expr.expression_id.is_empty() else str(_expr_index)
-		lines.append("[E] expression: %s" % ename)
+	if not expression_ids.is_empty():
+		lines.append("[E] expression: %s" % expression_ids[_expr_index])
 	lines.append("textures hot-reload on file change")
 	for i in BEHAVIOR_NAMES.size():
 		lines.append("  %d: %s" % [i + 1, BEHAVIOR_NAMES[i]])
