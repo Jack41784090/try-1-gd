@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://coqb4pyoghfsn"
-path="res://.godot/imported/eyes_wide.svg-d4f4dd2847e1856f0c869df4bfc5b370.ctex"
+uid="uid://0vn57m0ew81v"
+path="res://.godot/imported/eye_l_white_pupil_wide.svg-c9d3cea2ce2ca6660ea4887afc52ac9d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rig_textures/rachelle/face/eyes_wide.svg"
-dest_files=["res://.godot/imported/eyes_wide.svg-d4f4dd2847e1856f0c869df4bfc5b370.ctex"]
+source_file="res://assets/rig_textures/rachelle/face/eye_l_white_pupil_wide.svg"
+dest_files=["res://.godot/imported/eye_l_white_pupil_wide.svg-c9d3cea2ce2ca6660ea4887afc52ac9d.ctex"]
 
 [params]
 

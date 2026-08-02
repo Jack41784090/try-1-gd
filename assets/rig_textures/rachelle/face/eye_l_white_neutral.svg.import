@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dv3akddmwy081"
-path="res://.godot/imported/eyes_neutral.svg-5421b2091128bdad89434f80b1e09870.ctex"
+uid="uid://b8b35pwyp63c0"
+path="res://.godot/imported/eye_l_white_neutral.svg-f3979472083eba2e4fba06c158ae83e5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rig_textures/rachelle/face/eyes_neutral.svg"
-dest_files=["res://.godot/imported/eyes_neutral.svg-5421b2091128bdad89434f80b1e09870.ctex"]
+source_file="res://assets/rig_textures/rachelle/face/eye_l_white_neutral.svg"
+dest_files=["res://.godot/imported/eye_l_white_neutral.svg-f3979472083eba2e4fba06c158ae83e5.ctex"]
 
 [params]
 

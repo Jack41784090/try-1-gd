@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" version="1.1" id="svg1" inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)" sodipodi:docname="_head.svg" xml:space="preserve">
-  <sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#ffffff" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="1" inkscape:deskcolor="#505050" inkscape:document-units="mm" inkscape:zoom="2.0000001" inkscape:cx="-12" inkscape:cy="122.25" inkscape:window-width="1896" inkscape:window-height="1012" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="1" inkscape:current-layer="layer2" showgrid="false"/>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" version="1.1" id="svg1" inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)" sodipodi:docname="_head.svg" xml:space="preserve" data-part-path="eye_r" data-order="6" data-pivot="0.785378,0.469306">
+  <sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#ffffff" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="1" inkscape:deskcolor="#505050" inkscape:document-units="mm" inkscape:zoom="4.0000002" inkscape:cx="101" inkscape:cy="124.62499" inkscape:window-width="1896" inkscape:window-height="1012" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="1" inkscape:current-layer="layer2" showgrid="false"/>
   <defs id="defs1">
     <linearGradient id="swatch59" inkscape:swatch="solid">
       <stop style="stop-color:#e0aea2;stop-opacity:1;" offset="0" id="stop59"/>
@@ -106,16 +106,8 @@
   </defs>
   <g inkscape:groupmode="layer" id="layer5" inkscape:label="Face" style="display:inline">
     <g id="g5" clip-path="url(#clipPath5-0)" style="display:inline;opacity:1;mix-blend-mode:normal" transform="matrix(0.97742821,0,0,1,22.491474,-1.9220592)">
-      <g id="g11" style="display:inline;opacity:1;mix-blend-mode:normal" transform="matrix(-2.3823414,0,0,2.3823414,458.62747,-237.08147)" inkscape:label="eye_r">
+      <g id="g11" style="display:inline;opacity:1;mix-blend-mode:normal" transform="matrix(-2.3823414,0,0,2.3823414,458.62747,-237.08147)" inkscape:label="eye_r+clip">
         <g inkscape:label="blink" style="display:inline;mix-blend-mode:normal" transform="translate(-0.17220144,-0.37101349) translate(-0.11387474,0.85333359)">
-          <g style="display:inline;opacity:1;mix-blend-mode:normal" inkscape:label="lashes" transform="matrix(1.2914687,0.17829375,-0.19011955,1.3894279,-10.229592,-76.685533)">
-            <path style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;mix-blend-mode:normal;fill:#d9d76f;fill-opacity:0.964781;stroke:#000000;stroke-width:0.11733;stroke-linejoin:bevel;stroke-dasharray:0.11733, 0.11733;stroke-dashoffset:0;stroke-opacity:1;enable-background:accumulate;stop-color:#000000" d="m 124.83633,138.75757 c 2.77279,-1.05531 4.64567,-0.81344 6.41988,-0.67438 2.57731,0.202 4.91539,-0.3522 7.0451,0.83827 -2.90522,-2.34646 -6.54344,-3.78085 -13.46498,-0.16389 z" sodipodi:nodetypes="cscc"/>
-            <g transform="matrix(0.98331879,0.15896733,-0.19220448,0.98589164,28.326035,-18.58759)">
-              <path style="fill:#d2da11;fill-opacity:0.870651;stroke:#91a000;stroke-width:0.0818639;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:0.0818639, 0.0818639;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" d="m 128.24971,137.87026 -1.24774,0.83765 c -0.84386,0.56637 -1.80787,0.28071 -2.791,-0.14052 z" sodipodi:nodetypes="cccc"/>
-              <path style="display:inline;mix-blend-mode:normal;fill:#d2da11;fill-opacity:0.870651;stroke:#91a000;stroke-width:0.0818639;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:0.0818639, 0.0818639;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" d="m 130.3558,137.23624 -1.41264,0.5128 c -0.95534,0.34668 -1.8223,-0.16254 -2.67518,-0.80796 z" sodipodi:nodetypes="cccc"/>
-              <path style="display:inline;mix-blend-mode:normal;fill:#d2da11;fill-opacity:0.870651;stroke:#91a000;stroke-width:0.0818639;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:0.0818639, 0.0818639;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" d="m 132.38349,136.78782 -1.48176,0.25078 c -1.00207,0.16948 -1.76349,-0.48715 -2.4866,-1.27524 z" sodipodi:nodetypes="cccc"/>
-            </g>
-          </g>
           <path style="display:inline;opacity:1;mix-blend-mode:normal;fill:#74762f;fill-opacity:1;stroke:none;stroke-width:0.320938;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" d="m 141.7206,140.8837 c -1.84687,-1.99213 -4.58759,-2.91278 -7.44729,-3.18942 -3.47928,-0.33658 -5.58003,0.22767 -7.31143,1.02785" sodipodi:nodetypes="csc"/>
         </g>
       </g>

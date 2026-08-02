@@ -1301,7 +1301,7 @@
          id="g32"
          clip-path="none"
          style="display:inline;opacity:1"
-         inkscape:label="eye_l"
+         inkscape:label="eye_l+clip"
          transform="matrix(2.3823414,0,0,2.3823414,-231.83161,-237.96535)"><g
            id="g2"
            inkscape:label="neutral"
@@ -1317,9 +1317,9 @@
              id="g25"
              clip-path="url(#clipPath25)"
              transform="matrix(1.1407491,-0.21009602,0.21009602,1.1407491,-49.252532,8.8016972)"
-             inkscape:label="lefteye"
+             inkscape:label="white"
              style="display:inline;opacity:1;mix-blend-mode:normal"><g
-               inkscape:label="Clip"
+               inkscape:label="sclera"
                id="g24"
                style="display:inline"><path
                  style="display:inline;opacity:1;mix-blend-mode:normal;fill:#c3ceeb;fill-opacity:1;stroke:none;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
@@ -1438,9 +1438,9 @@
              id="g25-1"
              clip-path="url(#clipPath25-12)"
              transform="matrix(1.1407491,-0.21009602,0.21009602,1.1407491,-49.252532,8.8016972)"
-             inkscape:label="lefteye"
+             inkscape:label="white"
              style="display:inline;opacity:1;mix-blend-mode:normal"><g
-               inkscape:label="Clip"
+               inkscape:label="sclera"
                id="g24-7"
                style="display:inline"><path
                  style="display:inline;opacity:1;mix-blend-mode:normal;fill:#c3ceeb;fill-opacity:1;stroke:none;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
@@ -1510,7 +1510,7 @@
          id="g11"
          style="display:inline;opacity:1;mix-blend-mode:normal"
          transform="matrix(-2.3823414,0,0,2.3823414,458.62747,-237.08147)"
-         inkscape:label="eye_r"><g
+         inkscape:label="eye_r+clip"><g
            id="g1"
            inkscape:label="neutral"
            style="display:none"><use
@@ -1521,11 +1521,12 @@
              style="display:inline;opacity:1;mix-blend-mode:normal"
              transform="matrix(-0.94804214,-0.31814481,-0.31814481,0.94804214,306.00221,50.008367)"
              inkscape:label="lowlid" /><g
+             inkscape:label="white"
              id="g14"
              clip-path="url(#clipPath14)"
              sodipodi:insensitive="true"
              style="display:inline"><g
-               inkscape:label="Clip"
+               inkscape:label="sclera"
                id="g13"><use
                  x="0"
                  y="0"
@@ -1602,11 +1603,12 @@
              xlink:href="#use37"
              id="use31"
              style="display:inline;opacity:1;mix-blend-mode:normal" /><g
+             inkscape:label="white"
              id="g30"
              clip-path="url(#clipPath30)"
              style="display:inline;opacity:1;mix-blend-mode:normal"
              transform="translate(2.011787,-0.03710146)"><g
-               inkscape:label="Clip"
+               inkscape:label="sclera"
                id="g29"><use
                  x="0"
                  y="0"
@@ -1646,7 +1648,7 @@
            transform="translate(-0.17220144,-0.37101349)"
            inkscape:label="blink" /></g><g
          id="g3"
-         inkscape:label="brow_l"
+         inkscape:label="brow_l+clip"
          style="display:inline;opacity:1;mix-blend-mode:normal"><g
            id="g7"
            inkscape:label="neutral"><path
@@ -1656,7 +1658,7 @@
              sodipodi:nodetypes="cssc"
              inkscape:label="brow_l" /></g></g><g
          id="g6"
-         inkscape:label="brow_r"
+         inkscape:label="brow_r+clip"
          style="display:inline;opacity:1;mix-blend-mode:normal"><g
            id="g8"
            inkscape:label="neutral"><use
@@ -1668,7 +1670,7 @@
              transform="matrix(-1,0,0,1,229.51468,-1.8766659)"
              inkscape:label="brow_r" /></g></g><g
          id="g59"
-         inkscape:label="lips"
+         inkscape:label="mouth"
          transform="matrix(1.1228642,0,0,1.2434774,-12.787604,-38.922512)"
          style="display:inline;opacity:1;mix-blend-mode:normal"><g
            id="g9"

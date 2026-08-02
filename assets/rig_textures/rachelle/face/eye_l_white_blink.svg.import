@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4wh8t0d8ex14"
-path="res://.godot/imported/brows_neutral.svg-4c5d0ee0052a8097cacc15d9468e8c8e.ctex"
+uid="uid://b56ygi3ddihv4"
+path="res://.godot/imported/eye_l_white_blink.svg-dba8ded31c5df379e9415b701e1f1bf6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rig_textures/rachelle/face/brows_neutral.svg"
-dest_files=["res://.godot/imported/brows_neutral.svg-4c5d0ee0052a8097cacc15d9468e8c8e.ctex"]
+source_file="res://assets/rig_textures/rachelle/face/eye_l_white_blink.svg"
+dest_files=["res://.godot/imported/eye_l_white_blink.svg-dba8ded31c5df379e9415b701e1f1bf6.ctex"]
 
 [params]
 
