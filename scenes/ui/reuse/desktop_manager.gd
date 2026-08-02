@@ -74,7 +74,6 @@ func _on_dragging(window: Control, global_pos: Vector2) -> void:
 	if dock != null:
 		var dock_area_rect := dock.area.get_global_rect()
 		_snap_overlay.show()
-		# adjust snap overlay to render over where the dock area is
 		_snap_overlay.position = dock_area_rect.position - _panel_layer.global_position
 		_snap_overlay.size = dock_area_rect.size
 
@@ -110,7 +109,6 @@ func _find_best_dock_for_dragging_win(dragging_window: Control, at_glob_pos: Vec
 				best = dock
 				best_area = dock_area_size
 
-	# print("best targeted: ", best.get_parent().name if best else "null")
 	return best
 
 

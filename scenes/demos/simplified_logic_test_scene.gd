@@ -1,6 +1,6 @@
 extends Node2D
 
-# Comprehensive test suite for the consideration system
+## Comprehensive test suite for the consideration system
 
 var test_count := 0
 var passed_count := 0
@@ -11,7 +11,6 @@ func _ready() -> void:
 	print("CONSIDERATION SYSTEM - COMPREHENSIVE TEST SUITE")
 	print("=".repeat(80) + "\n")
 	
-	# Run all test suites
 	test_entity_considerations()
 	test_context_considerations()
 	test_situation_considerations()
@@ -19,7 +18,6 @@ func _ready() -> void:
 	test_logic_configuration_resources()
 	test_complex_scenarios()
 	
-	# Print final results
 	print("\n" + "=".repeat(80))
 	print("TEST RESULTS")
 	print("=".repeat(80))
@@ -31,10 +29,6 @@ func _ready() -> void:
 	else:
 		print("\n✗ SOME TESTS FAILED!")
 	print("=".repeat(80) + "\n")
-
-# ============================================================================
-# TEST SUITE 1: Glance-based Entity Property Tests
-# ============================================================================
 
 func test_entity_considerations() -> void:
 	print("\n" + "-".repeat(80))
@@ -159,10 +153,6 @@ func test_glance_location_detection() -> void:
 	
 	assert_equal(score, 1.0, "Should detect entity at Middle location")
 	end_test()
-
-# ============================================================================
-# TEST SUITE 2: Glance-based Multi-Entity Tests
-# ============================================================================
 
 func test_context_considerations() -> void:
 	print("\n" + "-".repeat(80))
@@ -299,10 +289,6 @@ func test_glance_average_operation() -> void:
 	assert_equal(score, 0.5, "Should average enemy HP: (0.4 + 0.6) / 2 = 0.5")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 3: Glance Chaining Tests
-# ============================================================================
-
 func test_situation_considerations() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 3: Glance Chaining Tests")
@@ -387,10 +373,6 @@ func test_glance_multi_glance_consideration() -> void:
 	assert_equal(score, 0.5, "Should average normalized HP and ORG")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 4: Skill-based Consideration Tests
-# ============================================================================
-
 func test_action_considerations() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 4: Skill-based Consideration Tests")
@@ -441,7 +423,6 @@ func test_skill_consideration_no_condition() -> void:
 	var attack_skill = Skill.new("Attack", [])
 	
 	var consideration = Consideration.new()
-	# glances already initialized as empty array
 	consideration.entity_limiter = "self"
 	consideration.weight = 5.0
 	consideration.op = CsdrTypes.OP.ADD
@@ -496,10 +477,6 @@ func test_skill_selection_logic() -> void:
 	
 	assert_equal(chosen_skill.name, "Heal", "Should choose Heal skill due to low HP")
 	end_test()
-
-# ============================================================================
-# TEST SUITE 5: Logic Configuration Resources
-# ============================================================================
 
 func test_logic_configuration_resources() -> void:
 	print("\n" + "-".repeat(80))
@@ -559,10 +536,6 @@ func test_create_custom_configuration() -> void:
 	
 	assert_equal(chosen_skill.name, "Heal", "Should choose Heal when HP low")
 	end_test()
-
-# ============================================================================
-# TEST SUITE 6: Complex Scenarios
-# ============================================================================
 
 func test_complex_scenarios() -> void:
 	print("\n" + "-".repeat(80))
@@ -652,10 +625,6 @@ func test_scenario_priority_resolution() -> void:
 	assert_equal(skill.name, "Heal", "Should choose Heal with weight 50 over Attack with weight 10")
 	end_test()
 
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
 func create_test_entity(config: Dictionary) -> CombatEntity:
 	var resource := CombatEntityFactory.get_resource("landsknecht")
 	var player_id: int = config.get("player_id", 0)
@@ -666,7 +635,6 @@ func create_test_entity(config: Dictionary) -> CombatEntity:
 
 func create_basic_context(entity: CombatEntity) -> Dictionary:
 	var our_squad = {}
-	# var enemy_squad = {}
 
 	our_squad[entity.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.LOC)] = [entity]
 	return {
@@ -674,31 +642,6 @@ func create_basic_context(entity: CombatEntity) -> Dictionary:
 		"our_squad": our_squad,
 		"enemy_squad": {}
 	}
-
-func create_outnumbered_scenario(entity: CombatEntity, ally_count: int, enemy_count: int) -> Dictionary:
-	var allies = create_entities_at_location(ally_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	var enemies = create_entities_at_location(enemy_count, SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	
-	return {
-		"entity": entity,
-		"our_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Front: allies
-		},
-		"enemy_squad": {
-			SquadBattleTypes.SquadEntityInSquadLocation.Front: enemies
-		}
-	}
-
-func create_entities_at_location(count: int, location: int) -> Array:
-	var entities = []
-	for i in range(count):
-		var e = create_test_entity({
-			"hp": 100.0,
-			"max_hp": 100.0,
-			"location": location
-		})
-		entities.append(e)
-	return entities
 
 func create_heal_on_low_hp_config() -> SimplifiedLogicConfig:
 	var heal_skill = Skill.new("Heal", [])
@@ -765,10 +708,6 @@ func create_location_based_config() -> SimplifiedLogicConfig:
 	config.considerations.append(move_forward_consideration)
 	
 	return config
-
-# ============================================================================
-# Test Assertion Helpers
-# ============================================================================
 
 func start_test(test_name: String) -> void:
 	test_count += 1

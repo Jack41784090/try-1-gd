@@ -11,7 +11,17 @@ func _ready() -> void:
 	print("=".repeat(60))
 	print("Listen for: sword hits, armor clinks, death sounds, victory/defeat fanfare")
 
-	var battle = _create_sfx_battle()
+	# --- create sfx battle ---
+	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
+		SquadBattleTypes.Side.ATTACKER: [
+			["Player Warband", SquadBattleTypes.Side.ATTACKER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
+		],
+		SquadBattleTypes.Side.DEFENDER: [
+			["Enemy Warband", SquadBattleTypes.Side.DEFENDER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
+		],
+	}
+	var battle := SquadBattle.new(teams, Tactic.create_full_assault(), Tactic.create_aggressive_charge())
+
 	var battle_scene = SquadBattleMasterFactory.create_battle_scene(battle)
 	add_child(battle_scene)
 
@@ -25,15 +35,3 @@ func _ready() -> void:
 
 	await get_tree().create_timer(3.0).timeout
 	get_tree().quit()
-
-
-func _create_sfx_battle() -> SquadBattle:
-	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
-		SquadBattleTypes.Side.ATTACKER: [
-			["Player Warband", SquadBattleTypes.Side.ATTACKER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
-		],
-		SquadBattleTypes.Side.DEFENDER: [
-			["Enemy Warband", SquadBattleTypes.Side.DEFENDER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],
-		],
-	}
-	return SquadBattle.new(teams, Tactic.create_full_assault(), Tactic.create_aggressive_charge())

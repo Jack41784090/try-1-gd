@@ -91,8 +91,8 @@ static func apply_textures(config: WarriorRigConfig, character: String,
 		if tex:
 			config.set(BONE_FILES[stem], tex)
 
-	# Head: prefer the face-split base (eyes/mouth/brows removed) so the overlays
-	# sit on a clean head; fall back to the whole head.svg for non-split folders.
+	## Head: prefer the face-split base (eyes/mouth/brows removed) so the overlays
+	## sit on a clean head; fall back to the whole head.svg for non-split folders.
 	var face := folder + "face/"
 	var head := _load_emotion(face, "head_base", emotion)
 	if head == null:
@@ -116,9 +116,9 @@ static func apply_textures(config: WarriorRigConfig, character: String,
 	if hair:
 		config.hair_back_texture = hair
 
-	# The loaded overlays ARE the requested emotion. Clear any base default
-	# expression so WarriorRig._apply_config_internal doesn't re-apply it on top
-	# and snap the face back to neutral.
+	## The loaded overlays ARE the requested emotion. Clear any base default
+	## expression so WarriorRig._apply_config_internal doesn't re-apply it on top
+	## and snap the face back to neutral.
 	config.default_expression = null
 
 ## Loads `face/<feature>_<emotion>.svg`, falling back to the neutral variant.

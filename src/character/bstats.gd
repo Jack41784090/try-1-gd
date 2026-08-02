@@ -1,7 +1,6 @@
 class_name CombatEntityBaseStats
 extends Resource
 
-#@export var id: String
 @export var strength: float
 @export var dex: float
 @export var acr: float

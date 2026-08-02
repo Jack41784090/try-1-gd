@@ -77,9 +77,8 @@ func _setup_scene() -> void:
 	for i in range(4):
 		squad.add_warrior(_make_warrior("Filler %d" % i, 0.5))
 
-	# Mirrors real usage: instance the panel scene, add it to the tree, then
-	# hand it a squad — same sequence units_panel.gd relies on for @onready
-	# nodes and the deferred/immediate setup() split.
+	## Mirrors real usage: instance the panel scene, add to tree, then hand it a
+	## squad — same sequence units_panel.gd relies on for @onready + setup() split.
 	panel = UNITS_PANEL_SCENE.instantiate()
 	add_child(panel)
 	panel.setup(squad)
@@ -101,7 +100,6 @@ func test_key_resolution() -> void:
 
 func test_initial_render() -> void:
 	print("\n--- Test 2: Initial panel render reflects entity state ---")
-	# UnitItem._refresh_morale_speed() displays morale as a 0-100 percentage.
 	check(is_equal_approx(morale_bar.value, 100.0), "MoraleBar reads initial stat_value on setup", "got %s" % str(morale_bar.value))
 
 

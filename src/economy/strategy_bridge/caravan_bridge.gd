@@ -24,29 +24,12 @@ static func create_caravan_squad(
 	squad.cargo.manifest[move.thing.thing_id] = move.quantity
 	squad.cargo.destination_id = move.dest_location_id
 
-	# DISABLED: guard creation needs the StrategyEntity runtime-build bridge (StrategyEntityFactory)
-	# which does not exist during the StrategyEntity rewrite.
-	# for i in range(guard_count):
-	# 	var warrior := _create_caravan_guard(squad.squad_id, i)
-	# 	squad.add_warrior(warrior)
-
 	return squad
 
 
 static func _create_caravan_guard(_squad_id: String, _index: int) -> StrategyEntity:
-	# DISABLED: StrategyEntityFactory does not exist during the StrategyEntity rewrite.
 	push_error("CaravanBridge._create_caravan_guard disabled during StrategyEntity rewrite")
 	return null
-	# var guard := StrategyEntityFactory.Create(
-	# 	&"landsknecht",
-	# 	"%s_guard_%d" % [squad_id, index],
-	# 	"Caravan Guard",
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# )
-	# guard.morale = 60.0
-	# guard.set_attribute(StrategyTypes.WarriorAttribute.PERCEPTION, 15)
-	# guard.set_attribute(StrategyTypes.WarriorAttribute.STEALTH, 5)
-	# return guard
 
 
 static func calculate_guard_count(move: EconomyMove) -> int:

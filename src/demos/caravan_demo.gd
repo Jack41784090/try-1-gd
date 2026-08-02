@@ -66,7 +66,25 @@ func _ready() -> void:
 	await presenter.bind_view(mock_view)
 
 	world = presenter.game_scenario.world
-	_add_castle_location()
+
+	# --- _add_castle_location ---
+	var castle := Location.new()
+	castle.location_id = "castle"
+	castle.location_name = "Castle"
+	castle.type = StrategyTypes.LocationType.CITY
+	castle.development = 60
+	castle.stability = 90.0
+	castle.add_connection("market_town", 1)
+	world.add_location(castle)
+
+	var market := world.get_location_by_id("market_town")
+	if market:
+		market.add_connection("castle", 1)
+	var farmstead := world.get_location_by_id("farmstead")
+	if farmstead:
+		farmstead.add_connection("castle", 2)
+		castle.add_connection("farmstead", 2)
+
 	_setup_economy()
 
 	Log.info("CaravanDemo", "World locations: %s" % [
@@ -83,9 +101,73 @@ func _setup_economy() -> void:
 	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0)
 	world.goods = [food, cloth, tools, luxury]
 
-	_setup_econ_location("farmstead", _farmstead_pop(), _farmstead_inv(), _farmstead_resources())
-	_setup_econ_location("market_town", _market_town_pop(), _market_town_inv(), _market_town_resources())
-	_setup_econ_location("castle", _castle_pop(), _castle_inv(), _castle_resources())
+	# --- _farmstead_pop ---
+	var fp := Population.new()
+	for p in Population.create_batch(50, "farmer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.0):
+		fp.add_person(p)
+	for p in Population.create_batch(5, "trader", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
+		fp.add_person(p)
+	for p in Population.create_batch(2, "squire", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
+		fp.add_person(p)
+
+	# --- _farmstead_inv ---
+	var fi := LocationInventory.new()
+	fi.init_thing(food, 60.0)
+	fi.init_thing(cloth, 10.0)
+
+	# --- _farmstead_resources ---
+	var fr: Array[NaturalResource] = [
+		NaturalResource.create(food, 250.0),
+		NaturalResource.create(cloth, 50.0),
+	]
+
+	_setup_econ_location("farmstead", fp, fi, fr)
+
+	# --- _market_town_pop ---
+	var mp := Population.new()
+	for p in Population.create_batch(10, "laborer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 5.0):
+		mp.add_person(p)
+	for p in Population.create_batch(15, "craftsman", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.CRAFTSMAN, 5.0):
+		mp.add_person(p)
+	for p in Population.create_batch(25, "merchant", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
+		mp.add_person(p)
+	for p in Population.create_batch(10, "lord", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
+		mp.add_person(p)
+
+	# --- _market_town_inv ---
+	var mi := LocationInventory.new()
+	mi.init_thing(food, 60.0)
+	mi.init_thing(cloth, 5.0)
+	mi.init_thing(tools, 5.0)
+	mi.init_thing(luxury, 2.0)
+
+	# --- _market_town_resources ---
+	var mr: Array[NaturalResource] = [
+		NaturalResource.create_craft(cloth, 15.0),
+		NaturalResource.create_craft(tools, 25.0),
+		NaturalResource.create_craft(luxury, 20.0),
+	]
+
+	_setup_econ_location("market_town", mp, mi, mr)
+
+	# --- _castle_pop ---
+	var cp := Population.new()
+	for p in Population.create_batch(10, "servant", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 5.0):
+		cp.add_person(p)
+	for p in Population.create_batch(5, "baron", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
+		cp.add_person(p)
+
+	# --- _castle_inv ---
+	var ci := LocationInventory.new()
+	ci.init_thing(food, 20.0)
+	ci.init_thing(cloth, 3.0)
+	ci.init_thing(tools, 2.0)
+	ci.init_thing(luxury, 1.0)
+
+	# --- _castle_resources ---
+	var cr: Array[NaturalResource] = []
+
+	_setup_econ_location("castle", cp, ci, cr)
 
 	engine = EconomyEngine.new()
 	engine.world = world
@@ -105,96 +187,6 @@ func _setup_econ_location(loc_id: String, pop: Population, inv: LocationInventor
 	loc.natural_resources = resources
 
 
-func _farmstead_pop() -> Population:
-	var pop := Population.new()
-	for p in Population.create_batch(50, "farmer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.0):
-		pop.add_person(p)
-	for p in Population.create_batch(5, "trader", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
-		pop.add_person(p)
-	for p in Population.create_batch(2, "squire", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		pop.add_person(p)
-	return pop
-
-func _farmstead_inv() -> LocationInventory:
-	var inv := LocationInventory.new()
-	inv.init_thing(food, 60.0)
-	inv.init_thing(cloth, 10.0)
-	return inv
-
-func _farmstead_resources() -> Array[NaturalResource]:
-	return [
-		NaturalResource.create(food, 250.0),
-		NaturalResource.create(cloth, 50.0),
-	]
-
-
-func _market_town_pop() -> Population:
-	var pop := Population.new()
-	for p in Population.create_batch(10, "laborer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 5.0):
-		pop.add_person(p)
-	for p in Population.create_batch(15, "craftsman", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.CRAFTSMAN, 5.0):
-		pop.add_person(p)
-	for p in Population.create_batch(25, "merchant", EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 5.0):
-		pop.add_person(p)
-	for p in Population.create_batch(10, "lord", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		pop.add_person(p)
-	return pop
-
-func _market_town_inv() -> LocationInventory:
-	var inv := LocationInventory.new()
-	inv.init_thing(food, 60.0)
-	inv.init_thing(cloth, 5.0)
-	inv.init_thing(tools, 5.0)
-	inv.init_thing(luxury, 2.0)
-	return inv
-
-func _market_town_resources() -> Array[NaturalResource]:
-	return [
-		NaturalResource.create_craft(cloth, 15.0),
-		NaturalResource.create_craft(tools, 25.0),
-		NaturalResource.create_craft(luxury, 20.0),
-	]
-
-
-func _castle_pop() -> Population:
-	var pop := Population.new()
-	for p in Population.create_batch(10, "servant", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 5.0):
-		pop.add_person(p)
-	for p in Population.create_batch(5, "baron", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-		pop.add_person(p)
-	return pop
-
-func _castle_inv() -> LocationInventory:
-	var inv := LocationInventory.new()
-	inv.init_thing(food, 20.0)
-	inv.init_thing(cloth, 3.0)
-	inv.init_thing(tools, 2.0)
-	inv.init_thing(luxury, 1.0)
-	return inv
-
-func _castle_resources() -> Array[NaturalResource]:
-	return []
-
-
-func _add_castle_location() -> void:
-	var castle := Location.new()
-	castle.location_id = "castle"
-	castle.location_name = "Castle"
-	castle.type = StrategyTypes.LocationType.CITY
-	castle.development = 60
-	castle.stability = 90.0
-	castle.add_connection("market_town", 1)
-	world.add_location(castle)
-
-	var market := world.get_location_by_id("market_town")
-	if market:
-		market.add_connection("castle", 1)
-	var farmstead := world.get_location_by_id("farmstead")
-	if farmstead:
-		farmstead.add_connection("castle", 2)
-		castle.add_connection("farmstead", 2)
-
-
 func _run_simulation() -> void:
 	var target_days := 5
 	var target_hours := target_days * 24
@@ -212,66 +204,39 @@ func _run_simulation() -> void:
 		if current_day != last_reported_day:
 			last_reported_day = current_day
 			Log.info("CaravanDemo", "=== DAY %d (hour %d) ===" % [current_day, world.current_hour])
-			_print_turn_summary(current_day)
+
+			# --- _print_turn_summary ---
+			var caravan_count := 0
+			var total_in_world := world.roaming_squads.size()
+			for squad in world.roaming_squads:
+				if squad.is_caravan():
+					caravan_count += 1
+					Log.debug("CaravanDemo", "    Caravan: %s @ %s → %s (role=%s)" % [
+						squad.squad_name,
+						squad.current_location_id,
+						squad.cargo.destination_id,
+						StrategyTypes.SquadRole.keys()[squad.squad_role],
+					])
+			Log.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
+				total_in_world, caravan_count, presenter.game_scenario.world.economy_engine.active_shipment_count,
+			])
+
+			if current_day <= 3 or current_day % 5 == 0:
+				for loc in world.get_economy_locations():
+					Log.info("CaravanDemo", "    [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
+						loc.location_name,
+						loc.inventory.get_available(food),
+						loc.inventory.get_available(cloth),
+						loc.inventory.get_available(tools),
+						loc.inventory.get_available(luxury),
+					])
 
 	presenter.game_clock.pause()
 
 	Log.info("CaravanDemo", "")
 	_print_final_summary()
-	_run_assertions()
 
-	await get_tree().create_timer(0.5).timeout
-	get_tree().quit()
-
-
-func _print_turn_summary(turn: int) -> void:
-	var caravan_count := 0
-	var total_in_world := world.roaming_squads.size()
-	for squad in world.roaming_squads:
-		if squad.is_caravan():
-			caravan_count += 1
-			Log.debug("CaravanDemo", "    Caravan: %s @ %s → %s (role=%s)" % [
-				squad.squad_name,
-				squad.current_location_id,
-				squad.cargo.destination_id,
-				StrategyTypes.SquadRole.keys()[squad.squad_role],
-			])
-	Log.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
-		total_in_world, caravan_count, presenter.game_scenario.world.economy_engine.active_shipment_count,
-	])
-
-	if turn <= 3 or turn % 5 == 0:
-		for loc in world.get_economy_locations():
-			Log.info("CaravanDemo", "    [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
-				loc.location_name,
-				loc.inventory.get_available(food),
-				loc.inventory.get_available(cloth),
-				loc.inventory.get_available(tools),
-				loc.inventory.get_available(luxury),
-			])
-
-
-func _print_final_summary() -> void:
-	Log.info("CaravanDemo", "=== CARAVAN FINAL SUMMARY ===")
-	Log.info("CaravanDemo", "Active shipments: %d" % presenter.game_scenario.world.economy_engine.active_shipment_count)
-
-	for loc in world.get_economy_locations():
-		Log.info("CaravanDemo", "  [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
-			loc.location_name,
-			loc.inventory.get_available(food),
-			loc.inventory.get_available(cloth),
-			loc.inventory.get_available(tools),
-			loc.inventory.get_available(luxury),
-		])
-
-	for squad in world.roaming_squads:
-		if squad.is_caravan():
-			Log.info("CaravanDemo", "  In-transit: %s @ %s → %s" % [
-				squad.squad_name, squad.current_location_id, squad.cargo.destination_id,
-			])
-
-
-func _run_assertions() -> void:
+	# --- _run_assertions ---
 	Log.info("CaravanDemo", "")
 	Log.info("CaravanDemo", "=== ASSERTIONS ===")
 
@@ -305,6 +270,29 @@ func _run_assertions() -> void:
 		Log.error("CaravanDemo", "SOME ASSERTIONS FAILED")
 	else:
 		Log.info("CaravanDemo", "ALL ASSERTIONS PASSED")
+
+	await get_tree().create_timer(0.5).timeout
+	get_tree().quit()
+
+
+func _print_final_summary() -> void:
+	Log.info("CaravanDemo", "=== CARAVAN FINAL SUMMARY ===")
+	Log.info("CaravanDemo", "Active shipments: %d" % presenter.game_scenario.world.economy_engine.active_shipment_count)
+
+	for loc in world.get_economy_locations():
+		Log.info("CaravanDemo", "  [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
+			loc.location_name,
+			loc.inventory.get_available(food),
+			loc.inventory.get_available(cloth),
+			loc.inventory.get_available(tools),
+			loc.inventory.get_available(luxury),
+		])
+
+	for squad in world.roaming_squads:
+		if squad.is_caravan():
+			Log.info("CaravanDemo", "  In-transit: %s @ %s → %s" % [
+				squad.squad_name, squad.current_location_id, squad.cargo.destination_id,
+			])
 
 
 func _assert_gt(label: String, actual: Variant, minimum: Variant) -> void:

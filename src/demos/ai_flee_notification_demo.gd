@@ -9,7 +9,7 @@ extends Node
 ##
 ## Usage: godot-mono --headless --path . scenes/demos/ai_flee_notification_demo.tscn
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
@@ -37,21 +37,7 @@ func _ready():
 
 	player_squad = presenter.actor.player_squad
 
-	_inject_fleeing_squad()
-	_assign_flee_profile()
-
-	Log.info("FleeDmo", "Player: %s @ %s" % [player_squad.squad_name, player_squad.current_location_id])
-	Log.info("FleeDmo", "AI squads: %d" % presenter.ai_fleet.get_ai_squad_count())
-	_log_all_squad_positions()
-
-	await _run_test_sequence()
-	_print_summary()
-
-	await get_tree().create_timer(0.5).timeout
-	get_tree().quit()
-
-
-func _inject_fleeing_squad() -> void:
+	# --- _inject_fleeing_squad ---
 	var runner := SquadDataFactory.create_squad(
 		"retreating_scouts",
 		"Retreating Scouts",
@@ -82,8 +68,7 @@ func _inject_fleeing_squad() -> void:
 	presenter.game_scenario.world.add_roaming_squad(runner)
 	Log.info("FleeDmo", "Injected '%s' at oehringen with %d warriors" % [runner.squad_name, runner.warriors.size()])
 
-
-func _assign_flee_profile() -> void:
+	# --- _assign_flee_profile ---
 	var flee_action = StrategicAction.new()
 	flee_action.action_name = "always-flee"
 	flee_action.activity_type = StrategyTypes.ActivityType.TRAVEL
@@ -120,8 +105,11 @@ func _assign_flee_profile() -> void:
 
 	Log.info("FleeDmo", "Assigned always-flee profile to %s" % runner_squad.squad_name)
 
+	Log.info("FleeDmo", "Player: %s @ %s" % [player_squad.squad_name, player_squad.current_location_id])
+	Log.info("FleeDmo", "AI squads: %d" % presenter.ai_fleet.get_ai_squad_count())
+	_log_all_squad_positions()
 
-func _run_test_sequence() -> void:
+	# --- _run_test_sequence ---
 	var T := StrategyTypes.ActivityType
 
 	Log.info("FleeDmo", "\n=== PHASE 1: Travel to Öhringen (runner's location) ===")
@@ -159,7 +147,12 @@ func _run_test_sequence() -> void:
 			Log.info("FleeDmo", "CONTACT_DECAYING detected at patrol %d" % (i + 1))
 
 	Log.info("FleeDmo", "\n=== PHASE 4: Chase runner to try to regain contact ===")
-	var runner_loc := _get_runner_location()
+	# --- _get_runner_location ---
+	var runner_loc := ""
+	for sq in presenter.game_scenario.world.roaming_squads:
+		if sq.squad_id == "retreating_scouts":
+			runner_loc = sq.current_location_id
+			break
 	if not runner_loc.is_empty() and runner_loc != player_squad.current_location_id:
 		Log.info("FleeDmo", "Runner is at %s, pursuing..." % runner_loc)
 		await _do_travel(runner_loc)
@@ -200,6 +193,11 @@ func _run_test_sequence() -> void:
 
 	if not saw_decaying and not saw_lost:
 		_fail("Expected at least one of CONTACT_DECAYING or CONTACT_LOST, got neither")
+
+	_print_summary()
+
+	await get_tree().create_timer(0.5).timeout
+	get_tree().quit()
 
 
 func _do_travel(destination: String) -> void:
@@ -252,13 +250,6 @@ func _ever_seen(type: NotificationData.NotificationType) -> bool:
 			if n.type == type:
 				return true
 	return false
-
-
-func _get_runner_location() -> String:
-	for sq in presenter.game_scenario.world.roaming_squads:
-		if sq.squad_id == "retreating_scouts":
-			return sq.current_location_id
-	return ""
 
 
 func _log_all_squad_positions() -> void:

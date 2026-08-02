@@ -3,12 +3,6 @@ class_name SkillEffect extends Resource
 
 var _debug_id: String = ""
 
-# enum Targeting {
-# 	SENTINEL,
-# 	Self,
-# 	Target,
-# }
-
 @export var name: String
 @export var stacks: int = 0
 var source: CombatEntity
@@ -34,15 +28,15 @@ func setup_connections(collector = null) -> void:
 	for trigger in triggers:
 		StatusEffectEventBus.Connect(trigger, commit)
 
-func _format_trigger_name(trigger) -> String:
-	return StatusEffectEventBus.Signals.keys()[trigger]
-
-func _format_triggers(trigger_array: Array) -> String:
+func _format_triggers(trigger_array: Array[StatusEffectEventBus.Signals]) -> String:
 	if trigger_array.is_empty():
 		return "None"
-	var names = []
+	var keys = StatusEffectEventBus.Signals.keys()
+	var values = StatusEffectEventBus.Signals.values()
+	var names: Array[String] = []
 	for t in trigger_array:
-		names.append(_format_trigger_name(t))
+		var idx = values.find(t)
+		names.append(keys[idx] if idx >= 0 else "Signal_%d" % t)
 	return ", ".join(names)
 
 func commit(_data = null) -> Array[EntityUpdate]:

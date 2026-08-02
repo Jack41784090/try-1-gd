@@ -17,5 +17,5 @@ func _init():
 	_handlers[StrategyTypes.ActivityType.PATROL] = PatrolHandler.new()
 
 
-func get_handler(type: StrategyTypes.ActivityType) -> ActivityHandler:
-	return _handlers.get(type)
+func get_handler(activity_type: StrategyTypes.ActivityType) -> ActivityHandler:
+	return _handlers.get(activity_type)

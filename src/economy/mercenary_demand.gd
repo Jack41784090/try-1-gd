@@ -22,10 +22,25 @@ func calculate_demand(location: Location, world: World) -> float:
 		var route: Array[String] = [location.location_id, conn.to_location_id]
 		var safety := danger_calc.calculate_route_safety(route, world)
 		var suppression := 1.0 - safety
-		var avg_trade_value := _estimate_trade_value(location)
+		assert(location.inventory != null, "Mercenary demand requires inventory at location '%s'" % location.location_id)
+		var trade_total := 0.0
+		for thing in location.inventory.stocks:
+			var qty: float = location.inventory.stocks[thing]
+			trade_total += qty * thing.base_price
+		var avg_trade_value := clampf(trade_total * 0.1, 10.0, 500.0)
 		trade_loss += suppression * avg_trade_value
 
-	var bandit_count := _count_nearby_bandits(location, world)
+	var bandit_count := 0
+	var squads_here := world.get_squads_at_location(location.location_id)
+	for s in squads_here:
+		if s.squad_role == StrategyTypes.SquadRole.BANDIT:
+			bandit_count += 1
+	if location.connections:
+		for conn in location.connections.tt:
+			var squads_adj := world.get_squads_at_location(conn.to_location_id)
+			for s in squads_adj:
+				if s.squad_role == StrategyTypes.SquadRole.BANDIT:
+					bandit_count += 1
 	if bandit_count == 0:
 		return 0.0
 
@@ -50,28 +65,3 @@ func find_nearest_bandit(location: Location, world: World) -> StrategySquad:
 				if s.squad_role == StrategyTypes.SquadRole.BANDIT:
 					return s
 	return null
-
-
-func _count_nearby_bandits(location: Location, world: World) -> int:
-	var count := 0
-	var squads_here := world.get_squads_at_location(location.location_id)
-	for s in squads_here:
-		if s.squad_role == StrategyTypes.SquadRole.BANDIT:
-			count += 1
-
-	if location.connections:
-		for conn in location.connections.tt:
-			var squads_adj := world.get_squads_at_location(conn.to_location_id)
-			for s in squads_adj:
-				if s.squad_role == StrategyTypes.SquadRole.BANDIT:
-					count += 1
-	return count
-
-
-func _estimate_trade_value(location: Location) -> float:
-	assert(location.inventory != null, "Mercenary demand requires inventory at location '%s'" % location.location_id)
-	var total := 0.0
-	for thing in location.inventory.stocks:
-		var qty: float = location.inventory.stocks[thing]
-		total += qty * thing.base_price
-	return clampf(total * 0.1, 10.0, 500.0)

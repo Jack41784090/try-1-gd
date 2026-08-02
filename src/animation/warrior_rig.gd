@@ -90,14 +90,14 @@ var _applied_config: WarriorRigConfig
 var _baked_z: Dictionary = {}
 
 @onready var skeleton: Skeleton2D = $Skeleton2D
-# Face/feature refs are resolved by name (recursive) so they work whether Face is
-# a root child (legacy warrior_rig) or baked under the Head bone (warrior_rig_2).
+## Face/feature refs are resolved by name (recursive) so they work whether Face is
+## a root child (legacy warrior_rig) or baked under the Head bone (warrior_rig_2).
 @onready var face_node: Node2D = find_child("Face", true, false)
-# Left (near) and right (far) eyes are separate overlay sprites.
+## Left (near) and right (far) eyes are separate overlay sprites.
 @onready var eye_l: Sprite2D = find_child("EyeL", true, false)
 @onready var eye_r: Sprite2D = find_child("EyeR", true, false)
 @onready var mouth: Sprite2D = find_child("Mouth", true, false)
-# Optional — only the new-proportion rig (warrior_rig_2) has these overlays.
+## Optional — only the new-proportion rig (warrior_rig_2) has these overlays.
 @onready var brows: Sprite2D = find_child("Brows", true, false)
 @onready var hair_back: Sprite2D = find_child("HairBack", true, false)
 @onready var anim_player: AnimationPlayer = $AnimPlayer
@@ -114,8 +114,8 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT,
 			"hint": PROPERTY_HINT_ENUM,
-			# Leading comma = a blank "(none)" option, so leaving it unset falls
-			# back to the `config` resource.
+			## Leading comma = a blank "(none)" option, so leaving it unset falls
+			## back to the `config` resource.
 			"hint_string": "," + ",".join(RigTextureLibrary.character_names()),
 		},
 		{
@@ -128,19 +128,50 @@ func _get_property_list() -> Array[Dictionary]:
 	]
 
 func _ready() -> void:
-	# @tool: in the editor, live-preview the inspector dropdowns on baked rigs so
-	# picking a character/emotion retextures immediately. Legacy rigs are skipped
-	# (their placeholders rely on the per-frame _process sync, off in the editor).
+	## @tool: in the editor, live-preview the inspector dropdowns on baked rigs so
+	## picking a character/emotion retextures immediately. Legacy rigs are skipped
+	## (their placeholders rely on the per-frame _process sync, off in the editor).
 	if Engine.is_editor_hint():
 		if _has_baked_sprites():
 			_apply_inspector_config()
 		return
 	anim_controller.setup(anim_tree, anim_player)
-	# warrior_rig_2 ships textures baked as Sprite2D children of each bone (for
-	# editor pose feedback). When those exist, skip the runtime placeholder body —
-	# apply_config updates the baked sprites in place instead.
+	## warrior_rig_2 ships textures baked as Sprite2D children of each bone (for
+	## editor pose feedback). When those exist, skip the runtime placeholder body —
+	## apply_config updates the baked sprites in place instead.
 	if not _has_baked_sprites():
-		_build_placeholder_body()
+		var p := {
+			"torso": Color(0.80, 0.20, 0.20),
+			"torso_accent": Color(0.86, 0.80, 0.53),
+			"arms": Color(0.60, 0.13, 0.13),
+			"hips": Color(0.45, 0.32, 0.22),
+			"legs": Color(0.47, 0.38, 0.31),
+			"boots": Color(0.48, 0.35, 0.25),
+		}
+		## Z-order: back-to-front for right-facing SD character
+		## Left side = NEAR (viewer side), Right side = FAR (profile edge)
+		_add_part("RightArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
+		_add_part("RightForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
+		_add_part("RightHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
+		_add_part("RightLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
+		_add_part("RightShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
+		_add_part("RightFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
+		_add_part("Hips", _make_rect(Vector2(0, 0), 18, 5), p.hips)
+		_add_part("LeftLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
+		_add_part("LeftShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
+		_add_part("LeftFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
+		_add_part("Torso", _make_rect(Vector2(0, 6), 21, 18), p.torso)
+		_add_part("Torso", _make_rect(Vector2(0, -4), 18, 5), p.torso_accent)
+		_add_part("Head", _make_oval(Vector2(0, 6), 15, 17), SKIN_COLOR)
+		_add_part("Head", _make_oval(Vector2(0, -2), 16, 8), HAIR_COLOR)
+		_add_part("Head", _make_circle(Vector2(-5, 5), 3.5), EYE_WHITE)
+		_add_part("Head", _make_circle(Vector2(5, 6), 2.5), EYE_WHITE)
+		_add_part("Head", _make_circle(Vector2(-5, 5), 2.0), EYE_PUPIL)
+		_add_part("Head", _make_circle(Vector2(5, 6), 1.5), EYE_PUPIL)
+		_add_part("Head", _make_rect(Vector2(-2, 14), 4, 1.5), MOUTH_COLOR)
+		_add_part("LeftArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
+		_add_part("LeftForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
+		_add_part("LeftHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
 	if _pending_config:
 		_apply_config_internal(_pending_config)
 		_pending_config = null
@@ -184,7 +215,7 @@ func apply_config(p_config: WarriorRigConfig) -> void:
 func _on_rig_source_changed() -> void:
 	if not is_node_ready():
 		return
-	# In the editor only baked rigs preview (see _ready); at runtime always apply.
+	## In the editor only baked rigs preview (see _ready); at runtime always apply.
 	if Engine.is_editor_hint() and not _has_baked_sprites():
 		return
 	_apply_inspector_config()
@@ -195,9 +226,9 @@ func _on_rig_source_changed() -> void:
 func _apply_inspector_config() -> void:
 	var resolved: WarriorRigConfig = null
 	if RigTextureLibrary.has_character(character_name):
-		# Keep the rig's proportions when retexturing by name: prefer the explicit
-		# `config` as the size/offset base, else reuse the last-applied config so an
-		# emotion change doesn't reset limbs to the default sizes.
+		## Keep the rig's proportions when retexturing by name: prefer the explicit
+		## `config` as the size/offset base, else reuse the last-applied config so an
+		## emotion change doesn't reset limbs to the default sizes.
 		var size_base: WarriorRigConfig = config if config else _applied_config
 		resolved = RigTextureLibrary.build_config(character_name, emotion, size_base)
 	elif config:
@@ -213,13 +244,47 @@ func _apply_config_internal(cfg: WarriorRigConfig) -> void:
 	_baked_z = _compute_baked_z_order(bone_sizes)
 	for bone_name in BONE_DRAW_ORDER:
 		if bone_textures.has(bone_name):
-			_replace_limb(bone_name, bone_textures[bone_name],
-				bone_sizes.get(bone_name, Vector3.ZERO),
-				bone_offsets.get(bone_name, Vector2.ZERO))
-	# Facial-feature overlays (texture-swap expressions) — opt-in via config face
-	# slots. Only the new-proportion rig uses them; the legacy rig has no face
-	# textures, so this block (and _fit_face_to_head) is skipped and its existing
-	# RemoteTransform2D-driven Face is left untouched.
+			var bone := _find_bone_recursive(skeleton, bone_name)
+			if bone:
+				var size_override: Vector3 = bone_sizes.get(bone_name, Vector3.ZERO)
+				var offset_override: Vector2 = bone_offsets.get(bone_name, Vector2.ZERO)
+				var texture: Texture2D = bone_textures[bone_name]
+				var target_size := limb_target_size(bone_name, size_override)
+				var display_scale := limb_display_scale(texture, target_size)
+				var world_offset: Vector2 = offset_override
+				if world_offset == Vector2.ZERO and BONE_OFFSETS.has(bone_name):
+					world_offset = BONE_OFFSETS[bone_name]
+				var baked := _find_sprite_child(bone)
+				if baked:
+					baked.texture = texture
+					baked.scale = display_scale
+					baked.z_as_relative = false
+					baked.z_index = _baked_z.get(bone_name, int(size_override.z))
+					baked.offset = (world_offset / display_scale) if world_offset != Vector2.ZERO else Vector2.ZERO
+				else:
+					if _limb_nodes.has(bone_name):
+						for node in _limb_nodes[bone_name]:
+							if is_instance_valid(node):
+								node.queue_free()
+						_limb_nodes.erase(bone_name)
+						_synced_parts = _synced_parts.filter(func(p: Dictionary) -> bool:
+							return is_instance_valid(p.node) and not p.node.is_queued_for_deletion()
+						)
+					var sprite := Sprite2D.new()
+					sprite.texture = texture
+					sprite.top_level = true
+					sprite.z_index = int(size_override.z)
+					if target_size != Vector2.ZERO:
+						sprite.scale = display_scale
+					if world_offset != Vector2.ZERO:
+						sprite.offset = world_offset / display_scale
+					add_child(sprite)
+					_limb_nodes[bone_name] = [sprite]
+					_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
+	## Facial-feature overlays (texture-swap expressions) — opt-in via config face
+	## slots. Only the new-proportion rig uses them; the legacy rig has no face
+	## textures, so this block (and _fit_face_to_head) is skipped and its existing
+	## RemoteTransform2D-driven Face is left untouched.
 	if cfg.eye_l_texture or cfg.eye_r_texture or cfg.mouth_texture or cfg.brows_texture or cfg.hair_back_texture:
 		if eye_l and cfg.eye_l_texture:
 			eye_l.texture = cfg.eye_l_texture
@@ -231,42 +296,33 @@ func _apply_config_internal(cfg: WarriorRigConfig) -> void:
 			brows.texture = cfg.brows_texture
 		if hair_back and cfg.hair_back_texture:
 			hair_back.texture = cfg.hair_back_texture
-		# Baked rigs parent Face under the Head bone (so it tracks the head in the
-		# editor); only the legacy top_level Face needs the per-frame fit.
-		if not _face_is_baked():
-			_fit_face_to_head(cfg)
+		## Baked rigs parent Face under the Head bone (so it tracks the head in the
+		## editor); only the legacy top_level Face needs the per-frame fit.
+		if not (face_node != null and face_node.get_parent() is Bone2D):
+			if face_node:
+				var head_bone := _find_bone_recursive(skeleton, "Head")
+				if head_bone:
+					var target: Vector2 = BONE_DISPLAY_SIZES["Head"]
+					var head_size: Vector3 = cfg.get_bone_sizes().get("Head", Vector3.ZERO)
+					if Vector2(head_size.x, head_size.y) != Vector2.ZERO:
+						target = Vector2(head_size.x, head_size.y)
+					var face_display_scale := Vector2.ONE
+					if cfg.head_texture:
+						var tex_size := Vector2(cfg.head_texture.get_width(), cfg.head_texture.get_height())
+						if tex_size.x > 0 and tex_size.y > 0:
+							face_display_scale = Vector2(target.x / tex_size.x, target.y / tex_size.y)
+					face_node.top_level = true
+					for sprite in [eye_l, eye_r, mouth, brows, hair_back]:
+						if sprite:
+							sprite.centered = true
+							sprite.position = Vector2.ZERO
+							sprite.scale = Vector2.ONE
+					_synced_parts = _synced_parts.filter(func(p: Dictionary) -> bool:
+						return p.node != face_node
+					)
+					_synced_parts.append({"node": face_node, "bone": head_bone, "display_scale": face_display_scale})
 	if cfg.default_expression:
 		set_expression(cfg.default_expression)
-
-## Syncs the Face node to the Head bone with the same display scale as the head
-## sprite, so the full-canvas feature overlays (eyes/mouth/brows) sit exactly on
-## the head base. Replaces the old static RemoteTransform2D, which couldn't carry
-## the head's display scale.
-func _fit_face_to_head(cfg: WarriorRigConfig) -> void:
-	if not face_node:
-		return
-	var head_bone := _find_bone_recursive(skeleton, "Head")
-	if not head_bone:
-		return
-	var target: Vector2 = BONE_DISPLAY_SIZES["Head"]
-	var head_size: Vector3 = cfg.get_bone_sizes().get("Head", Vector3.ZERO)
-	if Vector2(head_size.x, head_size.y) != Vector2.ZERO:
-		target = Vector2(head_size.x, head_size.y)
-	var display_scale := Vector2.ONE
-	if cfg.head_texture:
-		var tex_size := Vector2(cfg.head_texture.get_width(), cfg.head_texture.get_height())
-		if tex_size.x > 0 and tex_size.y > 0:
-			display_scale = Vector2(target.x / tex_size.x, target.y / tex_size.y)
-	face_node.top_level = true
-	for sprite in [eye_l, eye_r, mouth, brows, hair_back]:
-		if sprite:
-			sprite.centered = true
-			sprite.position = Vector2.ZERO
-			sprite.scale = Vector2.ONE
-	_synced_parts = _synced_parts.filter(func(p: Dictionary) -> bool:
-		return p.node != face_node
-	)
-	_synced_parts.append({"node": face_node, "bone": head_bone, "display_scale": display_scale})
 
 func play_behavior(behavior: AnimTypes.Behavior) -> void:
 	if anim_tree and not anim_tree.active:
@@ -312,67 +368,12 @@ func set_expression_by_name(expression_id: String) -> void:
 	if expr:
 		set_expression(expr)
 
-func play_action(action: AnimAction) -> void:
-	anim_controller.play_action(action)
-
 func get_head_position() -> Vector2:
 	if skeleton:
 		var head = _find_bone_recursive(skeleton, "Head")
 		if head:
 			return head.global_position
 	return global_position + Vector2(0, -80)
-
-func clear_placeholders() -> void:
-	for part in _synced_parts:
-		if is_instance_valid(part.node):
-			part.node.queue_free()
-	_synced_parts.clear()
-	_limb_nodes.clear()
-
-func _replace_limb(bone_name: String, texture: Texture2D,
-		size_override: Vector3 = Vector3.ZERO,
-		offset_override: Vector2 = Vector2.ZERO) -> void:
-	var bone := _find_bone_recursive(skeleton, bone_name)
-	if not bone:
-		return
-	var target_size := limb_target_size(bone_name, size_override)
-	var display_scale := limb_display_scale(texture, target_size)
-	var world_offset: Vector2 = offset_override
-	if world_offset == Vector2.ZERO and BONE_OFFSETS.has(bone_name):
-		world_offset = BONE_OFFSETS[bone_name]
-
-	# Baked rig (warrior_rig_2): a Sprite2D already lives under the bone for editor
-	# pose feedback. Update it in place instead of spawning a top_level sprite.
-	var baked := _find_sprite_child(bone)
-	if baked:
-		baked.texture = texture
-		baked.scale = display_scale
-		baked.z_as_relative = false
-		baked.z_index = _baked_z.get(bone_name, int(size_override.z))
-		baked.offset = (world_offset / display_scale) if world_offset != Vector2.ZERO else Vector2.ZERO
-		return
-
-	# Legacy rig (warrior_rig): no baked sprites — create a top_level sprite synced
-	# to the bone each frame via _process.
-	if _limb_nodes.has(bone_name):
-		for node in _limb_nodes[bone_name]:
-			if is_instance_valid(node):
-				node.queue_free()
-		_limb_nodes.erase(bone_name)
-		_synced_parts = _synced_parts.filter(func(p: Dictionary) -> bool:
-			return is_instance_valid(p.node) and not p.node.is_queued_for_deletion()
-		)
-	var sprite := Sprite2D.new()
-	sprite.texture = texture
-	sprite.top_level = true
-	sprite.z_index = int(size_override.z) # Vector3.z = draw order override
-	if target_size != Vector2.ZERO:
-		sprite.scale = display_scale
-	if world_offset != Vector2.ZERO:
-		sprite.offset = world_offset / display_scale
-	add_child(sprite)
-	_limb_nodes[bone_name] = [sprite]
-	_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
 
 ## Rendered px size of a limb sprite — config size (x, y), falling back to the rig
 ## constant when zero. Shared by the runtime apply and the bake tool.
@@ -397,7 +398,7 @@ func limb_display_scale(texture: Texture2D, target_size: Vector2) -> Vector2:
 ## BONE_DRAW_ORDER rank) and use that ranking as the absolute z_index. Shared with
 ## the bake tool so runtime retexturing keeps the baked layering.
 func _compute_baked_z_order(bone_sizes: Dictionary) -> Dictionary:
-	var entries: Array = []
+	var entries: Array[Dictionary] = []
 	for i in BONE_DRAW_ORDER.size():
 		var bn: String = BONE_DRAW_ORDER[i]
 		var sz: Vector3 = bone_sizes.get(bn, Vector3.ZERO)
@@ -425,46 +426,7 @@ func _has_baked_sprites() -> bool:
 			return true
 	return false
 
-## True when Face is parented under a bone (baked under Head in warrior_rig_2)
-## rather than at the rig root (legacy).
-func _face_is_baked() -> bool:
-	return face_node != null and face_node.get_parent() is Bone2D
-
 #region Placeholder Body Generation
-
-func _build_placeholder_body() -> void:
-	var p := _get_class_palette()
-	## Z-order: back-to-front for right-facing SD character
-	## Left side = NEAR (viewer side), Right side = FAR (profile edge)
-	# Far arm (behind body)
-	_add_part("RightArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
-	_add_part("RightForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
-	_add_part("RightHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
-	# Far leg
-	_add_part("RightLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
-	_add_part("RightShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
-	_add_part("RightFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
-	# Hips
-	_add_part("Hips", _make_rect(Vector2(0, 0), 18, 5), p.hips)
-	# Near leg (in front of hips)
-	_add_part("LeftLeg", _make_rect(Vector2(0, 10), 7, 17), p.legs)
-	_add_part("LeftShin", _make_rect(Vector2(0, 8), 6, 14), p.boots)
-	_add_part("LeftFoot", _make_rect(Vector2(2, 2), 10, 5), p.boots)
-	# Torso (on top of legs)
-	_add_part("Torso", _make_rect(Vector2(0, 6), 21, 18), p.torso)
-	_add_part("Torso", _make_rect(Vector2(0, -4), 18, 5), p.torso_accent)
-	# Head — oversized for SD, 3/4 profile (big eye on left/near side)
-	_add_part("Head", _make_oval(Vector2(0, 6), 15, 17), SKIN_COLOR)
-	_add_part("Head", _make_oval(Vector2(0, -2), 16, 8), HAIR_COLOR)
-	_add_part("Head", _make_circle(Vector2(-5, 5), 3.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(5, 6), 2.5), EYE_WHITE)
-	_add_part("Head", _make_circle(Vector2(-5, 5), 2.0), EYE_PUPIL)
-	_add_part("Head", _make_circle(Vector2(5, 6), 1.5), EYE_PUPIL)
-	_add_part("Head", _make_rect(Vector2(-2, 14), 4, 1.5), MOUTH_COLOR)
-	# Near arm (on top of everything)
-	_add_part("LeftArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
-	_add_part("LeftForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
-	_add_part("LeftHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
 
 func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) -> void:
 	var bone := _find_bone_recursive(skeleton, bone_name)
@@ -479,16 +441,6 @@ func _add_part(bone_name: String, poly_shape: PackedVector2Array, color: Color) 
 		_limb_nodes[bone_name] = []
 	_limb_nodes[bone_name].append(poly)
 	_synced_parts.append({"node": poly, "bone": bone})
-
-func _get_class_palette() -> Dictionary:
-	return {
-		"torso": Color(0.80, 0.20, 0.20),
-		"torso_accent": Color(0.86, 0.80, 0.53),
-		"arms": Color(0.60, 0.13, 0.13),
-		"hips": Color(0.45, 0.32, 0.22),
-		"legs": Color(0.47, 0.38, 0.31),
-		"boots": Color(0.48, 0.35, 0.25),
-	}
 
 func _make_rect(center: Vector2, w: float, h: float) -> PackedVector2Array:
 	var hw := w * 0.5

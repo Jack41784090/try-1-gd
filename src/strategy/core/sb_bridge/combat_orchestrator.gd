@@ -46,7 +46,22 @@ func apply_result(result: CombatController.CombatResult, squad: StrategySquad, l
 
 	if result.loot:
 		Log.debug("Combat", "Loot collected: %s" % [result.loot])
-		_apply_loot(squad, result.loot)
+		if result.loot.has("money"):
+			squad.money += result.loot.money
+			Log.debug("Combat", "Gained money: %.0f" % result.loot.money)
+		if result.loot.has("food"):
+			squad.food += int(result.loot.food)
+			Log.debug("Combat", "Gained food: %d" % int(result.loot.food))
+		if result.loot.has("caravan_cargo"):
+			var cargo: Dictionary = result.loot["caravan_cargo"]
+			for thing_id in cargo:
+				var qty: float = cargo[thing_id]
+				if thing_id == "food":
+					squad.food += int(qty)
+					Log.debug("Combat", "Looted caravan food: %d" % int(qty))
+				else:
+					squad.gain_money(qty * 2.0)
+					Log.debug("Combat", "Looted caravan goods worth: %.0f" % (qty * 2.0))
 
 	if not result.equipment_loot.is_empty():
 		LootCollector.apply_equipment_loot(squad.inventory, result.equipment_loot)
@@ -71,25 +86,6 @@ func apply_result(result: CombatController.CombatResult, squad: StrategySquad, l
 		"morale_after": morale_after,
 		"game_over": squad.get_living_warriors().is_empty(),
 	}
-
-
-func _apply_loot(squad: StrategySquad, loot: Dictionary) -> void:
-	if loot.has("money"):
-		squad.money += loot.money
-		Log.debug("Combat", "Gained money: %.0f" % loot.money)
-	if loot.has("food"):
-		squad.food += int(loot.food)
-		Log.debug("Combat", "Gained food: %d" % int(loot.food))
-	if loot.has("caravan_cargo"):
-		var cargo: Dictionary = loot["caravan_cargo"]
-		for thing_id in cargo:
-			var qty: float = cargo[thing_id]
-			if thing_id == "food":
-				squad.food += int(qty)
-				Log.debug("Combat", "Looted caravan food: %d" % int(qty))
-			else:
-				squad.gain_money(qty * 2.0)
-				Log.debug("Combat", "Looted caravan goods worth: %.0f" % (qty * 2.0))
 
 
 static func check_game_over(squad: StrategySquad) -> bool:

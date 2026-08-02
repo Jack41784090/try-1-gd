@@ -3,9 +3,7 @@ extends Control
 
 const UNIT_Y_SPACING: float = 120.0
 const MOVE_ANIMATION_DURATION: float = 0.5
-const RECOIL_ANIMATION_DURATION: float = 0.3
 const RETURN_ANIMATION_DURATION: float = 0.4
-const LUNGE_DISTANCE: float = 40.0
 const META_ORIGINAL_POSITION: String = "original_position"
 
 @onready var attacker_front: Node2D = $BattleViewportContainer/BattleViewport/BattleArena/AttackerSide/FrontRow
@@ -23,18 +21,14 @@ func add_unit_to_row(row_node: Node2D, unit_index: int,
 	row_node.add_child(display)
 	display.setup(entity)
 
-	var is_attacker := _is_attacker_row(row_node)
+	var row_parent := row_node.get_parent()
+	var is_attacker := row_parent and row_parent.name == "AttackerSide"
 	if not is_attacker and display.rig:
 		display.rig.scale.x = -1
 	display.refresh_display()
 
 	display.set_meta(META_ORIGINAL_POSITION, display.position)
 	return display
-
-
-func _is_attacker_row(row_node: Node2D) -> bool:
-	var parent := row_node.get_parent()
-	return parent and parent.name == "AttackerSide"
 
 
 func update_row_positions(row_node: Node2D, animate: bool = false) -> void:
@@ -90,59 +84,6 @@ func _get_opposing_row(row_node: Node2D) -> Node2D:
 			"BackRow": return attacker_back
 	return null
 
-
-func animate_attack_lunge(unit_node: Node2D, attack_direction: Vector2 = Vector2.ZERO) -> void:
-	if not unit_node or not is_instance_valid(unit_node):
-		return
-
-	if attack_direction == Vector2.ZERO:
-		var parent := unit_node.get_parent()
-		if parent:
-			var grandparent := parent.get_parent()
-			attack_direction = Vector2(1, 0) \
-				if (grandparent and grandparent.name == "AttackerSide") \
-				else Vector2(-1, 0)
-		else:
-			attack_direction = Vector2(1, 0)
-
-	var lunge_pos := unit_node.position + attack_direction.normalized() * LUNGE_DISTANCE
-	var tween := create_tween()
-	await tween.tween_property(unit_node, "position", lunge_pos, RECOIL_ANIMATION_DURATION) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).finished
-
-
-func animate_attack_recoil(unit_node: Node2D, attack_direction: Vector2 = Vector2.ZERO) -> void:
-	if not unit_node or not is_instance_valid(unit_node):
-		return
-
-	if attack_direction == Vector2.ZERO:
-		var parent := unit_node.get_parent()
-		if parent:
-			var grandparent := parent.get_parent()
-			attack_direction = Vector2(-1, 0) \
-				if (grandparent and grandparent.name == "AttackerSide") \
-				else Vector2(1, 0)
-		else:
-			attack_direction = Vector2(-1, 0)
-
-	var recoil_pos := unit_node.position + attack_direction.normalized() * (LUNGE_DISTANCE * 0.5)
-	var tween := create_tween()
-	await tween.tween_property(unit_node, "position", recoil_pos, RECOIL_ANIMATION_DURATION) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).finished
-
-
-func animate_clink(unit_node: Node2D) -> void:
-	if not unit_node or not is_instance_valid(unit_node):
-		return
-
-	var original_pos := unit_node.position
-	var push := original_pos + Vector2(0, -8)
-	var tween := create_tween()
-	tween.tween_property(unit_node, "position", push, RECOIL_ANIMATION_DURATION * 0.3) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(unit_node, "position", original_pos, RECOIL_ANIMATION_DURATION * 0.3) \
-		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-	await tween.finished
 
 
 func animate_move_to_row(unit_node: Node2D, target_row: Node2D, _target_index: int = -1) -> void:
@@ -201,20 +142,6 @@ func animate_move_to_row(unit_node: Node2D, target_row: Node2D, _target_index: i
 			child.set_meta(META_ORIGINAL_POSITION, child.position)
 
 
-func animate_return_to_position(unit_node: Node2D) -> void:
-	if not unit_node or not is_instance_valid(unit_node) \
-	or not unit_node.has_meta(META_ORIGINAL_POSITION):
-		return
-
-	var original_pos: Vector2 = unit_node.get_meta(META_ORIGINAL_POSITION)
-	if unit_node.position.distance_to(original_pos) < 0.5:
-		return
-
-	await create_tween().tween_property(
-		unit_node, "position", original_pos, RETURN_ANIMATION_DURATION
-	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT).finished
-
-
 func animate_return_all_to_positions() -> void:
 	var all_rows := [
 		attacker_front, attacker_middle, attacker_back,
@@ -231,8 +158,12 @@ func animate_return_all_to_positions() -> void:
 						units_to_animate.append(child)
 
 	for unit in units_to_animate:
-		if is_instance_valid(unit):
-			animate_return_to_position(unit)
+		if is_instance_valid(unit) and unit.has_meta(META_ORIGINAL_POSITION):
+			var original_pos: Vector2 = unit.get_meta(META_ORIGINAL_POSITION)
+			if unit.position.distance_to(original_pos) >= 0.5:
+				create_tween().tween_property(
+					unit, "position", original_pos, RETURN_ANIMATION_DURATION
+				).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 
 	if units_to_animate.size() > 0:
 		await get_tree().create_timer(RETURN_ANIMATION_DURATION).timeout

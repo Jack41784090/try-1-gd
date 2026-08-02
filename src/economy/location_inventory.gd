@@ -26,20 +26,6 @@ func get_price(thing: Thing) -> float:
 	_ensure_initialized()
 	return prices.get(thing, thing.base_price)
 
-func set_price(thing: Thing, price: float) -> void:
-	_ensure_initialized()
-	prices[thing] = price
-
-func update_prices(total_demand: Dictionary) -> void:
-	_ensure_initialized()
-	for thing in stocks:
-		var demand: float = total_demand.get(thing, 0.0)
-		var supply: float = stocks.get(thing, 0.01)
-		supply = maxf(supply, 0.01)
-		var ratio := demand / supply
-		var new_price: float = thing.base_price * clampf(ratio, 0.5, 3.0)
-		prices[thing] = new_price
-
 func init_thing(thing: Thing, starting_stock: float = 0.0) -> void:
 	_ensure_initialized()
 	stocks[thing] = starting_stock

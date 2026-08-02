@@ -39,8 +39,25 @@ func peek_next_transition_type() -> EventChain.TransitionType:
 func display_dialogue(data: Dictionary, progress_text: String) -> void:
 	speaker_label.text = data.get("speaker_name", "")
 	dialogue_label.text = data.get("line_spoken", "")
-	_update_background(data.get("background_id", ""))
-	_update_portraits(data.get("on_screen_character_ids", []))
+	var _portrait_ids = data.get("on_screen_character_ids", [])
+	for child in character_container.get_children():
+		child.queue_free()
+	for char_id in _portrait_ids:
+		if char_id is String:
+			var _portrait_result: Control
+			if portrait_cache.has(char_id):
+				_portrait_result = portrait_cache[char_id].duplicate()
+			else:
+				var portrait = ColorRect.new()
+				portrait.custom_minimum_size = Vector2(150, 250)
+				var hash_val = char_id.hash()
+				portrait.color = Color(
+					float(hash_val % 100) / 100.0,
+					float(int(hash_val / 100.0) % 100) / 100.0,
+					float(int(hash_val / 10000.0) % 100) / 100.0, 1.0)
+				portrait_cache[char_id] = portrait
+				_portrait_result = portrait.duplicate()
+			character_container.add_child(_portrait_result)
 	advance_prompt.text = "Click to continue %s" % progress_text
 	dialogue_box.visible = true
 	speaker_label.visible = true
@@ -94,29 +111,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
 			presenter.on_advance()
 			get_viewport().set_input_as_handled()
-
-func _update_background(_bg_id: String) -> void:
-	pass
-
-func _update_portraits(character_ids: Array) -> void:
-	for child in character_container.get_children():
-		child.queue_free()
-	for char_id in character_ids:
-		if char_id is String:
-			character_container.add_child(_get_or_create_portrait(char_id))
-
-func _get_or_create_portrait(character_id: String) -> Control:
-	if portrait_cache.has(character_id):
-		return portrait_cache[character_id].duplicate()
-	var portrait = ColorRect.new()
-	portrait.custom_minimum_size = Vector2(150, 250)
-	var hash_val = character_id.hash()
-	portrait.color = Color(
-		float(hash_val % 100) / 100.0,
-		float(int(hash_val / 100.0) % 100) / 100.0,
-		float(int(hash_val / 10000.0) % 100) / 100.0, 1.0)
-	portrait_cache[character_id] = portrait
-	return portrait.duplicate()
 
 func clear_portrait_cache() -> void:
 	portrait_cache.clear()

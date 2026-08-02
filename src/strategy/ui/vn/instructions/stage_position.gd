@@ -15,7 +15,7 @@ class_name StagePosition
 @export_range(-1, 1) var face_direction: int = 1
 
 ## Named anchor for position resolution.
-var anchor: int = 0  # CharacterInstruction.StageAnchor.NONE
+var anchor: int = 0
 
 ## Offset from anchor.
 var anchor_offset: Vector2 = Vector2.ZERO

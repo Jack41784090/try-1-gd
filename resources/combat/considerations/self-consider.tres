@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Consideration" format=3 uid="uid://cf667axp7g2jh"]
 
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_21bd7"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="2_gveka"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="2_gveka"]
 
 [sub_resource type="Resource" id="Resource_21bd7"]
 script = ExtResource("1_21bd7")
@@ -13,4 +13,5 @@ should_return = 1
 name = "Self"
 glances = Array[ExtResource("1_21bd7")]([SubResource("Resource_21bd7")])
 entity_limiter = "self"
+returning = null
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"

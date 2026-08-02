@@ -25,17 +25,3 @@ func get_level(skill_type: SkillType.Types) -> int:
 
 func set_level(skill_type: SkillType.Types, level: int) -> void:
 	_levels[skill_type] = clampi(level, 0, 10)
-
-
-func to_dict() -> Dictionary:
-	var d := { }
-	for skill_type in _levels:
-		d[skill_type] = _levels[skill_type]
-	return d
-
-
-static func from_dict(d: Dictionary) -> SkillSet:
-	var ss := SkillSet.new()
-	for skill_type in d:
-		ss.set_level(skill_type as SkillType.Types, d[skill_type])
-	return ss

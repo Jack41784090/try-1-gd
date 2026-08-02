@@ -32,19 +32,6 @@ var _nav_buttons: Array[Button] = []
 		_switch_tab(value)
 
 
-func _build_demo_squad() -> StrategySquad:
-	squad = StrategySquad.new()
-	var w = load("res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres")
-	for i in range(5):
-		var nw = Character.new(StrategyEntity.new(w))
-		squad.add_warrior(nw)
-
-	var mace = load("res://resources/combat/weapon/config/mace.tres")
-	for i in range(15):
-		squad.inventory.add_weapon(mace)
-	return squad
-
-
 func _ready() -> void:
 	_nav_buttons = [tab_tactics, tab_units, tab_formation, tab_recruitment, tab_inventory]
 	for btn in _nav_buttons:
@@ -67,7 +54,15 @@ func _ready() -> void:
 	inventory_tab.unequip_armor_requested.connect(_on_unequip_armor)
 
 	if get_tree().current_scene == self and squad == null:
-		_build_demo_squad()
+		squad = StrategySquad.new()
+		var w = load("res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres")
+		for i in range(5):
+			var nw = Character.new(StrategyEntity.new(w))
+			squad.add_warrior(nw)
+
+		var mace = load("res://resources/combat/weapon/config/mace.tres")
+		for i in range(15):
+			squad.inventory.add_weapon(mace)
 		open(squad, null)
 
 
@@ -80,7 +75,7 @@ func open(p_squad: StrategySquad, p_actor: ActivityRunner) -> void:
 	recruitment_tab.setup(squad, actor)
 	inventory_tab.setup(squad)
 	_active_tab = 0
-	_switch_tab(_active_tab)  # force, in case _active_tab was already 0
+	_switch_tab(_active_tab)
 	visible = true
 	await UIAnimations.show_overlay(self)
 
@@ -100,10 +95,6 @@ func _switch_tab(tab: int) -> void:
 		var node := get_node_or_null(base + tabs[i]) as Control
 		if node:
 			node.visible = i == tab
-	_update_nav_highlight(tab)
-
-
-func _update_nav_highlight(tab: int) -> void:
 	var nav := "OverlayPanel/MainMargin/MainVBox/NavBar/"
 	var btns := ["TacticsBtn", "UnitsBtn", "FormationBtn", "RecruitmentBtn", "InventoryBtn"]
 	for i in btns.size():

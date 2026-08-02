@@ -34,61 +34,48 @@ func _ready() -> void:
 func show_investigation_menu() -> void:
 	self.visible = true
 	overlay_panel.visible = true
-	_update_clues_list()
+	_hide_all_clue_items()
+
+	if not current_location:
+		_show_no_clues_message("Location not found")
+	else:
+		title_label.text = "Investigating: %s" % current_location.location_name
+
+		var current_hour = actor.aem.world.current_hour
+		var active_clues = current_location.get_active_clues(current_hour)
+
+		if active_clues.is_empty():
+			_show_no_clues_message("No clues found at this location")
+		else:
+			no_clues_label.visible = false
+
+			var perception_roll: int
+			if not actor.player_squad or actor.player_squad.warriors.is_empty():
+				perception_roll = 50
+			else:
+				var total_perception = 0
+				for warrior in actor.player_squad.warriors:
+					total_perception += warrior.get_attribute(StrategyTypes.WarriorAttribute.SURVIVAL)
+				var avg_perception = float(total_perception) / actor.player_squad.warriors.size()
+				var roll = randi_range(-10, 10)
+				perception_roll = int(avg_perception + roll)
+
+			var detection_chance: float = 1 # TODO: Adjust this value based on game mechanics
+
+			var slot_index := 0
+			for clue in active_clues:
+				if slot_index >= _clue_items.size():
+					break
+				if randf() <= detection_chance:
+					var squad_name := _get_squad_name(clue.left_by_squad_id) if not clue.left_by_squad_id.is_empty() else ""
+					_clue_items[slot_index].populate(clue, perception_roll, current_hour, squad_name)
+					slot_index += 1
 	await UIAnimations.show_overlay(self, overlay_panel)
 
 func hide_investigation_menu() -> void:
 	await UIAnimations.hide_overlay(self, overlay_panel)
 	overlay_panel.visible = false
 	_hide_all_clue_items()
-
-func _update_clues_list() -> void:
-	_hide_all_clue_items()
-	
-	if not current_location:
-		_show_no_clues_message("Location not found")
-		return
-	
-	title_label.text = "Investigating: %s" % current_location.location_name
-	
-	var current_hour = actor.aem.world.current_hour
-	var active_clues = current_location.get_active_clues(current_hour)
-	
-	if active_clues.is_empty():
-		_show_no_clues_message("No clues found at this location")
-		return
-	
-	no_clues_label.visible = false
-	
-	var perception_roll = _calculate_perception_roll()
-	var detection_chance = _calculate_detection_chance()
-	
-	var slot_index := 0
-	for clue in active_clues:
-		if slot_index >= _clue_items.size():
-			break
-		if randf() <= detection_chance:
-			var squad_name := _get_squad_name(clue.left_by_squad_id) if not clue.left_by_squad_id.is_empty() else ""
-			_clue_items[slot_index].populate(clue, perception_roll, current_hour, squad_name)
-			slot_index += 1
-
-func _calculate_perception_roll() -> int:
-	if not actor.player_squad or actor.player_squad.warriors.is_empty():
-		return 50
-	
-	var total_perception = 0
-	for warrior in actor.player_squad.warriors:
-		total_perception += warrior.get_attribute(StrategyTypes.WarriorAttribute.SURVIVAL)
-	
-	var avg_perception = float(total_perception) / actor.player_squad.warriors.size()
-	
-	var roll = randi_range(-10, 10)
-	return int(avg_perception + roll)
-
-## Returns the base chance of detecting each clue (0.0 to 1.0)
-## Currently returns a fixed value. Can be modified to incorporate squad stats, location stability, etc.
-func _calculate_detection_chance() -> float:
-	return 1 # TODO: Adjust this value based on game mechanics
 
 func _get_squad_name(squad_id: String) -> String:
 	var world = actor.aem.world

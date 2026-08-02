@@ -58,106 +58,103 @@ func load_timeline(instructions: Array[CinematicInstruction]) -> void:
 	var wrapper = CinematicGroup.new()
 	for inst in instructions:
 		wrapper.children.append(inst)
-	if _has_gates(instructions):
-		_load_flat_timeline(instructions)
+	var _has_gates_result: bool = false
+	for _hg_inst in instructions:
+		if _hg_inst is GateInstruction:
+			_has_gates_result = true
+			break
+	if _has_gates_result:
+		reset()
+		var sorted = instructions.duplicate()
+		sorted.sort_custom(func(a: CinematicInstruction, b: CinematicInstruction) -> bool: return a.time < b.time)
+		for _lft_inst in sorted:
+			var node = _InstructionNode.new()
+			node.instruction = _lft_inst
+			node.start_time = _lft_inst.time
+			node.computed_duration = _lft_inst.duration
+			node.is_gate = _lft_inst is GateInstruction
+			if _lft_inst is GateInstruction:
+				node.wait_for_typewriter = _lft_inst.wait_for_typewriter
+			_all_nodes.append(node)
+		state = State.PLAYING
 	else:
 		load_group(wrapper)
 
 
-func _has_gates(instructions: Array[CinematicInstruction]) -> bool:
-	for inst in instructions:
-		if inst is GateInstruction:
-			return true
-	return false
-
-
-func _load_flat_timeline(instructions: Array[CinematicInstruction]) -> void:
-	reset()
-	var sorted = instructions.duplicate()
-	sorted.sort_custom(func(a: CinematicInstruction, b: CinematicInstruction) -> bool: return a.time < b.time)
-	for inst in sorted:
-		var node = _InstructionNode.new()
-		node.instruction = inst
-		node.start_time = inst.time
-		node.computed_duration = inst.duration
-		node.is_gate = inst is GateInstruction
-		if inst is GateInstruction:
-			node.wait_for_typewriter = inst.wait_for_typewriter
-		_all_nodes.append(node)
-	state = State.PLAYING
-
-
 func process(delta: float) -> void:
 	if _narrator_tw_active:
-		_update_narrator_typewriter(delta)
+		var effective_speed = _narrator_tw_speed
+		if state == State.FAST_FORWARDING:
+			effective_speed = FAST_FORWARD_SPEED
+
+		_narrator_tw_accum += delta * effective_speed
+		while _narrator_tw_accum > 0.0 and _narrator_tw_index < _narrator_tw_text.length():
+			var ch = _narrator_tw_text[_narrator_tw_index]
+			_narrator_tw_index += 1
+			if _narrator_update_callback.is_valid():
+				_narrator_update_callback.call(_narrator_tw_index)
+			_narrator_tw_accum -= _get_narrator_delay(ch)
+
+		if _narrator_tw_index >= _narrator_tw_text.length():
+			_narrator_tw_active = false
+			_pending_typewriters -= 1
+			if _pending_typewriters < 0:
+				_pending_typewriters = 0
 
 	match state:
 		State.PLAYING, State.FAST_FORWARDING:
-			_advance(delta)
+			var effective_delta = delta * speed_multiplier
+			var any_pending = false
+
+			for node in _all_nodes:
+				if node.completed:
+					continue
+				if node.is_gate and not node.fired:
+					node.elapsed += effective_delta
+					if node.elapsed >= node.start_time:
+						node.fired = true
+						speed_multiplier = 1.0
+						if node is _InstructionNode and node.wait_for_typewriter and (_pending_typewriters > 0 or _narrator_tw_active):
+							state = State.WAITING_FOR_GATE
+						else:
+							state = State.WAITING_FOR_GATE
+						node.completed = true
+						gate_reached.emit()
+						return
+					any_pending = true
+					continue
+
+				node.elapsed += effective_delta
+				if node.elapsed >= node.start_time and not node.fired:
+					node.fired = true
+					if node is _InstructionNode:
+						instruction_fired.emit(node.instruction)
+					elif node is _GroupNode and node.group.gated_group:
+						pass
+
+				if node.fired and not node.completed:
+					var end_time = node.start_time + node.computed_duration
+					if node.elapsed >= end_time:
+						node.completed = true
+						if node is _GroupNode and node.group.gated_group:
+							_gate_pending = true
+							speed_multiplier = 1.0
+							state = State.WAITING_FOR_GATE
+							gate_reached.emit()
+							return
+					else:
+						any_pending = true
+				elif not node.fired:
+					any_pending = true
+
+			if not any_pending and _pending_typewriters <= 0 and not _narrator_tw_active:
+				state = State.COMPLETE
+				_narrator_tw_active = false
+				_active_bubbles.clear()
+				timeline_complete.emit()
 		State.WAITING_FOR_GATE:
-			_check_gate_release()
-
-
-func _advance(delta: float) -> void:
-	var effective_delta = delta * speed_multiplier
-	var any_pending = false
-
-	for node in _all_nodes:
-		if node.completed:
-			continue
-		if node.is_gate and not node.fired:
-			node.elapsed += effective_delta
-			if node.elapsed >= node.start_time:
-				node.fired = true
-				_hit_gate(node)
+			if _pending_typewriters > 0 or _narrator_tw_active:
 				return
-			any_pending = true
-			continue
-
-		node.elapsed += effective_delta
-		if node.elapsed >= node.start_time and not node.fired:
-			node.fired = true
-			if node is _InstructionNode:
-				instruction_fired.emit(node.instruction)
-			elif node is _GroupNode and node.group.gated_group:
-				pass
-
-		if node.fired and not node.completed:
-			var end_time = node.start_time + node.computed_duration
-			if node.elapsed >= end_time:
-				node.completed = true
-				if node is _GroupNode and node.group.gated_group:
-					_gate_pending = true
-					_hit_auto_gate()
-					return
-			else:
-				any_pending = true
-		elif not node.fired:
-			any_pending = true
-
-	if not any_pending and _pending_typewriters <= 0 and not _narrator_tw_active:
-		_complete()
-
-
-func _hit_gate(node: _PlayNode) -> void:
-	speed_multiplier = 1.0
-	if node is _InstructionNode and node.wait_for_typewriter and (_pending_typewriters > 0 or _narrator_tw_active):
-		state = State.WAITING_FOR_GATE
-	else:
-		state = State.WAITING_FOR_GATE
-	node.completed = true
-	gate_reached.emit()
-
-
-func _hit_auto_gate() -> void:
-	speed_multiplier = 1.0
-	state = State.WAITING_FOR_GATE
-	gate_reached.emit()
-
-
-func _check_gate_release() -> void:
-	if _pending_typewriters > 0 or _narrator_tw_active:
-		return
 
 
 func on_input() -> bool:
@@ -320,12 +317,6 @@ func reset() -> void:
 	_narrator_tw_text = ""
 
 
-func _complete() -> void:
-	state = State.COMPLETE
-	_narrator_tw_active = false
-	_active_bubbles.clear()
-	timeline_complete.emit()
-
 #endregion
 
 #region Narrator Typewriter
@@ -341,26 +332,6 @@ func _on_bubble_finished(_bubble: SpeechBubble) -> void:
 	_pending_typewriters -= 1
 	if _pending_typewriters < 0:
 		_pending_typewriters = 0
-
-
-func _update_narrator_typewriter(delta: float) -> void:
-	var effective_speed = _narrator_tw_speed
-	if state == State.FAST_FORWARDING:
-		effective_speed = FAST_FORWARD_SPEED
-
-	_narrator_tw_accum += delta * effective_speed
-	while _narrator_tw_accum > 0.0 and _narrator_tw_index < _narrator_tw_text.length():
-		var ch = _narrator_tw_text[_narrator_tw_index]
-		_narrator_tw_index += 1
-		if _narrator_update_callback.is_valid():
-			_narrator_update_callback.call(_narrator_tw_index)
-		_narrator_tw_accum -= _get_narrator_delay(ch)
-
-	if _narrator_tw_index >= _narrator_tw_text.length():
-		_narrator_tw_active = false
-		_pending_typewriters -= 1
-		if _pending_typewriters < 0:
-			_pending_typewriters = 0
 
 
 static func _get_narrator_delay(ch: String) -> float:
@@ -392,6 +363,6 @@ class _InstructionNode extends _PlayNode:
 
 class _GroupNode extends _PlayNode:
 	var group: CinematicGroup
-	var child_nodes: Array = []
+	var child_nodes: Array[_PlayNode] = []
 
 #endregion

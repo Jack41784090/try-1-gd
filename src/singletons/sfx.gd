@@ -44,10 +44,22 @@ func play(sfx_name: String, volume_db: float = 0.0, pitch_scale: float = 1.0) ->
 		return
 	if not _SFX_PATHS.has(sfx_name):
 		return
-	var stream = _get_stream(sfx_name)
-	if stream == null:
-		return
-	var player = _get_available_player()
+	var stream: AudioStream
+	if _cache.has(sfx_name):
+		stream = _cache[sfx_name]
+	else:
+		stream = load(_SFX_PATHS[sfx_name])
+		if stream == null:
+			return
+		_cache[sfx_name] = stream
+	var player: AudioStreamPlayer = null
+	for p in _players:
+		if not p.playing:
+			player = p
+			break
+	if player == null:
+		player = _create_player()
+		_players.append(player)
 	player.stream = stream
 	player.volume_db = volume_db
 	player.pitch_scale = pitch_scale
@@ -100,25 +112,6 @@ func play_player_victory() -> void:
 
 func play_player_defeat() -> void:
 	play("defeat", -3.0)
-
-
-func _get_stream(sfx_name: String) -> AudioStream:
-	if _cache.has(sfx_name):
-		return _cache[sfx_name]
-	var stream = load(_SFX_PATHS[sfx_name])
-	if stream == null:
-		return null
-	_cache[sfx_name] = stream
-	return stream
-
-
-func _get_available_player() -> AudioStreamPlayer:
-	for player in _players:
-		if not player.playing:
-			return player
-	var created = _create_player()
-	_players.append(created)
-	return created
 
 
 func _create_player() -> AudioStreamPlayer:

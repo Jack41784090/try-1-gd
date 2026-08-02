@@ -23,7 +23,6 @@ func _ready() -> void:
 	run_test_sequence()
 
 func run_test_sequence() -> void:
-	# Phase 1: Load and initialize scenario
 	print_phase("1. LOADING SCENARIO")
 	var scenario_loaded = test_load_scenario()
 	if not scenario_loaded:
@@ -31,11 +30,9 @@ func run_test_sequence() -> void:
 		_finish_tests()
 		return
 	
-	# Phase 2: Verify world state
 	print_phase("2. VERIFYING WORLD STATE")
 	test_verify_world_state()
 	
-	# Phase 3: Find Forest Bandits
 	print_phase("3. FINDING FOREST BANDITS")
 	var bandits_found = test_find_forest_bandits()
 	if not bandits_found:
@@ -43,11 +40,9 @@ func run_test_sequence() -> void:
 		_finish_tests()
 		return
 	
-	# Phase 4: Execute Attack Activity
 	print_phase("4. EXECUTING ATTACK ACTIVITY")
 	await test_execute_attack()
 	
-	# Phase 5: Verify Combat Results
 	print_phase("5. VERIFYING COMBAT RESULTS")
 	test_verify_combat_results()
 	
@@ -200,7 +195,6 @@ func test_find_forest_bandits() -> bool:
 	for warrior in bandit_warriors:
 		print("      • %s" % warrior.display_name)
 	
-	# Move player to bandit location for attack
 	start_test("Move player to bandit location for attack")
 	var bandit_location = forest_bandits.current_location_id
 	game_scenario.starting_player_squad.set_location(bandit_location)
@@ -217,7 +211,6 @@ func test_execute_attack() -> void:
 	combat_controller = CombatController.new()
 	assert_not_null(combat_controller, "CombatController created")
 	
-	# Find enemy squad at current location
 	start_test("Find enemies at current location")
 	var enemies_here = game_scenario.world.get_squads_at_location(game_scenario.starting_player_squad.current_location_id)
 	assert_greater_than(enemies_here.size(), 0, "Enemies found at location")
@@ -229,9 +222,7 @@ func test_execute_attack() -> void:
 	var enemy_squad = enemies_here[0]
 	print("\n  [INFO] Initiating combat against: %s" % enemy_squad.squad_name)
 	
-	# Inject combat context (simulating what TrainingScreen does)
 	start_test("Inject combat context")
-	# We don't have a viewport in headless mode, so we create a mock
 	var mock_viewport = SubViewport.new()
 	add_child(mock_viewport)
 	var mock_overlay = CanvasLayer.new()
@@ -252,7 +243,6 @@ func test_execute_attack() -> void:
 	print("    - Can Negotiate: %s (%.1f%% chance)" % [combat_options.get("can_negotiate", false), combat_options.get("negotiate_chance", 0.0) * 100])
 	print("    - Enemy: %s (%d warriors)" % [combat_options.get("enemy_name", "Unknown"), combat_options.get("enemy_count", 0)])
 	
-	# Execute FIGHT choice
 	start_test("Process FIGHT choice")
 	print("\n  [COMBAT] Executing tactical combat...")
 	print("  [COMBAT] This will run the full SquadBattle simulation")
@@ -274,7 +264,6 @@ func test_execute_attack() -> void:
 	if combat_result.loot.size() > 0:
 		print("    - Loot: %s" % combat_result.loot)
 	
-	# Cleanup mock nodes
 	mock_viewport.queue_free()
 	mock_overlay.queue_free()
 
@@ -284,7 +273,6 @@ func test_execute_attack() -> void:
 
 func test_verify_combat_results() -> void:
 	start_test("Combat concluded properly")
-	# Combat should have ended one way or another
 	assert_true(not combat_controller.is_in_combat, "Combat is no longer active")
 	
 	start_test("Player squad still exists after combat")
@@ -318,5 +306,4 @@ func _finish_tests() -> void:
 	
 	print("=".repeat(80) + "\n")
 	
-	# Exit with appropriate code
 	get_tree().quit(failed_count)

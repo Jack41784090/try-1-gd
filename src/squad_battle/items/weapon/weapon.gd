@@ -9,7 +9,7 @@ func _init(config: WeaponResource):
 	pass
 
 
-func get_range_at_location(loc: int) -> Array:
+func get_range_at_location(loc: int) -> Array[SquadBattleTypes.SquadEntityInSquadLocation]:
 	for entry in resource.weapon_location_map:
 		if entry.from == loc:
 			return entry.can_hit
@@ -54,33 +54,3 @@ func get_potency_array_damage(attacker) -> Dictionary:
 			damage_potencies[potency] += potency_damage
 
 	return damage_potencies
-
-
-func get_potency_damage(potency: SquadBattleTypes.Potency, attacker) -> float:
-	var damage = 0.0
-
-	for translation in resource.damage_translation:
-		var reality = translation.reality
-		var potency_list = translation.potency_list
-
-		for potency_entry in potency_list:
-			if potency_entry.potency == potency:
-				var warriors_reality = attacker.calculate_reality_value(reality)
-				damage += potency_entry.value * warriors_reality
-
-	return damage
-
-
-func get_raw_weapon_damage(attacker) -> float:
-	var damage = 0.0
-
-	for translation in resource.damage_translation:
-		var reality = translation.reality
-		var potency_list = translation.potency_list
-		var warriors_reality = attacker.calculate_reality_value(reality)
-
-		for potency_entry in potency_list:
-			var value = potency_entry.value
-			damage += value * warriors_reality
-
-	return damage

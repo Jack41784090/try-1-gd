@@ -38,7 +38,7 @@ func update(
 
 	ai_fleet.fill_activity_log(activity_log, edge_log)
 
-	var all_squads: Array = [player]
+	var all_squads: Array[StrategySquad] = [player]
 	for sq in world.roaming_squads:
 		all_squads.append(sq)
 

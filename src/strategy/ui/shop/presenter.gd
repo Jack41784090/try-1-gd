@@ -38,7 +38,19 @@ func _on_thing_quantity_changed(thing_id: String, delta: int) -> void:
 	if delta > 0:
 		var thing := _find_thing(thing_id)
 		assert(thing != null)
-		var max_qty = _get_max_affordable(thing)
+		var max_qty: int
+		var total_without_this := 0.0
+		for tid in cart:
+			if tid != thing.thing_id:
+				var cart_qty: int = cart[tid]
+				var other := _find_thing(tid)
+				total_without_this += _get_effective_price(other) * cart_qty
+		var budget: float = squad.money - total_without_this
+		var effective_price := _get_effective_price(thing)
+		if effective_price <= 0.0:
+			max_qty = 0
+		else:
+			max_qty = int(budget / effective_price)
 		var stock_limit := _get_available_stock(thing)
 		max_qty = mini(max_qty, stock_limit)
 		new_qty = min(new_qty, max_qty)
@@ -77,7 +89,29 @@ func _on_pay_pressed() -> void:
 		var qty: int = purchases[thing_id]
 		var thing := _find_thing(thing_id)
 		assert(thing != null)
-		_apply_thing_effect(thing, qty)
+		match thing.thing_type:
+			EconomyTypes.ThingType.FOOD:
+				squad.food += qty
+				Log.debug("Shop", "Added %d food supplies" % qty)
+			EconomyTypes.ThingType.CLOTH:
+				squad.gain_money(float(qty) * 2.0)
+				Log.debug("Shop", "Bought %d cloth" % qty)
+			EconomyTypes.ThingType.TOOLS:
+				squad.travel_tools += qty
+				Log.debug("Shop", "Added %d travel tools" % qty)
+			EconomyTypes.ThingType.LUXURY:
+				squad.modify_morale(float(qty) * 3.0)
+				Log.debug("Shop", "Bought %d luxuries (morale boost)" % qty)
+			EconomyTypes.ThingType.WEAPONS:
+				if thing.weapon_config != null:
+					for i in qty:
+						squad.inventory.add_weapon(thing.weapon_config.duplicate(true))
+					Log.debug("Shop", "Added %d %s to squad inventory" % [qty, thing.thing_name])
+		assert(_location != null, "Shop presenter has no bound location")
+		var inv := _location.inventory
+		assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
+		inv.consume(thing, float(qty))
+		Log.debug("Shop", "Consumed %.1f %s from economy at %s" % [float(qty), thing.thing_name, _location.location_id])
 
 	Log.debug("Shop", "Purchase completed: %s for %.0f gold" % [purchases, total])
 
@@ -112,21 +146,6 @@ func _calculate_total() -> float:
 		total += _get_effective_price(thing) * qty
 	return total
 
-func _get_max_affordable(thing: Thing) -> int:
-	var total_without_this := 0.0
-	for tid in cart:
-		if tid != thing.thing_id:
-			var qty: int = cart[tid]
-			var other := _find_thing(tid)
-			total_without_this += _get_effective_price(other) * qty
-
-	var budget: float = squad.money - total_without_this
-	var price := _get_effective_price(thing)
-	if price <= 0.0:
-		return 0
-	return int(budget / price)
-
-
 func _get_effective_price(thing: Thing) -> float:
 	assert(_location != null, "Shop presenter has no bound location")
 	var inv := _location.inventory
@@ -134,36 +153,6 @@ func _get_effective_price(thing: Thing) -> float:
 	if thing in inv.prices:
 		return inv.prices[thing]
 	return thing.base_price
-
-func _apply_thing_effect(thing: Thing, quantity: int) -> void:
-	match thing.thing_type:
-		EconomyTypes.ThingType.FOOD:
-			squad.food += quantity
-			Log.debug("Shop", "Added %d food supplies" % quantity)
-		EconomyTypes.ThingType.CLOTH:
-			squad.gain_money(float(quantity) * 2.0)
-			Log.debug("Shop", "Bought %d cloth" % quantity)
-		EconomyTypes.ThingType.TOOLS:
-			squad.travel_tools += quantity
-			Log.debug("Shop", "Added %d travel tools" % quantity)
-		EconomyTypes.ThingType.LUXURY:
-			squad.modify_morale(float(quantity) * 3.0)
-			Log.debug("Shop", "Bought %d luxuries (morale boost)" % quantity)
-		EconomyTypes.ThingType.WEAPONS:
-			if thing.weapon_config != null:
-				for i in quantity:
-					squad.inventory.add_weapon(thing.weapon_config.duplicate(true))
-				Log.debug("Shop", "Added %d %s to squad inventory" % [quantity, thing.thing_name])
-	_consume_from_economy(thing, quantity)
-
-
-func _consume_from_economy(thing: Thing, quantity: int) -> void:
-	assert(_location != null, "Shop presenter has no bound location")
-	var inv := _location.inventory
-	assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
-	inv.consume(thing, float(quantity))
-	Log.debug("Shop", "Consumed %.1f %s from economy at %s" % [float(quantity), thing.thing_name, _location.location_id])
-
 
 func _find_thing(thing_id: String) -> Thing:
 	for thing in current_shop.items:

@@ -3,7 +3,6 @@ class_name NewManageSquadPage
 extends Control
 
 signal closed
-# signal recruitment_completed(warrior: StrategyEntity)
 
 #@onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var desktop: DesktopManager = $Desktop
@@ -13,8 +12,6 @@ signal closed
 #@onready var tab_recruitment: Button = $OverlayPanel/MainMargin/MainVBox/NavBar/RecruitmentBtn
 #@onready var tab_inventory: Button = $OverlayPanel/MainMargin/MainVBox/NavBar/InventoryBtn
 @onready var close_button: Button = %CloseButton
-
-#@onready var tab_container: Control = $OverlayPanel/MainMargin/MainVBox/TabContainer
 
 #@onready var tactics_tab: TacticsTab = $OverlayPanel/MainMargin/MainVBox/TabContainer/TacticsTab
 @onready var units_tab: UnitsFloatingPanel = %UnitsPanel
@@ -140,7 +137,11 @@ func _on_weapon_window_received(warrior: Character, window: Control) -> void:
 	var cfg: WeaponResource = (window as WeaponControl).weapon_config
 	if cfg == null or warrior == null:
 		return
-	var owner := _find_weapon_owner(cfg)
+	var owner: Character = null
+	for w in squad.warriors:
+		if w.get_equipped_weapon() == cfg:
+			owner = w
+			break
 	if owner != null:
 		squad.inventory.unequip_weapon(owner)
 	if squad.inventory.weapons.has(cfg):
@@ -151,7 +152,11 @@ func _on_armor_window_received(warrior: Character, window: Control) -> void:
 	var cfg: ArmorConfig = (window as ArmorControl).armor_config
 	if cfg == null or warrior == null:
 		return
-	var owner := _find_armor_owner(cfg)
+	var owner: Character = null
+	for w in squad.warriors:
+		if w.get_equipped_armor() == cfg:
+			owner = w
+			break
 	if owner != null:
 		squad.inventory.unequip_armor(owner)
 	if squad.inventory.armors.has(cfg):
@@ -164,20 +169,6 @@ func _on_weapon_display_removed(warrior: Character, _window: Control) -> void:
 
 func _on_armor_display_removed(warrior: Character, _window: Control) -> void:
 	_on_unequip_armor(warrior)
-
-
-func _find_weapon_owner(cfg: WeaponResource) -> Character:
-	for w in squad.warriors:
-		if w.get_equipped_weapon() == cfg:
-			return w
-	return null
-
-
-func _find_armor_owner(cfg: ArmorConfig) -> Character:
-	for w in squad.warriors:
-		if w.get_equipped_armor() == cfg:
-			return w
-	return null
 
 
 func _on_equip_weapon(warrior: Character, weapon: WeaponResource) -> void:

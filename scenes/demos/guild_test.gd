@@ -257,7 +257,7 @@ func test_guild_with_real_pipeline() -> void:
 	mock_view.setup_headless()
 
 	var presenter := StrategyPresenter.new()
-	presenter.scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
+	presenter.scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 	presenter.is_demo_scenario = false
 	mock_view.add_child(presenter)
 	await presenter.bind_view(mock_view)

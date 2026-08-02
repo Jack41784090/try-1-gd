@@ -43,20 +43,15 @@ func get_bank_info() -> Dictionary:
 		return {}
 	return _cs_bridge.call("GetBankInfo") as Dictionary
 
-func get_government_info() -> Array:
+func get_government_info() -> Array[Dictionary]:
 	if _cs_bridge == null:
 		return []
-	return _cs_bridge.call("GetGovernmentInfo") as Array
+	return _cs_bridge.call("GetGovernmentInfo") as Array[Dictionary]
 
 func get_guild_info() -> Dictionary:
 	if _cs_bridge == null:
 		return {}
 	return _cs_bridge.call("GetGuildInfo") as Dictionary
-
-func get_geist_info(location_id: String) -> Dictionary:
-	if _cs_bridge == null:
-		return {}
-	return _cs_bridge.call("GetGeistInfo", location_id) as Dictionary
 
 func get_bandit_pressure(location_id: String) -> float:
 	if _cs_bridge == null:
@@ -99,21 +94,35 @@ func tick_full(turn: int) -> EconomyTickResult:
 	assert(_mercenary_demand != null and _route_danger != null, "tick_full requires enable_csharp() to have been called")
 	assert(_cs_bridge != null, "C# bridge required — call enable_csharp() first")
 
-	# Initialise C# Scripts
 	if not _cs_initialized:
 		_cs_bridge.call("Setup", world)
 		_cs_bridge.call("SetupBank", loan_interest_rate, print_per_turn, noble_loan_threshold, loan_amount)
 		_cs_initialized = true
 		Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [world.get_economy_locations().size(), world.goods.size(), ])
 
-	# Precompute NxN inter-location danger matrix (0..1). Index order matches
-	# world.get_economy_locations(), which is also the C# Locations[] ordering.
-	var danger_matrix := _compute_danger_matrix()
+	## Precompute NxN inter-location danger matrix (0..1). Index order matches
+	## world.get_economy_locations(), which is also the C# Locations[] ordering.
+	_route_danger.clear_cache()
+	var locs := world.get_economy_locations()
+	var n := locs.size()
+	var danger_matrix: Array[Array] = []
+	danger_matrix.resize(n)
+	for i in n:
+		var row: Array[float] = []
+		row.resize(n)
+		for j in n:
+			if i == j:
+				row[j] = 1.0
+			else:
+				var route: Array[String] = world.find_path(locs[i].location_id, locs[j].location_id)
+				if route.is_empty():
+					row[j] = 0.0
+				else:
+					row[j] = _route_danger.calculate_route_safety(route, world)
+		danger_matrix[i] = row
 
-	# Single mega-tick: C# runs all phases, including trade matching.
 	var cs_dict: Dictionary = _cs_bridge.call("Tick", turn, danger_matrix)
 
-	# Translate tick result
 	var result := EconomyTickResult.new()
 	result.turn = cs_dict.get("turn", turn)
 	result.deaths = cs_dict.get("deaths", 0)
@@ -151,7 +160,6 @@ func tick_full(turn: int) -> EconomyTickResult:
 			snap.prices[thing] = prices_raw[thing_id]
 		result.location_snapshots.append(snap)
 
-	# Shipment dispatches (created inside C# trade matcher)
 	var matched_dispatches_raw: Array = cs_dict.get("shipment_dispatches", [])
 	for d_dict: Dictionary in matched_dispatches_raw:
 		var move_dict: Dictionary = d_dict.get("move", {})
@@ -165,18 +173,14 @@ func tick_full(turn: int) -> EconomyTickResult:
 		)
 		result.shipment_dispatches.append(dispatch)
 
-	# Completed moves (arrived deliveries)
 	var moves_completed_raw: Array = cs_dict.get("moves_completed", [])
 	for m_dict: Dictionary in moves_completed_raw:
 		result.moves_completed.append(_move_from_dict(m_dict))
 
-	# Aggregate counters
 	total_promotions = _cs_bridge.call("GetTotalPromotions")
 
-	# Sync C# state (population changes, inventory) back to GDScript
 	_cs_bridge.call("SyncBackToGdScript")
 
-	# Mercenary demand evaluation (stays in GDScript — depends on world's bandit squads)
 	for loc in world.locations:
 		if loc.type == StrategyTypes.LocationType.FORT:
 			continue
@@ -195,32 +199,6 @@ func sync_full() -> void:
 	_cs_bridge.call("SyncBackToGdScript")
 
 
-## Build an NxN matrix of inter-location route safety values (0..1) where
-## diagonal is 1.0 and entry [i,j] is the product of edge safeties along the
-## shortest path between economy locations i and j. C# uses this to score
-## trade pairs.
-func _compute_danger_matrix() -> Array:
-	_route_danger.clear_cache()
-	var locs := world.get_economy_locations()
-	var n := locs.size()
-	var matrix: Array = []
-	matrix.resize(n)
-	for i in n:
-		var row: Array = []
-		row.resize(n)
-		for j in n:
-			if i == j:
-				row[j] = 1.0
-			else:
-				var route: Array[String] = world.find_path(locs[i].location_id, locs[j].location_id)
-				if route.is_empty():
-					row[j] = 0.0
-				else:
-					row[j] = _route_danger.calculate_route_safety(route, world)
-		matrix[i] = row
-	return matrix
-
-
 ## Strategy layer notifies the engine that a materialized caravan has reached
 ## its destination. Engine applies the inventory delivery and clears the
 ## shipment tracking entry.
@@ -231,14 +209,6 @@ func execute_caravan_delivery(caravan: StrategySquad) -> void:
 	assert(dest_loc.inventory != null, "Caravan destination '%s' has no inventory" % dest_loc.location_id)
 	CaravanBridge.apply_delivery(caravan, dest_loc.inventory, world.goods)
 	_clear_shipment_for_squad(caravan.squad_id)
-
-
-## Strategy layer notifies the engine that a materialized caravan was destroyed.
-## Engine applies the loot transfer and clears the shipment tracking entry.
-func notify_caravan_defeated(caravan: StrategySquad, attacker: StrategySquad) -> Dictionary:
-	var looted: Dictionary = CaravanBridge.apply_loot(caravan, attacker)
-	_clear_shipment_for_squad(caravan.squad_id)
-	return looted
 
 
 ## Strategy layer registers a shipment_id <-> squad_id binding either at
@@ -275,5 +245,4 @@ func _move_from_dict(d: Dictionary) -> EconomyMove:
 		d.get("source_location_id", ""),
 		d.get("dest_location_id", ""),
 		d.get("turns_remaining", 1),
-		d.get("origin", ""),
 	)

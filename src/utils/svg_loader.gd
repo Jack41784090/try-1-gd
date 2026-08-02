@@ -8,8 +8,8 @@ const DEFAULT_SCALE: float = 4.0
 
 
 static func load_svg(path: String, scale: float = DEFAULT_SCALE) -> Texture2D:
-	# Accepts a res://, user://, or absolute filesystem path. SVGs are rasterized
-	# at `scale`; other formats load as-is. Returns null on any failure.
+## Accepts a res://, user://, or absolute filesystem path. SVGs are rasterized
+## at `scale`; other formats load as-is. Returns null on any failure.
 	var abs_path := path
 	if path.begins_with("res://") or path.begins_with("user://"):
 		abs_path = ProjectSettings.globalize_path(path)

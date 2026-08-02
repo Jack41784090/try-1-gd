@@ -12,11 +12,6 @@ var world: World:
 		return scenario.world
 var player_squad: StrategySquad:
 	get:
-		# DISABLED: building a runtime StrategySquad from StrategySquadResource
-		# (starting_player_squad) needs the runtime-build bridge, not yet written.
-		# if player_squad == null and \
-		# (not _IS_AI and scenario.starting_player_squad != null):
-		# 	player_squad = scenario.starting_player_squad.duplicate(true)
 		return player_squad
 #endregion
 
@@ -25,16 +20,10 @@ func _init(is_ai = false, _ai_squad: StrategySquad = null) -> void:
 
 
 func setup(_loaded_scenario, context = {}):
-	# 1. Validate the scenario is the correct type
-	# e.g., _loaded_scenario = GameScenario(world=World(locations=[...]), factions=[Faction("Church")])
 	assert(_loaded_scenario is GameScenario)
 	assert(not _IS_AI or context.get("squad") != null, "AI must be initialized with a squad")
-	# 2. Store the scenario reference — gives us access to world, triggerables, factions
 	scenario = _loaded_scenario
-	# 3. Set the squad — for AI, it's passed in context; for player, lazy-loaded from scenario
-	# e.g., context = {"squad": StrategySquad(squad_name="Wolves", warriors=[StrategyEntity("Hans"), StrategyEntity("Erik")])}
 	player_squad = context.get("squad", player_squad)
-	# scenario.initialize(context)
 
 
 ## Finds an enemy squad by ID from the world's roaming squads
@@ -46,9 +35,6 @@ func _find_enemy_squad(squad_id: String) -> StrategySquad:
 
 
 func _apply_stats_changes_result(_scr: GenericResult):
-	# Applies numeric stat changes from a result to the player's squad
-	# e.g., _scr.squad_stat_changes = {SquadProperty.MORALE: +10.0, SquadProperty.FOOD_SUPPLIES: -2.0}
-	# 1. Iterate over each stat key/value pair in the result's squad_stat_changes dict
 	Log.debug("AEM", "Applying %d squad stat change(s)" % _scr.squad_stat_changes.size())
 	for stat_key in _scr.squad_stat_changes:
 		var value = _scr.squad_stat_changes[stat_key]
@@ -82,46 +68,27 @@ func _apply_location_change_result(_lcr: GenericResult):
 
 
 func _apply_result(result: GenericResult) -> void:
-	# Master result applier — takes ANY GenericResult and applies all its effects to the squad/world
-	# e.g., result = ActivityResult(location_changed="vienna", squad_stat_changes={MORALE: -5.0}, new_recruits=[StrategyEntity("Otto")])
 	Log.trace("AEM", "_apply_result() called")
 	Log.trace("AEM", "Result type: %s" % result.get_class())
 	Log.trace("AEM", "Squad changes: %s" % [result.squad_stat_changes])
 
-	# 1. Apply location changes — if this is a TRAVEL/FORCE_MARCH result, move the squad
-	# e.g., result.location_changed = "vienna" → squad moves from "salzburg" to "vienna"
 	if result is ActivityResult and not result.location_changed.is_empty():
 		_apply_location_change_result(result)
 
-	# 2. Apply squad stat changes — morale, food, money, travel tools
-	# e.g., {MORALE: -5.0} → each warrior loses 5 morale
 	if result.squad_stat_changes.is_empty():
 		Log.trace("AEM", "No squad stat changes to apply")
 	else:
 		_apply_stats_changes_result(result)
 
-	# 3. Add new recruits into player squad — from RECRUIT activity
-	# e.g., new_recruits = [StrategyEntity(name="Recruit_3")] → appended to squad.warriors
 	if result.new_recruits.size() > 0:
 		Log.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
-		# DISABLED: new_recruits are StrategyEntityResource; runtime build bridge (StrategyEntity
-		# from StrategyEntityResource) needed before they can be added as runtime warriors.
-		# for recruit in result.new_recruits:
-		# 	player_squad.add_warrior(recruit)
 
 
 func _build_context(activity: Activity = null) -> Dictionary:
-	# Builds the shared context Dictionary used by ALL triggerables (activities, events, missions)
-	# to evaluate their conditions and execute their logic.
-	# e.g., returns {"squad": StrategySquad, "world": World, "location": Location("salzburg"), "turn": 5, ...}
-	#
-	# 1. Gather completed missions for condition checks (e.g., "requires mission_01 completed")
 	var completed_mission_ids: Array[String] = []
 	for faction in scenario.factions:
 		for id in faction.get_completed_mission_ids():
 			completed_mission_ids.append(id)
-	# 2. Check if this is a TRAVEL activity that will change location (for LOCATION_TRANSITION conditions)
-	# e.g., if activity = Activity(TRAVEL, destination="vienna") → is_location_changing = true
 	var is_location_changing: bool = false
 	var next_location: Location = null
 
@@ -132,7 +99,6 @@ func _build_context(activity: Activity = null) -> Dictionary:
 				is_location_changing = true
 				next_location = world.get_location_by_id(dest_id)
 
-	# 3. Assemble and return the context dictionary — this is passed to every .evaluate() and .execute()
 	var ctx := {
 		"squad": player_squad,
 		"world": world,
@@ -185,28 +151,16 @@ func execute_triggerables_at(when: StrategyTypes.TriggerWhen) -> Array[GenericRe
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	if _IS_AI:
 		return []
-	# Core triggerable execution engine — finds all matching GameEvents and fires them
-	# e.g., context = {squad: Wolves, world: World(turn=5), location: Salzburg, activity: REST}
-	#       when = AFTER_ACTIVITY
 	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[ when ])
-	# 1. Create a filter that only matches GameEvents scheduled for this timing
-	# e.g., GameEvent("Ambush", when=AFTER_ACTIVITY) passes, GameEvent("Dawn", when=HOUR_START) is skipped
 	var when_filter = func(t: Triggerable) -> bool:
 		return t is GameEvent and (t as GameEvent).when_to_trigger == when
 
-	# 2. Ask TriggerableManager to check ALL registered triggerables against the context
-	# Each triggerable's conditions are evaluated (location, squad_status, time, etc.)
-	# e.g., GameEvent("Ambush") conditions: [LOCATION_TYPE=ROAD, SQUAD_STATUS(morale<30)] → if both pass, included
 	var triggerables: Array[Triggerable] = scenario.triggerable_manager.get_triggerables_triggered(context, when_filter)
 	Log.trace("AEM", "Found %d triggered event(s)" % triggerables.size())
 
-	# 3. Sort by emergency_priority (lower = higher priority, fires first)
-	# e.g., GameEvent(priority=0, "Market Day") fires before GameEvent(priority=10, "Betrayal")
 	_sort_triggerables_by_priority(triggerables)
 	Log.trace("AEM", "Total triggerables after sorting: %d" % triggerables.size())
 
-	# 4. Fire each triggerable and collect results
-	# e.g., GameEvent("Ambush").trigger(context) → GenericResult(squad_stat_changes={MORALE: -10})
 	var all_results: Array[GenericResult] = []
 	for triggerable in triggerables:
 		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])

@@ -79,9 +79,6 @@ func update_total(total: float, can_confirm: bool) -> void:
 		total_label.text = "Cart is empty"
 	confirm_button.disabled = not can_confirm
 
-func update_money(money: float) -> void:
-	money_label.text = "Available: %.0f gold" % money
-
 func show_confirmation(summary_lines: Array[String], total: float, remaining: float) -> void:
 	browsing_container.visible = false
 	confirmation_panel.visible = true

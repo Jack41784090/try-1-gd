@@ -35,14 +35,6 @@ func _ready() -> void:
 func show_recruitment_menu() -> void:
 	self.visible = true
 	overlay_panel.visible = true
-	_update_display()
-	await UIAnimations.show_overlay(self , overlay_panel)
-
-func hide_recruitment_menu() -> void:
-	await UIAnimations.hide_overlay(self , overlay_panel)
-	overlay_panel.visible = false
-
-func _update_display() -> void:
 	title_label.text = "Recruit Warriors"
 	money_label.text = "Available Money: %.0f" % current_squad.money
 
@@ -54,6 +46,11 @@ func _update_display() -> void:
 			_class_items[i].populate(bg, can_afford)
 		else:
 			_class_items[i].visible = false
+	await UIAnimations.show_overlay(self , overlay_panel)
+
+func hide_recruitment_menu() -> void:
+	await UIAnimations.hide_overlay(self , overlay_panel)
+	overlay_panel.visible = false
 
 func _on_recruit_pressed_from_item(background: WarriorBackground) -> void:
 	var cost: int = background.cost

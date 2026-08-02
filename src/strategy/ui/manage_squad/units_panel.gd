@@ -49,21 +49,13 @@ func _rebuild_units_container() -> void:
 		_item_windows.append(item)
 
 
-func _connect_signals() -> void:
-	if not _squad.warriors_changed.is_connected(_rebuild_units_container):
-		_squad.warriors_changed.connect(_rebuild_units_container)
-
-
-func _disconnect_signals() -> void:
-	if _squad and _squad.warriors_changed.is_connected(_rebuild_units_container):
-		_squad.warriors_changed.disconnect(_rebuild_units_container)
-
-
 func _on_visibility_changed() -> void:
 	if _squad == null:
 		return
 	if visible:
-		_connect_signals()
+		if not _squad.warriors_changed.is_connected(_rebuild_units_container):
+			_squad.warriors_changed.connect(_rebuild_units_container)
 		_rebuild_units_container()
 	else:
-		_disconnect_signals()
+		if _squad and _squad.warriors_changed.is_connected(_rebuild_units_container):
+			_squad.warriors_changed.disconnect(_rebuild_units_container)

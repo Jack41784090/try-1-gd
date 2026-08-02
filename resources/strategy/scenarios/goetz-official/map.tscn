@@ -58,16 +58,37 @@ script = ExtResource("2_iti0k")
 location_id = "hornberg_castle"
 location_type = 3
 
+[node name="Label" type="Label" parent="Locations/HornbergCastle"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Oehringen" type="Area2D" parent="Locations"]
 position = Vector2(679, 1148)
 script = ExtResource("2_iti0k")
 location_id = "oehringen"
 location_type = 1
 
+[node name="Label" type="Label" parent="Locations/Oehringen"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Heilbronn" type="Area2D" parent="Locations"]
 position = Vector2(625, 1160)
 script = ExtResource("2_iti0k")
 location_id = "heilbronn"
+
+[node name="Label" type="Label" parent="Locations/Heilbronn"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="SchwaebischHall" type="Area2D" parent="Locations"]
 position = Vector2(724, 1166)
@@ -75,18 +96,46 @@ script = ExtResource("2_iti0k")
 location_id = "schwaebisch_hall"
 location_type = 1
 
+[node name="Label" type="Label" parent="Locations/SchwaebischHall"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Rothenburg" type="Area2D" parent="Locations"]
 position = Vector2(813, 1113)
 script = ExtResource("2_iti0k")
 location_id = "rothenburg"
 location_type = 1
 
+[node name="Label" type="Label" parent="Locations/Rothenburg"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Nuremberg" type="Area2D" parent="Locations"]
 position = Vector2(986, 1099)
 script = ExtResource("2_iti0k")
 location_id = "nuremberg"
 
+[node name="Label" type="Label" parent="Locations/Nuremberg"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Bamberg" type="Area2D" parent="Locations"]
 position = Vector2(949, 1010)
 script = ExtResource("2_iti0k")
 location_id = "bamberg"
+
+[node name="Label" type="Label" parent="Locations/Bamberg"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1

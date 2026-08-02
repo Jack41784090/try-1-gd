@@ -29,16 +29,8 @@ func _ready():
 	Log.info("BattleRoyale", "=== AI BATTLE ROYALE — PRODUCTION PIPELINE TEST ===")
 
 	rng.randomize()
-	_initialize()
-	await _run_simulation()
-	_print_final_results()
 
-	await get_tree().create_timer(2.0).timeout
-	get_tree().quit()
-
-#region Initialization (mirrors StrategyPresenter.bind_view)
-
-func _initialize():
+	# --- _initialize ---
 	var loaded = ResourceLoader.load(SCENARIO_PATH)
 	assert(
 		loaded is GameScenario,
@@ -52,14 +44,10 @@ func _initialize():
 
 	scenario.initialize()
 
-	# Trigger lazy init — sets player_squad.current_location_id
-	# (production code does this via _update_ui reading actor.current_location)
 	var _loc = actor.current_location
 
 	player_squad = actor.player_squad
 
-	# Sync AEM's player_squad with runner's so _build_context() uses
-	# the same instance (both lazy-create separate duplicates otherwise)
 	actor.aem.player_squad = player_squad
 
 	player_squad.engagement_stance = \
@@ -82,7 +70,12 @@ func _initialize():
 	Log.info("BattleRoyale", "AI squads: %d | Locations: %d" % [ai_fleet.get_ai_squad_count(), scenario.world.locations.size()])
 	_print_all_squads()
 
-#endregion
+	await _run_simulation()
+	_print_final_results()
+
+	await get_tree().create_timer(2.0).timeout
+	get_tree().quit()
+
 
 #region Hour Pipeline (mirrors _on_hour_tick)
 
@@ -95,74 +88,165 @@ func _run_simulation():
 			_count_living_squads(),
 		])
 
-		await _execute_one_hour()
+		# --- _execute_one_hour ---
+		var directive = FactionDirective.create_none()
+		var decision = player_brain.decide(
+			scenario.world,
+			null,
+			directive,
+		)
+		var activity_type: StrategyTypes.ActivityType = \
+		decision["activity_type"]
+		var context: Dictionary = decision["context"]
+
+		var activity = actor.get_activity(activity_type)
+		if not activity:
+			activity = actor.get_activity(StrategyTypes.ActivityType.REST)
+		assert(activity != null, "Must have a REST activity")
+
+		if activity_type in [
+			StrategyTypes.ActivityType.TRAVEL,
+			StrategyTypes.ActivityType.FORCE_MARCH,
+		]:
+			var destination = context.get("travel_destination", "")
+			if not destination.is_empty():
+				activity = actor.create_travel_activity(destination)
+
+		Log.debug("BattleRoyale", "Player chose: %s" % StrategyTypes.ActivityType.keys()[activity_type])
+
+		var player_loc_before = player_squad.current_location_id
+
+		var ai_results = ai_fleet.prepare_ai_turns()
+		var turn_entries = _build_karma_sorted_entries(
+			activity,
+			ai_results,
+		)
+
+		for entry in turn_entries:
+			if entry["is_player"]:
+				actor.exec_at(StrategyTypes.TriggerWhen.HOUR_START)
+			else:
+				(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(
+					StrategyTypes.TriggerWhen.HOUR_START,
+				)
+
+		for phase in ['before', 'activity', 'after']:
+			for entry in turn_entries:
+				if entry["is_player"]:
+					var results = actor["exec_%s" % phase].call(activity)
+					# --- _resolve_combat_from_results ---
+					for result in results:
+						if not (result is ActivityResult):
+							continue
+						if not result.requires_combat:
+							continue
+						var enemy_squad = _find_enemy_squad(
+							result.combat_target_squad_id,
+						)
+						if enemy_squad:
+							Log.info("BattleRoyale", "Activity combat vs %s" % enemy_squad.squad_name)
+							_resolve_headless_combat(
+								player_squad,
+								enemy_squad,
+								StrategyTypes.EngagementType.SET_PIECE,
+							)
+				else:
+					var executor: ActivityExecuteManager = entry["executor"]
+					var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
+					_resolve_ai_combat_from_results(
+						results,
+						entry["squad_id"],
+					)
+
+		ai_fleet.cleanup_defeated_squads()
+
+		# --- _update_contacts ---
+		var world = scenario.world
+		var tracker = world.contact_tracker
+
+		var activity_log: Dictionary = {}
+		var edge_log: Dictionary = {}
+
+		activity_log[player_squad.squad_id] = activity.activity_type
+
+		var player_loc_after = player_squad.current_location_id
+		if player_loc_before != player_loc_after:
+			edge_log[player_squad.squad_id] = {
+				"from": player_loc_before,
+				"to": player_loc_after,
+			}
+
+		ai_fleet.fill_activity_log(activity_log, edge_log)
+
+		var all_squads: Array = [player_squad]
+		for sq in world.roaming_squads:
+			all_squads.append(sq)
+
+		tracker.update_all_contacts(
+			world,
+			all_squads,
+			activity_log,
+			edge_log,
+			world.current_hour,
+		)
+
+		var location = world.get_location_by_id(
+			player_squad.current_location_id,
+		)
+		if location:
+			var clues = location.get_active_clues(world.current_hour)
+			for clue in clues:
+				for enemy in world.roaming_squads:
+					if clue.left_by_squad_id == enemy.squad_id:
+						tracker.apply_clue_bonus(
+							clue,
+							enemy,
+							player_squad,
+						)
+
+		var engagements = tracker.check_engagements(
+			world,
+			all_squads,
+		)
+		for engagement in engagements:
+			var atk_id = engagement["attacker_id"]
+			var def_id = engagement["defender_id"]
+			var involves_player = (
+				atk_id == player_squad.squad_id
+				or def_id == player_squad.squad_id
+			)
+			if involves_player:
+				# --- _handle_player_engagement ---
+				var eng_type: StrategyTypes.EngagementType = \
+				engagement["type"]
+
+				var enemy_id: String
+				if engagement["attacker_id"] == player_squad.squad_id:
+					enemy_id = engagement["defender_id"]
+				else:
+					enemy_id = engagement["attacker_id"]
+
+				var eng_enemy_squad = _find_enemy_squad(enemy_id)
+				if eng_enemy_squad:
+					Log.info("BattleRoyale", "ENGAGEMENT: %s vs %s (%s)" % [
+						player_squad.squad_name,
+						eng_enemy_squad.squad_name,
+						StrategyTypes.EngagementType.keys()[eng_type],
+					])
+					_resolve_headless_combat(
+						player_squad,
+						eng_enemy_squad,
+						eng_type,
+					)
+
+		actor.advance_hour()
+		scenario.world.current_hour += 1
+
+		player_squad.consume_supplies_by_demand()
+
 		_print_all_squads()
 
 		await get_tree().create_timer(0.3).timeout
-
-
-func _execute_one_hour():
-	var directive = FactionDirective.create_none()
-	var decision = player_brain.decide(
-		scenario.world,
-		null,
-		directive,
-	)
-	var activity_type: StrategyTypes.ActivityType = \
-	decision["activity_type"]
-	var context: Dictionary = decision["context"]
-
-	var activity = actor.get_activity(activity_type)
-	if not activity:
-		activity = actor.get_activity(StrategyTypes.ActivityType.REST)
-	assert(activity != null, "Must have a REST activity")
-
-	if activity_type in [
-		StrategyTypes.ActivityType.TRAVEL,
-		StrategyTypes.ActivityType.FORCE_MARCH,
-	]:
-		var destination = context.get("travel_destination", "")
-		if not destination.is_empty():
-			activity = actor.create_travel_activity(destination)
-
-	Log.debug("BattleRoyale", "Player chose: %s" % StrategyTypes.ActivityType.keys()[activity_type])
-
-	var player_loc_before = player_squad.current_location_id
-
-	var ai_results = ai_fleet.prepare_ai_turns()
-	var turn_entries = _build_karma_sorted_entries(
-		activity,
-		ai_results,
-	)
-
-	for entry in turn_entries:
-		if entry["is_player"]:
-			actor.exec_at(StrategyTypes.TriggerWhen.HOUR_START)
-		else:
-			(entry["executor"] as ActivityExecuteManager).execute_triggerables_at(
-				StrategyTypes.TriggerWhen.HOUR_START,
-			)
-
-	for phase in ['before', 'activity', 'after']:
-		for entry in turn_entries:
-			if entry["is_player"]:
-				var results = actor["exec_%s" % phase].call(activity)
-				_resolve_combat_from_results(results)
-			else:
-				var executor: ActivityExecuteManager = entry["executor"]
-				var results: Array[GenericResult] = executor["exec_%s" % phase].call(entry["activity"])
-				_resolve_ai_combat_from_results(
-					results,
-					entry["squad_id"],
-				)
-
-	ai_fleet.cleanup_defeated_squads()
-	_update_contacts(activity, player_loc_before)
-
-	actor.advance_hour()
-	scenario.world.current_hour += 1
-
-	player_squad.consume_supplies_by_demand()
 
 
 func _build_karma_sorted_entries(
@@ -219,118 +303,7 @@ func _resolve_ai_combat_from_results(
 
 #endregion
 
-#region Contact & Engagement Pipeline (mirrors _update_contacts)
-
-func _update_contacts(
-		activity: Activity,
-		player_loc_before: String,
-):
-	var world = scenario.world
-	var tracker = world.contact_tracker
-
-	var activity_log: Dictionary = {}
-	var edge_log: Dictionary = {}
-
-	activity_log[player_squad.squad_id] = activity.activity_type
-
-	var player_loc_after = player_squad.current_location_id
-	if player_loc_before != player_loc_after:
-		edge_log[player_squad.squad_id] = {
-			"from": player_loc_before,
-			"to": player_loc_after,
-		}
-
-	ai_fleet.fill_activity_log(activity_log, edge_log)
-
-	var all_squads: Array = [player_squad]
-	for sq in world.roaming_squads:
-		all_squads.append(sq)
-
-	tracker.update_all_contacts(
-		world,
-		all_squads,
-		activity_log,
-		edge_log,
-		world.current_hour,
-	)
-
-	var location = world.get_location_by_id(
-		player_squad.current_location_id,
-	)
-	if location:
-		var clues = location.get_active_clues(world.current_hour)
-		for clue in clues:
-			for enemy in world.roaming_squads:
-				if clue.left_by_squad_id == enemy.squad_id:
-					tracker.apply_clue_bonus(
-						clue,
-						enemy,
-						player_squad,
-					)
-
-	var engagements = tracker.check_engagements(
-		world,
-		all_squads,
-	)
-	for engagement in engagements:
-		var atk_id = engagement["attacker_id"]
-		var def_id = engagement["defender_id"]
-		var involves_player = (
-			atk_id == player_squad.squad_id
-			or def_id == player_squad.squad_id
-		)
-		if involves_player:
-			_handle_player_engagement(engagement)
-
-#endregion
-
-#region Combat Resolution (mirrors _handle_player_engagement)
-
-func _handle_player_engagement(engagement: Dictionary):
-	var eng_type: StrategyTypes.EngagementType = \
-	engagement["type"]
-
-	var enemy_id: String
-	if engagement["attacker_id"] == player_squad.squad_id:
-		enemy_id = engagement["defender_id"]
-	else:
-		enemy_id = engagement["attacker_id"]
-
-	var enemy_squad = _find_enemy_squad(enemy_id)
-	if not enemy_squad:
-		return
-
-	Log.info("BattleRoyale", "ENGAGEMENT: %s vs %s (%s)" % [
-		player_squad.squad_name,
-		enemy_squad.squad_name,
-		StrategyTypes.EngagementType.keys()[eng_type],
-	])
-	_resolve_headless_combat(
-		player_squad,
-		enemy_squad,
-		eng_type,
-	)
-
-
-func _resolve_combat_from_results(
-		results: Array[GenericResult],
-) -> void:
-	for result in results:
-		if not (result is ActivityResult):
-			continue
-		if not result.requires_combat:
-			continue
-		var enemy_squad = _find_enemy_squad(
-			result.combat_target_squad_id,
-		)
-		if enemy_squad:
-			Log.info("BattleRoyale", "Activity combat vs %s" % enemy_squad.squad_name)
-			_resolve_headless_combat(
-				player_squad,
-				enemy_squad,
-				StrategyTypes.EngagementType.SET_PIECE,
-			)
-
+#region Combat Resolution
 
 func _resolve_headless_combat(
 		squad_a: StrategySquad,
@@ -377,7 +350,21 @@ func _resolve_headless_combat(
 		loser.squad_name,
 		casualties,
 	])
-	_cleanup_dead_squads()
+
+	# --- _cleanup_dead_squads ---
+	var to_remove: Array[String] = []
+	for squad in scenario.world.roaming_squads:
+		if squad.get_living_warriors().is_empty():
+			to_remove.append(squad.squad_id)
+	for squad_id in to_remove:
+		scenario.world.remove_roaming_squad(squad_id)
+		scenario.world.contact_tracker.clear_contacts_for(
+			squad_id,
+		)
+		if ai_fleet.squad_brains.has(squad_id):
+			ai_fleet.squad_brains.erase(squad_id)
+			ai_fleet.squad_executors.erase(squad_id)
+		Log.info("BattleRoyale", "Eliminated: %s" % squad_id)
 
 #endregion
 
@@ -402,22 +389,6 @@ func _count_living_squads() -> int:
 		count += 1
 	count += ai_fleet.get_ai_squad_count()
 	return count
-
-
-func _cleanup_dead_squads():
-	var to_remove: Array[String] = []
-	for squad in scenario.world.roaming_squads:
-		if squad.get_living_warriors().is_empty():
-			to_remove.append(squad.squad_id)
-	for squad_id in to_remove:
-		scenario.world.remove_roaming_squad(squad_id)
-		scenario.world.contact_tracker.clear_contacts_for(
-			squad_id,
-		)
-		if ai_fleet.squad_brains.has(squad_id):
-			ai_fleet.squad_brains.erase(squad_id)
-			ai_fleet.squad_executors.erase(squad_id)
-		Log.info("BattleRoyale", "Eliminated: %s" % squad_id)
 
 
 func _print_all_squads():

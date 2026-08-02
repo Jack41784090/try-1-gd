@@ -28,7 +28,6 @@ func _ready() -> void:
 	_title_label.text = panel_title
 	floating_rect = Rect2(position, size)
 	_title_bar.gui_input.connect(_on_title_bar_input)
-	#_collapse_button.pressed.connect(func() -> void: collapse_requested.emit(self))
 
 	original_size = Vector2(self.size)
 

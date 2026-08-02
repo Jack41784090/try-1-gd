@@ -20,7 +20,7 @@ signal tactic_changed
 var engagement_stance: StrategyTypes.EngagementStance = StrategyTypes.EngagementStance.ENGAGE_WHEN_CONFIRMED
 var squad_role: StrategyTypes.SquadRole = StrategyTypes.SquadRole.COMBAT
 var cargo: CargoManifest = CargoManifest.new()
-var scouting_focus = null
+var scouting_focus: ScoutingFocus = null
 @export var inventory: SquadInventory = SquadInventory.new()
 @export var current_activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.REST
 var travel_progress_km: float = 0.0
@@ -33,7 +33,6 @@ var aggregate_morale: float:
 		return aggregate_morale
 var current_location_id: String = ""
 var current_tactic: Tactic = null
-var _initialized: bool = false
 
 
 func _init() -> void:
@@ -44,33 +43,21 @@ func _to_string() -> String:
 	return "StrategySquad(warriors=%s, money=%f, karma=%f, food=%d, tools=%d, formation=%s, startingloc=%s)" % [warriors, money, karma, food, travel_tools, formation, starting_location_id]
 
 
-func consume_food(amount: int) -> bool:
-	if food >= amount:
-		food -= amount
-		return true
-	food = 0
-	return false
-
-
-func consume_travel_tools(amount: int) -> bool:
-	if travel_tools >= amount:
-		travel_tools -= amount
-		return true
-	travel_tools = 0
-	return false
-
-
 func consume_supplies_by_demand(multiplier: float = 1.0) -> bool:
-	# Consumes food based on each warrior's demand attribute, scaled by multiplier
-	# Returns true if enough food was available, false if squad ran out
-	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=10 → food=3, returns true
-	# e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=5 → food=0, returns false
+	## Consumes food based on each warrior's demand attribute, scaled by multiplier
+	## Returns true if enough food was available, false if squad ran out
+	## e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=10 → food=3, returns true
+	## e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=5 → food=0, returns false
 	var total_demand := 0.0
 	for warrior in get_living_warriors():
 		var demand = warrior.get_demand()
 		total_demand += demand.get(StrategyTypes.SquadProperty.FOOD_SUPPLIES, 0.0)
 	var food_cost := int(ceil(total_demand * multiplier))
-	return consume_food(food_cost)
+	if food >= food_cost:
+		food -= food_cost
+		return true
+	food = 0
+	return false
 
 
 func apply_travel_morale_penalty(base_penalty: float = -2.0) -> void:
@@ -92,10 +79,6 @@ func spend_money(amount: float) -> bool:
 		money_changed.emit()
 		return true
 	return false
-
-
-func modify_karma(amount: float) -> void:
-	karma = clamp(karma + amount, -100.0, 100.0)
 
 
 func update_aggregate_morale() -> void:
@@ -129,7 +112,6 @@ func add_warrior(warrior: Character) -> void:
 	warriors.append(warrior)
 	formation.append(SquadBattleTypes.SquadEntityInSquadLocation.Front)
 	warriors_changed.emit()
-	# update_aggregate_morale()
 
 
 func get_living_warriors() -> Array[Character]:
@@ -197,36 +179,13 @@ func get_aggregate_stealth() -> float:
 	return total / living.size()
 
 
-func get_aggregate_leadership() -> float:
-	var living = get_living_warriors()
-	if living.is_empty():
-		return 0.0
-	var total := 0.0
-	for warrior in living:
-		total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP))
-	return total / living.size()
-
-
 func get_coordination() -> float:
-	return clampf(get_aggregate_leadership() / 80.0, 0.0, 0.8)
-
-
-func attempt_stealth_return_failed(location: Location, destination_id: String, current_hour: int) -> Array[Character]:
-	# Each warrior rolls stealth vs random(0-100). Warriors who fail leave clues behind.
-	# Used when traveling to determine if enemies can track this squad's movement
-	# e.g., warrior stealth=60, roll=75 → 75 > 60 → FAILED, leaves clue (failure_margin=15)
-	# e.g., warrior stealth=80, roll=50 → 50 < 80 → PASSED, no clue left
-	var clues_left: Array[Character] = []
-
-	for warrior in get_living_warriors():
-		var stealth_value = warrior.get_attribute(StrategyTypes.WarriorAttribute.STEALTH)
-		var roll = randi_range(0, 100)
-
-		if roll > stealth_value:
-			var failure_margin = roll - stealth_value
-			clues_left.append(warrior)
-
-	return clues_left
+	var living = get_living_warriors()
+	var leadership_total := 0.0
+	for warrior in living:
+		leadership_total += float(warrior.get_attribute(StrategyTypes.WarriorAttribute.LEADERSHIP))
+	var avg_leadership := leadership_total / living.size() if not living.is_empty() else 0.0
+	return clampf(avg_leadership / 80.0, 0.0, 0.8)
 
 
 func get_warriors_by_religion(religion_type: StrategyTypes.Religion) -> Array[Character]:
@@ -255,10 +214,6 @@ func get_cargo_value() -> float:
 
 func has_reached_destination() -> bool:
 	return is_caravan() and cargo.has_reached(current_location_id)
-
-
-func get_location_id() -> String:
-	return current_location_id
 
 
 func get_speed_kmh() -> float:

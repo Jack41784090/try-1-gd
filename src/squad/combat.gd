@@ -13,7 +13,7 @@ var _next_local_player_id: int = randi() % 1000 + 1
 ##  - String: a CombatEntityFactory identification, built fresh (demo/scripted squads)
 ##  - CombatEntityResource: built fresh via CombatEntityFactory.build_config_from_resource()
 ##  - CombatEntity: already fully built (the real CombatBridge route, via Character.enter_battle())
-func _init(_name: String, _side: SquadBattleTypes.Side, _entities_config: Array) -> void:
+func _init(_name: String, _side: SquadBattleTypes.Side, _entities_config: Array[Variant]) -> void:
 	squad_name = _name
 	
 	for entity_config in _entities_config:
@@ -38,12 +38,8 @@ func _build_entity(entity_config, side: SquadBattleTypes.Side) -> CombatEntity:
 		_next_local_player_id += 1
 		return CombatEntity.new(built_config)
 
-	push_error("CombatSquad: invalid entity config %s" % [entity_config])
+	assert(false, "CombatSquad: invalid entity config %s" % str(entity_config))
 	return null
-
-
-func is_crippled() -> bool:
-	return entities.size() == 0
 
 
 func get_all_entities() -> Dictionary:
@@ -62,55 +58,11 @@ func get_all_entities() -> Dictionary:
 	return result
 
 
-func recovery():
-	SBLog.line(3, "offered a recovery", "[%s]" % squad_name)
-	for entity in entities:
-		entity.recover()
-
-
 func get_last_attacked_at_round() -> int:
 	return last_round_received_attack
 
 
-func _format_enemy_positions(metadata: Dictionary) -> String:
-	var parts = []
-	for loc in [1, 2, 3]:
-		if metadata.has(loc):
-			var names = []
-			for e in metadata[loc]:
-				names.append("%s(ID:%d,HP:%.0f)" % [e.display_name, e.player_id, e.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)])
-			parts.append("LOC%d:[%s]" % [loc, ", ".join(names)])
-	return "{%s}" % " ".join(parts)
-
-
-func squad_attack(enemy_squad: CombatSquad, round_count: int) -> Array[EntityUpdate]:
-	SBLog.line(4, "⚔️ [%s]" % enemy_squad.squad_name, "[%s]" % squad_name)
-	var updates_after_attack: Array[EntityUpdate] = []
-
-	last_round_received_attack = round_count
-
-	for our_entity in entities:
-		var our_squad_metadata = get_all_entities()
-		var enemy_squad_metadata = enemy_squad.get_all_entities()
-
-		var action_results = our_entity.action(our_squad_metadata, enemy_squad_metadata)
-		for result in action_results:
-			updates_after_attack.append(result)
-
-	for enemy_entity in enemy_squad.entities:
-		var our_squad_metadata = get_all_entities()
-		var enemy_squad_metadata = enemy_squad.get_all_entities()
-		var reaction_results = enemy_entity.reaction(enemy_squad_metadata, our_squad_metadata)
-		for result in reaction_results:
-			updates_after_attack.append(result)
-
-	return updates_after_attack
-
-
-func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _attack_modifier: float) -> Array[EntityUpdate]:
-	# Attacker phase: each entity acts up to action_count times against randomly chosen enemy squads
-	# e.g., action_count=1, 3 entities → each entity picks a skill, picks a target, commits a OneClash
-	#   → returns ~3 EntityUpdate objects (hits, misses, damage)
+func perform_actions(enemy_squads: Array[CombatSquad], round_count: int, action_count: int, _attack_modifier: float) -> Array[EntityUpdate]:
 	var updates: Array[EntityUpdate] = []
 
 	if action_count <= 0:
@@ -122,11 +74,12 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 	for entity in entities:
 		entity.new_round_reset()
 
-	# Each entity gets to act up to action_count times
 	for action_num in range(action_count):
 		SBLog.line(4, "Action %d/%d" % [action_num + 1, action_count], "[%s]" % squad_name)
 
-		var enemy_squad = choose_enemy_squad(enemy_squads)
+		var enemy_squad: CombatSquad = null
+		if enemy_squads.size() > 0:
+			enemy_squad = enemy_squads[randi() % enemy_squads.size()]
 		if not enemy_squad:
 			SBLog.line(4, "No enemy squad available to attack", "[%s]" % squad_name)
 			break
@@ -145,73 +98,3 @@ func perform_actions(enemy_squads: Array, round_count: int, action_count: int, _
 				updates.append(result)
 
 	return updates
-
-
-func perform_reactions(enemy_squads: Array, _round_count: int, reaction_count: int, _defense_modifier: float) -> Array[EntityUpdate]:
-	# Defender phase: each entity reacts up to reaction_count times (counter-attacks)
-	# e.g., reaction_count=2, 2 entities → each entity gets 2 counter-attack opportunities
-	#   → returns ~4 EntityUpdate objects
-	var updates: Array[EntityUpdate] = []
-
-	if reaction_count <= 0:
-		SBLog.line(3, "No reactions available this round (tactic: 0 reactions)", "[%s]" % squad_name)
-		return updates
-
-	SBLog.line(3, "Performing %d reaction(s)" % reaction_count, "[%s]" % squad_name)
-
-	for entity in entities:
-		entity.new_round_reset()
-
-	# Each entity gets to react up to reaction_count times
-	for reaction_num in range(reaction_count):
-		SBLog.line(4, "Reaction %d/%d" % [reaction_num + 1, reaction_count], "[%s]" % squad_name)
-
-		var enemy_squad = choose_enemy_squad(enemy_squads)
-		if not enemy_squad:
-			SBLog.line(4, "No enemy squad to react against", "[%s]" % squad_name)
-			break
-
-		for our_entity in entities:
-			if our_entity.is_dead():
-				continue
-
-			var our_squad_metadata = get_all_entities()
-			var enemy_squad_metadata = enemy_squad.get_all_entities()
-
-			var reaction_results = our_entity.reaction(our_squad_metadata, enemy_squad_metadata)
-			for result in reaction_results:
-				updates.append(result)
-
-	return updates
-
-
-func choose_enemy_squad(enemy_squads: Array):
-	if enemy_squads.size() > 0:
-		return enemy_squads[randi() % enemy_squads.size()]
-	return null
-
-
-func act_attack_random(targetable_squads: Array, round_count: int):
-	SBLog.line(3, "attacking random enemy", "[%s]" % squad_name)
-	var enemy_squad = choose_enemy_squad(targetable_squads)
-
-	if enemy_squad:
-		return squad_attack(enemy_squad, round_count)
-	return null
-
-
-func act_idle():
-	SBLog.line(3, "idling", "[%s]" % squad_name)
-	return null
-
-
-func round(enemy_squads: Array, round_count: int) -> Array[EntityUpdate]:
-	SBLog.section("SQUAD ROUND", 2, 1, 0)
-
-	for entity in entities:
-		entity.new_round_reset()
-
-	var result = act_attack_random(enemy_squads, round_count)
-	if result:
-		return result
-	return []

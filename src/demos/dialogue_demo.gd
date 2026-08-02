@@ -29,7 +29,6 @@ func _ready() -> void:
 	print("SPACE: speed-up / advance gate | R: restart")
 	print("")
 
-	# _create_demo_warriors()
 	await stage_view.spawn_warriors(_demo_warriors)
 
 	var chain = given_event_chain if given_event_chain else _build_demo_chain()
@@ -37,25 +36,73 @@ func _ready() -> void:
 	_update_status("Playing timeline...")
 
 	if _is_headless:
-		_run_headless_test()
+		# --- run headless test ---
+		print("\n=== HEADLESS TEST START ===")
+
+		assert(
+			_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
+			"T1: should be PLAYING or at first GATE after load",
+		)
+		print("[TEST 1] PASS: Timeline started (state=%d)" % _playback.state)
+
+		await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
+		assert(
+			_playback.state == GroupPlayback.State.WAITING_FOR_GATE,
+			"T2: should be WAITING_FOR_GATE after narrator",
+		)
+		print("[TEST 2] PASS: First gate reached (narrator intro)")
+
+		_playback.on_input()
+		assert(
+			_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
+			"T3: should resume PLAYING or hit next gate instantly",
+		)
+		print("[TEST 3] PASS: Gate advanced")
+
+		for i in 3:
+			await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
+			_playback.on_input()
+		print("[TEST 4] PASS: Clicked through gated dialogues")
+
+		await _wait_for_state_any([GroupPlayback.State.PLAYING, GroupPlayback.State.FAST_FORWARDING, GroupPlayback.State.WAITING_FOR_GATE], 2.0)
+		print("[TEST 5] PASS: Cinematic section (state=%d)" % _playback.state)
+
+		if _playback.state == GroupPlayback.State.PLAYING:
+			_playback.on_input()
+			assert(
+				_playback.state == GroupPlayback.State.FAST_FORWARDING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
+				"T6: should be FAST_FORWARDING or at gate after space",
+			)
+			print("[TEST 6] PASS: Speed-up engaged (state=%d)" % _playback.state)
+		else:
+			print("[TEST 6] SKIP: Already at gate")
+
+		for i in 10:
+			if _playback.state == GroupPlayback.State.COMPLETE:
+				break
+			if _playback.state == GroupPlayback.State.WAITING_FOR_GATE:
+				_playback.on_input()
+			await _wait_for_state_any([GroupPlayback.State.WAITING_FOR_GATE, GroupPlayback.State.COMPLETE], 8.0)
+
+		assert(_playback.state == GroupPlayback.State.COMPLETE, "T7: should be COMPLETE (got %d)" % _playback.state)
+		print("[TEST 7] PASS: Timeline complete")
+
+		print("\n=== HEADLESS TEST: ALL PASSED ===")
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_R:
-			_restart()
+			# --- restart ---
+			if _presenter.stage_presenter:
+				_presenter.stage_presenter.dismiss_all_speech()
+				_presenter.stage_presenter.return_to_wide()
+			vn_view.hide_narrator_box()
+
+			var chain = given_event_chain if given_event_chain else _build_demo_chain()
+			_presenter.load_chain(chain)
+			_update_status("Playing timeline... (restarted)")
 			get_viewport().set_input_as_handled()
-
-
-func _restart() -> void:
-	if _presenter.stage_presenter:
-		_presenter.stage_presenter.dismiss_all_speech()
-		_presenter.stage_presenter.return_to_wide()
-	vn_view.hide_narrator_box()
-
-	var chain = given_event_chain if given_event_chain else _build_demo_chain()
-	_presenter.load_chain(chain)
-	_update_status("Playing timeline... (restarted)")
 
 #region Playback Callbacks
 
@@ -313,60 +360,6 @@ func _build_demo_chain() -> EventChain:
 #endregion
 
 #region Headless Testing
-
-func _run_headless_test() -> void:
-	print("\n=== HEADLESS TEST START ===")
-
-	assert(
-		_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
-		"T1: should be PLAYING or at first GATE after load",
-	)
-	print("[TEST 1] PASS: Timeline started (state=%d)" % _playback.state)
-
-	await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
-	assert(
-		_playback.state == GroupPlayback.State.WAITING_FOR_GATE,
-		"T2: should be WAITING_FOR_GATE after narrator",
-	)
-	print("[TEST 2] PASS: First gate reached (narrator intro)")
-
-	_playback.on_input()
-	assert(
-		_playback.state == GroupPlayback.State.PLAYING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
-		"T3: should resume PLAYING or hit next gate instantly",
-	)
-	print("[TEST 3] PASS: Gate advanced")
-
-	for i in 3:
-		await _wait_for_state(GroupPlayback.State.WAITING_FOR_GATE, 5.0)
-		_playback.on_input()
-	print("[TEST 4] PASS: Clicked through gated dialogues")
-
-	await _wait_for_state_any([GroupPlayback.State.PLAYING, GroupPlayback.State.FAST_FORWARDING, GroupPlayback.State.WAITING_FOR_GATE], 2.0)
-	print("[TEST 5] PASS: Cinematic section (state=%d)" % _playback.state)
-
-	if _playback.state == GroupPlayback.State.PLAYING:
-		_playback.on_input()
-		assert(
-			_playback.state == GroupPlayback.State.FAST_FORWARDING or _playback.state == GroupPlayback.State.WAITING_FOR_GATE,
-			"T6: should be FAST_FORWARDING or at gate after space",
-		)
-		print("[TEST 6] PASS: Speed-up engaged (state=%d)" % _playback.state)
-	else:
-		print("[TEST 6] SKIP: Already at gate")
-
-	for i in 10:
-		if _playback.state == GroupPlayback.State.COMPLETE:
-			break
-		if _playback.state == GroupPlayback.State.WAITING_FOR_GATE:
-			_playback.on_input()
-		await _wait_for_state_any([GroupPlayback.State.WAITING_FOR_GATE, GroupPlayback.State.COMPLETE], 8.0)
-
-	assert(_playback.state == GroupPlayback.State.COMPLETE, "T7: should be COMPLETE (got %d)" % _playback.state)
-	print("[TEST 7] PASS: Timeline complete")
-
-	print("\n=== HEADLESS TEST: ALL PASSED ===")
-
 
 func _wait_for_state(target: GroupPlayback.State, timeout_sec: float) -> void:
 	var elapsed = 0.0

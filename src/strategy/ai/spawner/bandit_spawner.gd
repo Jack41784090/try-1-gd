@@ -33,13 +33,6 @@ func calculate_pressure(location: Location, world: World = null) -> float:
 	return pressure
 
 
-func should_spawn(pressure: float) -> bool:
-	if pressure <= SPAWN_THRESHOLD:
-		return false
-	var spawn_chance := (pressure - SPAWN_THRESHOLD) * SPAWN_RATE
-	return randf() < spawn_chance
-
-
 static func count_bandits_at_location(location_id: String, world: World) -> int:
 	var count := 0
 	for squad in world.roaming_squads:
@@ -61,21 +54,6 @@ func count_total_bandits(world: World) -> int:
 			count += 1
 	return count
 
-
-func get_max_bandits(world: World) -> int:
-	return world.locations.size() * 2
-
-func _check_bandit_disband(squad: StrategySquad) -> bool:
-	if squad.get_living_warriors().is_empty():
-		return true
-	if squad.get_morale() < DISBAND_MORALE_THRESHOLD:
-		return true
-	var all_injured := true
-	for w in squad.get_living_warriors():
-		if not w.is_injured:
-			all_injured = false
-			break
-	return all_injured
 
 func _create_warrior(squad_id: String, index: int, background_id: StringName) -> Character:
 	var background := WarriorBackgroundFactory.get_background(background_id)

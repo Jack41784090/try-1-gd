@@ -10,7 +10,7 @@ extends Node
 ##
 ## Usage: godot --headless --path . scenes/demos/pause_system_test.tscn
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
@@ -33,36 +33,14 @@ func _ready():
 
 	await presenter.bind_view(mock_view)
 
-	_run_tests()
-
-	Log.info("PauseTest", "")
-	Log.info("PauseTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
-	if _fail_count > 0:
-		Log.error("PauseTest", "SOME TESTS FAILED")
-	else:
-		Log.info("PauseTest", "ALL TESTS PASSED")
-
-	await get_tree().create_timer(0.3).timeout
-	get_tree().quit()
-
-
-func _run_tests():
-	_test_game_starts_paused()
-	_test_activity_does_not_unpause()
-	_test_pause_toggle()
-	_test_menu_handlers_pause()
-	_test_resting_banner_state()
-
-
-func _test_game_starts_paused():
+	# --- _test_game_starts_paused ---
 	Log.info("PauseTest", "--- Test: Game starts paused ---")
 	_assert_true(
 		presenter.game_scenario.world.is_paused,
 		"Game should start paused"
 	)
 
-
-func _test_activity_does_not_unpause():
+	# --- _test_activity_does_not_unpause ---
 	Log.info("PauseTest", "--- Test: Activity selection does not unpause ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Precondition: game is paused")
@@ -90,8 +68,7 @@ func _test_activity_does_not_unpause():
 		"Game should remain paused after selecting REST"
 	)
 
-
-func _test_pause_toggle():
+	# --- _test_pause_toggle ---
 	Log.info("PauseTest", "--- Test: Explicit pause toggle ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Should be paused")
@@ -108,8 +85,7 @@ func _test_pause_toggle():
 		"Should be paused again after second toggle"
 	)
 
-
-func _test_menu_handlers_pause():
+	# --- _test_menu_handlers_pause ---
 	Log.info("PauseTest", "--- Test: Menu handlers auto-pause ---")
 
 	presenter.game_clock.unpause()
@@ -156,8 +132,7 @@ func _test_menu_handlers_pause():
 		"Missions menu should auto-pause"
 	)
 
-
-func _test_resting_banner_state():
+	# --- _test_resting_banner_state ---
 	Log.info("PauseTest", "--- Test: Resting banner state ---")
 	presenter.game_clock.pause()
 	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
@@ -182,8 +157,16 @@ func _test_resting_banner_state():
 		"Activity should return to REST"
 	)
 
+	Log.info("PauseTest", "")
+	Log.info("PauseTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
+	if _fail_count > 0:
+		Log.error("PauseTest", "SOME TESTS FAILED")
+	else:
+		Log.info("PauseTest", "ALL TESTS PASSED")
 
-#region Assertions
+	await get_tree().create_timer(0.3).timeout
+	get_tree().quit()
+
 
 func _assert_true(condition: bool, msg: String) -> void:
 	if condition:
@@ -201,5 +184,3 @@ func _assert_eq(actual, expected, msg: String) -> void:
 	else:
 		_fail_count += 1
 		Log.error("PauseTest", "  FAIL: %s (expected %s, got %s)" % [msg, expected, actual])
-
-#endregion

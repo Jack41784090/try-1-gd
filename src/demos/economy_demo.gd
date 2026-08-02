@@ -4,7 +4,7 @@ extends Node
 ## Loads the goetz-official scenario through the same code path as the actual game.
 ## Usage: godot-mono --headless --path . scenes/demos/economy_demo.tscn
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 const MAX_ECONOMY_TURNS := 20
@@ -24,7 +24,13 @@ func _ready() -> void:
 	print("=".repeat(60) + "\n")
 
 	await _setup_presenter()
-	_resolve_food()
+
+	# --- resolve food ---
+	for thing: Thing in world.goods:
+		if thing.thing_id == "food":
+			_food_thing = thing
+			break
+
 	_print_world_summary()
 	await _run_simulation()
 
@@ -45,13 +51,6 @@ func _setup_presenter() -> void:
 	engine = world.economy_engine
 	assert(engine != null, "Economy engine not initialized")
 	print("Scenario loaded: %d locations with economy\n" % world.get_economy_locations().size())
-
-
-func _resolve_food() -> void:
-	for thing: Thing in world.goods:
-		if thing.thing_id == "food":
-			_food_thing = thing
-			break
 
 
 func _print_world_summary() -> void:

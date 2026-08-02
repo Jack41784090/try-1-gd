@@ -13,7 +13,7 @@ var actor: ActivityRunner
 var selected_location_id: String = ""
 var current_mode: TravelMode = TravelMode.AUTOPILOT
 var _map_initialized: bool = false
-var _selected_path: Array = []
+var _selected_path: Array[String] = []
 
 var towards_location: Location:
 	get:
@@ -54,43 +54,38 @@ func on_show(_scenario, _locs) -> void:
 		view.update_selected_location("Travelling to %s" % towards_location.location_name)
 	view.show_menu()
 	view.update_mode_button(mode)
-	_restore_cached_selection()
+	if not selected_location_id.is_empty() and not _selected_path.is_empty():
+		var cached_loc = actor.aem.world.travel_graph.get_location(selected_location_id)
+		if not cached_loc:
+			selected_location_id = ""
+			_selected_path = []
+		else:
+			var path_typed: Array[String] = []
+			for p in _selected_path:
+				path_typed.append(p)
+			view.highlight_path_on_map(path_typed)
+			var distance = actor.aem.world.travel_graph.get_distance(
+				current_location.location_id,
+				selected_location_id,
+			)
+			var squad_speed := actor.player_squad.get_speed_kmh()
+			var travel_hours := actor.aem.world.travel_graph.calculate_travel_hours(
+				_selected_path,
+				squad_speed,
+			)
+			view.update_selected_location(
+				"Selected: %s (%.0f km, ~%.0f hours)" % [
+					cached_loc.location_name,
+					distance,
+					travel_hours,
+				],
+			)
+			view.set_confirm_visible(true)
+			view.highlight_location_button(selected_location_id)
 
 
 func on_hide() -> void:
 	view.hide_menu()
-
-
-func _restore_cached_selection() -> void:
-	if selected_location_id.is_empty() or _selected_path.is_empty():
-		return
-	var location = actor.aem.world.travel_graph.get_location(selected_location_id)
-	if not location:
-		selected_location_id = ""
-		_selected_path = []
-		return
-	var path_typed: Array[String] = []
-	for p in _selected_path:
-		path_typed.append(p)
-	view.highlight_path_on_map(path_typed)
-	var distance = actor.aem.world.travel_graph.get_distance(
-		current_location.location_id,
-		selected_location_id,
-	)
-	var squad_speed := actor.player_squad.get_speed_kmh()
-	var travel_hours := actor.aem.world.travel_graph.calculate_travel_hours(
-		_selected_path,
-		squad_speed,
-	)
-	view.update_selected_location(
-		"Selected: %s (%.0f km, ~%.0f hours)" % [
-			location.location_name,
-			distance,
-			travel_hours,
-		],
-	)
-	view.set_confirm_visible(true)
-	view.highlight_location_button(selected_location_id)
 
 
 func on_mode_toggle() -> void:
@@ -141,7 +136,7 @@ func on_location_selected(location_id: String) -> void:
 func on_confirm() -> void:
 	var mode = get_effective_mode()
 	if mode == TravelMode.GOING and not selected_location_id.is_empty():
-		# Player is changing destination mid-travel
+
 		actor.walking_towards = null
 		var path = actor.aem.world.travel_graph.find_path(current_location.location_id, selected_location_id)
 		if len(path) <= 1:
@@ -158,7 +153,6 @@ func on_confirm() -> void:
 			view.update_travel_progress(0)
 		else:
 			view.travel_confirmed.emit(path[1])
-		#view.travel_confirmed.emit(path[1])
 
 
 func on_cancel() -> void:
@@ -176,11 +170,6 @@ func set_mode_autopilot() -> void:
 
 
 func _refresh_locations_list() -> void:
-	var location_data = _gather_location_data()
-	view.display_locations(location_data, get_effective_mode())
-
-
-func _gather_location_data() -> Array[Dictionary]:
 	var current_loc_id = current_location.location_id
 	var location_data: Array[Dictionary] = []
 	var reachable_ids = actor.get_all_reachable_locations(current_location)
@@ -221,7 +210,7 @@ func _gather_location_data() -> Array[Dictionary]:
 				)
 
 	location_data.sort_custom(_sort_locations)
-	return location_data
+	view.display_locations(location_data, get_effective_mode())
 
 
 func _sort_locations(a: Dictionary, b: Dictionary) -> bool:

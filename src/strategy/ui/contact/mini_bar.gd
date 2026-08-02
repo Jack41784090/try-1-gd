@@ -26,7 +26,20 @@ func populate(data: Dictionary) -> void:
 	bar_fill.color = state_color * Color(1, 1, 1, 0.8)
 	bar_fill.anchor_right = fill_fraction
 
-	_update_delta_mark(delta, fill_fraction, progress)
+	delta_mark.visible = false
+	if not is_zero_approx(delta):
+		var prev_progress := clampf(progress - delta, 0.0, 100.0)
+		var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
+		delta_mark.visible = true
+		delta_mark.modulate.a = 1.0
+		if delta > 0.0:
+			delta_mark.color = Color(0.4, 1.0, 0.4, 0.35)
+			delta_mark.anchor_left = prev_fraction
+			delta_mark.anchor_right = fill_fraction
+		else:
+			delta_mark.color = Color(1.0, 0.4, 0.4, 0.35)
+			delta_mark.anchor_left = fill_fraction
+			delta_mark.anchor_right = prev_fraction
 
 	pct_label.text = "%.0f%%" % progress
 
@@ -92,23 +105,6 @@ func _update_symbol(delta: float, state_color: Color) -> void:
 	else:
 		symbol_label.text = "●"
 		symbol_label.add_theme_color_override("font_color", state_color * Color(1, 1, 1, 0.5))
-
-
-func _update_delta_mark(delta: float, fill_fraction: float, progress: float) -> void:
-	delta_mark.visible = false
-	if not is_zero_approx(delta):
-		var prev_progress := clampf(progress - delta, 0.0, 100.0)
-		var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
-		delta_mark.visible = true
-		delta_mark.modulate.a = 1.0
-		if delta > 0.0:
-			delta_mark.color = Color(0.4, 1.0, 0.4, 0.35)
-			delta_mark.anchor_left = prev_fraction
-			delta_mark.anchor_right = fill_fraction
-		else:
-			delta_mark.color = Color(1.0, 0.4, 0.4, 0.35)
-			delta_mark.anchor_left = fill_fraction
-			delta_mark.anchor_right = prev_fraction
 
 
 func _update_delta_label(delta: float) -> void:

@@ -61,9 +61,6 @@ func _rebuild_slots() -> void:
 
 
 func _ready() -> void:
-	#if Engine.is_editor_hint() and _squad == null:
-		#_squad = _build_demo_squad()
-		#_rebuild_slots()
 	visibility_changed.connect(_on_visibility_changed)
 
 
@@ -72,8 +69,34 @@ func setup(squad: StrategySquad) -> void:
 
 
 func _pull() -> void:
-	_refresh_inventory()
-	_refresh_units()
+	for child in _inventory_container.get_children():
+		child.queue_free()
+
+	if _squad == null:
+		return
+	var items: Array[CombatEquipment] = _squad.inventory.get_all_items()
+	for i in items:
+		if i is WeaponResource:
+			var ws = weapon_slot.instantiate()
+			ws.weapon_config = i
+			_inventory_container.add_child(ws)
+		elif i is ArmorConfig:
+			pass
+
+	_empty_label.visible = _squad.inventory.is_empty()
+
+	for child in _units_container.get_children():
+		child.queue_free()
+
+
+	for warrior in _squad.get_living_warriors():
+		var card = WARRIOR_CARD_SCENE.instantiate()
+		_units_container.add_child(card)
+		card.setup(warrior)
+		card.equip_weapon_requested.connect(func(w, wep): equip_weapon_requested.emit(w, wep))
+		card.equip_armor_requested.connect(func(w, arm): equip_armor_requested.emit(w, arm))
+		card.unequip_weapon_requested.connect(func(w): unequip_weapon_requested.emit(w))
+		card.unequip_armor_requested.connect(func(w): unequip_armor_requested.emit(w))
 
 
 func _connect_signals() -> void:
@@ -94,37 +117,3 @@ func _on_visibility_changed() -> void:
 		_rebuild_slots()
 	else:
 		_disconnect_signals()
-
-
-func _refresh_inventory() -> void:
-	for child in _inventory_container.get_children():
-		child.queue_free()
-
-	if _squad == null:
-		return
-	var items: Array = _squad.inventory.get_all_items()
-	for i in items:
-		if i is WeaponResource:
-			var ws = weapon_slot.instantiate()
-			ws.weapon_config = i
-			_inventory_container.add_child(ws)
-		elif i is ArmorConfig:
-			pass
-
-	_empty_label.visible = _squad.inventory.is_empty()
-
-
-func _refresh_units() -> void:
-	for child in _units_container.get_children():
-		child.queue_free()
-
-	#_title_label.text = "WARRIORS — %d" % _squad.get_living_warriors().size()
-
-	for warrior in _squad.get_living_warriors():
-		var card = WARRIOR_CARD_SCENE.instantiate()
-		_units_container.add_child(card)
-		card.setup(warrior)
-		card.equip_weapon_requested.connect(func(w, wep): equip_weapon_requested.emit(w, wep))
-		card.equip_armor_requested.connect(func(w, arm): equip_armor_requested.emit(w, arm))
-		card.unequip_weapon_requested.connect(func(w): unequip_weapon_requested.emit(w))
-		card.unequip_armor_requested.connect(func(w): unequip_armor_requested.emit(w))

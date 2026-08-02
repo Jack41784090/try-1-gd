@@ -1,8 +1,6 @@
 class_name SquadInventory
 extends Resource
 
-# signal changed
-
 @export var weapons: Array[WeaponResource] = []
 @export var armors: Array[ArmorConfig] = []
 
@@ -75,8 +73,8 @@ func unequip_armor(warrior: Character) -> void:
 	changed.emit()
 
 
-func get_all_items() -> Array:
-	var items: Array = []
+func get_all_items() -> Array[CombatEquipment]:
+	var items: Array[CombatEquipment] = []
 	for w in weapons:
 		items.append(w)
 	for a in armors:

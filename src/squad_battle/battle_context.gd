@@ -11,11 +11,5 @@ static func from_dict(ctx: Dictionary) -> BattleContext:
 	bc.enemy_squad = ctx.get("enemy_squad", {})
 	return bc
 
-func get_enemies_at(loc: int) -> Array:
+func get_enemies_at(loc: int) -> Array[CombatEntity]:
 	return enemy_squad.get(loc, [])
-
-func get_allies_at(loc: int) -> Array:
-	return our_squad.get(loc, [])
-
-func to_dict() -> Dictionary:
-	return {"entity": entity, "our_squad": our_squad, "enemy_squad": enemy_squad}

@@ -5,23 +5,19 @@ extends Node
 
 func _ready():
 	print("\n=== HEADLESS COMBAT DEMO ===\n")
-	test_basic_headless_combat()
 
-func test_basic_headless_combat():
+	# --- test basic headless combat ---
 	print("Creating test battle configuration...")
 	
-	# Create attacker squad (3 Landsknechts)
-	var attacker_entities = []
+	var attacker_entities: Array[String] = []
 	for i in range(3):
 		attacker_entities.append("landsknecht")
 
-	# Create defender squad (2 Landsknechts + 1 Healer)
-	var defender_entities = []
+	var defender_entities: Array[String] = []
 	for i in range(2):
 		defender_entities.append("landsknecht")
 	defender_entities.append("healer")
 
-	# Create battle configuration
 	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
 		SquadBattleTypes.Side.ATTACKER: [
 			["Attacker CombatSquad", SquadBattleTypes.Side.ATTACKER, attacker_entities],
@@ -42,7 +38,6 @@ func test_basic_headless_combat():
 	print("Final outcome: %s" % SquadBattleTypes.BattleOutcome.keys()[battle.get_battle_outcome()])
 	print("Rounds fought: %d/%d" % [battle.round_count, battle.max_rounds])
 	
-	# Print summary of updates by type
 	var hp_changes = 0
 	var deaths = 0
 	var other_changes = 0
@@ -63,7 +58,6 @@ func test_basic_headless_combat():
 	print("  Deaths: %d" % deaths)
 	print("  Other changes: %d" % other_changes)
 	
-	# Print survivor counts
 	var attacker_survivors = battle.check_team_strength(SquadBattleTypes.Side.ATTACKER)
 	var defender_survivors = battle.check_team_strength(SquadBattleTypes.Side.DEFENDER)
 	

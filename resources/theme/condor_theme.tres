@@ -1,7 +1,7 @@
 [gd_resource type="Theme" format=3 uid="uid://861t6lhxpyaa"]
 
 [ext_resource type="FontFile" uid="uid://c061e87slhmjv" path="res://assets/fonts/eb_garamond.ttf" id="1_font"]
-[ext_resource type="Texture2D" uid="uid://cvmodmm7jie7g" path="res://assets/seamless-paper-texture-business-card-background-thumb47-461051118.png" id="2_imcs3"]
+[ext_resource type="Texture2D" uid="uid://cvmodmm7jie7g" path="res://assets/reference/seamless-paper-texture-business-card-background-thumb47-461051118.png" id="2_imcs3"]
 
 [sub_resource type="FontVariation" id="FontVariation_bold"]
 base_font = ExtResource("1_font")

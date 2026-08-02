@@ -82,7 +82,12 @@ func _setup_warrior_internal(warrior_data: Character) -> void:
 			subtitle_parts.append(religion_key[warrior_data.resource.religion].capitalize())
 	subtitle_label.text = " • ".join(subtitle_parts) if subtitle_parts.size() > 0 else "—"
 
-	hp_bar.set_value(_get_warrior_hp_percent(warrior_data) * 100.0)
+	var hp_percent := 1.0
+	if warrior_data.is_dead:
+		hp_percent = 0.0
+	elif warrior_data.is_injured:
+		hp_percent = 0.5
+	hp_bar.set_value(hp_percent * 100.0)
 
 	_refresh_morale_speed(warrior_data)
 
@@ -249,11 +254,3 @@ func _on_action_selected(id: int) -> void:
 			pos_label.text = "Pos: Mid"
 		12:
 			pos_label.text = "Pos: Back"
-
-
-func _get_warrior_hp_percent(warrior_param: Character) -> float:
-	if warrior_param.is_dead:
-		return 0.0
-	if warrior_param.is_injured:
-		return 0.5
-	return 1.0

@@ -17,7 +17,6 @@ var description: String
 var action: Callable
 var action_label: String
 var turn_created: int
-var is_read: bool = false
 
 
 static func create(p_type: NotificationType, p_title: String, p_desc: String, p_turn: int) -> NotificationData:

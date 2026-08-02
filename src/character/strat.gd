@@ -96,13 +96,10 @@ func get_demand() -> Dictionary:
 	}
 
 
-## TODO: WarriorAttribute system (diplomacy/survival/perception/leadership/stealth)
-## is unbuilt and out of scope for the ReactiveStat refactor. These stubs keep
-## aggregate scouting/stealth/morale-penalty callers running until it lands.
 func get_attribute(_attribute: StrategyTypes.WarriorAttribute) -> int:
+	assert(false, "StrategyEntity.get_attribute not implemented")
 	return 0
 
 
-## TODO: see get_attribute — no-op until the WarriorAttribute system exists.
 func set_attribute(_attribute: StrategyTypes.WarriorAttribute, _value: int) -> void:
-	pass
+	assert(false, "StrategyEntity.set_attribute not implemented")

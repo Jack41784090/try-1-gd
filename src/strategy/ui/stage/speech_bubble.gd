@@ -53,18 +53,6 @@ func stop_typewriter() -> void:
 		word_revealed.emit(_tw_current_word)
 		_tw_current_word = ""
 
-func complete_immediately() -> void:
-	if not _tw_active:
-		return
-	_tw_active = false
-	_tw_char_index = _tw_full_text.length()
-	if text_label:
-		text_label.visible_characters = -1
-	if not _tw_current_word.is_empty():
-		word_revealed.emit(_tw_current_word)
-		_tw_current_word = ""
-	typewriter_finished.emit()
-
 func set_screen_position(pos: Vector2) -> void:
 	position = pos - Vector2(size.x * 0.5, size.y)
 
@@ -90,8 +78,22 @@ func _process(delta: float) -> void:
 		_tw_char_index += 1
 		if text_label:
 			text_label.visible_characters = _tw_char_index
-		_track_word(ch)
-		_tw_accumulator -= _get_char_delay(ch)
+		var _wc_code = ch.unicode_at(0)
+		var _is_wc = (_wc_code >= 65 and _wc_code <= 90) or (_wc_code >= 97 and _wc_code <= 122) or (_wc_code >= 48 and _wc_code <= 57) or ch == "'" or ch == "-"
+		if _is_wc:
+			_tw_current_word += ch
+		elif not _tw_current_word.is_empty():
+			word_revealed.emit(_tw_current_word)
+			_tw_current_word = ""
+		var _char_delay: float
+		match ch:
+			".", "!", "?":
+				_char_delay = SENTENCE_DELAY
+			",", ";", ":", "\u2014":
+				_char_delay = COMMA_DELAY
+			_:
+				_char_delay = CHAR_DELAY
+		_tw_accumulator -= _char_delay
 
 	if _tw_char_index >= _tw_full_text.length():
 		_tw_active = false
@@ -100,30 +102,3 @@ func _process(delta: float) -> void:
 			_tw_current_word = ""
 		typewriter_finished.emit()
 
-func _track_word(ch: String) -> void:
-	if _is_word_char(ch):
-		_tw_current_word += ch
-	elif not _tw_current_word.is_empty():
-		word_revealed.emit(_tw_current_word)
-		_tw_current_word = ""
-
-func _is_word_char(ch: String) -> bool:
-	var code = ch.unicode_at(0)
-	if code >= 65 and code <= 90:
-		return true
-	if code >= 97 and code <= 122:
-		return true
-	if code >= 48 and code <= 57:
-		return true
-	if ch == "'" or ch == "-":
-		return true
-	return false
-
-func _get_char_delay(ch: String) -> float:
-	match ch:
-		".", "!", "?":
-			return SENTENCE_DELAY
-		",", ";", ":", "\u2014":
-			return COMMA_DELAY
-		_:
-			return CHAR_DELAY

@@ -2,10 +2,8 @@ extends Node
 
 func _ready():
 	print("\n=== AOE COMBAT DEMO (Gelehrter + Splash) ===\n")
-	run_aoe_battle()
-	get_tree().quit()
 
-func run_aoe_battle():
+	# --- run aoe battle ---
 	print("Setting up squads with Gelehrter mage units...\n")
 
 	var attacker_entities = [
@@ -89,6 +87,8 @@ func run_aoe_battle():
 	print("  Defender: %.0f HP remaining" % defender_strength)
 
 	print("\n=== DEMO COMPLETE ===\n")
+
+	get_tree().quit()
 
 func _print_squad_positions(battle: SquadBattle, side: SquadBattleTypes.Side, label: String):
 	var squads = battle.side_squads_dict.get(side, [])

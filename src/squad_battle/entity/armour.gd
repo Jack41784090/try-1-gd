@@ -1,20 +1,9 @@
 extends RefCounted
 class_name SquadArmour
 
-# const Types = preload("res://src/squad_battle/types.gd")
-
 var DV: float
 var PV: float
 var resistance: Dictionary = {}
-
-func unprotected() -> SquadArmour:
-	DV = 12
-	PV = 0
-	resistance = {
-		SquadBattleTypes.DamageType.Cut: - 0.2,
-		SquadBattleTypes.DamageType.Impale: - 0.2
-	}
-	return self
 
 func _init(config: ArmorConfig = null):
 	if config:
@@ -22,10 +11,12 @@ func _init(config: ArmorConfig = null):
 		PV = config.PV
 		resistance = config.resistance.duplicate()
 	else:
-		unprotected()
-
-func get_DV() -> float:
-	return DV
+		DV = 12
+		PV = 0
+		resistance = {
+			SquadBattleTypes.DamageType.Cut: - 0.2,
+			SquadBattleTypes.DamageType.Impale: - 0.2
+		}
 
 func get_PV() -> float:
 	return PV
@@ -42,9 +33,4 @@ func get_raw_damage_taken(damage_types_array: Dictionary) -> float:
 	
 	return damage
 
-func get_state() -> Dictionary:
-	return {
-		"DV": DV,
-		"PV": PV,
-		"resistance": resistance.duplicate()
-	}
+

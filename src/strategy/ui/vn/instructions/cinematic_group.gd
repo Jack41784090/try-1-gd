@@ -17,27 +17,6 @@ func is_parallel() -> bool:
 	return duration > 0.0
 
 
-func get_computed_duration() -> float:
-	if is_parallel():
-		return duration
-	var total: float = 0.0
-	for child in children:
-		total += _child_duration(child)
-	return total
-
-
-func _child_duration(child) -> float:
-	if child is CinematicGroup:
-		return child.get_computed_duration()
-	elif child is CinematicInstruction:
-		if child.duration > 0.0:
-			return child.duration
-		if child is DialogueInstruction:
-			return _estimate_typewriter_duration(child.line_spoken)
-		return 0.0
-	return 0.0
-
-
 static func _estimate_typewriter_duration(text: String) -> float:
 	if text.is_empty():
 		return 0.0
@@ -89,5 +68,5 @@ static func parse_instruction(data: Dictionary) -> CinematicInstruction:
 		"gate":
 			return GateInstruction.new(data)
 		_:
-			push_error("Unknown instruction type: %s" % type_str)
+			assert(false, "Unknown instruction type: %s" % type_str)
 			return null

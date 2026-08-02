@@ -13,8 +13,8 @@ const ROW_COLORS := {
 const SLOT_SCENE = preload("res://scenes/ui/manage_squad/formation_slot.tscn")
 
 var _rows: Dictionary = {}
-var _all_slots: Array = []
-var _selected_slot = null
+var _all_slots: Array[FormationSlot] = []
+var _selected_slot: FormationSlot = null
 var _squad: StrategySquad
 
 @onready var _main_vbox: VBoxContainer = $ScrollContainer/OuterVBox/MainVBox
@@ -22,56 +22,6 @@ var _squad: StrategySquad
 
 
 func _ready() -> void:
-	_build_rows()
-	visibility_changed.connect(_on_visibility_changed)
-
-
-func setup(squad: StrategySquad) -> void:
-	_squad = squad
-
-
-func _pull() -> void:
-	_clear_selection()
-	for slot in _all_slots:
-		slot.clear_warrior()
-
-	var row_counts: Dictionary = {1: 0, 2: 0, 3: 0}
-
-	for warrior in _squad.warriors:
-		if warrior.is_dead:
-			continue
-		var pos: int = warrior.location_prebattle
-		var idx: int = row_counts.get(pos, 0)
-		if idx < MAX_SLOTS_PER_ROW:
-			var slots: Array = _rows[pos]
-			slots[idx].set_warrior(warrior)
-			row_counts[pos] = idx + 1
-
-	var living := _squad.get_living_warriors().size()
-	_hint_label.text = "%d / %d warriors placed" % [living, _squad.warriors.size()]
-
-
-func _connect_signals() -> void:
-	if not _squad.warriors_changed.is_connected(_pull):
-		_squad.warriors_changed.connect(_pull)
-
-
-func _disconnect_signals() -> void:
-	if _squad and _squad.warriors_changed.is_connected(_pull):
-		_squad.warriors_changed.disconnect(_pull)
-
-
-func _on_visibility_changed() -> void:
-	if _squad == null:
-		return
-	if visible:
-		_connect_signals()
-		_pull()
-	else:
-		_disconnect_signals()
-
-
-func _build_rows() -> void:
 	for pos_val in [SquadBattleTypes.SquadEntityInSquadLocation.Front,
 					SquadBattleTypes.SquadEntityInSquadLocation.Middle,
 					SquadBattleTypes.SquadEntityInSquadLocation.Back]:
@@ -109,7 +59,7 @@ func _build_rows() -> void:
 		slots_hbox.add_theme_constant_override("separation", 8)
 		row_vbox.add_child(slots_hbox)
 
-		var row_slots: Array = []
+		var row_slots: Array[FormationSlot] = []
 		for i in MAX_SLOTS_PER_ROW:
 			var slot: FormationSlot = SLOT_SCENE.instantiate()
 			slot.setup(pos_val, i)
@@ -122,6 +72,52 @@ func _build_rows() -> void:
 
 		_rows[pos_val] = row_slots
 		_main_vbox.add_child(row_panel)
+	visibility_changed.connect(_on_visibility_changed)
+
+
+func setup(squad: StrategySquad) -> void:
+	_squad = squad
+
+
+func _pull() -> void:
+	_clear_selection()
+	for slot in _all_slots:
+		slot.clear_warrior()
+
+	var row_counts: Dictionary = {1: 0, 2: 0, 3: 0}
+
+	for warrior in _squad.warriors:
+		if warrior.is_dead:
+			continue
+		var pos: int = warrior.location_prebattle
+		var idx: int = row_counts.get(pos, 0)
+		if idx < MAX_SLOTS_PER_ROW:
+			var slots: Array[FormationSlot] = _rows[pos]
+			slots[idx].set_warrior(warrior)
+			row_counts[pos] = idx + 1
+
+	var living := _squad.get_living_warriors().size()
+	_hint_label.text = "%d / %d warriors placed" % [living, _squad.warriors.size()]
+
+
+func _connect_signals() -> void:
+	if not _squad.warriors_changed.is_connected(_pull):
+		_squad.warriors_changed.connect(_pull)
+
+
+func _disconnect_signals() -> void:
+	if _squad and _squad.warriors_changed.is_connected(_pull):
+		_squad.warriors_changed.disconnect(_pull)
+
+
+func _on_visibility_changed() -> void:
+	if _squad == null:
+		return
+	if visible:
+		_connect_signals()
+		_pull()
+	else:
+		_disconnect_signals()
 
 
 func _on_warrior_dropped(warrior: Character, slot) -> void:

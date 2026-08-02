@@ -29,7 +29,7 @@ const SVG_RENDER_SCALE := 4.0
 @export var character_configs: Dictionary = {}
 
 ## Fixed chamber seats: character_id -> Vector2. Characters without an entry are
-## auto-spread left→right (see _place_characters). Facing is derived from x sign.
+## auto-spread left→right. Facing is derived from x sign.
 @export var seat_positions: Dictionary = {}
 
 ## One warrior_rig_2 per id, placed across the chamber facing inward.
@@ -56,11 +56,11 @@ func _ready() -> void:
 	_stage = stage_view.presenter
 	_playback = _presenter._playback
 	_presenter.stage_presenter = _stage
-	# The presenter normally learns these from an EventChain in load_chain(); we
-	# set them directly so its dispatch (_on_instruction_fired) works without one.
+	## The presenter normally learns these from an EventChain in load_chain(); we
+	## set them directly so its dispatch (_on_instruction_fired) works without one.
 	_presenter.character_ids_in_chain = character_ids.duplicate()
 
-	# Take over completion: the presenter's default handler assumes a current_chain.
+	## Take over completion: the presenter's default handler assumes a current_chain.
 	if _playback.timeline_complete.is_connected(_presenter._on_timeline_complete):
 		_playback.timeline_complete.disconnect(_presenter._on_timeline_complete)
 	_playback.timeline_complete.connect(_on_playback_complete)
@@ -69,12 +69,51 @@ func _ready() -> void:
 	print("=== warrior_rig_2 Cutscene Demo (direct GroupPlayback) ===")
 	print("SPACE/click: advance gate | R: replay")
 
-	_spawn_rigs()
+	# --- spawn rigs ---
+	var scene := load(RIG_2_SCENE_PATH) as PackedScene
+	assert(scene != null, "Failed to load %s" % RIG_2_SCENE_PATH)
+	for char_id in character_ids:
+		var rig := scene.instantiate() as WarriorRig
+		rig.setup_default(char_id)
+		var cfg: WarriorRigConfig = character_configs.get(char_id, config)
+		_rig_configs[char_id] = cfg
+		if cfg:
+			rig.apply_config(cfg)
+		stage_view.warrior_container.add_child(rig)
+		stage_view.rigs[char_id] = rig
+
 	_play_cutscene()
 	_snapshot_mtimes()
 
 	if DisplayServer.get_name() == "headless":
-		_run_headless_smoke_test()
+		# --- headless smoke test ---
+		print("=== HEADLESS SMOKE TEST ===")
+		var fired: Array[String] = []
+		_playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
+			if inst is DialogueInstruction:
+				fired.append("dialogue")
+			elif inst is CameraInstruction:
+				fired.append("camera")
+			elif inst is CharacterInstruction:
+				if inst.action == CharacterInstruction.Action.EXPRESSION:
+					fired.append("expression:%s" % inst.expression)
+				else:
+					fired.append("behavior:%s" % inst.behavior)
+			elif inst is SceneryInstruction:
+				fired.append("scenery:%d" % inst.action)
+		)
+		assert(not stage_view.props.is_empty(), "Stage set produced no scenery props")
+		print("[SmokeTest] scenery props applied: %s" % str(stage_view.props.keys()))
+		var start_ms := Time.get_ticks_msec()
+		while not _completed and Time.get_ticks_msec() - start_ms < 180000:
+			_playback.on_input()
+			await get_tree().process_frame
+		if _completed:
+			print("=== SMOKE TEST PASSED — fired %d instructions: %s ===" % [fired.size(), str(fired)])
+			get_tree().quit(0)
+		else:
+			printerr("=== SMOKE TEST FAILED (state=%d, %dms) ===" % [_playback.state, Time.get_ticks_msec() - start_ms])
+			get_tree().quit(1)
 
 
 func _process(delta: float) -> void:
@@ -85,7 +124,25 @@ func _process(delta: float) -> void:
 		return
 	_poll_accum = 0.0
 	if _disk_changed():
-		_reapply_config_to_rigs()
+		# --- reapply config to rigs ---
+		for char_id in _rig_configs:
+			var src: WarriorRigConfig = _rig_configs[char_id]
+			var rig = stage_view.rigs.get(char_id)
+			if not src or not is_instance_valid(rig):
+				continue
+			# --- rebuild config from disk ---
+			var rebuilt: WarriorRigConfig = src.duplicate()
+			for bone_name in src.get_bone_textures():
+				var tex: Texture2D = src.get_bone_textures()[bone_name]
+				var out_tex: Texture2D = tex
+				if tex and not tex.resource_path.is_empty():
+					var abs_path := ProjectSettings.globalize_path(tex.resource_path)
+					if FileAccess.file_exists(abs_path):
+						var reloaded := _load_texture_from_disk(abs_path)
+						if reloaded:
+							out_tex = reloaded
+				_set_slot(rebuilt, bone_name, out_tex)
+			rig.apply_config(rebuilt)
 		stage_view.reload_scenery_textures()
 		_snapshot_mtimes()
 		Log.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")
@@ -104,51 +161,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_playback.on_input()
 
 
-#region Rig spawning
-
-func _spawn_rigs() -> void:
-	# Pre-populate stage_view.rigs with warrior_rig_2 instances so the VN
-	# pipeline uses them instead of WarriorRigFactory's warrior_rig.tscn.
-	var scene := load(RIG_2_SCENE_PATH) as PackedScene
-	assert(scene != null, "Failed to load %s" % RIG_2_SCENE_PATH)
-	for char_id in character_ids:
-		var rig := scene.instantiate() as WarriorRig
-		rig.setup_default(char_id)
-		var cfg: WarriorRigConfig = character_configs.get(char_id, config)
-		_rig_configs[char_id] = cfg
-		if cfg:
-			rig.apply_config(cfg)
-		stage_view.warrior_container.add_child(rig)
-		stage_view.rigs[char_id] = rig
-
-
-func _reapply_config_to_rigs() -> void:
-	# Each rig keeps its own source config (per-character look), so rebuild and
-	# reapply each one independently from the freshest SVGs on disk.
-	for char_id in _rig_configs:
-		var src: WarriorRigConfig = _rig_configs[char_id]
-		var rig = stage_view.rigs.get(char_id)
-		if not src or not is_instance_valid(rig):
-			continue
-		rig.apply_config(_rebuild_config_from_disk(src))
-
-
-func _rebuild_config_from_disk(src: WarriorRigConfig) -> WarriorRigConfig:
-	var rebuilt: WarriorRigConfig = src.duplicate()
-	for bone_name in src.get_bone_textures():
-		var tex: Texture2D = src.get_bone_textures()[bone_name]
-		var out_tex: Texture2D = tex
-		if tex and not tex.resource_path.is_empty():
-			var abs_path := ProjectSettings.globalize_path(tex.resource_path)
-			if FileAccess.file_exists(abs_path):
-				var reloaded := _load_texture_from_disk(abs_path)
-				if reloaded:
-					out_tex = reloaded
-		_set_slot(rebuilt, bone_name, out_tex)
-	return rebuilt
-
-#endregion
-
 #region Direct GroupPlayback playback
 
 func _play_cutscene() -> void:
@@ -158,17 +170,7 @@ func _play_cutscene() -> void:
 	vn_view.hide_narrator_box()
 	_stage.prepare_for_dialogue(character_ids)
 	_stage.apply_stage_set(stage_set)
-	_place_characters()
-	assert(cutscene != null, "No CinematicGroup attached to the `cutscene` export")
-	print("[RigCutsceneDemo] Playing group '%s' — %d children" % [cutscene.id, cutscene.children.size()])
-	_playback.reset()
-	_playback.load_group(cutscene)
-	_update_status("Playing cutscene...")
-
-
-func _place_characters() -> void:
-	# Seat the cast in the chamber. Characters with a seat_positions entry use it;
-	# the rest are auto-spread left→right. Facing is derived from x (face inward).
+	# --- place characters ---
 	var n := character_ids.size()
 	for i in n:
 		var char_id := character_ids[i]
@@ -179,6 +181,12 @@ func _place_characters() -> void:
 			pos = Vector2(-90.0 + (180.0 * i / maxf(n - 1, 1)), 50.0)
 		var face := -1 if pos.x > 0.0 else 1
 		_stage.place_character(char_id, pos, face)
+	assert(cutscene != null, "No CinematicGroup attached to the `cutscene` export")
+	print("[RigCutsceneDemo] Playing group '%s' — %d children" % [cutscene.id, cutscene.children.size()])
+	_playback.reset()
+	_playback.load_group(cutscene)
+	_update_status("Playing cutscene...")
+
 
 #endregion
 
@@ -199,45 +207,6 @@ func _on_playback_complete() -> void:
 func _update_status(text: String) -> void:
 	if status_label:
 		status_label.text = "%s   [SPACE advance | R replay]" % text
-
-#endregion
-
-#region Headless smoke test
-
-## Auto-advances every gate to drive the whole cutscene to completion, proving
-## each instruction — dialogue, camera, and every character behavior — dispatches
-## onto the live warrior_rig_2 rigs without runtime errors. Frame-driven so the
-## SpeechBubble typewriters (which tick on engine frames) resolve their gates.
-func _run_headless_smoke_test() -> void:
-	print("=== HEADLESS SMOKE TEST ===")
-	var fired: Array[String] = []
-	_playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
-		if inst is DialogueInstruction:
-			fired.append("dialogue")
-		elif inst is CameraInstruction:
-			fired.append("camera")
-		elif inst is CharacterInstruction:
-			if inst.action == CharacterInstruction.Action.EXPRESSION:
-				fired.append("expression:%s" % inst.expression)
-			else:
-				fired.append("behavior:%s" % inst.behavior)
-		elif inst is SceneryInstruction:
-			fired.append("scenery:%d" % inst.action)
-	)
-	assert(not stage_view.props.is_empty(), "Stage set produced no scenery props")
-	print("[SmokeTest] scenery props applied: %s" % str(stage_view.props.keys()))
-	var start_ms := Time.get_ticks_msec()
-	# Drive input every frame: in PLAYING this kicks fast-forward (5x), at gates it
-	# fast-forwards typewriters then releases — so the whole cutscene resolves quickly.
-	while not _completed and Time.get_ticks_msec() - start_ms < 180000:
-		_playback.on_input()
-		await get_tree().process_frame
-	if _completed:
-		print("=== SMOKE TEST PASSED — fired %d instructions: %s ===" % [fired.size(), str(fired)])
-		get_tree().quit(0)
-	else:
-		printerr("=== SMOKE TEST FAILED (state=%d, %dms) ===" % [_playback.state, Time.get_ticks_msec() - start_ms])
-		get_tree().quit(1)
 
 #endregion
 

@@ -1,7 +1,6 @@
 class_name ActivityRunner
 extends Node
 
-var is_executing_activity = false
 var aem: ActivityExecuteManager
 var hour_count: int = 0
 
@@ -9,31 +8,18 @@ var hour_count: int = 0
 	set(_ps):
 		player_squad = _ps
 	get:
-		# DISABLED: building a runtime StrategySquad from StrategySquadResource
-		# (starting_player_squad) needs the runtime-build bridge, not yet written.
-		# if player_squad == null and aem.scenario.starting_player_squad != null:
-		# 	player_squad = aem.scenario.starting_player_squad.duplicate(true)
+		## DISABLED: building a runtime StrategySquad from StrategySquadResource
+		## (starting_player_squad) needs the runtime-build bridge, not yet written.
 		return player_squad
 
 var locations:
 	get:
 		return aem.scenario.world.travel_graph.locations
 
-var travel_progress:
-	get:
-		if walking_towards == null or walking_towards["location"] == null:
-			return 0
-		return walking_towards["progress"]
-	set(_tp):
-		assert(_tp is float or _tp is int)
-		if walking_towards == null or walking_towards["location"] == null:
-			return
-		walking_towards["progress"] = _tp
-
 var walking_towards: Variant:
 	get:
 		if walking_towards == null:
-			walking_towards = null # {"location": null, "progress": 0}
+			walking_towards = null
 		return walking_towards
 	set(_cl):
 		if !_cl:
@@ -58,8 +44,9 @@ var current_location: Variant:
 		if _cl is String:
 			var world_location: Location = aem.scenario.world.travel_graph.get_location(_cl)
 			assert(world_location != null, "Invalid location id '%s'" % _cl)
-			current_location = world_location.duplicate() # non deep duplicate so we don't dupe the town connections -- dupe to be able to change location type to road for temporary travelling between towns
-			# Keep runtime-only state that can be missing on Resource.duplicate() clones.
+			## Non-deep duplicate so we don't dupe the town connections; dupe to be able
+			## to change location type to road for temporary travelling between towns.
+			current_location = world_location.duplicate()
 			if current_location.population == null and world_location.population != null:
 				current_location.population = world_location.population
 		elif _cl is Location:
@@ -70,15 +57,11 @@ var current_location: Variant:
 
 
 func setup(_loaded_scenario, context = {}):
-	# Initializes the ActivityRunner with a loaded GameScenario
-	# Creates the underlying ActivityExecuteManager that handles triggerable execution
-	# e.g., setup(demo_scenario) → creates ActivityExecuteManager → aem.setup(scenario)
 	aem = ActivityExecuteManager.new()
 	aem.setup(_loaded_scenario, context)
 
 
 func embark_new_journey(towards: Location):
-	var _squad = aem.player_squad
 	current_location = aem.scenario.starting_location_id
 	walking_towards = towards
 
@@ -101,7 +84,7 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 
 	var reachable: Array[String] = []
 	var visited: Dictionary = {from_id: true}
-	var queue: Array = [[from_id, 0]]
+	var queue: Array[Array] = [[from_id, 0]]
 
 	while queue.size() > 0:
 		var current = queue.pop_front()
@@ -166,7 +149,7 @@ func create_travel_activity(location_id: String) -> Activity:
 
 	var squad := player_squad
 	var from_id: String = squad.current_location_id
-	var path: Array = aem.scenario.world.travel_graph.find_path(from_id, location_id)
+	var path: Array[String] = aem.scenario.world.travel_graph.find_path(from_id, location_id)
 
 	if path.size() < 2:
 		activity.result.location_changed = location_id

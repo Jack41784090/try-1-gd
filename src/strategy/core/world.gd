@@ -17,12 +17,8 @@ func get_day() -> int:
 	return int(current_hour / 24.0) + 1
 
 
-func get_hour_of_day() -> int:
-	return current_hour % 24
-
-
 func get_clock_display() -> String:
-	return "Day %d — %02d:00" % [get_day(), get_hour_of_day()]
+	return "Day %d — %02d:00" % [get_day(), current_hour % 24]
 
 
 func get_economy_locations() -> Array[Location]:
@@ -71,13 +67,6 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 		build_travel_graph()
 
 	return travel_graph.find_path(from_id, to_id)
-
-
-func calculate_travel_hours(from_id: String, to_id: String, speed_kmh: float) -> float:
-	var path = travel_graph.find_path(from_id, to_id)
-	if path.is_empty():
-		return -1.0
-	return travel_graph.calculate_travel_hours(path, speed_kmh)
 
 
 func get_squads_at_location(location_id: String) -> Array[StrategySquad]:
@@ -141,44 +130,6 @@ func get_adjacent_squads(location_id: String) -> Array[StrategySquad]:
 		for squad in squads_there:
 			adjacent_squads.append(squad)
 	return adjacent_squads
-
-
-func save_state() -> Dictionary:
-	var location_data: Array = []
-	for location in locations:
-		location_data.append(
-			{
-				"id": location.location_id,
-				"name": location.location_name,
-				"type": location.type,
-				"development": location.development,
-				"stability": location.stability,
-				"connections": location.connections,
-				"activities": location.available_activity_types,
-			},
-		)
-
-	return {
-		"current_hour": current_hour,
-		"locations": location_data,
-	}
-
-
-func load_state(data: Dictionary) -> void:
-	current_hour = data.get("current_hour", 0)
-
-	locations.clear()
-	var location_data = data.get("locations", [])
-	for loc_dict in location_data:
-		var location = Location.new()
-		location.location_id = loc_dict.get("id", "")
-		location.location_name = loc_dict.get("name", "")
-		location.type = loc_dict.get("type", StrategyTypes.LocationType.VILLAGE)
-		location.development = loc_dict.get("development", 50)
-		location.stability = loc_dict.get("stability", 100.0)
-		location.connections = loc_dict.get("connections", [])
-		location.available_activity_types = loc_dict.get("activities", [])
-		locations.append(location)
 
 
 func check_engagements() -> Array[Dictionary]:

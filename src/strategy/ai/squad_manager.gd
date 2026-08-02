@@ -12,9 +12,9 @@ var _bandit_spawner: BanditSpawner = BanditSpawner.new()
 
 
 func setup(_scenario: GameScenario) -> void:
-	# Initializes the AI fleet — creates a SquadBrain + ActivityExecuteManager for each roaming squad
-	# e.g., scenario has 3 roaming squads: ["Wolves", "Hawks", "Bears"]
-	#   → creates 3 SquadBrain instances (decision makers) + 3 ActivityExecuteManagers (action executors)
+	## Initializes the AI fleet — creates a SquadBrain + ActivityExecuteManager for each roaming squad
+	## e.g., scenario has 3 roaming squads: ["Wolves", "Hawks", "Bears"]
+	##   → creates 3 SquadBrain instances (decision makers) + 3 ActivityExecuteManagers (action executors)
 	assert(_scenario != null, "AISquadManager requires a GameScenario")
 	assert(squad_brains.is_empty() and squad_executors.is_empty())
 	
@@ -22,20 +22,20 @@ func setup(_scenario: GameScenario) -> void:
 
 	Log.info("Fleet", "Setting up fleet with %d roaming squads" % scenario.world.roaming_squads.size())
 
-	# 1. Load the default AI behavior profile (considerations + fallback action)
-	# e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
+	## 1. Load the default AI behavior profile (considerations + fallback action)
+	## e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
 	var profile = AIProfileFactory.get_default_squad_profile()
 
-	# 2. For each roaming squad, create its brain and executor
+	## 2. For each roaming squad, create its brain and executor
 	for squad in scenario.world.roaming_squads:
-		# 2.1 If squad has no current location, use its starting_location_id
+		## 2.1 If squad has no current location, use its starting_location_id
 		if squad.current_location_id.is_empty() and not squad.starting_location_id.is_empty():
 			squad.set_location(squad.starting_location_id)
 
-		# 2.2 Duplicate warriors to prevent shared-resource mutation across squads
+		## 2.2 Duplicate warriors to prevent shared-resource mutation across squads
 		_ensure_unique_warriors(squad)
 
-		# 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
+		## 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
 		var brain = SquadBrain.new(squad, profile)
 		_register_brain_and_executor(squad, brain)
 
@@ -55,63 +55,45 @@ func prepare_ai_turns() -> Dictionary:
 	var default_directive = directives[0] if not directives.is_empty() else FactionDirective.create_none()
 
 	for squad_id in squad_brains:
-		decisions_this_turn[squad_id] = _prepare_squad_decision(squad_id, default_directive)
+		var brain = squad_brains[squad_id]
+		var result: Dictionary = brain.decide(scenario.world, null, default_directive)
+
+		var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+		var context: Dictionary = result["context"]
+
+		var activity: Activity = _get_activity_from_scenario(activity_type)
+		if not activity:
+			activity = _get_activity_from_scenario(StrategyTypes.ActivityType.REST)
+		assert(activity != null, "Must have a REST activity as fallback")
+		if _is_travel_activity(activity_type):
+			activity = activity.duplicate(true)
+			activity.result = activity.result.duplicate(true)
+			var destination: String = context.get("travel_destination", "")
+			if not destination.is_empty():
+				activity.destination_id = destination
+				activity.result.location_changed = destination
+				if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
+					activity.ultimate_destination_id = context.get("ultimate_destination", "")
+
+		if squad_executors.has(squad_id):
+			squad_executors[squad_id].ai_decision_context = context
+
+		decisions_this_turn[squad_id] = {
+			"activity_type": activity_type,
+			"context": context,
+			"squad": brain.squad,
+			"activity": activity,
+			"location_at_decision": brain.squad.current_location_id,
+		}
 
 	return decisions_this_turn
 
-
-func _prepare_squad_decision(squad_id: String, directive: FactionDirective) -> Dictionary:
-	var brain = squad_brains[squad_id]
-	var result: Dictionary = brain.decide(scenario.world, null, directive)
-
-	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
-	var context: Dictionary = result["context"]
-
-	var activity: Activity = _resolve_activity(activity_type)
-	activity = _customize_travel_activity(activity, activity_type, context)
-
-	if squad_executors.has(squad_id):
-		squad_executors[squad_id].ai_decision_context = context
-
-	return {
-		"activity_type": activity_type,
-		"context": context,
-		"squad": brain.squad,
-		"activity": activity,
-		"location_at_decision": brain.squad.current_location_id,
-	}
-
-
-func _resolve_activity(activity_type: StrategyTypes.ActivityType) -> Activity:
-	var activity: Activity = _get_activity_from_scenario(activity_type)
-	if not activity:
-		activity = _get_activity_from_scenario(StrategyTypes.ActivityType.REST)
-	assert(activity != null, "Must have a REST activity as fallback")
-	return activity
-
-
-func _customize_travel_activity(activity: Activity, activity_type: StrategyTypes.ActivityType, context: Dictionary) -> Activity:
-	if _is_travel_activity(activity_type):
-		activity = activity.duplicate(true)
-		activity.result = activity.result.duplicate(true)
-		var destination: String = context.get("travel_destination", "")
-		if not destination.is_empty():
-			activity.destination_id = destination
-			activity.result.location_changed = destination
-			if activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
-				activity.ultimate_destination_id = context.get("ultimate_destination", "")
-	return activity
 
 
 func _find_squad_by_id(squad_id: String) -> StrategySquad:
 	for squad in scenario.world.roaming_squads:
 		if squad.squad_id == squad_id:
 			return squad
-
-	# DISABLED: starting_player_squad is now StrategySquadResource (authored); resolving it as a
-	# runtime StrategySquad needs the runtime-build bridge, not yet written.
-	# if scenario.starting_player_squad and scenario.starting_player_squad.squad_id == squad_id:
-	# 	return scenario.starting_player_squad
 
 	return null
 
@@ -135,11 +117,11 @@ func _get_activity_from_scenario(activity_type: StrategyTypes.ActivityType) -> A
 
 
 func _execute_headless_combat(combat_data: Dictionary) -> void:
-	# Simplified AI vs AI combat — no tactical SquadBattle, just strength comparison + RNG
-	# e.g., Wolves(3 warriors, morale=80) vs Bears(2 warriors, morale=60)
-	#   → atk_strength = 3 × (80+50) = 390 × random(0.7-1.3)
-	#   → def_strength = 2 × (60+50) = 220 × random(0.7-1.3)
-	#   → Wolves win, Bears lose half their warriors
+	## Simplified AI vs AI combat — no tactical SquadBattle, just strength comparison + RNG
+	## e.g., Wolves(3 warriors, morale=80) vs Bears(2 warriors, morale=60)
+	##   → atk_strength = 3 × (80+50) = 390 × random(0.7-1.3)
+	##   → def_strength = 2 × (60+50) = 220 × random(0.7-1.3)
+	##   → Wolves win, Bears lose half their warriors
 	var attacker_id: String = combat_data["attacker_id"]
 	var defender_id: String = combat_data["defender_id"]
 	var is_mutual: bool = combat_data.get("is_mutual", false)
@@ -324,15 +306,11 @@ func tick_bandit_lifecycle(faction: Faction) -> Array[String]:
 	return event_log
 
 
-func _create_executor_for_squad(squad: StrategySquad) -> ActivityExecuteManager:
-	var executor = ActivityExecuteManager.new(true)
-	executor.setup(scenario, {"squad": squad})
-	return executor
-
-
 func _register_brain_and_executor(squad: StrategySquad, brain: RefCounted) -> void:
 	squad_brains[squad.squad_id] = brain
-	squad_executors[squad.squad_id] = _create_executor_for_squad(squad)
+	var executor = ActivityExecuteManager.new(true)
+	executor.setup(scenario, {"squad": squad})
+	squad_executors[squad.squad_id] = executor
 
 
 func _erase_squad_runtime_state(squad_id: String) -> void:

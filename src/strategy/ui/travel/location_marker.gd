@@ -5,6 +5,8 @@ signal marker_clicked(location_id: String)
 @export var location_id: String = ""
 @export var location_type: StrategyTypes.LocationType = StrategyTypes.LocationType.CITY
 
+@onready var _label: Label = $Label
+
 var _is_glowing: bool = false
 var _is_current: bool = false
 var _is_hovered: bool = false
@@ -31,36 +33,24 @@ func _ready() -> void:
 	assert(not location_id.is_empty(), "LocationMarker requires a non-empty location_id")
 	input_pickable = true
 	set_process(false)
-	_setup_collision()
-	_setup_label()
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
-
-func _setup_collision() -> void:
 	var collision = CollisionShape2D.new()
 	var shape = CircleShape2D.new()
 	shape.radius = _get_marker_size() + 6.0
 	collision.shape = shape
 	add_child(collision)
-
-func _setup_label() -> void:
-	var label = Label.new()
-	label.name = "NameLabel"
-	label.text = location_id
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 11)
-	label.add_theme_color_override("font_color", Color(0.85, 0.82, 0.7))
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
-	label.position = Vector2(-50, _get_marker_size() + 8)
-	label.size = Vector2(100, 20)
-	add_child(label)
+	_label.text = location_id
+	_label.add_theme_font_size_override("font_size", 11)
+	_label.add_theme_color_override("font_color", Color(0.85, 0.82, 0.7))
+	_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	_label.add_theme_constant_override("shadow_offset_x", 1)
+	_label.add_theme_constant_override("shadow_offset_y", 1)
+	_label.position = Vector2(-50, _get_marker_size() + 8)
+	_label.size = Vector2(100, 20)
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 
 func set_label_text(text: String) -> void:
-	var label = get_node_or_null("NameLabel")
-	if label:
-		label.text = text
+	_label.text = text
 
 func _get_marker_size() -> float:
 	return MARKER_SIZES.get(location_type, 12.0)
@@ -68,18 +58,17 @@ func _get_marker_size() -> float:
 func get_marker_radius() -> float:
 	return _get_marker_size() + 6.0
 
-func _get_base_color() -> Color:
-	if _is_current:
-		return CURRENT_COLOR
-	if _is_glowing:
-		return GLOW_COLOR
-	if _is_hovered:
-		return HOVER_COLOR
-	return MARKER_COLORS.get(location_type, Color(0.6, 0.6, 0.6))
-
 func _draw() -> void:
 	var size = _get_marker_size()
-	var color = _get_base_color()
+	var color: Color
+	if _is_current:
+		color = CURRENT_COLOR
+	elif _is_glowing:
+		color = GLOW_COLOR
+	elif _is_hovered:
+		color = HOVER_COLOR
+	else:
+		color = MARKER_COLORS.get(location_type, Color(0.6, 0.6, 0.6))
 	var outline_color = color * 1.3
 	outline_color.a = 1.0
 
@@ -103,17 +92,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, size, color)
 		draw_arc(Vector2.ZERO, size, 0, TAU, 32, outline_color, 2.0, true)
 
-	var icon = _get_icon_char()
+	var icon: String
+	match location_type:
+		StrategyTypes.LocationType.CITY: icon = "C"
+		StrategyTypes.LocationType.TOWN: icon = "T"
+		StrategyTypes.LocationType.VILLAGE: icon = "V"
+		StrategyTypes.LocationType.FORT: icon = "F"
+		_: icon = ""
 	if not icon.is_empty():
 		draw_string(ThemeDB.fallback_font, Vector2(-5, 5), icon, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color.WHITE)
-
-func _get_icon_char() -> String:
-	match location_type:
-		StrategyTypes.LocationType.CITY: return "C"
-		StrategyTypes.LocationType.TOWN: return "T"
-		StrategyTypes.LocationType.VILLAGE: return "V"
-		StrategyTypes.LocationType.FORT: return "F"
-		_: return ""
 
 func set_glowing(enabled: bool) -> void:
 	_is_glowing = enabled

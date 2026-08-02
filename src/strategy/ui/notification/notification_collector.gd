@@ -4,14 +4,6 @@ extends RefCounted
 var _notifications: Array[NotificationData] = []
 
 
-func clear() -> void:
-	_notifications.clear()
-
-
-func get_notifications() -> Array[NotificationData]:
-	return _notifications.duplicate()
-
-
 func collect_contact_notifications(before_states: Dictionary, after_states: Dictionary, world, player_squad_id: String, turn: int, squad_names: Dictionary = {}) -> void:
 	for key in after_states:
 		var after_state: int = after_states[key]
@@ -65,43 +57,6 @@ func collect_contact_notifications(before_states: Dictionary, after_states: Dict
 			))
 
 
-func collect_resource_notifications(squad, turn: int) -> void:
-	var food: float = squad.food
-	var warrior_count: int = squad.get_living_warriors().size()
-	if warrior_count == 0:
-		return
-	var consumption := _estimate_food_consumption(squad)
-	if consumption > 0:
-		var turns_remaining := int(food / consumption)
-		if turns_remaining <= 2:
-			_notifications.append(NotificationData.create(
-				NotificationData.NotificationType.LOW_FOOD,
-				"Low Food",
-				"Food critically low (%d turns remaining)" % turns_remaining,
-				turn,
-			))
-
-
-func collect_mission_notifications(completed_missions: Array, turn: int) -> void:
-	for result in completed_missions:
-		_notifications.append(NotificationData.create(
-			NotificationData.NotificationType.MISSION_COMPLETED,
-			"Mission Complete",
-			result.mission_id.replace("_", " ").capitalize() if result.mission_id else "A mission was completed",
-			turn,
-		))
-
-
-func collect_mission_unlocked_notifications(unlocked_names: Array[String], turn: int) -> void:
-	for mission_name in unlocked_names:
-		_notifications.append(NotificationData.create(
-			NotificationData.NotificationType.MISSION_UNLOCKED,
-			"New Mission",
-			"%s" % mission_name,
-			turn,
-		))
-
-
 func _get_squad_name(world, squad_id: String, squad_names: Dictionary = {}) -> String:
 	if squad_names.has(squad_id):
 		return squad_names[squad_id]
@@ -109,10 +64,3 @@ func _get_squad_name(world, squad_id: String, squad_names: Dictionary = {}) -> S
 		if sq.squad_id == squad_id:
 			return sq.squad_name
 	return squad_id
-
-
-func _estimate_food_consumption(squad) -> float:
-	var total := 0.0
-	for w in squad.get_living_warriors():
-		total += StrategyTypes.get_social_class_food_demand(w.social_class)
-	return total

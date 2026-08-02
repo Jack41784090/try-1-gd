@@ -40,21 +40,10 @@ func can_execute(squad: StrategySquad, location: Location) -> bool:
 
 
 func trigger(context: Dictionary) -> Array[ActivityResult]:
-	# triggered.emit(result)
-	# if not result.requires_async:
-	# 	execution_completed.emit(result)
 	return execute(context)
 
 
 func execute(context: Dictionary) -> Array[ActivityResult]:
-	# if custom_script:
-	# 	# Call custom script if provided
-	# 	if custom_script.has_method("execute_custom"):
-	# 		return custom_script.execute_custom(squad, world, result)
-	return _execute_generic(context)
-
-
-func _execute_generic(context: Dictionary) -> Array[ActivityResult]:
 	assert(result)
 
 	var saved_result := result

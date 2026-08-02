@@ -2,10 +2,8 @@ extends Node
 
 func _ready():
 	print("\n=== RANGED COMBAT DEMO ===\n")
-	run_ranged_battle()
-	get_tree().quit()
 
-func run_ranged_battle():
+	# --- run ranged battle ---
 	print("Setting up mixed squads with ranged units...\n")
 
 	var attacker_entities = [
@@ -85,6 +83,8 @@ func run_ranged_battle():
 	print("  Defender: %.0f HP remaining" % defender_strength)
 
 	print("\n=== DEMO COMPLETE ===\n")
+
+	get_tree().quit()
 
 func _print_squad_positions(battle: SquadBattle, side: SquadBattleTypes.Side, label: String):
 	var squads = battle.side_squads_dict.get(side, [])

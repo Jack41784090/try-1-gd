@@ -90,46 +90,7 @@ var _initialized := false
 
 
 func _ready() -> void:
-	_build_scene_tree()
-	_start_stdin_thread()
-	_load_canvas(DEFAULT_CANVAS)
-	_initialized = true
-	_out("Canvas ready. Type 'help' for commands.")
-
-
-func _process(delta: float) -> void:
-	if not _initialized:
-		return
-
-	_drain_stdin()
-	if not _busy:
-		_process_commands()
-
-	if _debounce_timer > 0.0:
-		_debounce_timer -= delta
-		if _debounce_timer <= 0.0 and _pending_file_reload and not _busy:
-			_debounce_timer = 0.0
-			_pending_file_reload = false
-			_do_file_reload()
-
-	_watch_timer += delta
-	if _watch_timer >= WATCH_INTERVAL:
-		_watch_timer = 0.0
-		if not _busy:
-			_check_file_changes()
-
-	_update_info_label()
-
-
-func _exit_tree() -> void:
-	_should_quit = true
-	if _stdin_thread and _stdin_thread.is_started():
-		_stdin_thread.wait_to_finish()
-
-
-#region Scene Tree Setup
-
-func _build_scene_tree() -> void:
+	# --- _build_scene_tree ---
 	_background = ColorRect.new()
 	_background.color = Color(0.12, 0.12, 0.14, 1.0)
 	_background.set_anchors_preset(PRESET_FULL_RECT)
@@ -170,16 +131,123 @@ func _build_scene_tree() -> void:
 	_info_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.8))
 	canvas_layer.add_child(_info_label)
 
-#endregion
-
-
-#region Stdin / Command System
-
-func _start_stdin_thread() -> void:
+	# --- _start_stdin_thread ---
 	_stdin_mutex = Mutex.new()
 	_stdin_thread = Thread.new()
 	_stdin_thread.start(_stdin_reader)
 
+	_load_canvas(DEFAULT_CANVAS)
+	_initialized = true
+	_out("Canvas ready. Type 'help' for commands.")
+
+
+func _process(delta: float) -> void:
+	if not _initialized:
+		return
+
+	# --- _drain_stdin ---
+	_stdin_mutex.lock()
+	var lines := _stdin_buffer.duplicate()
+	_stdin_buffer.clear()
+	_stdin_mutex.unlock()
+	for line in lines:
+		_command_queue.append(line)
+
+	# --- _process_commands ---
+	if not _busy:
+		if _command_queue.size() > 0:
+			var cmd: String = _command_queue.pop_front()
+			_handle_command(cmd)
+
+	if _debounce_timer > 0.0:
+		_debounce_timer -= delta
+		if _debounce_timer <= 0.0 and _pending_file_reload and not _busy:
+			_debounce_timer = 0.0
+			_pending_file_reload = false
+			# --- _do_file_reload ---
+			_busy = true
+			if _mode == "rig":
+				_out("Rig SVGs changed, reloading...")
+				_reload_rig_svgs()
+			else:
+				_out("Files changed, reloading...")
+				_reload_canvas()
+			# --- _reload_changed_shaders ---
+			for shader_path in _shader_mtimes.keys():
+				if not FileAccess.file_exists(shader_path):
+					continue
+				var shader_mtime := FileAccess.get_modified_time(shader_path)
+				if shader_mtime != _shader_mtimes[shader_path]:
+					_shader_mtimes[shader_path] = shader_mtime
+					var sf := FileAccess.open(shader_path, FileAccess.READ)
+					if sf:
+						var code := sf.get_as_text()
+						sf.close()
+						if _shader_materials.has(shader_path):
+							var smat: ShaderMaterial = _shader_materials[shader_path]
+							smat.shader.code = code
+							_out("Shader reloaded: %s" % shader_path.get_file())
+			_busy = false
+
+	_watch_timer += delta
+	if _watch_timer >= WATCH_INTERVAL:
+		_watch_timer = 0.0
+		if not _busy:
+			# --- _check_file_changes ---
+			if _mode == "rig":
+				# --- _check_rig_svg_changes ---
+				for rig_path in _rig_svg_mtimes.keys():
+					if not FileAccess.file_exists(rig_path):
+						continue
+					var rig_mtime := FileAccess.get_modified_time(rig_path)
+					if rig_mtime != _rig_svg_mtimes[rig_path]:
+						_schedule_file_reload()
+						break
+			else:
+				# --- _check_canvas_changes ---
+				if not _loaded_canvas_path.is_empty():
+					var canvas_abs := ProjectSettings.globalize_path(_loaded_canvas_path)
+					if FileAccess.file_exists(canvas_abs):
+						var canvas_mtime := FileAccess.get_modified_time(canvas_abs)
+						if canvas_mtime != _canvas_mtime:
+							_schedule_file_reload()
+				# --- _check_svg_changes ---
+				var svg_changed := false
+				for svg_path in _svg_mtimes.keys():
+					if not FileAccess.file_exists(svg_path):
+						continue
+					var svg_mtime := FileAccess.get_modified_time(svg_path)
+					if svg_mtime != _svg_mtimes[svg_path]:
+						svg_changed = true
+						break
+				if svg_changed:
+					_schedule_file_reload()
+			# --- _check_shader_changes ---
+			for watch_path in _shader_mtimes.keys():
+				if not FileAccess.file_exists(watch_path):
+					continue
+				var watch_mtime := FileAccess.get_modified_time(watch_path)
+				if watch_mtime != _shader_mtimes[watch_path]:
+					_schedule_file_reload()
+					break
+
+	# --- _update_info_label ---
+	_info_label.text = "%s | %s | zoom:%.2f | pos:(%.0f,%.0f)" % [
+		_mode.to_upper(),
+		_rig_class_name if _mode == "rig" else _loaded_canvas_name,
+		_camera.zoom.x,
+		_camera.position.x,
+		_camera.position.y,
+	]
+
+
+func _exit_tree() -> void:
+	_should_quit = true
+	if _stdin_thread and _stdin_thread.is_started():
+		_stdin_thread.wait_to_finish()
+
+
+#region Stdin / Command System
 
 func _stdin_reader() -> void:
 	while not _should_quit:
@@ -189,21 +257,6 @@ func _stdin_reader() -> void:
 		_stdin_mutex.lock()
 		_stdin_buffer.append(line)
 		_stdin_mutex.unlock()
-
-
-func _drain_stdin() -> void:
-	_stdin_mutex.lock()
-	var lines := _stdin_buffer.duplicate()
-	_stdin_buffer.clear()
-	_stdin_mutex.unlock()
-	for line in lines:
-		_command_queue.append(line)
-
-
-func _process_commands() -> void:
-	if _command_queue.size() > 0:
-		var cmd: String = _command_queue.pop_front()
-		_handle_command(cmd)
 
 
 func _handle_command(input: String) -> void:
@@ -221,43 +274,234 @@ func _handle_command(input: String) -> void:
 		"screenshot", "ss":
 			await _cmd_screenshot(arg)
 		"zoom", "z":
-			_cmd_zoom(arg)
+			# --- _cmd_zoom ---
+			if arg.is_empty():
+				_out("Current zoom: %.2f" % _camera.zoom.x)
+			else:
+				var val := clampf(arg.to_float(), 0.1, 10.0)
+				_camera.zoom = Vector2(val, val)
+				_out("Zoom set to %.2f" % val)
 		"zoom_in", "zi":
 			_cmd_zoom_relative(1.5)
 		"zoom_out", "zo":
 			_cmd_zoom_relative(1.0 / 1.5)
 		"pan":
 			if args.size() >= 2:
-				_cmd_pan(args[0].to_float(), args[1].to_float())
+				# --- _cmd_pan ---
+				var px := args[0].to_float()
+				var py := args[1].to_float()
+				_camera.position = Vector2(px, py)
+				_out("Camera at (%.0f, %.0f)" % [px, py])
 			else:
 				_out("Usage: pan <x> <y>")
 		"center":
-			_cmd_center()
+			# --- _cmd_center ---
+			_camera.position = Vector2(960, 540)
+			_camera.zoom = Vector2(1.0, 1.0)
+			_out("Camera centered, zoom 1.0")
 		"reload", "r":
-			_cmd_reload()
+			# --- _cmd_reload ---
+			_busy = true
+			if _mode == "rig":
+				_reload_rig_svgs()
+			else:
+				_reload_canvas()
+			_busy = false
+			_out("Reloaded.")
 		"load":
-			_cmd_load(arg)
+			# --- _cmd_load ---
+			if arg.is_empty():
+				_out("Usage: load <name>  (loads scenes/demos/canvas/<name>.tscn)")
+			else:
+				_busy = true
+				_exit_rig_mode()
+				_load_canvas(arg)
+				_busy = false
 		"info", "i":
-			_cmd_info()
+			# --- _cmd_info ---
+			_out("── Canvas Info ──")
+			_out("  Mode: %s" % _mode)
+			if _mode == "rig":
+				_out("  Rig class: %s" % _rig_class_name)
+				_out("  Rig SVG dir: %s" % (RIG_SVG_BASE + _rig_class_name + "/"))
+				_out("  Bone SVGs loaded: %d / %d" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
+			else:
+				_out("  Canvas: %s" % _loaded_canvas_name)
+				_out("  Path: %s" % _loaded_canvas_path)
+				_out("  SVGs tracked: %d" % _svg_mtimes.size())
+			_out("  Camera pos: (%.0f, %.0f)" % [_camera.position.x, _camera.position.y])
+			_out("  Camera zoom: %.2f" % _camera.zoom.x)
+			_out("  Grid: %s" % ("ON" if _grid_visible else "OFF"))
+			_out("  Shaders tracked: %d" % _shader_mtimes.size())
 		"tree":
-			_cmd_tree()
+			# --- _cmd_tree ---
+			_out("── Node Tree ──")
+			if _mode == "rig" and _rig:
+				_print_tree_recursive(_rig, 0, 3)
+			elif _canvas_node:
+				_print_tree_recursive(_canvas_node, 0, 5)
+			else:
+				_out("  (no content loaded)")
 		"bg":
-			_cmd_bg(arg)
+			# --- _cmd_bg ---
+			if arg.is_empty():
+				_out("Usage: bg <hex>  (e.g. bg #1a1a2e)")
+			else:
+				var hex := arg
+				if not hex.begins_with("#"):
+					hex = "#" + hex
+				_background.color = Color.from_string(hex, Color(0.12, 0.12, 0.14, 1.0))
+				_out("Background: %s" % hex)
 		"grid":
-			_cmd_grid()
+			# --- _cmd_grid ---
+			_grid_visible = not _grid_visible
+			# --- _rebuild_grid ---
+			for child in _grid_node.get_children():
+				child.queue_free()
+			if _grid_visible:
+				var grid_size := 2000.0
+				var spacing := 100.0
+				var grid_color := Color(0.3, 0.3, 0.35, 0.3)
+				var axis_color := Color(0.5, 0.3, 0.3, 0.5)
+				var y_axis_color := Color(0.3, 0.5, 0.3, 0.5)
+				var x_start := -grid_size + 960
+				var x_end := grid_size + 960
+				var y_start := -grid_size + 540
+				var y_end := grid_size + 540
+				var gx := x_start
+				while gx <= x_end:
+					var vline := Line2D.new()
+					vline.points = PackedVector2Array([Vector2(gx, y_start), Vector2(gx, y_end)])
+					vline.width = 1.0 if not is_equal_approx(gx, 960.0) else 2.0
+					vline.default_color = grid_color if not is_equal_approx(gx, 960.0) else y_axis_color
+					_grid_node.add_child(vline)
+					gx += spacing
+				var gy := y_start
+				while gy <= y_end:
+					var hline := Line2D.new()
+					hline.points = PackedVector2Array([Vector2(x_start, gy), Vector2(x_end, gy)])
+					hline.width = 1.0 if not is_equal_approx(gy, 540.0) else 2.0
+					hline.default_color = grid_color if not is_equal_approx(gy, 540.0) else axis_color
+					_grid_node.add_child(hline)
+					gy += spacing
+			_grid_node.visible = _grid_visible
+			_out("Grid: %s" % ("ON" if _grid_visible else "OFF"))
 		"rig":
-			_cmd_rig(arg)
+			# --- _cmd_rig ---
+			var cn := arg.to_lower() if not arg.is_empty() else "landsknecht"
+			_busy = true
+			_exit_rig_mode()
+			_clear_canvas()
+			_mode = "rig"
+			_rig_class_name = cn
+
+			var scene: PackedScene = load("res://scenes/rig/warrior_rig.tscn")
+			assert(scene, "Failed to load warrior_rig.tscn")
+			_rig = scene.instantiate() as WarriorRig
+			_rig.position = Vector2(960, 700)
+			# --- _class_name_to_id ---
+			var class_id: EntityClasses.Types
+			match cn:
+				"landsknecht": class_id = EntityClasses.Types.Landsknecht
+				"healer": class_id = EntityClasses.Types.Healer
+				"crossbowman": class_id = EntityClasses.Types.Crossbowman
+				"arquebusier": class_id = EntityClasses.Types.Arquebusier
+				"pikeman": class_id = EntityClasses.Types.Pikeman
+				"feldprediger": class_id = EntityClasses.Types.Feldprediger
+				"gelehrter": class_id = EntityClasses.Types.Gelehrter
+				_: class_id = EntityClasses.Types.Landsknecht
+			_rig.setup(class_id, "canvas_preview")
+			_content_root.add_child(_rig)
+
+			_camera.position = Vector2(960, 600)
+			_camera.zoom = Vector2(3.0, 3.0)
+
+			_reload_rig_svgs()
+			_busy = false
+			_out("Rig mode: %s (edit SVGs in assets/rig_textures/%s/)" % [cn, cn])
+			_out("  Bone SVGs: %d / %d loaded" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
+			_out("  Use 'anim idle', 'anim walk', etc. to animate")
 		"anim":
-			_cmd_anim(arg)
+			# --- _cmd_anim ---
+			if not _rig:
+				_out("No rig loaded. Use 'rig <class>' first.")
+			elif arg.is_empty():
+				_out("Usage: anim <name>  (idle, walk, attack, defend, hurt, die, talk, gesture)")
+			else:
+				# --- _anim_name_to_behavior ---
+				var behavior: int
+				match arg.to_lower():
+					"idle": behavior = AnimTypes.Behavior.IDLE
+					"walk", "walking": behavior = AnimTypes.Behavior.WALKING
+					"attack", "attacking": behavior = AnimTypes.Behavior.ATTACKING
+					"defend", "defending": behavior = AnimTypes.Behavior.DEFENDING
+					"hurt": behavior = AnimTypes.Behavior.HURT
+					"die", "dying": behavior = AnimTypes.Behavior.DYING
+					"talk", "talking": behavior = AnimTypes.Behavior.TALKING
+					"gesture", "gesturing": behavior = AnimTypes.Behavior.GESTURING
+					_: behavior = -1
+				if behavior == -1:
+					_out("Unknown animation: %s" % arg)
+				else:
+					_rig.play_behavior(behavior as AnimTypes.Behavior)
+					_out("Playing: %s" % arg)
 		"stop":
-			_cmd_stop()
+			# --- _cmd_stop ---
+			if not _rig:
+				_out("No rig loaded.")
+			else:
+				_rig.play_behavior(AnimTypes.Behavior.IDLE)
+				_out("Stopped (idle)")
 		"shader":
 			if args.size() >= 3:
-				_cmd_shader(args[0], args[1], args[2])
+				# --- _cmd_shader ---
+				var target: Node = null
+				# --- _find_content_node ---
+				if _mode == "rig" and _rig:
+					target = _rig.get_node_or_null(NodePath(args[0]))
+				elif _canvas_node:
+					target = _canvas_node.get_node_or_null(NodePath(args[0]))
+				if not target:
+					_out("Node not found: %s" % args[0])
+				elif not target is CanvasItem:
+					_out("Node is not a CanvasItem: %s" % args[0])
+				else:
+					var ci := target as CanvasItem
+					if not ci.material is ShaderMaterial:
+						_out("Node has no ShaderMaterial: %s" % args[0])
+					else:
+						var mat := ci.material as ShaderMaterial
+						# --- _parse_shader_value ---
+						var val
+						var sv := args[2]
+						if sv.begins_with("#"):
+							val = Color.from_string(sv, Color.WHITE)
+						elif sv.contains(","):
+							var sv_parts := sv.split(",")
+							if sv_parts.size() == 2:
+								val = Vector2(sv_parts[0].to_float(), sv_parts[1].to_float())
+							elif sv_parts.size() == 3:
+								val = Vector3(sv_parts[0].to_float(), sv_parts[1].to_float(), sv_parts[2].to_float())
+							elif sv_parts.size() == 4:
+								val = Color(sv_parts[0].to_float(), sv_parts[1].to_float(), sv_parts[2].to_float(), sv_parts[3].to_float())
+						elif sv == "true":
+							val = true
+						elif sv == "false":
+							val = false
+						else:
+							val = sv.to_float()
+						mat.set_shader_parameter(args[1], val)
+						_out("Set %s.%s = %s" % [args[0], args[1], str(val)])
 			else:
 				_out("Usage: shader <node_path> <param> <value>")
 		"sizes":
-			_cmd_sizes()
+			# --- _cmd_sizes ---
+			_out("── Bone Display Sizes (base px, ×%d for SVG) ──" % int(SVG_RENDER_SCALE))
+			for bone_name in BONE_NAMES:
+				var s: Vector2 = WarriorRig.BONE_DISPLAY_SIZES[bone_name]
+				var svg_w := int(s.x * SVG_RENDER_SCALE)
+				var svg_h := int(s.y * SVG_RENDER_SCALE)
+				_out("  %s: %dx%d base → %dx%d SVG" % [bone_name, int(s.x), int(s.y), svg_w, svg_h])
 		"quit":
 			_should_quit = true
 			get_tree().quit()
@@ -267,7 +511,7 @@ func _handle_command(input: String) -> void:
 #endregion
 
 
-#region Commands
+#region Commands (multi-use or async)
 
 func _cmd_help() -> void:
 	_out("╔══════════════════════════════════════════╗")
@@ -310,175 +554,15 @@ func _cmd_screenshot(arg: String) -> void:
 	_out("SCREENSHOT_SAVED:%s" % path)
 
 
-func _cmd_zoom(arg: String) -> void:
-	if arg.is_empty():
-		_out("Current zoom: %.2f" % _camera.zoom.x)
-		return
-	var val := clampf(arg.to_float(), 0.1, 10.0)
-	_camera.zoom = Vector2(val, val)
-	_out("Zoom set to %.2f" % val)
-
-
 func _cmd_zoom_relative(factor: float) -> void:
 	var val := clampf(_camera.zoom.x * factor, 0.1, 10.0)
 	_camera.zoom = Vector2(val, val)
 	_out("Zoom: %.2f" % val)
 
-
-func _cmd_pan(x: float, y: float) -> void:
-	_camera.position = Vector2(x, y)
-	_out("Camera at (%.0f, %.0f)" % [x, y])
-
-
-func _cmd_center() -> void:
-	_camera.position = Vector2(960, 540)
-	_camera.zoom = Vector2(1.0, 1.0)
-	_out("Camera centered, zoom 1.0")
-
-
-func _cmd_reload() -> void:
-	_busy = true
-	if _mode == "rig":
-		_reload_rig_svgs()
-	else:
-		_reload_canvas()
-	_busy = false
-	_out("Reloaded.")
-
-
-func _cmd_load(name: String) -> void:
-	if name.is_empty():
-		_out("Usage: load <name>  (loads scenes/demos/canvas/<name>.tscn)")
-		return
-	_busy = true
-	_exit_rig_mode()
-	_load_canvas(name)
-	_busy = false
-
-
-func _cmd_info() -> void:
-	_out("── Canvas Info ──")
-	_out("  Mode: %s" % _mode)
-	if _mode == "rig":
-		_out("  Rig class: %s" % _rig_class_name)
-		_out("  Rig SVG dir: %s" % (RIG_SVG_BASE + _rig_class_name + "/"))
-		_out("  Bone SVGs loaded: %d / %d" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
-	else:
-		_out("  Canvas: %s" % _loaded_canvas_name)
-		_out("  Path: %s" % _loaded_canvas_path)
-		_out("  SVGs tracked: %d" % _svg_mtimes.size())
-	_out("  Camera pos: (%.0f, %.0f)" % [_camera.position.x, _camera.position.y])
-	_out("  Camera zoom: %.2f" % _camera.zoom.x)
-	_out("  Grid: %s" % ("ON" if _grid_visible else "OFF"))
-	_out("  Shaders tracked: %d" % _shader_mtimes.size())
-
-
-func _cmd_tree() -> void:
-	_out("── Node Tree ──")
-	if _mode == "rig" and _rig:
-		_print_tree_recursive(_rig, 0, 3)
-	elif _canvas_node:
-		_print_tree_recursive(_canvas_node, 0, 5)
-	else:
-		_out("  (no content loaded)")
-
-
-func _cmd_bg(hex: String) -> void:
-	if hex.is_empty():
-		_out("Usage: bg <hex>  (e.g. bg #1a1a2e)")
-		return
-	if not hex.begins_with("#"):
-		hex = "#" + hex
-	_background.color = Color.from_string(hex, Color(0.12, 0.12, 0.14, 1.0))
-	_out("Background: %s" % hex)
-
-
-func _cmd_grid() -> void:
-	_grid_visible = not _grid_visible
-	_rebuild_grid()
-	_grid_node.visible = _grid_visible
-	_out("Grid: %s" % ("ON" if _grid_visible else "OFF"))
-
-
-func _cmd_sizes() -> void:
-	_out("── Bone Display Sizes (base px, ×%d for SVG) ──" % int(SVG_RENDER_SCALE))
-	for bone_name in BONE_NAMES:
-		var s: Vector2 = WarriorRig.BONE_DISPLAY_SIZES[bone_name]
-		var svg_w := int(s.x * SVG_RENDER_SCALE)
-		var svg_h := int(s.y * SVG_RENDER_SCALE)
-		_out("  %s: %dx%d base → %dx%d SVG" % [bone_name, int(s.x), int(s.y), svg_w, svg_h])
-
-
-func _cmd_shader(node_path: String, param: String, value_str: String) -> void:
-	var target := _find_content_node(node_path)
-	if not target:
-		_out("Node not found: %s" % node_path)
-		return
-	if not target is CanvasItem:
-		_out("Node is not a CanvasItem: %s" % node_path)
-		return
-	var ci := target as CanvasItem
-	if not ci.material is ShaderMaterial:
-		_out("Node has no ShaderMaterial: %s" % node_path)
-		return
-	var mat := ci.material as ShaderMaterial
-	var val = _parse_shader_value(value_str)
-	mat.set_shader_parameter(param, val)
-	_out("Set %s.%s = %s" % [node_path, param, str(val)])
-
 #endregion
 
 
 #region Rig Mode
-
-func _cmd_rig(class_name_arg: String) -> void:
-	var cn := class_name_arg.to_lower() if not class_name_arg.is_empty() else "landsknecht"
-	_busy = true
-	_exit_rig_mode()
-	_clear_canvas()
-	_mode = "rig"
-	_rig_class_name = cn
-
-	var scene: PackedScene = load("res://scenes/rig/warrior_rig.tscn")
-	assert(scene, "Failed to load warrior_rig.tscn")
-	_rig = scene.instantiate() as WarriorRig
-	_rig.position = Vector2(960, 700)
-	var class_id := _class_name_to_id(cn)
-	_rig.setup(class_id, "canvas_preview")
-	_content_root.add_child(_rig)
-
-	_camera.position = Vector2(960, 600)
-	_camera.zoom = Vector2(3.0, 3.0)
-
-	_reload_rig_svgs()
-	_busy = false
-	_out("Rig mode: %s (edit SVGs in assets/rig_textures/%s/)" % [cn, cn])
-	_out("  Bone SVGs: %d / %d loaded" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
-	_out("  Use 'anim idle', 'anim walk', etc. to animate")
-
-
-func _cmd_anim(name: String) -> void:
-	if not _rig:
-		_out("No rig loaded. Use 'rig <class>' first.")
-		return
-	if name.is_empty():
-		_out("Usage: anim <name>  (idle, walk, attack, defend, hurt, die, talk, gesture)")
-		return
-	var behavior := _anim_name_to_behavior(name)
-	if behavior == -1:
-		_out("Unknown animation: %s" % name)
-		return
-	_rig.play_behavior(behavior as AnimTypes.Behavior)
-	_out("Playing: %s" % name)
-
-
-func _cmd_stop() -> void:
-	if not _rig:
-		_out("No rig loaded.")
-		return
-	_rig.play_behavior(AnimTypes.Behavior.IDLE)
-	_out("Stopped (idle)")
-
 
 func _reload_rig_svgs() -> void:
 	if not _rig:
@@ -502,28 +586,25 @@ func _reload_rig_svgs() -> void:
 			continue
 
 		_rig_svg_mtimes[abs_path] = FileAccess.get_modified_time(abs_path)
-		_set_config_texture(config, bone_name, tex)
+		# --- _set_config_texture ---
+		match bone_name:
+			"Head": config.head_texture = tex
+			"Torso": config.torso_texture = tex
+			"Hips": config.hips_texture = tex
+			"LeftArm": config.left_arm_texture = tex
+			"LeftForearm": config.left_forearm_texture = tex
+			"LeftHand": config.left_hand_texture = tex
+			"RightArm": config.right_arm_texture = tex
+			"RightForearm": config.right_forearm_texture = tex
+			"RightHand": config.right_hand_texture = tex
+			"LeftLeg": config.left_leg_texture = tex
+			"LeftShin": config.left_shin_texture = tex
+			"LeftFoot": config.left_foot_texture = tex
+			"RightLeg": config.right_leg_texture = tex
+			"RightShin": config.right_shin_texture = tex
+			"RightFoot": config.right_foot_texture = tex
 
 	_rig.apply_config(config)
-
-
-func _set_config_texture(config: WarriorRigConfig, bone_name: String, tex: ImageTexture) -> void:
-	match bone_name:
-		"Head": config.head_texture = tex
-		"Torso": config.torso_texture = tex
-		"Hips": config.hips_texture = tex
-		"LeftArm": config.left_arm_texture = tex
-		"LeftForearm": config.left_forearm_texture = tex
-		"LeftHand": config.left_hand_texture = tex
-		"RightArm": config.right_arm_texture = tex
-		"RightForearm": config.right_forearm_texture = tex
-		"RightHand": config.right_hand_texture = tex
-		"LeftLeg": config.left_leg_texture = tex
-		"LeftShin": config.left_shin_texture = tex
-		"LeftFoot": config.left_foot_texture = tex
-		"RightLeg": config.right_leg_texture = tex
-		"RightShin": config.right_shin_texture = tex
-		"RightFoot": config.right_foot_texture = tex
 
 
 func _exit_rig_mode() -> void:
@@ -646,147 +727,14 @@ func _load_svg_from_disk(abs_path: String, svg_scale: float) -> ImageTexture:
 
 #region File Watching
 
-func _check_file_changes() -> void:
-	if _mode == "rig":
-		_check_rig_svg_changes()
-	else:
-		_check_canvas_changes()
-		_check_svg_changes()
-	_check_shader_changes()
-
-
-func _check_canvas_changes() -> void:
-	if _loaded_canvas_path.is_empty():
-		return
-	var abs_path := ProjectSettings.globalize_path(_loaded_canvas_path)
-	if not FileAccess.file_exists(abs_path):
-		return
-	var current_mtime := FileAccess.get_modified_time(abs_path)
-	if current_mtime != _canvas_mtime:
-		_schedule_file_reload()
-
-
-func _check_svg_changes() -> void:
-	var changed := false
-	for abs_path in _svg_mtimes.keys():
-		if not FileAccess.file_exists(abs_path):
-			continue
-		var current_mtime := FileAccess.get_modified_time(abs_path)
-		if current_mtime != _svg_mtimes[abs_path]:
-			changed = true
-			break
-	if changed:
-		_schedule_file_reload()
-
-
-func _check_rig_svg_changes() -> void:
-	for abs_path in _rig_svg_mtimes.keys():
-		if not FileAccess.file_exists(abs_path):
-			continue
-		var current_mtime := FileAccess.get_modified_time(abs_path)
-		if current_mtime != _rig_svg_mtimes[abs_path]:
-			_schedule_file_reload()
-			return
-
-
-func _check_shader_changes() -> void:
-	for abs_path in _shader_mtimes.keys():
-		if not FileAccess.file_exists(abs_path):
-			continue
-		var current_mtime := FileAccess.get_modified_time(abs_path)
-		if current_mtime != _shader_mtimes[abs_path]:
-			_schedule_file_reload()
-			return
-
-
 func _schedule_file_reload() -> void:
 	_pending_file_reload = true
 	_debounce_timer = DEBOUNCE_INTERVAL
-
-
-func _do_file_reload() -> void:
-	_busy = true
-	if _mode == "rig":
-		_out("Rig SVGs changed, reloading...")
-		_reload_rig_svgs()
-	else:
-		_out("Files changed, reloading...")
-		_reload_canvas()
-	_reload_changed_shaders()
-	_busy = false
-
-
-func _reload_changed_shaders() -> void:
-	for abs_path in _shader_mtimes.keys():
-		if not FileAccess.file_exists(abs_path):
-			continue
-		var current_mtime := FileAccess.get_modified_time(abs_path)
-		if current_mtime != _shader_mtimes[abs_path]:
-			_shader_mtimes[abs_path] = current_mtime
-			var file := FileAccess.open(abs_path, FileAccess.READ)
-			if file:
-				var code := file.get_as_text()
-				file.close()
-				if _shader_materials.has(abs_path):
-					var mat: ShaderMaterial = _shader_materials[abs_path]
-					mat.shader.code = code
-					_out("Shader reloaded: %s" % abs_path.get_file())
-
-#endregion
-
-
-#region Grid
-
-func _rebuild_grid() -> void:
-	for child in _grid_node.get_children():
-		child.queue_free()
-
-	if not _grid_visible:
-		return
-
-	var grid_size := 2000.0
-	var spacing := 100.0
-	var grid_color := Color(0.3, 0.3, 0.35, 0.3)
-	var axis_color := Color(0.5, 0.3, 0.3, 0.5)
-	var y_axis_color := Color(0.3, 0.5, 0.3, 0.5)
-
-	var x_start := -grid_size + 960
-	var x_end := grid_size + 960
-	var y_start := -grid_size + 540
-	var y_end := grid_size + 540
-
-	var x := x_start
-	while x <= x_end:
-		var line := Line2D.new()
-		line.points = PackedVector2Array([Vector2(x, y_start), Vector2(x, y_end)])
-		line.width = 1.0 if not is_equal_approx(x, 960.0) else 2.0
-		line.default_color = grid_color if not is_equal_approx(x, 960.0) else y_axis_color
-		_grid_node.add_child(line)
-		x += spacing
-
-	var y := y_start
-	while y <= y_end:
-		var line := Line2D.new()
-		line.points = PackedVector2Array([Vector2(x_start, y), Vector2(x_end, y)])
-		line.width = 1.0 if not is_equal_approx(y, 540.0) else 2.0
-		line.default_color = grid_color if not is_equal_approx(y, 540.0) else axis_color
-		_grid_node.add_child(line)
-		y += spacing
 
 #endregion
 
 
 #region Helpers
-
-func _update_info_label() -> void:
-	_info_label.text = "%s | %s | zoom:%.2f | pos:(%.0f,%.0f)" % [
-		_mode.to_upper(),
-		_rig_class_name if _mode == "rig" else _loaded_canvas_name,
-		_camera.zoom.x,
-		_camera.position.x,
-		_camera.position.y,
-	]
-
 
 func _print_tree_recursive(node: Node, depth: int, max_depth: int) -> void:
 	if depth > max_depth:
@@ -801,55 +749,6 @@ func _print_tree_recursive(node: Node, depth: int, max_depth: int) -> void:
 	_out("%s%s (%s)%s" % [indent, node.name, type_name, extra])
 	for child in node.get_children():
 		_print_tree_recursive(child, depth + 1, max_depth)
-
-
-func _find_content_node(path: String) -> Node:
-	if _mode == "rig" and _rig:
-		return _rig.get_node_or_null(NodePath(path))
-	elif _canvas_node:
-		return _canvas_node.get_node_or_null(NodePath(path))
-	return null
-
-
-func _class_name_to_id(cn: String) -> EntityClasses.Types:
-	match cn:
-		"landsknecht": return EntityClasses.Types.Landsknecht
-		"healer": return EntityClasses.Types.Healer
-		"crossbowman": return EntityClasses.Types.Crossbowman
-		"arquebusier": return EntityClasses.Types.Arquebusier
-		"pikeman": return EntityClasses.Types.Pikeman
-		"feldprediger": return EntityClasses.Types.Feldprediger
-		"gelehrter": return EntityClasses.Types.Gelehrter
-		_: return EntityClasses.Types.Landsknecht
-
-
-func _anim_name_to_behavior(name: String) -> int:
-	match name.to_lower():
-		"idle": return AnimTypes.Behavior.IDLE
-		"walk", "walking": return AnimTypes.Behavior.WALKING
-		"attack", "attacking": return AnimTypes.Behavior.ATTACKING
-		"defend", "defending": return AnimTypes.Behavior.DEFENDING
-		"hurt": return AnimTypes.Behavior.HURT
-		"die", "dying": return AnimTypes.Behavior.DYING
-		"talk", "talking": return AnimTypes.Behavior.TALKING
-		"gesture", "gesturing": return AnimTypes.Behavior.GESTURING
-		_: return -1
-
-
-func _parse_shader_value(v: String):
-	if v.begins_with("#"):
-		return Color.from_string(v, Color.WHITE)
-	if v.contains(","):
-		var parts := v.split(",")
-		if parts.size() == 2:
-			return Vector2(parts[0].to_float(), parts[1].to_float())
-		if parts.size() == 3:
-			return Vector3(parts[0].to_float(), parts[1].to_float(), parts[2].to_float())
-		if parts.size() == 4:
-			return Color(parts[0].to_float(), parts[1].to_float(), parts[2].to_float(), parts[3].to_float())
-	if v == "true": return true
-	if v == "false": return false
-	return v.to_float()
 
 
 func _out(text: String) -> void:

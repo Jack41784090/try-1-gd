@@ -42,17 +42,6 @@ func trigger(context: Dictionary) -> Array[MissionResult]:
 	
 	var result = complete()
 	
-	var result_dict = {
-		"mission_id": mission_id,
-		"narrative_text": result.narrative_text,
-		"requires_async": result.requires_async,
-		"unlocked_missions": result.unlocked_missions,
-		"reputation_changes": result.reputation_changes,
-		"squad_stat_changes": result.squad_stat_changes,
-		"event_chain_path": result.event_chain_path
-	}
-	
-	
 	return [result]
 
 func execute(context: Dictionary) -> MissionResult:

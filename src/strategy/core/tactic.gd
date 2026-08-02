@@ -72,8 +72,8 @@ static func create_defensive_formation() -> Tactic:
 	return tactic
 
 
-static func create_from_type(type: TacticType) -> Tactic:
-	match type:
+static func create_from_type(tactic_type: TacticType) -> Tactic:
+	match tactic_type:
 		TacticType.BALANCED:
 			return create_balanced()
 		TacticType.AGGRESSIVE_CHARGE:

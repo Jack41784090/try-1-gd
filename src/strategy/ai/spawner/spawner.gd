@@ -4,25 +4,17 @@ var DISBAND_MORALE_THRESHOLD := 0.0
 var _spawn_counter: int = 0
 
 #region DISBANDING
-func _disband_if_all_dead(squad: StrategySquad):
-	return squad.get_living_warriors().is_empty()
-
-func _disband_if_morale_crumbles(squad: StrategySquad):
-	return squad.get_morale() <= self.DISBAND_MORALE_THRESHOLD
-
-func _disband_if_all_injured(squad: StrategySquad):
+func check_disband(squad: StrategySquad) -> bool:
+	if squad.get_living_warriors().is_empty():
+		return true
+	if squad.get_morale() <= self.DISBAND_MORALE_THRESHOLD:
+		return true
 	var all_injured := true
 	for w in squad.get_living_warriors():
 		if not w.is_injured:
 			all_injured = false
 			break
 	return all_injured
-
-func check_disband(squad: StrategySquad) -> bool:
-	return \
-		_disband_if_all_dead(squad) or \
-		_disband_if_morale_crumbles(squad) or \
-		_disband_if_all_injured(squad)
 
 func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> Array[String]:
 	var event_log: Array[String] = []
@@ -45,17 +37,8 @@ func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> A
 #region SPAWNING
 
 func _create_warrior(_squad_id: String, _index: int, _background_id: StringName) -> Character:
-	# DISABLED: StrategyEntityFactory does not exist during the StrategyEntity rewrite.
 	push_error("Spawner._create_warrior disabled during StrategyEntity rewrite")
 	return null
-	# var warrior := StrategyEntityFactory.Create(
-	# 	background_id,
-	# 	"%s_w%d" % [squad_id, index],
-	# 	"StrategyEntity",
-	# 	StrategyTypes.Religion.CATHOLIC,
-	# )
-	# warrior.morale = randf_range(40.0, 60.0)
-	# return warrior
 
 func _create_squad(location: Location, _world: World) -> StrategySquad:
 	_spawn_counter += 1
@@ -84,21 +67,18 @@ func _create_squad(location: Location, _world: World) -> StrategySquad:
 	return squad
 
 func tick_spawning(_world: World, _faction: Faction, _ai_fleet: AISquadManager) -> Array[String]:
-	var event_log: Array[String] = []
-	return event_log
+	assert(false, "Spawner.tick_spawning not implemented")
+	return []
 
 
 func spawning(world: World, locs: Array[Location], faction: Faction, _ai_fleet: AISquadManager) -> Array[String]:
 	var event_log: Array[String] = []
-	# var total_bandits := count_total_bandits(world)
 
 	for loc in locs:
 		var squad := _create_squad(loc, world)
 		
 		world.add_roaming_squad(squad)
 		faction.add_army(squad)
-		# ai_fleet.register_bandit(squad)
-		# total_bandits += 1
 		
 		event_log.append("BANDIT spawned %s near %s" % [
 			squad.squad_name, loc.location_id])

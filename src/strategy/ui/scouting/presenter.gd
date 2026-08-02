@@ -22,10 +22,6 @@ func refresh(world: World, player_squad: StrategySquad, ai_decisions: Dictionary
 	var our_contacts = tracker.get_contacts_for(player_squad.squad_id)
 	var contacts_on_us = tracker.get_contacts_on(player_squad.squad_id)
 
-	_display_warnings(contacts_on_us, world)
-	_display_contact_cards(our_contacts, world)
-
-func _display_warnings(contacts_on_us: Array, world: World) -> void:
 	var warnings: Array[String] = []
 	for contact in contacts_on_us:
 		if contact.progress <= 0.0:
@@ -39,8 +35,9 @@ func _display_warnings(contacts_on_us: Array, world: World) -> void:
 				var squad_name = squad.squad_name if squad else "Unknown"
 				warnings.append("%s is tracking you (%.0f%%)" % [squad_name, contact.progress])
 	view.display_warnings(warnings)
+	_display_contact_cards(our_contacts, world)
 
-func _display_contact_cards(contacts: Array, world: World) -> void:
+func _display_contact_cards(contacts: Array[Contact], world: World) -> void:
 	var active: Array[Dictionary] = []
 	for contact in contacts:
 		if contact.progress <= 0.0:
@@ -48,7 +45,72 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 		var target_squad = _find_squad(contact.target_id, world)
 		if not target_squad:
 			continue
-		active.append(_build_card_data(contact, target_squad))
+		var card_state = contact.get_state()
+		var focus = _player_squad.scouting_focus if _player_squad else null
+		var focus_mult = 1.0
+		if _world and _player_squad and focus:
+			focus_mult = _world.contact_tracker.calculate_focus_multiplier(_player_squad, target_squad, focus)
+		var card_data := {
+			"state": card_state,
+			"progress": contact.progress,
+			"progress_delta": contact.last_delta,
+			"target_id": contact.target_id,
+			"being_tracked": contact.being_tracked,
+			"is_caravan": target_squad.is_caravan(),
+			"focus_multiplier": focus_mult,
+		}
+		match card_state:
+			StrategyTypes.ContactState.SUSPECTED:
+				if target_squad.is_caravan():
+					card_data["title"] = target_squad.squad_name
+					card_data["size_hint"] = _get_size_hint(target_squad)
+				else:
+					card_data["title"] = "Unknown Force"
+					card_data["size_hint"] = _get_size_hint(target_squad)
+				card_data["area_hint"] = target_squad.current_location_id
+			StrategyTypes.ContactState.TRACKED:
+				card_data["title"] = target_squad.squad_name
+				card_data["warrior_count"] = target_squad.get_living_warriors().size()
+				card_data["location"] = target_squad.current_location_id
+				var morale_val: float = target_squad.get_morale()
+				if morale_val >= 90.0:
+					card_data["morale_hint"] = "Excellent"
+				elif morale_val >= 70.0:
+					card_data["morale_hint"] = "Good"
+				elif morale_val >= 50.0:
+					card_data["morale_hint"] = "Fair"
+				elif morale_val >= 30.0:
+					card_data["morale_hint"] = "Poor"
+				else:
+					card_data["morale_hint"] = "Critical"
+				if target_squad.is_caravan():
+					card_data["cargo_hint"] = "Carrying goods"
+					card_data["destination_hint"] = target_squad.cargo.destination_id
+				var tracked_dest = _get_destination_intel(contact, target_squad)
+				if not tracked_dest.is_empty():
+					card_data["destination_intel"] = tracked_dest
+			StrategyTypes.ContactState.LOCKED:
+				card_data["title"] = target_squad.squad_name
+				card_data["warrior_count"] = target_squad.get_living_warriors().size()
+				card_data["location"] = target_squad.current_location_id
+				card_data["morale"] = target_squad.get_morale()
+				var warrior_details: Array[Dictionary] = []
+				for warrior in target_squad.warriors:
+					var status := "Healthy"
+					if warrior.is_dead:
+						status = "Dead"
+					elif warrior.is_injured:
+						status = "Injured"
+					warrior_details.append({"name": warrior.display_name, "status": status})
+				card_data["warriors"] = warrior_details
+				card_data["stance"] = target_squad.engagement_stance
+				if target_squad.is_caravan():
+					card_data["cargo_value"] = target_squad.get_cargo_value()
+					card_data["cargo_destination"] = target_squad.cargo.destination_id
+				var locked_dest = _get_destination_intel(contact, target_squad)
+				if not locked_dest.is_empty():
+					card_data["destination_intel"] = locked_dest
+		active.append(card_data)
 
 	active.sort_custom(func(a, b): return float(a["being_tracked"]) * a["progress"] > float(b["being_tracked"]) * b["progress"])
 
@@ -59,56 +121,6 @@ func _display_contact_cards(contacts: Array, world: World) -> void:
 
 	view.display_contacts(active)
 
-func _build_card_data(contact, target_squad: StrategySquad) -> Dictionary:
-	var state = contact.get_state()
-	var focus = _player_squad.scouting_focus if _player_squad else null
-	var focus_mult = 1.0
-	if _world and _player_squad and focus:
-		focus_mult = _world.contact_tracker.calculate_focus_multiplier(_player_squad, target_squad, focus)
-	var data := {
-		"state": state,
-		"progress": contact.progress,
-		"progress_delta": contact.last_delta,
-		"target_id": contact.target_id,
-		"being_tracked": contact.being_tracked,
-		"is_caravan": target_squad.is_caravan(),
-		"focus_multiplier": focus_mult,
-	}
-	match state:
-		StrategyTypes.ContactState.SUSPECTED:
-			if target_squad.is_caravan():
-				data["title"] = target_squad.squad_name
-				data["size_hint"] = _get_size_hint(target_squad)
-			else:
-				data["title"] = "Unknown Force"
-				data["size_hint"] = _get_size_hint(target_squad)
-			data["area_hint"] = target_squad.current_location_id
-		StrategyTypes.ContactState.TRACKED:
-			data["title"] = target_squad.squad_name
-			data["warrior_count"] = target_squad.get_living_warriors().size()
-			data["location"] = target_squad.current_location_id
-			data["morale_hint"] = _get_morale_category(target_squad.get_morale())
-			if target_squad.is_caravan():
-				data["cargo_hint"] = "Carrying goods"
-				data["destination_hint"] = target_squad.cargo.destination_id
-			var tracked_dest = _get_destination_intel(contact, target_squad)
-			if not tracked_dest.is_empty():
-				data["destination_intel"] = tracked_dest
-		StrategyTypes.ContactState.LOCKED:
-			data["title"] = target_squad.squad_name
-			data["warrior_count"] = target_squad.get_living_warriors().size()
-			data["location"] = target_squad.current_location_id
-			data["morale"] = target_squad.get_morale()
-			data["warriors"] = _get_warrior_details(target_squad)
-			data["stance"] = target_squad.engagement_stance
-			if target_squad.is_caravan():
-				data["cargo_value"] = target_squad.get_cargo_value()
-				data["cargo_destination"] = target_squad.cargo.destination_id
-			var locked_dest = _get_destination_intel(contact, target_squad)
-			if not locked_dest.is_empty():
-				data["destination_intel"] = locked_dest
-	return data
-
 func _get_size_hint(squad: StrategySquad) -> String:
 	var count = squad.get_living_warriors().size()
 	if count <= 2:
@@ -118,29 +130,6 @@ func _get_size_hint(squad: StrategySquad) -> String:
 	else:
 		return "Large (6+ warriors)"
 
-func _get_morale_category(morale: float) -> String:
-	if morale >= 90.0:
-		return "Excellent"
-	elif morale >= 70.0:
-		return "Good"
-	elif morale >= 50.0:
-		return "Fair"
-	elif morale >= 30.0:
-		return "Poor"
-	else:
-		return "Critical"
-
-func _get_warrior_details(squad: StrategySquad) -> Array[Dictionary]:
-	var details: Array[Dictionary] = []
-	for warrior in squad.warriors:
-		var status := "Healthy"
-		if warrior.is_dead:
-			status = "Dead"
-		elif warrior.is_injured:
-			status = "Injured"
-		details.append({"name": warrior.display_name, "status": status})
-	return details
-
 func _find_squad(squad_id: String, world: World) -> StrategySquad:
 	for squad in world.roaming_squads:
 		if squad.squad_id == squad_id:
@@ -149,7 +138,21 @@ func _find_squad(squad_id: String, world: World) -> StrategySquad:
 
 
 func _get_destination_intel(contact, target_squad: StrategySquad) -> Dictionary:
-	var actual_dest := _resolve_squad_destination(target_squad)
+	var actual_dest := ""
+	if target_squad.is_caravan() and not target_squad.cargo.destination_id.is_empty():
+		actual_dest = target_squad.cargo.destination_id
+	elif _ai_decisions.has(target_squad.squad_id):
+		var decision: Dictionary = _ai_decisions[target_squad.squad_id]
+		var at = decision.get("activity_type", -1)
+		if at == StrategyTypes.ActivityType.TRAVEL or at == StrategyTypes.ActivityType.FORCE_MARCH:
+			var ctx: Dictionary = decision.get("context", {})
+			var ultimate := ctx.get("ultimate_destination", "") as String
+			if not ultimate.is_empty():
+				actual_dest = ultimate
+			else:
+				var next_hop := ctx.get("travel_destination", "") as String
+				if not next_hop.is_empty():
+					actual_dest = next_hop
 	if actual_dest.is_empty():
 		return {}
 
@@ -163,7 +166,21 @@ func _get_destination_intel(contact, target_squad: StrategySquad) -> Dictionary:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_val
 		if rng.randf() < wrong_chance:
-			displayed_dest = _pick_wrong_destination(target_squad.current_location_id, actual_dest)
+			if not _world or not _world.travel_graph:
+				displayed_dest = actual_dest
+			else:
+				var wrong_loc := _world.travel_graph.get_location(target_squad.current_location_id)
+				if not wrong_loc or not wrong_loc.connections:
+					displayed_dest = actual_dest
+				else:
+					var candidates: Array[String] = []
+					for conn in wrong_loc.connections.tt:
+						if conn.to_location_id != actual_dest:
+							candidates.append(conn.to_location_id)
+					if candidates.is_empty():
+						displayed_dest = actual_dest
+					else:
+						displayed_dest = candidates[hash(target_squad.current_location_id + actual_dest) % candidates.size()]
 
 	var result := {"destination": displayed_dest}
 
@@ -178,40 +195,6 @@ func _get_destination_intel(contact, target_squad: StrategySquad) -> Dictionary:
 	result["destination_name"] = loc.location_name if loc else displayed_dest
 
 	return result
-
-
-func _resolve_squad_destination(target_squad: StrategySquad) -> String:
-	if target_squad.is_caravan() and not target_squad.cargo.destination_id.is_empty():
-		return target_squad.cargo.destination_id
-
-	if _ai_decisions.has(target_squad.squad_id):
-		var decision: Dictionary = _ai_decisions[target_squad.squad_id]
-		var at = decision.get("activity_type", -1)
-		if at == StrategyTypes.ActivityType.TRAVEL or at == StrategyTypes.ActivityType.FORCE_MARCH:
-			var ctx: Dictionary = decision.get("context", {})
-			var ultimate := ctx.get("ultimate_destination", "") as String
-			if not ultimate.is_empty():
-				return ultimate
-			var next_hop := ctx.get("travel_destination", "") as String
-			if not next_hop.is_empty():
-				return next_hop
-
-	return ""
-
-
-func _pick_wrong_destination(current_loc_id: String, actual_dest: String) -> String:
-	if not _world or not _world.travel_graph:
-		return actual_dest
-	var loc := _world.travel_graph.get_location(current_loc_id)
-	if not loc or not loc.connections:
-		return actual_dest
-	var candidates: Array[String] = []
-	for conn in loc.connections.tt:
-		if conn.to_location_id != actual_dest:
-			candidates.append(conn.to_location_id)
-	if candidates.is_empty():
-		return actual_dest
-	return candidates[hash(current_loc_id + actual_dest) % candidates.size()]
 
 
 func on_role_toggled(role: StrategyTypes.SquadRole) -> void:

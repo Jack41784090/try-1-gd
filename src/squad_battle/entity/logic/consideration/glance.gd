@@ -2,10 +2,10 @@ class_name Glance
 extends Resource
 
 enum Glanceable {
-	# random
+	## random
 	RDN,
 
-	# Changeable stats
+	## Changeable stats
 	HP,
 	STA,
 	ORG,
@@ -13,7 +13,7 @@ enum Glanceable {
 	MAG,
 	LOC,
 
-	# Reality
+	## Reality
 	FORCE,
 }
 
@@ -72,47 +72,39 @@ func _to_string() -> String:
 	]
 
 
-func _get_glanceable_value(entity: CombatEntity, glanceable: Glanceable) -> float:
-	if glanceable in changeables:
-		var value = entity.get_changeable_stat_num(_glanceable_translate(glanceable))
-		if inverse:
-			value = 1.0 - value
-		return value
-	elif glanceable in realities:
-		var value = entity.calculate_reality_value(_glanceable_translate(glanceable))
-		if inverse:
-			value = 1.0 - value
-		return value
-	elif glanceable == Glanceable.RDN:
-		return rng.randf_range(0.0, threshold)
-	else:
-		assert(false, "Invalid glanceable: %s" % glanceable)
-	return 0.0
-
-
-func _get_glanceable_value_max(entity: CombatEntity, glanceable: Glanceable) -> float:
-	if glanceable in changeables:
-		return entity.get_ceiling_changeable_stat(_glanceable_translate(glanceable))
-	elif glanceable in realities:
-		return entity.calculate_reality_value(_glanceable_translate(glanceable))
-	elif glanceable == Glanceable.RDN:
-		return threshold
-	else:
-		assert(false, "Invalid glanceable: %s" % glanceable)
-	return 0.0
-
-
 func evaluate(entity: CombatEntity) -> float:
-	# Reads a single combat stat from an entity, processes it (normalize, inverse, chain, gate)
-	# Pipeline: raw_value → normalize_as_percentage → chain additional_glance → comparison gate
-	# e.g., Glance(property=HP, normalize=true, inverse=true)
-	#   → entity HP=30, max=100 → normalize(30/100)=0.3 → inverse(1.0-0.3)=0.7
-	# e.g., Glance(property=LOC, use_comparison=true, comparison=ABOVE, threshold=2)
-	#   → entity LOC=1 → check: 1 > 2 → false → returns 0.0
-	var value = _get_glanceable_value(entity, property)
+	## Reads a single combat stat from an entity, processes it (normalize, inverse, chain, gate)
+	## Pipeline: raw_value → normalize_as_percentage → chain additional_glance → comparison gate
+	## e.g., Glance(property=HP, normalize=true, inverse=true)
+	##   → entity HP=30, max=100 → normalize(30/100)=0.3 → inverse(1.0-0.3)=0.7
+	## e.g., Glance(property=LOC, use_comparison=true, comparison=ABOVE, threshold=2)
+	##   → entity LOC=1 → check: 1 > 2 → false → returns 0.0
+	var value: float
+	if property in changeables:
+		value = entity.get_changeable_stat_num(_glanceable_translate(property))
+		if inverse:
+			value = 1.0 - value
+	elif property in realities:
+		value = entity.calculate_reality_value(_glanceable_translate(property))
+		if inverse:
+			value = 1.0 - value
+	elif property == Glanceable.RDN:
+		value = rng.randf_range(0.0, threshold)
+	else:
+		assert(false, "Invalid glanceable: %s" % property)
+		value = 0.0
 
 	if normalize_as_percentage:
-		var max_v = _get_glanceable_value_max(entity, property)
+		var max_v: float
+		if property in changeables:
+			max_v = entity.get_ceiling_changeable_stat(_glanceable_translate(property))
+		elif property in realities:
+			max_v = entity.calculate_reality_value(_glanceable_translate(property))
+		elif property == Glanceable.RDN:
+			max_v = threshold
+		else:
+			assert(false, "Invalid glanceable: %s" % property)
+			max_v = 0.0
 		value = value / max(max_v, 1.0)
 
 	if additional_glance != null:

@@ -42,10 +42,6 @@ func _ready() -> void:
 	overlay_panel.mouse_entered.connect(_on_hover_enter)
 	scout_tab.mouse_exited.connect(_on_hover_exit)
 	overlay_panel.mouse_exited.connect(_on_hover_exit)
-	_connect_focus_signals()
-
-
-func _connect_focus_signals() -> void:
 	_aggr_button.pressed.connect(func(): presenter.on_preset_aggressive())
 	_supp_button.pressed.connect(func(): presenter.on_preset_support())
 	_clear_button.pressed.connect(func(): presenter.on_clear_focus())
@@ -144,9 +140,116 @@ func _slide_out() -> void:
 
 
 func display_contacts(contact_cards: Array[Dictionary]) -> void:
-	_clear_contacts()
-	for card in contact_cards:
-		_create_contact_card(card)
+	for child in contacts_container.get_children():
+		child.queue_free()
+	for card_data in contact_cards:
+		var state: StrategyTypes.ContactState = card_data["state"]
+		var progress: float = card_data["progress"]
+		var state_color := _get_state_color(state)
+		var state_name = StrategyTypes.ContactState.keys()[state]
+
+		var card: PanelContainer = CONTACT_CARD_SCENE.instantiate()
+		var title_label: Label = card.get_node("CardMargin/CardVBox/TitleLabel")
+		var tracked_banner: HBoxContainer = card.get_node("CardMargin/CardVBox/TrackedBanner")
+		var tracked_icon: TextureRect = card.get_node("CardMargin/CardVBox/TrackedBanner/TrackedIcon")
+		var details_container: VBoxContainer = card.get_node("CardMargin/CardVBox/DetailsContainer")
+		var delta_symbol: Label = card.get_node("CardMargin/CardVBox/ProgressRow/DeltaSymbol")
+		var bar_fill: ColorRect = card.get_node("CardMargin/CardVBox/ProgressRow/BarBackground/BarFill")
+		var delta_mark: ColorRect = card.get_node("CardMargin/CardVBox/ProgressRow/BarBackground/DeltaMark")
+		var pct_label: Label = card.get_node("CardMargin/CardVBox/ProgressRow/PercentLabel")
+		var delta_label: Label = card.get_node("CardMargin/CardVBox/ProgressRow/DeltaLabel")
+
+		title_label.text = "[%s] %s" % [state_name, card_data.get("title", "Unknown")]
+		title_label.add_theme_color_override("font_color", state_color)
+
+		if card_data.get("being_tracked", false):
+			tracked_banner.visible = true
+			tracked_icon.texture = load("res://assets/hoi4_icons/spotting.png")
+
+		match state:
+			StrategyTypes.ContactState.SUSPECTED:
+				_add_detail(details_container, "Size: %s" % card_data.get("size_hint", "Unknown"))
+				_add_detail(details_container, "Last detected near: %s" % card_data.get("area_hint", "Unknown"))
+			StrategyTypes.ContactState.TRACKED:
+				_add_detail(
+					details_container,
+					"Warriors: %d  |  Location: %s" % [
+						card_data.get("warrior_count", 0),
+						card_data.get("location", "Unknown"),
+					],
+				)
+				_add_detail(details_container, "Morale: %s" % card_data.get("morale_hint", "Unknown"))
+				_add_destination_intel(details_container, card_data, false)
+			StrategyTypes.ContactState.LOCKED:
+				_add_detail(
+					details_container,
+					"Warriors: %d  |  Location: %s" % [
+						card_data.get("warrior_count", 0),
+						card_data.get("location", "Unknown"),
+					],
+				)
+				_add_detail(
+					details_container,
+					"Morale: %.1f  |  Stance: %s" % [
+						card_data.get("morale", 0.0),
+						StrategyTypes.EngagementStance.keys()[card_data.get("stance", 0)],
+					],
+				)
+				_add_destination_intel(details_container, card_data, true)
+				var warriors_data: Array = card_data.get("warriors", [])
+				if not warriors_data.is_empty():
+					_add_detail(details_container, "Roster:")
+					for w in warriors_data:
+						var w_color = Color(0.7, 0.7, 0.7)
+						if w["status"] == "Injured":
+							w_color = Color(1.0, 0.8, 0.3)
+						elif w["status"] == "Dead":
+							w_color = Color(1.0, 0.3, 0.3)
+						var w_label: Label = LABEL_SCENE.instantiate()
+						w_label.text = "  - %s (%s)" % [w["name"], w["status"]]
+						w_label.add_theme_font_size_override("font_size", 13)
+						w_label.add_theme_color_override("font_color", w_color)
+						details_container.add_child(w_label)
+
+		var progress_delta: float = card_data.get("progress_delta", 0.0)
+		if not is_zero_approx(progress_delta):
+			delta_symbol.visible = true
+			if progress_delta > 0.0:
+				delta_symbol.text = "▲"
+				delta_symbol.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+			else:
+				delta_symbol.text = "▼"
+				delta_symbol.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+
+		var fill_fraction := clampf(progress / 100.0, 0.0, 1.0)
+		bar_fill.color = state_color
+		bar_fill.anchor_right = fill_fraction
+
+		if not is_zero_approx(progress_delta):
+			delta_mark.visible = true
+			var prev_progress := clampf(progress - progress_delta, 0.0, 100.0)
+			var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
+			if progress_delta > 0.0:
+				delta_mark.color = Color(0.4, 1.0, 0.4, 0.5)
+				delta_mark.anchor_left = prev_fraction
+				delta_mark.anchor_right = fill_fraction
+			else:
+				delta_mark.color = Color(1.0, 0.4, 0.4, 0.5)
+				delta_mark.anchor_left = fill_fraction
+				delta_mark.anchor_right = prev_fraction
+
+		pct_label.text = "%.0f%%" % progress
+
+		if not is_zero_approx(progress_delta):
+			delta_label.visible = true
+			if progress_delta > 0.0:
+				delta_label.text = "+%.1f" % progress_delta
+				delta_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+			else:
+				delta_label.text = "%.1f" % progress_delta
+				delta_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+
+		contacts_container.add_child(card)
 
 
 func display_warnings(warning_texts: Array[String]) -> void:
@@ -182,134 +285,12 @@ func update_focus_ui(focus, coordination: float) -> void:
 		cb.set_pressed_no_signal(focus.selected_classes.has(cls_key))
 
 
-func _clear_contacts() -> void:
-	for child in contacts_container.get_children():
-		child.queue_free()
-
-
-func _create_contact_card(data: Dictionary) -> void:
-	var state: StrategyTypes.ContactState = data["state"]
-	var progress: float = data["progress"]
-	var state_color := _get_state_color(state)
-	var state_name = StrategyTypes.ContactState.keys()[state]
-
-	var card: PanelContainer = CONTACT_CARD_SCENE.instantiate()
-	var card_vbox: VBoxContainer = card.get_node("CardMargin/CardVBox")
-	var title_label: Label = card.get_node("CardMargin/CardVBox/TitleLabel")
-	var tracked_banner: HBoxContainer = card.get_node("CardMargin/CardVBox/TrackedBanner")
-	var tracked_icon: TextureRect = card.get_node("CardMargin/CardVBox/TrackedBanner/TrackedIcon")
-	var details_container: VBoxContainer = card.get_node("CardMargin/CardVBox/DetailsContainer")
-	var progress_row: HBoxContainer = card.get_node("CardMargin/CardVBox/ProgressRow")
-	var delta_symbol: Label = card.get_node("CardMargin/CardVBox/ProgressRow/DeltaSymbol")
-	var bar_bg: ColorRect = card.get_node("CardMargin/CardVBox/ProgressRow/BarBackground")
-	var bar_fill: ColorRect = card.get_node("CardMargin/CardVBox/ProgressRow/BarBackground/BarFill")
-	var delta_mark: ColorRect = card.get_node("CardMargin/CardVBox/ProgressRow/BarBackground/DeltaMark")
-	var pct_label: Label = card.get_node("CardMargin/CardVBox/ProgressRow/PercentLabel")
-	var delta_label: Label = card.get_node("CardMargin/CardVBox/ProgressRow/DeltaLabel")
-
-	title_label.text = "[%s] %s" % [state_name, data.get("title", "Unknown")]
-	title_label.add_theme_color_override("font_color", state_color)
-
-	if data.get("being_tracked", false):
-		tracked_banner.visible = true
-		tracked_icon.texture = load("res://assets/hoi4_icons/spotting.png")
-
-	match state:
-		StrategyTypes.ContactState.SUSPECTED:
-			_add_detail(details_container, "Size: %s" % data.get("size_hint", "Unknown"))
-			_add_detail(details_container, "Last detected near: %s" % data.get("area_hint", "Unknown"))
-		StrategyTypes.ContactState.TRACKED:
-			_add_detail(
-				details_container,
-				"Warriors: %d  |  Location: %s" % [
-					data.get("warrior_count", 0),
-					data.get("location", "Unknown"),
-				],
-			)
-			_add_detail(details_container, "Morale: %s" % data.get("morale_hint", "Unknown"))
-			_add_destination_intel(details_container, data, false)
-		StrategyTypes.ContactState.LOCKED:
-			_add_detail(
-				details_container,
-				"Warriors: %d  |  Location: %s" % [
-					data.get("warrior_count", 0),
-					data.get("location", "Unknown"),
-				],
-			)
-			_add_detail(
-				details_container,
-				"Morale: %.1f  |  Stance: %s" % [
-					data.get("morale", 0.0),
-					StrategyTypes.EngagementStance.keys()[data.get("stance", 0)],
-				],
-			)
-			_add_destination_intel(details_container, data, true)
-			var warriors_data: Array = data.get("warriors", [])
-			if not warriors_data.is_empty():
-				_add_detail(details_container, "Roster:")
-				for w in warriors_data:
-					var w_color = Color(0.7, 0.7, 0.7)
-					if w["status"] == "Injured":
-						w_color = Color(1.0, 0.8, 0.3)
-					elif w["status"] == "Dead":
-						w_color = Color(1.0, 0.3, 0.3)
-					var w_label: Label = LABEL_SCENE.instantiate()
-					w_label.text = "  - %s (%s)" % [w["name"], w["status"]]
-					w_label.add_theme_font_size_override("font_size", 13)
-					w_label.add_theme_color_override("font_color", w_color)
-					details_container.add_child(w_label)
-
-	var progress_delta: float = data.get("progress_delta", 0.0)
-	_configure_progress_bar(delta_symbol, bar_fill, delta_mark, pct_label, delta_label, progress, progress_delta, state_color)
-
-	contacts_container.add_child(card)
-
-
 func _add_detail(parent: VBoxContainer, text: String) -> void:
 	var label: Label = LABEL_SCENE.instantiate()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	parent.add_child(label)
-
-
-func _configure_progress_bar(delta_symbol: Label, bar_fill: ColorRect, delta_mark: ColorRect, pct_label: Label, delta_label: Label, progress: float, delta: float, state_color: Color) -> void:
-	if not is_zero_approx(delta):
-		delta_symbol.visible = true
-		if delta > 0.0:
-			delta_symbol.text = "▲"
-			delta_symbol.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
-		else:
-			delta_symbol.text = "▼"
-			delta_symbol.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
-
-	var fill_fraction := clampf(progress / 100.0, 0.0, 1.0)
-	bar_fill.color = state_color
-	bar_fill.anchor_right = fill_fraction
-
-	if not is_zero_approx(delta):
-		delta_mark.visible = true
-		var prev_progress := clampf(progress - delta, 0.0, 100.0)
-		var prev_fraction := clampf(prev_progress / 100.0, 0.0, 1.0)
-		if delta > 0.0:
-			delta_mark.color = Color(0.4, 1.0, 0.4, 0.5)
-			delta_mark.anchor_left = prev_fraction
-			delta_mark.anchor_right = fill_fraction
-		else:
-			delta_mark.color = Color(1.0, 0.4, 0.4, 0.5)
-			delta_mark.anchor_left = fill_fraction
-			delta_mark.anchor_right = prev_fraction
-
-	pct_label.text = "%.0f%%" % progress
-
-	if not is_zero_approx(delta):
-		delta_label.visible = true
-		if delta > 0.0:
-			delta_label.text = "+%.1f" % delta
-			delta_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
-		else:
-			delta_label.text = "%.1f" % delta
-			delta_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 
 
 func _add_destination_intel(parent: VBoxContainer, data: Dictionary, show_distance: bool) -> void:
@@ -327,10 +308,8 @@ func _add_destination_intel(parent: VBoxContainer, data: Dictionary, show_distan
 	label.add_theme_font_size_override("font_size", 14)
 	if not show_distance and progress_val < 60.0:
 		label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.4))
-		label.text += " (uncertain)"
+		label.text = text + " (uncertain)"
 	else:
-		label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
-		parent.add_child(label)
 		label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
 	parent.add_child(label)
 

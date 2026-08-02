@@ -182,7 +182,7 @@ func test_hire_workers_execution() -> void:
 	## Treasury should have decreased due to wages paid
 	## Started at 200, gained tax, but spent on wages
 	## After hiring, government info should show wages_paid > 0
-	var gov_info: Array = engine.get_government_info()
+	var gov_info: Array[Dictionary] = engine.get_government_info()
 	check(gov_info.size() > 0, "get_government_info returns data")
 	if gov_info.size() > 0:
 		var g: Dictionary = gov_info[0]
@@ -201,7 +201,7 @@ func test_no_government_no_crash() -> void:
 	check_eq(snap.government_directives_count, 0, "No gov → directives = 0")
 	check_eq(snap.government_workers_hired, 0, "No gov → hired = 0")
 
-	var gov_info: Array = engine.get_government_info()
+	var gov_info: Array[Dictionary] = engine.get_government_info()
 	check_eq(gov_info.size(), 0, "No gov → get_government_info returns empty")
 
 
@@ -271,7 +271,7 @@ func test_get_government_info() -> void:
 	_setup_minimal_economy(true, 5)
 	engine.tick(1)
 
-	var info: Array = engine.get_government_info()
+	var info: Array[Dictionary] = engine.get_government_info()
 	check_eq(info.size(), 1, "One location with government")
 
 	var g: Dictionary = info[0]

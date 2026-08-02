@@ -17,8 +17,14 @@ func bind_view(v: MissionsView) -> void:
 func open(p_missions: Array[Mission]) -> void:
 	all_missions = p_missions
 	selected_mission = null
-	var active = _get_active_missions()
-	var completed = _get_completed_missions()
+	var active: Array[Mission] = []
+	for mission in all_missions:
+		if mission.is_unlocked and not mission.is_completed and not mission.is_failed:
+			active.append(mission)
+	var completed: Array[Mission] = []
+	for mission in all_missions:
+		if mission.is_completed:
+			completed.append(mission)
 	view.display_mission_list(active, completed)
 	view.show_missions()
 
@@ -38,17 +44,4 @@ func _on_closed() -> void:
 	missions_closed.emit()
 
 
-func _get_active_missions() -> Array[Mission]:
-	var active: Array[Mission] = []
-	for mission in all_missions:
-		if mission.is_unlocked and not mission.is_completed and not mission.is_failed:
-			active.append(mission)
-	return active
 
-
-func _get_completed_missions() -> Array[Mission]:
-	var completed: Array[Mission] = []
-	for mission in all_missions:
-		if mission.is_completed:
-			completed.append(mission)
-	return completed

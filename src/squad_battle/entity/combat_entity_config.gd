@@ -1,6 +1,6 @@
+class_name CombatEntityConfig
 extends RefCounted
 
-class_name CombatEntityConfig
 
 var resource: CombatEntityResource
 var side: SquadBattleTypes.Side

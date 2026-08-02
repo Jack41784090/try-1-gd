@@ -76,16 +76,101 @@ func display_mission_details(mission: Mission) -> void:
 	detail_vbox.add_child(desc)
 
 	if not mission.conditions.is_empty():
-		_add_subsection_header(detail_vbox, "Conditions")
+		var cond_header: Label = LABEL_SCENE.instantiate()
+		cond_header.text = "Conditions"
+		cond_header.add_theme_font_size_override("font_size", 16)
+		cond_header.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+		detail_vbox.add_child(cond_header)
 		for condition in mission.conditions:
-			_add_detail_line(detail_vbox, _describe_condition(condition), Color(0.75, 0.75, 0.75))
+			var condition_text: String
+			match condition.condition_type:
+				TriggerCondition.ConditionType.LOCATION:
+					condition_text = "Be at %s" % condition.parameters.get("location_id", "unknown")
+				TriggerCondition.ConditionType.LOCATION_TYPE:
+					var loc_type: int = condition.parameters.get("location_type", 0)
+					condition_text = "Be at a %s" % StrategyTypes.LocationType.keys()[loc_type].capitalize()
+				TriggerCondition.ConditionType.SQUAD_STATUS:
+					var parts: Array[String] = []
+					if condition.parameters.has("squad_morale_min") and condition.parameters["squad_morale_min"] > -999:
+						parts.append("Morale >= %.0f" % condition.parameters["squad_morale_min"])
+					if condition.parameters.has("squad_morale_max") and condition.parameters["squad_morale_max"] < 999:
+						parts.append("Morale <= %.0f" % condition.parameters["squad_morale_max"])
+					if condition.parameters.has("money_min") and condition.parameters["money_min"] > -999:
+						parts.append("Money >= %.0f" % condition.parameters["money_min"])
+					if condition.parameters.has("food_min") and condition.parameters["food_min"] > -999:
+						parts.append("Food >= %d" % condition.parameters["food_min"])
+					if condition.parameters.has("karma_min") and condition.parameters["karma_min"] > -999:
+						parts.append("Karma >= %.0f" % condition.parameters["karma_min"])
+					if parts.is_empty():
+						condition_text = "Squad status check"
+					else:
+						condition_text = ", ".join(parts)
+				TriggerCondition.ConditionType.WARRIOR_STATUS:
+					if condition.parameters.has("warrior_religion") and condition.parameters["warrior_religion"] >= 0:
+						var religion: String = StrategyTypes.Religion.keys()[condition.parameters["warrior_religion"]]
+						var count: int = condition.parameters.get("warrior_count_min", 1)
+						condition_text = "Have %d+ %s warrior(s)" % [count, religion.capitalize()]
+					else:
+						condition_text = "StrategyEntity status check"
+				TriggerCondition.ConditionType.ACTIVITY_TYPE:
+					var at: int = condition.parameters.get("activity_type", 0)
+					condition_text = "Perform %s" % StrategyTypes.ActivityType.keys()[at].capitalize()
+				TriggerCondition.ConditionType.TIME:
+					var min_turn: int = condition.parameters.get("turn_min", 0)
+					var max_turn: int = condition.parameters.get("turn_max", 999999)
+					if min_turn > 0 and max_turn < 999999:
+						condition_text = "Between turns %d and %d" % [min_turn, max_turn]
+					elif min_turn > 0:
+						condition_text = "After turn %d" % min_turn
+					elif max_turn < 999999:
+						condition_text = "Before turn %d" % max_turn
+					else:
+						condition_text = "Any turn"
+				TriggerCondition.ConditionType.MISSION_STATUS:
+					var mid: String = condition.parameters.get("mission_id", "")
+					var status: String = condition.parameters.get("status", "completed")
+					condition_text = "Mission '%s' %s" % [mid, status]
+				TriggerCondition.ConditionType.LOCATION_TRANSITION:
+					var transition: String = condition.parameters.get("transition_type", "arriving")
+					condition_text = "%s at a location" % transition.capitalize()
+				_:
+					condition_text = str(condition.condition_type)
+			_add_detail_line(detail_vbox, condition_text, Color(0.75, 0.75, 0.75))
 
 	var sep: HSeparator = HSeparator.new()
 	sep.add_theme_constant_override("separation", 12)
 	detail_vbox.add_child(sep)
 
 	_add_section_header(detail_vbox, "Rewards")
-	_display_rewards(mission)
+
+	var has_rewards := false
+	var squad_stats: Dictionary = mission.completion_effects.get("squad_stats", {})
+	for stat_key in squad_stats:
+		var value: float = squad_stats[stat_key]
+		var sign_str := "+" if value >= 0 else ""
+		var stat_display: String
+		if stat_key is StrategyTypes.SquadProperty:
+			stat_display = StrategyTypes.SquadProperty.keys()[stat_key].capitalize()
+		elif stat_key is int:
+			stat_display = StrategyTypes.SquadProperty.keys()[stat_key].capitalize()
+		else:
+			stat_display = str(stat_key)
+		_add_detail_line(detail_vbox, "%s%s %.0f" % [sign_str, stat_display, absf(value)], Color(0.5, 1.0, 0.5))
+		has_rewards = true
+
+	var reputation: Dictionary = mission.completion_effects.get("reputation", {})
+	for faction_id in reputation:
+		var value: float = reputation[faction_id]
+		var sign_str := "+" if value >= 0 else ""
+		_add_detail_line(detail_vbox, "%s%.0f %s reputation" % [sign_str, absf(value), faction_id], Color(0.5, 0.8, 1.0))
+		has_rewards = true
+
+	if not mission.postrequisite_mission_ids.is_empty():
+		_add_detail_line(detail_vbox, "Unlocks %d new mission(s)" % mission.postrequisite_mission_ids.size(), Color(1.0, 0.9, 0.5))
+		has_rewards = true
+
+	if not has_rewards:
+		_add_detail_line(detail_vbox, "No rewards specified.", Color(0.5, 0.5, 0.5))
 
 
 func clear_details() -> void:
@@ -133,103 +218,6 @@ func _highlight_button(btn: Button) -> void:
 #endregion
 
 
-#region Detail Display
-
-func _display_rewards(mission: Mission) -> void:
-	var has_rewards := false
-
-	var squad_stats: Dictionary = mission.completion_effects.get("squad_stats", {})
-	for stat_key in squad_stats:
-		var value: float = squad_stats[stat_key]
-		var sign_str := "+" if value >= 0 else ""
-		_add_detail_line(detail_vbox, "%s%s %.0f" % [sign_str, _squad_stat_display(stat_key), absf(value)], Color(0.5, 1.0, 0.5))
-		has_rewards = true
-
-	var reputation: Dictionary = mission.completion_effects.get("reputation", {})
-	for faction_id in reputation:
-		var value: float = reputation[faction_id]
-		var sign_str := "+" if value >= 0 else ""
-		_add_detail_line(detail_vbox, "%s%.0f %s reputation" % [sign_str, absf(value), faction_id], Color(0.5, 0.8, 1.0))
-		has_rewards = true
-
-	if not mission.postrequisite_mission_ids.is_empty():
-		_add_detail_line(detail_vbox, "Unlocks %d new mission(s)" % mission.postrequisite_mission_ids.size(), Color(1.0, 0.9, 0.5))
-		has_rewards = true
-
-	if not has_rewards:
-		_add_detail_line(detail_vbox, "No rewards specified.", Color(0.5, 0.5, 0.5))
-
-#endregion
-
-
-#region Condition Descriptions
-
-func _describe_condition(condition: TriggerCondition) -> String:
-	match condition.condition_type:
-		TriggerCondition.ConditionType.LOCATION:
-			return "Be at %s" % condition.parameters.get("location_id", "unknown")
-		TriggerCondition.ConditionType.LOCATION_TYPE:
-			var loc_type: int = condition.parameters.get("location_type", 0)
-			return "Be at a %s" % StrategyTypes.LocationType.keys()[loc_type].capitalize()
-		TriggerCondition.ConditionType.SQUAD_STATUS:
-			return _describe_squad_condition(condition.parameters)
-		TriggerCondition.ConditionType.WARRIOR_STATUS:
-			return _describe_warrior_condition(condition.parameters)
-		TriggerCondition.ConditionType.ACTIVITY_TYPE:
-			var at: int = condition.parameters.get("activity_type", 0)
-			return "Perform %s" % StrategyTypes.ActivityType.keys()[at].capitalize()
-		TriggerCondition.ConditionType.TIME:
-			return _describe_time_condition(condition.parameters)
-		TriggerCondition.ConditionType.MISSION_STATUS:
-			var mid: String = condition.parameters.get("mission_id", "")
-			var status: String = condition.parameters.get("status", "completed")
-			return "Mission '%s' %s" % [mid, status]
-		TriggerCondition.ConditionType.LOCATION_TRANSITION:
-			var transition: String = condition.parameters.get("transition_type", "arriving")
-			return "%s at a location" % transition.capitalize()
-		_:
-			return str(condition.condition_type)
-
-
-func _describe_squad_condition(params: Dictionary) -> String:
-	var parts: Array[String] = []
-	if params.has("squad_morale_min") and params["squad_morale_min"] > -999:
-		parts.append("Morale >= %.0f" % params["squad_morale_min"])
-	if params.has("squad_morale_max") and params["squad_morale_max"] < 999:
-		parts.append("Morale <= %.0f" % params["squad_morale_max"])
-	if params.has("money_min") and params["money_min"] > -999:
-		parts.append("Money >= %.0f" % params["money_min"])
-	if params.has("food_min") and params["food_min"] > -999:
-		parts.append("Food >= %d" % params["food_min"])
-	if params.has("karma_min") and params["karma_min"] > -999:
-		parts.append("Karma >= %.0f" % params["karma_min"])
-	if parts.is_empty():
-		return "Squad status check"
-	return ", ".join(parts)
-
-
-func _describe_warrior_condition(params: Dictionary) -> String:
-	if params.has("warrior_religion") and params["warrior_religion"] >= 0:
-		var religion: String = StrategyTypes.Religion.keys()[params["warrior_religion"]]
-		var count: int = params.get("warrior_count_min", 1)
-		return "Have %d+ %s warrior(s)" % [count, religion.capitalize()]
-	return "StrategyEntity status check"
-
-
-func _describe_time_condition(params: Dictionary) -> String:
-	var min_turn: int = params.get("turn_min", 0)
-	var max_turn: int = params.get("turn_max", 999999)
-	if min_turn > 0 and max_turn < 999999:
-		return "Between turns %d and %d" % [min_turn, max_turn]
-	elif min_turn > 0:
-		return "After turn %d" % min_turn
-	elif max_turn < 999999:
-		return "Before turn %d" % max_turn
-	return "Any turn"
-
-#endregion
-
-
 #region Helpers
 
 func _add_section_header(parent: VBoxContainer, text: String) -> void:
@@ -240,28 +228,12 @@ func _add_section_header(parent: VBoxContainer, text: String) -> void:
 	parent.add_child(label)
 
 
-func _add_subsection_header(parent: VBoxContainer, text: String) -> void:
-	var label: Label = LABEL_SCENE.instantiate()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
-	parent.add_child(label)
-
-
 func _add_detail_line(parent: VBoxContainer, text: String, color: Color) -> void:
 	var label: Label = LABEL_SCENE.instantiate()
 	label.text = "  %s" % text
 	label.add_theme_font_size_override("font_size", 13)
 	label.add_theme_color_override("font_color", color)
 	parent.add_child(label)
-
-
-func _squad_stat_display(stat_key: Variant) -> String:
-	if stat_key is StrategyTypes.SquadProperty:
-		return StrategyTypes.SquadProperty.keys()[stat_key].capitalize()
-	if stat_key is int:
-		return StrategyTypes.SquadProperty.keys()[stat_key].capitalize()
-	return str(stat_key)
 
 
 func _clear_container(container: VBoxContainer) -> void:

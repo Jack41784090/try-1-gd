@@ -56,7 +56,49 @@ func _pull() -> void:
 		child.queue_free()
 	var current_id := _squad.current_tactic.tactic_id if _squad.current_tactic else "balanced"
 	for def in TACTIC_DEFS:
-		_cards_container.add_child(_create_card(def, current_id))
+		var tactic := Tactic.create_from_type(def["type"] as Tactic.TacticType)
+		var is_active := tactic.tactic_id == current_id
+
+		var panel: PanelContainer = CARD_SCENE.instantiate()
+
+		if is_active:
+			var style := StyleBoxFlat.new()
+			style.bg_color = Color(0.2, 0.22, 0.15, 0.95)
+			style.border_width_left = 3
+			style.border_width_top = 1
+			style.border_width_right = 1
+			style.border_width_bottom = 1
+			style.border_color = Color(0.8, 0.7, 0.3, 1.0)
+			style.corner_radius_top_left = 6
+			style.corner_radius_top_right = 6
+			style.corner_radius_bottom_left = 6
+			style.corner_radius_bottom_right = 6
+			panel.add_theme_stylebox_override("panel", style)
+
+		var name_label: Label = panel.get_node("Margin/HBox/InfoVBox/NameLabel")
+		name_label.text = def["name"]
+		if is_active:
+			name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7, 1.0))
+
+		var desc_label: Label = panel.get_node("Margin/HBox/InfoVBox/DescLabel")
+		desc_label.text = def["desc"]
+
+		var stats_label: Label = panel.get_node("Margin/HBox/InfoVBox/StatsLabel")
+		stats_label.text = def["stats"]
+
+		var active_label: Label = panel.get_node("Margin/HBox/ActiveLabel")
+		var select_btn: Button = panel.get_node("Margin/HBox/SelectButton")
+
+		if is_active:
+			active_label.visible = true
+			select_btn.visible = false
+		else:
+			active_label.visible = false
+			select_btn.visible = true
+			UIAnimations.register_button(select_btn)
+			select_btn.pressed.connect(func(): tactic_selected.emit(tactic))
+
+		_cards_container.add_child(panel)
 
 
 func _connect_signals() -> void:
@@ -77,49 +119,3 @@ func _on_visibility_changed() -> void:
 		_pull()
 	else:
 		_disconnect_signals()
-
-
-func _create_card(def: Dictionary, current_tactic_id: String) -> PanelContainer:
-	var tactic := Tactic.create_from_type(def["type"] as Tactic.TacticType)
-	var is_active := tactic.tactic_id == current_tactic_id
-
-	var panel: PanelContainer = CARD_SCENE.instantiate()
-
-	if is_active:
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.2, 0.22, 0.15, 0.95)
-		style.border_width_left = 3
-		style.border_width_top = 1
-		style.border_width_right = 1
-		style.border_width_bottom = 1
-		style.border_color = Color(0.8, 0.7, 0.3, 1.0)
-		style.corner_radius_top_left = 6
-		style.corner_radius_top_right = 6
-		style.corner_radius_bottom_left = 6
-		style.corner_radius_bottom_right = 6
-		panel.add_theme_stylebox_override("panel", style)
-
-	var name_label: Label = panel.get_node("Margin/HBox/InfoVBox/NameLabel")
-	name_label.text = def["name"]
-	if is_active:
-		name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7, 1.0))
-
-	var desc_label: Label = panel.get_node("Margin/HBox/InfoVBox/DescLabel")
-	desc_label.text = def["desc"]
-
-	var stats_label: Label = panel.get_node("Margin/HBox/InfoVBox/StatsLabel")
-	stats_label.text = def["stats"]
-
-	var active_label: Label = panel.get_node("Margin/HBox/ActiveLabel")
-	var select_btn: Button = panel.get_node("Margin/HBox/SelectButton")
-
-	if is_active:
-		active_label.visible = true
-		select_btn.visible = false
-	else:
-		active_label.visible = false
-		select_btn.visible = true
-		UIAnimations.register_button(select_btn)
-		select_btn.pressed.connect(func(): tactic_selected.emit(tactic))
-
-	return panel

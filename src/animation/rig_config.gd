@@ -94,37 +94,30 @@ func get_expression(expression_id: String) -> iExpression:
 func get_bone_textures() -> Dictionary:
 	var textures: Dictionary = {}
 	## Z-order: back-to-front for side-facing character
-	# Far arm (behind body)
 	if left_arm_texture:
 		textures["LeftArm"] = left_arm_texture
 	if left_forearm_texture:
 		textures["LeftForearm"] = left_forearm_texture
 	if left_hand_texture:
 		textures["LeftHand"] = left_hand_texture
-	# Far leg
 	if left_leg_texture:
 		textures["LeftLeg"] = left_leg_texture
 	if left_shin_texture:
 		textures["LeftShin"] = left_shin_texture
 	if left_foot_texture:
 		textures["LeftFoot"] = left_foot_texture
-	# Hips
 	if hips_texture:
 		textures["Hips"] = hips_texture
-	# Near leg (in front of hips)
 	if right_leg_texture:
 		textures["RightLeg"] = right_leg_texture
 	if right_shin_texture:
 		textures["RightShin"] = right_shin_texture
 	if right_foot_texture:
 		textures["RightFoot"] = right_foot_texture
-	# Torso (on top of legs)
 	if torso_texture:
 		textures["Torso"] = torso_texture
-	# Head
 	if head_texture:
 		textures["Head"] = head_texture
-	# Near arm (on top of everything)
 	if right_arm_texture:
 		textures["RightArm"] = right_arm_texture
 	if right_forearm_texture:

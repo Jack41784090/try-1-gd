@@ -89,10 +89,6 @@ func clear_warrior() -> void:
 	_refresh_display()
 
 
-func is_empty() -> bool:
-	return warrior == null
-
-
 func set_selected(selected: bool) -> void:
 	_is_selected = selected
 	_refresh_display()

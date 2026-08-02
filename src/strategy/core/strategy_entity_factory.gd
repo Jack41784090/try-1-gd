@@ -7,14 +7,6 @@ static func Create(background: WarriorBackground, religion: StrategyTypes.Religi
 	res.religion = religion
 	res.social_class = StrategyTypes.SocialClass.PEASANT
 	res.identification = background.background_id
-	res.rs_array = _build_rs_array(background)
-	var entity := StrategyEntity.new(res)
-	entity.location_prebattle = background.default_position
-	return entity
-
-
-## Recruits start unequipped; arming happens through the squad inventory UI.
-static func _build_rs_array(background: WarriorBackground) -> Array[ReactiveStat]:
 	var morale := ReactiveStat.new()
 	morale.stat_name = StatName.I.MORALE
 	morale.stat_value = 0.5
@@ -27,4 +19,7 @@ static func _build_rs_array(background: WarriorBackground) -> Array[ReactiveStat
 	var armour := ReactiveStat.new()
 	armour.stat_name = StatName.I.ARMOUR
 	armour.stat_value = null
-	return [morale, mv_spd, weapon, armour]
+	res.rs_array = [morale, mv_spd, weapon, armour]
+	var entity := StrategyEntity.new(res)
+	entity.location_prebattle = background.default_position
+	return entity

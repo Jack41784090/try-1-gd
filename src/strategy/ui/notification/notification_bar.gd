@@ -1,6 +1,8 @@
 class_name NotificationBar
 extends HBoxContainer
 
+const DETAIL_PANEL_SCENE := preload("res://scenes/ui/notification_detail_panel.tscn")
+
 var _notifications: Array[NotificationData] = []
 var _active_panel: PanelContainer = null
 var _active_button_index: int = -1
@@ -35,7 +37,50 @@ func show_notifications(notifications: Array[NotificationData]) -> void:
 	_clear_buttons()
 	_notifications = notifications
 	for i in _notifications.size():
-		_add_alert_button(i)
+		var notif := _notifications[i]
+		var color: Color = TYPE_COLORS.get(notif.type, Color.WHITE)
+		var icon_text: String = TYPE_ICONS.get(notif.type, "!")
+
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(32, 32)
+		btn.text = icon_text
+		btn.tooltip_text = notif.title
+		btn.add_theme_font_size_override("font_size", 14)
+
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(color, 0.8)
+		style.corner_radius_top_left = 4
+		style.corner_radius_top_right = 4
+		style.corner_radius_bottom_left = 4
+		style.corner_radius_bottom_right = 4
+		style.content_margin_left = 4
+		style.content_margin_right = 4
+		style.content_margin_top = 2
+		style.content_margin_bottom = 2
+		btn.add_theme_stylebox_override("normal", style)
+
+		var hover_style := style.duplicate()
+		hover_style.bg_color = Color(color, 1.0)
+		btn.add_theme_stylebox_override("hover", hover_style)
+
+		var pressed_style := style.duplicate()
+		pressed_style.bg_color = Color(color, 0.6)
+		btn.add_theme_stylebox_override("pressed", pressed_style)
+
+		btn.add_theme_color_override("font_color", Color.WHITE)
+		btn.add_theme_color_override("font_hover_color", Color.WHITE)
+		btn.add_theme_color_override("font_pressed_color", Color(0.9, 0.9, 0.9))
+
+		btn.pressed.connect(_on_alert_pressed.bind(i))
+		add_child(btn)
+
+		btn.scale = Vector2(0.5, 0.5)
+		btn.modulate.a = 0.0
+		btn.pivot_offset = btn.custom_minimum_size / 2.0
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(btn, "scale", Vector2.ONE, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK).set_delay(i * 0.05)
+		tween.tween_property(btn, "modulate:a", 1.0, 0.15).set_delay(i * 0.05)
 
 
 func clear() -> void:
@@ -53,53 +98,6 @@ func _clear_buttons() -> void:
 	_active_button_index = -1
 
 
-func _add_alert_button(index: int) -> void:
-	var notif := _notifications[index]
-	var color: Color = TYPE_COLORS.get(notif.type, Color.WHITE)
-	var icon_text: String = TYPE_ICONS.get(notif.type, "!")
-
-	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(32, 32)
-	btn.text = icon_text
-	btn.tooltip_text = notif.title
-	btn.add_theme_font_size_override("font_size", 14)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(color, 0.8)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
-	style.content_margin_left = 4
-	style.content_margin_right = 4
-	style.content_margin_top = 2
-	style.content_margin_bottom = 2
-	btn.add_theme_stylebox_override("normal", style)
-
-	var hover_style := style.duplicate()
-	hover_style.bg_color = Color(color, 1.0)
-	btn.add_theme_stylebox_override("hover", hover_style)
-
-	var pressed_style := style.duplicate()
-	pressed_style.bg_color = Color(color, 0.6)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", Color(0.9, 0.9, 0.9))
-
-	btn.pressed.connect(_on_alert_pressed.bind(index))
-	add_child(btn)
-
-	btn.scale = Vector2(0.5, 0.5)
-	btn.modulate.a = 0.0
-	btn.pivot_offset = btn.custom_minimum_size / 2.0
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(btn, "scale", Vector2.ONE, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK).set_delay(index * 0.05)
-	tween.tween_property(btn, "modulate:a", 1.0, 0.15).set_delay(index * 0.05)
-
-
 func _on_alert_pressed(index: int) -> void:
 	if index < 0 or index >= _notifications.size():
 		return
@@ -108,14 +106,10 @@ func _on_alert_pressed(index: int) -> void:
 		return
 	_dismiss_panel()
 	_active_button_index = index
-	_show_detail_panel(index)
-
-
-func _show_detail_panel(index: int) -> void:
 	var notif := _notifications[index]
 	var color: Color = TYPE_COLORS.get(notif.type, Color.WHITE)
 
-	var panel := PanelContainer.new()
+	var panel: PanelContainer = DETAIL_PANEL_SCENE.instantiate()
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
 	panel_style.border_color = Color(color, 0.7)
@@ -134,30 +128,26 @@ func _show_detail_panel(index: int) -> void:
 	panel.add_theme_stylebox_override("panel", panel_style)
 	panel.custom_minimum_size.x = 250
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = panel.get_node("VBox")
 	vbox.add_theme_constant_override("separation", 4)
-	panel.add_child(vbox)
 
-	var title := Label.new()
+	var title: Label = vbox.get_node("Title")
 	title.text = notif.title
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", color)
-	vbox.add_child(title)
 
-	var desc := Label.new()
+	var desc: Label = vbox.get_node("Description")
 	desc.text = notif.description
 	desc.add_theme_font_size_override("font_size", 13)
 	desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.custom_minimum_size.x = 220
-	vbox.add_child(desc)
+
+	var hbox: HBoxContainer = vbox.get_node("HBox")
+	var action_btn: Button = hbox.get_node("ActionButton")
+	var dismiss_btn: Button = hbox.get_node("DismissButton")
 
 	if notif.action.is_valid():
-		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 6)
-		vbox.add_child(hbox)
-
-		var action_btn := Button.new()
 		action_btn.text = notif.action_label
 		action_btn.add_theme_font_size_override("font_size", 12)
 		action_btn.custom_minimum_size = Vector2(100, 28)
@@ -165,21 +155,16 @@ func _show_detail_panel(index: int) -> void:
 			_dismiss_panel()
 			notif.action.call()
 		)
-		hbox.add_child(action_btn)
-
-		var dismiss_btn := Button.new()
 		dismiss_btn.text = "Dismiss"
 		dismiss_btn.add_theme_font_size_override("font_size", 12)
 		dismiss_btn.custom_minimum_size = Vector2(70, 28)
 		dismiss_btn.pressed.connect(_dismiss_panel)
-		hbox.add_child(dismiss_btn)
 	else:
-		var dismiss_btn := Button.new()
+		action_btn.visible = false
 		dismiss_btn.text = "Dismiss"
 		dismiss_btn.add_theme_font_size_override("font_size", 12)
 		dismiss_btn.custom_minimum_size = Vector2(70, 28)
 		dismiss_btn.pressed.connect(_dismiss_panel)
-		vbox.add_child(dismiss_btn)
 
 	panel.top_level = true
 	panel.modulate.a = 0.0

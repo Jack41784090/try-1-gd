@@ -533,7 +533,7 @@ script = ExtResource("18_fleet")
 
 [node name="StrategyPresenter" type="Node" parent="." unique_id=1614766973]
 script = ExtResource("19_presenter")
-scenario_path = "res://resources/scenarios/goetz-official/scenario.tres"
+scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 is_demo_scenario = false
 
 [node name="GameOverOverlay" type="ColorRect" parent="." unique_id=975680385]

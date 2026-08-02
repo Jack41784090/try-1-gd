@@ -64,30 +64,4 @@ class LocationSnapshot:
 			", ".join(stock_parts),
 		]
 
-static func create_snapshot(
-	loc_id: String,
-	loc_name: String,
-	pop: Population,
-	inv: LocationInventory,
-) -> LocationSnapshot:
-	var s := LocationSnapshot.new()
-	s.location_id = loc_id
-	s.location_name = loc_name
-	s.population_count = pop.size()
-	s.avg_satisfaction = pop.get_average_satisfaction()
-	s.avg_money = pop.get_average_money()
-	for thing in inv.stocks:
-		s.stocks[thing] = inv.stocks[thing]
-		s.prices[thing] = inv.get_price(thing)
-	return s
 
-func log_to_console() -> void:
-	Log.info("Economy", "=== TURN %d ===" % turn)
-	for snap in location_snapshots:
-		Log.info("Economy", "  %s" % snap)
-	if not moves_created.is_empty():
-		for m in moves_created:
-			Log.debug("Economy", "  [MOVE+] %s" % m)
-	if not moves_completed.is_empty():
-		for m in moves_completed:
-			Log.debug("Economy", "  [MOVE✓] %s" % m)

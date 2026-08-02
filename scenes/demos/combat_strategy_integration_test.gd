@@ -70,10 +70,6 @@ func assert_not_null(value, message: String) -> void:
 func end_test() -> void:
 	print("")
 
-# ============================================================================
-# TEST SUITE 1: Tactic System
-# ============================================================================
-
 func test_tactic_system() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 1: Tactic System")
@@ -155,10 +151,6 @@ func test_tactic_create_from_type() -> void:
 	var guerilla = Tactic.create_from_type(Tactic.TacticType.GUERILLA_DEFENCE)
 	assert_equal(guerilla.tactic_id, "guerilla_defence", "GUERILLA_DEFENCE type correct")
 	end_test()
-
-# ============================================================================
-# TEST SUITE 2: Clue System
-# ============================================================================
 
 func test_clue_system() -> void:
 	print("\n" + "-".repeat(80))
@@ -258,10 +250,6 @@ func test_clue_random_name() -> void:
 	assert_true(names_set.size() > 1, "Multiple different clue names generated")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 3: World CombatSquad Management
-# ============================================================================
-
 func test_world_squad_management() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 3: World CombatSquad Management")
@@ -279,7 +267,6 @@ func create_test_world() -> World:
 	var loc1 = Location.new()
 	loc1.location_id = "moscow"
 	loc1.location_name = "Moscow"
-	# Must use iterative assignment for typed arrays (GDScript requirement)
 	for conn_id in ["smolensk"]:
 		loc1.connections.append(conn_id)
 	
@@ -391,10 +378,6 @@ func test_world_get_adjacent_squads() -> void:
 	assert_equal(adjacent_to_smolensk.size(), 1, "1 squad adjacent to smolensk (in minsk)")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 4: Faction Army Management
-# ============================================================================
-
 func test_faction_army_management() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 4: Faction Army Management")
@@ -448,10 +431,6 @@ func test_faction_get_army_by_id() -> void:
 	var not_found = faction.get_army_by_id("nonexistent")
 	assert_true(not_found == null, "null for nonexistent id")
 	end_test()
-
-# ============================================================================
-# TEST SUITE 5: Location Clue Management
-# ============================================================================
 
 func test_location_clue_management() -> void:
 	print("\n" + "-".repeat(80))
@@ -541,10 +520,6 @@ func test_location_investigate_clues() -> void:
 	assert_true(results[0].has("destination_hint"), "result has destination_hint")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 6: StrategySquad Tactic Integration
-# ============================================================================
-
 func test_strategic_squad_tactic() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 6: StrategySquad Tactic Integration")
@@ -603,10 +578,6 @@ func test_squad_get_warrior_by_id() -> void:
 	assert_true(not_found == null, "null for nonexistent id")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 7: CombatBridge
-# ============================================================================
-
 func test_combat_bridge() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 7: CombatBridge")
@@ -643,10 +614,6 @@ func test_combat_bridge_clear() -> void:
 	assert_true(bridge.current_battle == null, "current_battle cleared")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 8: BattleOutcome System
-# ============================================================================
-
 func test_battle_outcome_system() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 8: BattleOutcome System")
@@ -667,7 +634,6 @@ func test_battle_outcome_enum_values() -> void:
 func test_tactic_determines_max_rounds() -> void:
 	start_test("Tactic: action_count determines max_rounds")
 	
-	# Test that each tactic type has the expected action_count that would be used as max_rounds
 	var balanced = Tactic.create_balanced()
 	assert_equal(balanced.action_count, 1, "balanced has action_count 1 (1 round)")
 	
@@ -684,10 +650,6 @@ func test_tactic_determines_max_rounds() -> void:
 	assert_equal(guerilla.action_count, 1, "guerilla_defence has action_count 1 (1 round)")
 	end_test()
 
-# ============================================================================
-# TEST SUITE 9: Tactic-Based Battle Rounds
-# ============================================================================
-
 func test_tactic_based_rounds() -> void:
 	print("\n" + "-".repeat(80))
 	print("TEST SUITE 9: Tactic-Based Battle Rounds")
@@ -699,24 +661,19 @@ func test_tactic_based_rounds() -> void:
 func test_tactic_action_vs_reaction_balance() -> void:
 	start_test("Tactic: action_count + reaction_count patterns")
 	
-	# Balanced: equal actions and reactions
 	var balanced = Tactic.create_balanced()
 	assert_equal(balanced.action_count, balanced.reaction_count, "balanced has equal actions and reactions")
 	
-	# Aggressive: more actions than reactions
 	var aggressive = Tactic.create_aggressive_charge()
 	assert_true(aggressive.action_count > aggressive.reaction_count, "aggressive has more actions than reactions")
 	
-	# Guerilla: more reactions than actions
 	var guerilla = Tactic.create_guerilla_defence()
 	assert_true(guerilla.reaction_count > guerilla.action_count, "guerilla has more reactions than actions")
 	
-	# Full assault: max actions, no reactions
 	var full_assault = Tactic.create_full_assault()
 	assert_equal(full_assault.action_count, 3, "full assault has 3 actions")
 	assert_equal(full_assault.reaction_count, 0, "full assault has 0 reactions")
 	
-	# Defensive: no actions, max reactions
 	var defensive = Tactic.create_defensive_formation()
 	assert_equal(defensive.action_count, 0, "defensive has 0 actions")
 	assert_equal(defensive.reaction_count, 3, "defensive has 3 reactions")
@@ -727,7 +684,6 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	
 	var bridge = CombatBridge.new()
 	
-	# Create minimal strategic squads for testing
 	var player_squad = StrategySquad.new()
 	player_squad.squad_id = "player"
 	player_squad.squad_name = "Player CombatSquad"
@@ -736,8 +692,6 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_squad.squad_id = "enemy"
 	enemy_squad.squad_name = "Enemy CombatSquad"
 	
-	# Create warriors — base attack attributes resolve from the "landsknecht" class
-	# template via Character's tier-2/tier-1 cascade, so only identification is needed.
 	var warrior_res := StrategyEntityResource.new()
 	warrior_res.name = "Test StrategyEntity"
 	warrior_res.identification = "landsknecht"
@@ -752,7 +706,6 @@ func test_combat_bridge_creates_battle_with_tactic() -> void:
 	enemy_warrior_entity.id = "e1"
 	enemy_squad.warriors.append(Character.new(enemy_warrior_entity))
 	
-	# Test with aggressive charge tactic
 	var aggressive = Tactic.create_aggressive_charge()
 	var battle = bridge.create_battle(player_squad, enemy_squad, aggressive)
 	

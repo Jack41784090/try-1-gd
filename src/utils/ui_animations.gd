@@ -60,14 +60,6 @@ static func _play_sfx(method_name: String) -> void:
 		sfx.call(method_name)
 
 
-static func register_all_buttons(root: Control) -> void:
-	for child in root.get_children():
-		if child is Button:
-			register_button(child)
-		if child is Control:
-			register_all_buttons(child)
-
-
 ## Fade + slide an overlay panel in from below
 static func show_overlay(overlay: Control, panel: Control = null) -> void:
 	overlay.visible = true
@@ -150,23 +142,6 @@ static func slide_out_panel(panel: Control) -> void:
 	panel.visible = false
 	panel.position.y -= PANEL_SLIDE_OFFSET
 	panel.modulate = Color(1, 1, 1, 1)
-
-
-## Smooth number counter animation for labels
-static func animate_label_number(label: Label, from: float, to: float, duration: float = 0.6, format: String = "%.0f") -> void:
-	var tw := label.create_tween()
-	tw.tween_method(func(val: float): label.text = format % val, from, to, duration) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-
-
-## Pulse a control to draw attention
-static func pulse(control: Control, intensity: float = 1.15, duration: float = 0.3) -> void:
-	control.pivot_offset = control.size / 2.0
-	var tw := control.create_tween()
-	tw.tween_property(control, "scale", Vector2(intensity, intensity), duration * 0.4) \
-		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(control, "scale", NORMAL_SCALE, duration * 0.6) \
-		.set_ease(Tween.EASE_IN_OUT)
 
 
 static func _find_panel(overlay: Control) -> Control:

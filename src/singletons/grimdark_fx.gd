@@ -22,18 +22,6 @@ func _ready() -> void:
 	update_time(0)
 
 
-func register_world_textures(bg: TextureRect, fg: TextureRect) -> void:
-	_bg_material = ShaderMaterial.new()
-	_bg_material.shader = _world_shader
-	bg.material = _bg_material
-
-	_fg_material = ShaderMaterial.new()
-	_fg_material.shader = _world_shader
-	fg.material = _fg_material
-
-	_apply_world_shader_params()
-
-
 func _on_hour_advanced(hour: int) -> void:
 	update_time(hour)
 
@@ -50,7 +38,15 @@ func update_time(hour: int) -> void:
 
 func _apply_world_shader_params() -> void:
 	var night := _get_night_factor(_current_hour_of_day)
-	var dawn := _get_dawn_factor(_current_hour_of_day)
+	var dawn: float
+	if _current_hour_of_day < 4.0:
+		dawn = 0.0
+	elif _current_hour_of_day < 6.0:
+		dawn = _smooth(4.0, 5.5, _current_hour_of_day)
+	elif _current_hour_of_day < 8.0:
+		dawn = _smooth(8.0, 6.0, _current_hour_of_day)
+	else:
+		dawn = 0.0
 	var fog := 0.06 + night * 0.18 + dawn * 0.12
 
 	for mat: ShaderMaterial in [_bg_material, _fg_material]:
@@ -58,51 +54,6 @@ func _apply_world_shader_params() -> void:
 			continue
 		mat.set_shader_parameter("hour_of_day", _current_hour_of_day)
 		mat.set_shader_parameter("fog_intensity", fog)
-
-
-func trigger_damage_pulse() -> void:
-	if not visible:
-		return
-	_damage_pulse.visible = true
-	var mat: ShaderMaterial = _damage_pulse.material
-	mat.set_shader_parameter("pulse_intensity", 0.7)
-	var tw := create_tween()
-	tw.tween_method(
-		func(v: float) -> void: mat.set_shader_parameter("pulse_intensity", v),
-		0.7, 0.0, 0.6
-	).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	tw.tween_callback(func() -> void: _damage_pulse.visible = false)
-
-
-func toggle() -> void:
-	_enabled = not _enabled
-	visible = _enabled
-	if _bg_material:
-		_bg_material.shader = _world_shader if _enabled else null
-	if _fg_material:
-		_fg_material.shader = _world_shader if _enabled else null
-	Log.info("GrimdarkFX", "FX %s" % ("ON" if _enabled else "OFF"))
-
-
-func set_combat_mode(active: bool) -> void:
-	if not visible:
-		return
-	if active:
-		_combat_atmosphere.visible = true
-		var mat: ShaderMaterial = _combat_atmosphere.material
-		var tw := create_tween()
-		tw.tween_method(
-			func(v: float) -> void: mat.set_shader_parameter("mix_amount", v),
-			0.0, 1.0, 0.5
-		).set_ease(Tween.EASE_OUT)
-	else:
-		var mat: ShaderMaterial = _combat_atmosphere.material
-		var tw := create_tween()
-		tw.tween_method(
-			func(v: float) -> void: mat.set_shader_parameter("mix_amount", v),
-			1.0, 0.0, 0.5
-		).set_ease(Tween.EASE_IN)
-		tw.tween_callback(func() -> void: _combat_atmosphere.visible = false)
 
 
 func _get_night_factor(h: float) -> float:
@@ -115,16 +66,6 @@ func _get_night_factor(h: float) -> float:
 	if h < 21.0:
 		return _smooth(18.0, 21.0, h)
 	return 1.0
-
-
-func _get_dawn_factor(h: float) -> float:
-	if h < 4.0:
-		return 0.0
-	if h < 6.0:
-		return _smooth(4.0, 5.5, h)
-	if h < 8.0:
-		return _smooth(8.0, 6.0, h)
-	return 0.0
 
 
 static func _smooth(edge0: float, edge1: float, x: float) -> float:

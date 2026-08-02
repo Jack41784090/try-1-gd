@@ -90,7 +90,6 @@ func _input(event: InputEvent) -> void:
 	var grab_rect := grab.get_global_rect()
 	var mouse_pos := get_global_mouse_position()
 	
-	#print("grab:",grab.position," mp:",mouse_pos)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			if grab_rect.has_point(mouse_pos):
@@ -98,19 +97,15 @@ func _input(event: InputEvent) -> void:
 				window.move_to_front()
 				window.rotation = 0.0
 				window.pivot_offset = Vector2.ZERO
-				#window.global_position = keep_global
 				drag_started.emit(window)
 				_drag_offset = mouse_pos - window.global_position
 				accept_event()
-				#get_viewport().set_input_as_handled()
 		elif _dragging:
 			_dragging = false
 			drag_ended.emit(window, mouse_pos)
-			#get_viewport().set_input_as_handled()
 			accept_event()
 			
 	elif event is InputEventMouseMotion and _dragging:
 		window.global_position = mouse_pos - _drag_offset
 		dragging.emit(window, mouse_pos)
 		accept_event()
-		#get_viewport().set_input_as_handled()

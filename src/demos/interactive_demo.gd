@@ -30,7 +30,7 @@ extends Node
 ##   help          — Show available commands
 ##   quit          — Exit the game
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
@@ -51,7 +51,14 @@ var _should_quit := false
 func _ready():
 	Log.set_level(Log.Level.ERROR)
 
-	_print_banner()
+	print("")
+	print("╔══════════════════════════════════════════════════╗")
+	print("║        CONDOR — Interactive Terminal Game        ║")
+	print("║     Squad-Based Narrative Strategy (Headless)    ║")
+	print("╠══════════════════════════════════════════════════╣")
+	print("║  Type 'help' for commands. Type 'quit' to exit. ║")
+	print("╚══════════════════════════════════════════════════╝")
+	print("")
 	_print_line("Initializing game scenario...")
 
 	var is_gui := DisplayServer.get_name() != "headless"
@@ -78,7 +85,14 @@ func _ready():
 	world = presenter.game_scenario.world
 
 	_hook_triggerable_logging()
-	_retroactive_detect_events()
+
+	for t in presenter.game_scenario.triggerable_manager.registered_triggerables:
+		if t is GameEvent and t.times_triggered > 0:
+			_events_fired.append(t.trigger_id)
+	for faction in presenter.game_scenario.factions:
+		for mission in faction.missions:
+			if mission.is_completed:
+				_missions_completed.append(mission.mission_id)
 
 	_stdin_mutex = Mutex.new()
 	_stdin_thread = Thread.new()
@@ -141,16 +155,6 @@ func _on_triggerable_fired(triggerable, _result):
 		_print_event("EVENT: %s" % tid)
 
 
-func _retroactive_detect_events():
-	for t in presenter.game_scenario.triggerable_manager.registered_triggerables:
-		if t is GameEvent and t.times_triggered > 0:
-			_events_fired.append(t.trigger_id)
-	for faction in presenter.game_scenario.factions:
-		for mission in faction.missions:
-			if mission.is_completed:
-				_missions_completed.append(mission.mission_id)
-
-
 #region Command Dispatch
 
 func _handle_command(input: String):
@@ -170,9 +174,53 @@ func _handle_command(input: String):
 		"look", "l":
 			_cmd_look()
 		"warriors", "w":
-			_cmd_warriors()
+			_print_separator()
+			_print_line("=== Warriors ===")
+			var living = player_squad.get_living_warriors()
+			for i in range(living.size()):
+				var w = living[i]
+				var pos_name: String
+				match w.location_prebattle:
+					1: pos_name = "Front"
+					2: pos_name = "Middle"
+					3: pos_name = "Back"
+					_: pos_name = "???"
+				var status := ""
+				if w.is_injured:
+					status = " [INJURED]"
+				elif w.is_dead:
+					status = " [DEAD]"
+				_print_line("  %d. %s — %s | Position: %s | Morale: %.0f%s" % [
+					i + 1, w.display_name, w.identification, pos_name, float(w.get_stat_value(StatName.I.MORALE)), status])
+			_print_separator()
 		"inventory", "inv":
-			_cmd_inventory()
+			_print_separator()
+			_print_line("=== Squad Inventory ===")
+			var inv = player_squad.inventory
+			if inv.is_empty():
+				_print_line("  (empty)")
+			else:
+				if not inv.weapons.is_empty():
+					_print_line("  Weapons:")
+					for w in inv.weapons:
+						_print_line("    - %s" % SquadBattleTypes.WeaponClasses.keys()[w.weapon_class])
+				if not inv.armors.is_empty():
+					_print_line("  Armors:")
+					for a in inv.armors:
+						_print_line("    - %s" % SquadBattleTypes.ArmorClasses.keys()[a.armor_class])
+			_print_line("")
+			_print_line("=== StrategyEntity Equipment ===")
+			for w in player_squad.get_living_warriors():
+				var weapon_name := "None"
+				var armor_name := "None"
+				var equipped_weapon := w.get_equipped_weapon()
+				var equipped_armor := w.get_equipped_armor()
+				if equipped_weapon:
+					weapon_name = SquadBattleTypes.WeaponClasses.keys()[equipped_weapon.weapon_class]
+				if equipped_armor:
+					armor_name = SquadBattleTypes.ArmorClasses.keys()[equipped_armor.armor_class]
+				_print_line("  %s — W: %s | A: %s" % [w.display_name, weapon_name, armor_name])
+			_print_separator()
 		"travel", "t":
 			await _cmd_travel(arg)
 		"rest":
@@ -194,41 +242,299 @@ func _handle_command(input: String):
 		"recruit":
 			_cmd_recruit(arg)
 		"attack", "a":
-			await _cmd_attack(arg)
+			if arg.is_empty():
+				_print_line("Usage: attack <squad_id>")
+				_print_line("Squads with LOCKED contact at this location:")
+				var loc_id := player_squad.current_location_id
+				var ct = world.contact_tracker
+				if ct == null:
+					_print_line("  No contact tracker.")
+				else:
+					var contacts = ct.get_contacts_for(player_squad.squad_id)
+					var any_locked: bool = false
+					for contact in contacts:
+						if contact.get_state() == StrategyTypes.ContactState.LOCKED:
+							var target_sq := _find_squad(contact.target_id)
+							if target_sq and target_sq.current_location_id == loc_id:
+								_print_line("  %s — %s (%d warriors)" % [contact.target_id, target_sq.squad_name, target_sq.get_living_warriors().size()])
+								any_locked = true
+					if not any_locked:
+						_print_line("  No LOCKED contacts at this location. Patrol to build intel.")
+			else:
+				_print_line("Attacking %s!" % arg)
+				var snap := _snapshot_state()
+				presenter.on_activity_requested(StrategyTypes.ActivityType.ATTACK)
+				while presenter.is_executing_activity:
+					await get_tree().create_timer(0.05).timeout
+				_print_turn_report(snap)
 		"contacts", "c":
-			_cmd_contacts()
+			_print_separator()
+			_print_line("=== Contact Intelligence ===")
+			var ct = world.contact_tracker
+			if ct == null:
+				_print_line("  No contact tracker initialized.")
+				_print_separator()
+			else:
+				var contacts = ct.get_contacts_for(player_squad.squad_id)
+				if contacts.size() == 0:
+					_print_line("  No contacts detected. Try patrolling.")
+					_print_separator()
+				else:
+					for contact in contacts:
+						var state = contact.get_state()
+						if state == StrategyTypes.ContactState.NONE:
+							continue
+						var state_name: String = StrategyTypes.ContactState.keys()[state]
+						var target_sq = _find_squad(contact.target_id)
+						var target_name: String = str(contact.target_id)
+						var target_loc: String = "unknown"
+						if target_sq:
+							target_name = target_sq.squad_name
+							target_loc = _get_location_display(target_sq.current_location_id)
+						_print_line("  %s [%s] — Progress: %.0f/100 — Location: %s" % [
+							target_name, state_name, contact.progress, target_loc])
+					_print_separator()
 		"missions", "m":
-			_cmd_missions()
+			_print_separator()
+			_print_line("=== Missions ===")
+			for faction in presenter.game_scenario.factions:
+				_print_line("  --- %s ---" % faction.faction_name)
+				for mission in faction.missions:
+					var state := "LOCKED"
+					if mission.is_completed:
+						state = "COMPLETED"
+					elif mission.is_failed:
+						state = "FAILED"
+					elif mission.is_unlocked:
+						state = "ACTIVE"
+					_print_line("    [%s] %s — %s" % [state, mission.trigger_id, mission.description])
+			_print_separator()
 		"events":
-			_cmd_events()
+			_print_separator()
+			_print_line("=== Events Fired ===")
+			if _events_fired.is_empty():
+				_print_line("  No events fired yet.")
+			else:
+				for eid in _events_fired:
+					_print_line("  - %s" % eid)
+			_print_line("")
+			_print_line("=== Missions Completed ===")
+			if _missions_completed.is_empty():
+				_print_line("  No missions completed yet.")
+			else:
+				for mid in _missions_completed:
+					_print_line("  - %s" % mid)
+			_print_separator()
 		"notifications", "notif", "n":
-			_cmd_notifications()
+			var view = presenter.view
+			var notifs: Array = view.last_notifications if "last_notifications" in view else []
+			_print_separator()
+			_print_line("=== Active Notifications ===")
+			if notifs.is_empty():
+				_print_line("  No active notifications.")
+			else:
+				for n in notifs:
+					var type_name: String = NotificationData.NotificationType.keys()[n.type]
+					_print_line("  [%s] %s" % [type_name, n.title])
+					if n.description != "":
+						_print_line("    %s" % n.description)
+			_print_separator()
 		"economy", "econ", "e":
-			_cmd_economy()
+			_print_separator()
+			_print_line("=== Economy Overview ===")
+			assert(world.economy_engine != null, "Economy command requires initialized world.economy_engine")
+
+			for loc in world.get_economy_locations():
+				var pop_count := loc.population.size() if loc.population else 0
+				var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
+				var food_stock := 0.0
+				var stocks_str := ""
+				assert(loc.inventory != null, "Economy command found location '%s' without inventory" % loc.location_id)
+				for thing in loc.inventory.stocks:
+					var amt = loc.inventory.stocks[thing]
+					if amt > 0.1:
+						var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
+						stocks_str += "    %s: %.0f (%.1fg)" % [thing.thing_name, amt, price]
+						stocks_str += "\n"
+					if thing.thing_type == EconomyTypes.ThingType.FOOD:
+						food_stock = amt
+				_print_line("  %s — Pop:%d Sat:%.0f Food:%.0f" % [
+					loc.location_name, pop_count, avg_sat, food_stock])
+				if not stocks_str.is_empty():
+					print(stocks_str.strip_edges(false, true))
+			_print_separator()
 		"map":
-			_cmd_map()
+			_print_separator()
+			_print_line("=== World Map ===")
+			for loc in world.locations:
+				var marker := ""
+				if loc.location_id == player_squad.current_location_id:
+					marker = " <<<< YOU ARE HERE"
+				var type_str := _location_type_str(loc.type)
+				_print_line("  %s (%s) [%s]%s" % [loc.location_name, loc.location_id, type_str, marker])
+				for conn in loc.connections.tt:
+					var to_loc := world.get_location_by_id(conn.to_location_id)
+					var to_name := to_loc.location_name if to_loc else conn.to_location_id
+					_print_line("    → %s (%.0f km)" % [to_name, conn.distance_km])
+
+				var squads_here := world.get_squads_at_location(loc.location_id)
+				for sq in squads_here:
+					var role := "Caravan" if sq.is_caravan() else "Squad"
+					var yours := " (YOU)" if sq.squad_id == player_squad.squad_id else ""
+					_print_line("    * %s [%s, %d warriors]%s" % [sq.squad_name, role, sq.get_living_warriors().size(), yours])
+			_print_separator()
 		"god_squads", "gs":
-			_cmd_god_squads()
+			_print_separator()
+			_print_line("=== GOD: All Squads (omniscient) ===")
+			_print_line("  Player: %s [%s] @ %s" % [
+				player_squad.squad_name, player_squad.squad_id, player_squad.current_location_id])
+			_print_line("")
+			var caravans := 0
+			var combat := 0
+			for sq in world.roaming_squads:
+				var role := "MERCHANT" if sq.is_caravan() else "COMBAT"
+				var extra := ""
+				if sq.is_caravan():
+					caravans += 1
+					extra = " → dest:%s cargo:%s" % [sq.cargo.destination_id, str(sq.cargo.manifest)]
+					if sq.has_reached_destination():
+						extra += " [AT DEST]"
+				else:
+					combat += 1
+				_print_line("  %s [%s] @ %s — %s — %d warriors%s" % [
+					sq.squad_name, sq.squad_id, sq.current_location_id,
+					role, sq.get_living_warriors().size(), extra])
+			_print_line("")
+			_print_line("  Total: %d roaming (%d caravans, %d combat)" % [
+				world.roaming_squads.size(), caravans, combat])
+			_print_separator()
 		"god_contacts", "gc":
-			_cmd_god_contacts()
+			_print_separator()
+			_print_line("=== GOD: Raw Contact Data ===")
+			var ct = world.contact_tracker
+			if ct == null:
+				_print_line("  No contact tracker.")
+				_print_separator()
+			else:
+				var contacts = ct.get_contacts_for(player_squad.squad_id)
+				if contacts.size() == 0:
+					_print_line("  No contacts at all.")
+					_print_separator()
+				else:
+					for contact in contacts:
+						var state_name: String = StrategyTypes.ContactState.keys()[contact.get_state()]
+						var target_sq = _find_squad(contact.target_id)
+						var sq_exists: bool = target_sq != null
+						var sq_loc: String = target_sq.current_location_id if target_sq else "N/A"
+						var sq_role: String = "MERCHANT" if (target_sq and target_sq.is_caravan()) else "COMBAT"
+						var sq_alive: int = target_sq.get_living_warriors().size() if target_sq else -1
+						_print_line("  target_id: %s" % contact.target_id)
+						_print_line("    state: %s | progress: %.1f/100 | exists_in_world: %s" % [
+							state_name, contact.progress, str(sq_exists)])
+						_print_line("    location: %s | role: %s | warriors: %d" % [
+							sq_loc, sq_role, sq_alive])
+						_print_line("    being_tracked: %s | last_updated: %d" % [
+							str(contact.being_tracked), contact.last_updated_hour])
+						_print_line("")
+					_print_separator()
 		"god_lock", "gl":
-			_cmd_god_lock(arg)
+			_print_separator()
+			if arg.is_empty():
+				_print_line("Usage: god_lock <squad_id>")
+				_print_line("Forces contact progress to 100 (LOCKED) on a target.")
+				_print_line("Use god_squads to see squad IDs.")
+				_print_separator()
+			else:
+				var ct = world.contact_tracker
+				if ct == null:
+					_print_line("  No contact tracker.")
+					_print_separator()
+				else:
+					var contact = ct.get_or_create_contact(player_squad.squad_id, arg)
+					contact.progress = 100.0
+					_print_line("GOD: Forced LOCKED contact on '%s'" % arg)
+					_print_line("You can now: attack %s" % arg)
+					_print_separator()
 		"god_economy", "ge":
-			_cmd_god_economy()
+			_print_separator()
+			_print_line("=== GOD: Full Economy ===")
+			assert(world.economy_engine != null, "god_economy command requires initialized world.economy_engine")
+			var engine = world.economy_engine
+			_print_line("  Hour: %d | Deaths: %d | Births: %d | Promotions: %d" % [
+				world.current_hour, engine.total_deaths, engine.total_births, engine.total_promotions])
+			_print_line("  Active contracts: %d | Completed: %d" % [
+				engine.active_contracts_count, engine.completed_contracts_count])
+			_print_line("")
+			for loc in world.get_economy_locations():
+				var pop_count := loc.population.size() if loc.population else 0
+				var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
+				_print_line("  --- %s (pop:%d sat:%.0f) ---" % [loc.location_name, pop_count, avg_sat])
+				assert(loc.inventory != null, "god_economy found location '%s' without inventory" % loc.location_id)
+				for thing in loc.inventory.stocks:
+					var amt = loc.inventory.stocks[thing]
+					var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
+					_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
+				if loc.natural_resources and loc.natural_resources.size() > 0:
+					for resource in loc.natural_resources:
+						var thing_name = resource.thing.thing_name if resource.thing else "?"
+						var job_name = EconomyTypes.JobType.keys()[resource.worker_job]
+						_print_line("    resource: %s (capacity:%.1f, job:%s)" % [
+							thing_name, resource.base_capacity, job_name])
+			_print_separator()
 		"screenshot", "ss":
 			await _cmd_screenshot(arg)
 		"pause", "pp":
-			_cmd_pause()
+			presenter.game_clock.toggle_pause()
+			var state := "PAUSED" if world.is_paused else "RUNNING (speed %.1fx)" % world.speed_multiplier
+			_print_line("Game clock: %s | Hour %d (Day %d, %s)" % [state, world.current_hour, world.get_day(), world.get_clock_display()])
 		"speed":
-			_cmd_speed(arg)
+			if arg.is_empty():
+				_print_line("Current speed: %.1fx | %s" % [world.speed_multiplier, "PAUSED" if world.is_paused else "RUNNING"])
+				_print_line("Usage: speed <multiplier>  (e.g. speed 5)")
+			else:
+				var spd := float(arg)
+				if spd <= 0.0:
+					_print_line("Speed must be positive.")
+				else:
+					presenter.game_clock.set_speed(spd)
+					_print_line("Speed set to %.1fx" % spd)
 		"tick":
-			await _cmd_tick(arg)
+			var hours := int(arg) if not arg.is_empty() else 1
+			if hours <= 0:
+				_print_line("Must tick at least 1 hour.")
+			elif not world.is_paused:
+				_print_line("Pause the game first (use 'pause'), then tick manually.")
+			else:
+				var snap := _snapshot_state()
+				for i in range(hours):
+					var act_type := player_squad.current_activity_type
+					var activity = presenter.actor.get_activity(act_type)
+					if activity:
+						var handler = Activity._get_registry().get_handler(act_type)
+						if handler:
+							var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
+							handler.execute(ctx, ActivityResult.new())
+					world.current_hour += 1
+					presenter.game_clock.gameclock_hour_tick.emit(world.current_hour)
+					await get_tree().create_timer(0.1).timeout
+					while presenter.is_executing_activity:
+						await get_tree().create_timer(0.05).timeout
+				_print_line("Advanced %d hour(s). Now: Hour %d (Day %d, %s)" % [hours, world.current_hour, world.get_day(), world.get_clock_display()])
+				_print_turn_report(snap)
 		"check_missions", "cm":
 			await _cmd_check_missions()
 		"click", "advance", "x":
-			_cmd_click()
+			var vn_pres = presenter.vn_view.presenter if presenter.vn_view else null
+			if vn_pres and (vn_pres._debug_chain_pending or vn_pres.is_playing_chain):
+				vn_pres.on_advance()
+				_print_line("Advanced dialog.")
+			else:
+				_print_line("No active dialog to advance.")
 		"quit", "q", "exit":
-			_cmd_quit()
+			_print_line("Farewell, commander!")
+			_should_quit = true
+			await get_tree().create_timer(0.2).timeout
+			get_tree().quit()
 		_:
 			_print_line("Unknown command: '%s'. Type 'help' for available commands." % cmd)
 
@@ -356,53 +662,7 @@ func _cmd_look():
 	_print_separator()
 
 
-func _cmd_warriors():
-	_print_separator()
-	_print_line("=== Warriors ===")
-	var living = player_squad.get_living_warriors()
-	for i in range(living.size()):
-		var w = living[i]
-		var pos_name := _pos_str(w.location_prebattle)
-		var status := ""
-		if w.is_injured:
-			status = " [INJURED]"
-		elif w.is_dead:
-			status = " [DEAD]"
-		_print_line("  %d. %s — %s | Position: %s | Morale: %.0f%s" % [
-			i + 1, w.display_name, w.identification, pos_name, float(w.get_stat_value(StatName.I.MORALE)), status])
-	_print_separator()
-
-
-func _cmd_inventory():
-	_print_separator()
-	_print_line("=== Squad Inventory ===")
-	var inv = player_squad.inventory
-	if inv.is_empty():
-		_print_line("  (empty)")
-	else:
-		if not inv.weapons.is_empty():
-			_print_line("  Weapons:")
-			for w in inv.weapons:
-				_print_line("    - %s" % SquadBattleTypes.WeaponClasses.keys()[w.weapon_class])
-		if not inv.armors.is_empty():
-			_print_line("  Armors:")
-			for a in inv.armors:
-				_print_line("    - %s" % SquadBattleTypes.ArmorClasses.keys()[a.armor_class])
-	_print_line("")
-	_print_line("=== StrategyEntity Equipment ===")
-	for w in player_squad.get_living_warriors():
-		var weapon_name := "None"
-		var armor_name := "None"
-		var equipped_weapon := w.get_equipped_weapon()
-		var equipped_armor := w.get_equipped_armor()
-		if equipped_weapon:
-			weapon_name = SquadBattleTypes.WeaponClasses.keys()[equipped_weapon.weapon_class]
-		if equipped_armor:
-			armor_name = SquadBattleTypes.ArmorClasses.keys()[equipped_armor.armor_class]
-		_print_line("  %s — W: %s | A: %s" % [w.display_name, weapon_name, armor_name])
-	_print_separator()
-
-
+## Kept as a named function: large handler (38 lines) — inlining would bloat the dispatch.
 func _cmd_travel(destination: String):
 	if destination.is_empty():
 		_print_line("Usage: travel <location_id>")
@@ -463,165 +723,6 @@ func _cmd_activity(type: StrategyTypes.ActivityType, description: String, arg: S
 	_print_turn_report(snap)
 
 
-func _cmd_attack(target_id: String):
-	if target_id.is_empty():
-		_print_line("Usage: attack <squad_id>")
-		_print_line("Squads with LOCKED contact at this location:")
-		var loc_id := player_squad.current_location_id
-		var ct = world.contact_tracker
-		if ct == null:
-			_print_line("  No contact tracker.")
-			return
-		var contacts = ct.get_contacts_for(player_squad.squad_id)
-		var any_locked: bool = false
-		for contact in contacts:
-			if contact.get_state() == StrategyTypes.ContactState.LOCKED:
-				var target_sq := _find_squad(contact.target_id)
-				if target_sq and target_sq.current_location_id == loc_id:
-					_print_line("  %s — %s (%d warriors)" % [contact.target_id, target_sq.squad_name, target_sq.get_living_warriors().size()])
-					any_locked = true
-		if not any_locked:
-			_print_line("  No LOCKED contacts at this location. Patrol to build intel.")
-		return
-
-	_print_line("Attacking %s!" % target_id)
-	var snap := _snapshot_state()
-	presenter.on_activity_requested(StrategyTypes.ActivityType.ATTACK)
-	while presenter.is_executing_activity:
-		await get_tree().create_timer(0.05).timeout
-	_print_turn_report(snap)
-
-
-func _cmd_contacts():
-	_print_separator()
-	_print_line("=== Contact Intelligence ===")
-	var ct = world.contact_tracker
-	if ct == null:
-		_print_line("  No contact tracker initialized.")
-		_print_separator()
-		return
-
-	var contacts = ct.get_contacts_for(player_squad.squad_id)
-	if contacts.size() == 0:
-		_print_line("  No contacts detected. Try patrolling.")
-		_print_separator()
-		return
-
-	for contact in contacts:
-		var state = contact.get_state()
-		if state == StrategyTypes.ContactState.NONE:
-			continue
-		var state_name: String = StrategyTypes.ContactState.keys()[state]
-		var target_sq = _find_squad(contact.target_id)
-		var target_name: String = str(contact.target_id)
-		var target_loc: String = "unknown"
-		if target_sq:
-			target_name = target_sq.squad_name
-			target_loc = _get_location_display(target_sq.current_location_id)
-		_print_line("  %s [%s] — Progress: %.0f/100 — Location: %s" % [
-			target_name, state_name, contact.progress, target_loc])
-	_print_separator()
-
-
-func _cmd_missions():
-	_print_separator()
-	_print_line("=== Missions ===")
-	for faction in presenter.game_scenario.factions:
-		_print_line("  --- %s ---" % faction.faction_name)
-		for mission in faction.missions:
-			var state := "LOCKED"
-			if mission.is_completed:
-				state = "COMPLETED"
-			elif mission.is_failed:
-				state = "FAILED"
-			elif mission.is_unlocked:
-				state = "ACTIVE"
-			_print_line("    [%s] %s — %s" % [state, mission.trigger_id, mission.description])
-	_print_separator()
-
-
-func _cmd_events():
-	_print_separator()
-	_print_line("=== Events Fired ===")
-	if _events_fired.is_empty():
-		_print_line("  No events fired yet.")
-	else:
-		for eid in _events_fired:
-			_print_line("  - %s" % eid)
-	_print_line("")
-	_print_line("=== Missions Completed ===")
-	if _missions_completed.is_empty():
-		_print_line("  No missions completed yet.")
-	else:
-		for mid in _missions_completed:
-			_print_line("  - %s" % mid)
-	_print_separator()
-
-
-func _cmd_notifications():
-	var view = presenter.view
-	var notifs: Array = view.last_notifications if "last_notifications" in view else []
-	_print_separator()
-	_print_line("=== Active Notifications ===")
-	if notifs.is_empty():
-		_print_line("  No active notifications.")
-	else:
-		for n in notifs:
-			var type_name: String = NotificationData.NotificationType.keys()[n.type]
-			_print_line("  [%s] %s" % [type_name, n.title])
-			if n.description != "":
-				_print_line("    %s" % n.description)
-	_print_separator()
-
-
-func _cmd_economy():
-	_print_separator()
-	_print_line("=== Economy Overview ===")
-	assert(world.economy_engine != null, "Economy command requires initialized world.economy_engine")
-
-	for loc in world.get_economy_locations():
-		var pop_count := loc.population.size() if loc.population else 0
-		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
-		var food_stock := 0.0
-		var stocks_str := ""
-		assert(loc.inventory != null, "Economy command found location '%s' without inventory" % loc.location_id)
-		for thing in loc.inventory.stocks:
-			var amt = loc.inventory.stocks[thing]
-			if amt > 0.1:
-				var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
-				stocks_str += "    %s: %.0f (%.1fg)" % [thing.thing_name, amt, price]
-				stocks_str += "\n"
-			if thing.thing_type == EconomyTypes.ThingType.FOOD:
-				food_stock = amt
-		_print_line("  %s — Pop:%d Sat:%.0f Food:%.0f" % [
-			loc.location_name, pop_count, avg_sat, food_stock])
-		if not stocks_str.is_empty():
-			print(stocks_str.strip_edges(false, true))
-	_print_separator()
-
-
-func _cmd_map():
-	_print_separator()
-	_print_line("=== World Map ===")
-	for loc in world.locations:
-		var marker := ""
-		if loc.location_id == player_squad.current_location_id:
-			marker = " <<<< YOU ARE HERE"
-		var type_str := _location_type_str(loc.type)
-		_print_line("  %s (%s) [%s]%s" % [loc.location_name, loc.location_id, type_str, marker])
-		for conn in loc.connections.tt:
-			var to_loc := world.get_location_by_id(conn.to_location_id)
-			var to_name := to_loc.location_name if to_loc else conn.to_location_id
-			_print_line("    → %s (%.0f km)" % [to_name, conn.distance_km])
-
-		var squads_here := world.get_squads_at_location(loc.location_id)
-		for sq in squads_here:
-			var role := "Caravan" if sq.is_caravan() else "Squad"
-			var yours := " (YOU)" if sq.squad_id == player_squad.squad_id else ""
-			_print_line("    * %s [%s, %d warriors]%s" % [sq.squad_name, role, sq.get_living_warriors().size(), yours])
-	_print_separator()
-
-
 var _RECRUIT_COSTS: Dictionary = {
 	EntityClasses.Types.Landsknecht: 100.0,
 	EntityClasses.Types.Healer: 150.0,
@@ -652,6 +753,7 @@ var _RECRUIT_POS: Dictionary = {
 	EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
 }
 
+## Kept as a named function: large handler (31 lines) — inlining would bloat the dispatch.
 func _cmd_recruit(arg: String):
 	if arg.is_empty():
 		_print_separator()
@@ -684,12 +786,6 @@ func _cmd_recruit(arg: String):
 	player_squad.money -= cost
 	_print_line("Recruited %s for %d gold! (%.0f gold remaining)" % [new_warrior.display_name, cost, player_squad.money])
 
-
-func _cmd_quit():
-	_print_line("Farewell, commander!")
-	_should_quit = true
-	await get_tree().create_timer(0.2).timeout
-	get_tree().quit()
 
 #endregion
 
@@ -876,14 +972,6 @@ func _location_type_str(loc_type) -> String:
 	return StrategyTypes.LocationType.keys()[loc_type] if loc_type >= 0 else "UNKNOWN"
 
 
-func _pos_str(pos) -> String:
-	match pos:
-		1: return "Front"
-		2: return "Middle"
-		3: return "Back"
-		_: return "???"
-
-
 func _print_line(text: String):
 	print(text)
 
@@ -904,112 +992,6 @@ func _print_prompt():
 		world.get_clock_display(),
 		player_squad.squad_name,
 		_get_location_display(player_squad.current_location_id)])
-
-
-func _cmd_god_squads():
-	_print_separator()
-	_print_line("=== GOD: All Squads (omniscient) ===")
-	_print_line("  Player: %s [%s] @ %s" % [
-		player_squad.squad_name, player_squad.squad_id, player_squad.current_location_id])
-	_print_line("")
-	var caravans := 0
-	var combat := 0
-	for sq in world.roaming_squads:
-		var role := "MERCHANT" if sq.is_caravan() else "COMBAT"
-		var extra := ""
-		if sq.is_caravan():
-			caravans += 1
-			extra = " → dest:%s cargo:%s" % [sq.cargo.destination_id, str(sq.cargo.manifest)]
-			if sq.has_reached_destination():
-				extra += " [AT DEST]"
-		else:
-			combat += 1
-		_print_line("  %s [%s] @ %s — %s — %d warriors%s" % [
-			sq.squad_name, sq.squad_id, sq.current_location_id,
-			role, sq.get_living_warriors().size(), extra])
-	_print_line("")
-	_print_line("  Total: %d roaming (%d caravans, %d combat)" % [
-		world.roaming_squads.size(), caravans, combat])
-	_print_separator()
-
-
-func _cmd_god_contacts():
-	_print_separator()
-	_print_line("=== GOD: Raw Contact Data ===")
-	var ct = world.contact_tracker
-	if ct == null:
-		_print_line("  No contact tracker.")
-		_print_separator()
-		return
-	var contacts = ct.get_contacts_for(player_squad.squad_id)
-	if contacts.size() == 0:
-		_print_line("  No contacts at all.")
-		_print_separator()
-		return
-	for contact in contacts:
-		var state_name: String = StrategyTypes.ContactState.keys()[contact.get_state()]
-		var target_sq = _find_squad(contact.target_id)
-		var sq_exists: bool = target_sq != null
-		var sq_loc: String = target_sq.current_location_id if target_sq else "N/A"
-		var sq_role: String = "MERCHANT" if (target_sq and target_sq.is_caravan()) else "COMBAT"
-		var sq_alive: int = target_sq.get_living_warriors().size() if target_sq else -1
-		_print_line("  target_id: %s" % contact.target_id)
-		_print_line("    state: %s | progress: %.1f/100 | exists_in_world: %s" % [
-			state_name, contact.progress, str(sq_exists)])
-		_print_line("    location: %s | role: %s | warriors: %d" % [
-			sq_loc, sq_role, sq_alive])
-		_print_line("    being_tracked: %s | last_updated: %d" % [
-			str(contact.being_tracked), contact.last_updated_hour])
-		_print_line("")
-	_print_separator()
-
-
-func _cmd_god_lock(target_id: String):
-	_print_separator()
-	if target_id.is_empty():
-		_print_line("Usage: god_lock <squad_id>")
-		_print_line("Forces contact progress to 100 (LOCKED) on a target.")
-		_print_line("Use god_squads to see squad IDs.")
-		_print_separator()
-		return
-	var ct = world.contact_tracker
-	if ct == null:
-		_print_line("  No contact tracker.")
-		_print_separator()
-		return
-	var contact = ct.get_or_create_contact(player_squad.squad_id, target_id)
-	contact.progress = 100.0
-	_print_line("GOD: Forced LOCKED contact on '%s'" % target_id)
-	_print_line("You can now: attack %s" % target_id)
-	_print_separator()
-
-
-func _cmd_god_economy():
-	_print_separator()
-	_print_line("=== GOD: Full Economy ===")
-	assert(world.economy_engine != null, "god_economy command requires initialized world.economy_engine")
-	var engine = world.economy_engine
-	_print_line("  Hour: %d | Deaths: %d | Births: %d | Promotions: %d" % [
-		world.current_hour, engine.total_deaths, engine.total_births, engine.total_promotions])
-	_print_line("  Active contracts: %d | Completed: %d" % [
-		engine.active_contracts_count, engine.completed_contracts_count])
-	_print_line("")
-	for loc in world.get_economy_locations():
-		var pop_count := loc.population.size() if loc.population else 0
-		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
-		_print_line("  --- %s (pop:%d sat:%.0f) ---" % [loc.location_name, pop_count, avg_sat])
-		assert(loc.inventory != null, "god_economy found location '%s' without inventory" % loc.location_id)
-		for thing in loc.inventory.stocks:
-			var amt = loc.inventory.stocks[thing]
-			var price = loc.inventory.prices[thing] if loc.inventory.prices.has(thing) else thing.base_price
-			_print_line("    %s: stock=%.1f price=%.2f" % [thing.thing_name, amt, price])
-		if loc.natural_resources and loc.natural_resources.size() > 0:
-			for resource in loc.natural_resources:
-				var thing_name = resource.thing.thing_name if resource.thing else "?"
-				var job_name = EconomyTypes.JobType.keys()[resource.worker_job]
-				_print_line("    resource: %s (capacity:%.1f, job:%s)" % [
-					thing_name, resource.base_capacity, job_name])
-	_print_separator()
 
 
 const SCREENSHOT_PATH := "/tmp/condor_screenshot.jpg"
@@ -1040,60 +1022,6 @@ func _cmd_screenshot(arg: String):
 	_print_line("SCREENSHOT_SAVED:%s" % path)
 
 
-func _cmd_pause():
-	presenter.game_clock.toggle_pause()
-	var state := "PAUSED" if world.is_paused else "RUNNING (speed %.1fx)" % world.speed_multiplier
-	_print_line("Game clock: %s | Hour %d (Day %d, %s)" % [state, world.current_hour, world.get_day(), world.get_clock_display()])
-
-
-func _cmd_click():
-	var vn_pres = presenter.vn_view.presenter if presenter.vn_view else null
-	if vn_pres and (vn_pres._debug_chain_pending or vn_pres.is_playing_chain):
-		vn_pres.on_advance()
-		_print_line("Advanced dialog.")
-	else:
-		_print_line("No active dialog to advance.")
-
-
-func _cmd_speed(arg: String):
-	if arg.is_empty():
-		_print_line("Current speed: %.1fx | %s" % [world.speed_multiplier, "PAUSED" if world.is_paused else "RUNNING"])
-		_print_line("Usage: speed <multiplier>  (e.g. speed 5)")
-		return
-	var spd := float(arg)
-	if spd <= 0.0:
-		_print_line("Speed must be positive.")
-		return
-	presenter.game_clock.set_speed(spd)
-	_print_line("Speed set to %.1fx" % spd)
-
-
-func _cmd_tick(arg: String):
-	var hours := int(arg) if not arg.is_empty() else 1
-	if hours <= 0:
-		_print_line("Must tick at least 1 hour.")
-		return
-	if not world.is_paused:
-		_print_line("Pause the game first (use 'pause'), then tick manually.")
-		return
-	var snap := _snapshot_state()
-	for i in range(hours):
-		var act_type := player_squad.current_activity_type
-		var activity = presenter.actor.get_activity(act_type)
-		if activity:
-			var handler = Activity._get_registry().get_handler(act_type)
-			if handler:
-				var ctx := {"squad": player_squad, "world": world, "location": world.get_location_by_id(player_squad.current_location_id)}
-				handler.execute(ctx, ActivityResult.new())
-		world.current_hour += 1
-		presenter.game_clock.gameclock_hour_tick.emit(world.current_hour)
-		await get_tree().create_timer(0.1).timeout
-		while presenter.is_executing_activity:
-			await get_tree().create_timer(0.05).timeout
-	_print_line("Advanced %d hour(s). Now: Hour %d (Day %d, %s)" % [hours, world.current_hour, world.get_day(), world.get_clock_display()])
-	_print_turn_report(snap)
-
-
 func _cmd_debug_activities():
 	_print_line("Current activity type: %s" % StrategyTypes.ActivityType.keys()[player_squad.current_activity_type])
 	var activity = presenter.actor.get_activity(player_squad.current_activity_type)
@@ -1104,6 +1032,7 @@ func _cmd_debug_activities():
 			_print_line("  Activity: %s (type=%s)" % [t.trigger_name, StrategyTypes.ActivityType.keys()[t.activity_type]])
 
 
+## Kept as a named function: large handler (30 lines) — inlining would bloat the dispatch.
 func _cmd_check_missions():
 	_print_line("Checking missions...")
 	## Sync AEM's player_squad location with the actual player_squad
@@ -1135,15 +1064,5 @@ func _cmd_check_missions():
 	var snap := _snapshot_state()
 	_print_turn_report(snap)
 
-
-func _print_banner():
-	print("")
-	print("╔══════════════════════════════════════════════════╗")
-	print("║        CONDOR — Interactive Terminal Game        ║")
-	print("║     Squad-Based Narrative Strategy (Headless)    ║")
-	print("╠══════════════════════════════════════════════════╣")
-	print("║  Type 'help' for commands. Type 'quit' to exit. ║")
-	print("╚══════════════════════════════════════════════════╝")
-	print("")
 
 #endregion

@@ -9,9 +9,6 @@ var triggerable_manager: TriggerableManager
 @export var endings: Array[Ending] = []
 @export var extra_event_directories: Array[String] = []
 
-var rng = RandomNumberGenerator.new()
-var game_ended: bool = false
-var ending_triggered: Ending = null
 var _initialized: bool = false
 
 func _init(config: Dictionary = {}) -> void:
@@ -31,15 +28,9 @@ func initialize(_config = {}) -> void:
 
 func _setup(config: Dictionary) -> void:
 	Log.debug("Scenario", "Setup with config keys: %s" % str(config.keys()))
-	# Uses exported @export properties if already set (from .tres resource files), falls back to config dict
-	# Registration order: factions→missions → endings → events → activities → set location
-	# e.g., world has 5 locations, 2 factions with 3 missions each, 10 generic events, 8 activities
-	#   → triggerable_manager gets 6 missions + 2 endings + 10 events + 8 activities = 26 triggerables
 	Log.debug("Scenario", "Scenario setup: %s" % str(config))
-	# 1. Initialize triggerable_manager — central registry for all game triggerables
 	triggerable_manager = TriggerableManager.new()
 	
-	# Use exported properties if already set (from .tres), otherwise use config
 	if world == null:
 		world = config.get("world", World.new())
 	assert(world.map_scene != null, "World requires a map_scene PackedScene to be set")
@@ -47,7 +38,6 @@ func _setup(config: Dictionary) -> void:
 		starting_player_squad = config.get("starting_player_squad")
 		assert(starting_player_squad != null, "GameScenario requires starting_player_squad to be set")
 	
-	# Register factions (either from exported array or config)
 	var config_factions = config.get("factions", [])
 	if not config_factions.is_empty():
 		for faction in config_factions:
@@ -55,11 +45,9 @@ func _setup(config: Dictionary) -> void:
 				factions.append(faction)
 	
 	for faction in factions:
-		# Register all missions from this faction
 		for mission in faction.missions:
 			triggerable_manager.register(mission)
 	
-	# Register endings (either from exported array or config)
 	var config_endings = config.get("endings", [])
 	if not config_endings.is_empty():
 		for ending in config_endings:
@@ -69,17 +57,15 @@ func _setup(config: Dictionary) -> void:
 	for ending in endings:
 		triggerable_manager.register(ending)
 	
-	# Register events - if none provided, load default generic events
 	var events: Array = config.get("events", [])
 	if events.is_empty():
-		events = _load_generic_events()
+		_collect_event_resources("res://resources/strategy/generic-events", events)
 	for extra_dir in extra_event_directories:
 		_collect_event_resources(extra_dir, events)
 	for event in events:
 		if event is GameEvent:
 			triggerable_manager.register(event)
 	
-	# Register activities - if none provided, load default generic activities
 	var activities: Array = config.get("activities", [])
 	if activities.is_empty():
 		activities = _load_generic_activities()
@@ -87,26 +73,25 @@ func _setup(config: Dictionary) -> void:
 		if activity is Activity:
 			triggerable_manager.register(activity)
 	
-	# Set starting location
 	if starting_location_id == null:
 		starting_location_id = config.get("starting_location_id", "")
 	starting_player_squad.set_location(starting_location_id)
 
-	_setup_bandit_faction()
-	_setup_economy()
-
-
-func _setup_bandit_faction() -> void:
+	var has_bandits := false
 	for faction in factions:
 		if faction.faction_id == "bandits":
-			return
-	var bandit_faction := Faction.new()
-	bandit_faction.faction_id = "bandits"
-	bandit_faction.faction_name = "Bandits"
-	bandit_faction.description = "Desperate outlaws driven to banditry by poverty and starvation."
-	bandit_faction.reputation = -50.0
-	factions.append(bandit_faction)
-	Log.info("Scenario", "Bandit faction created")
+			has_bandits = true
+			break
+	if not has_bandits:
+		var bandit_faction := Faction.new()
+		bandit_faction.faction_id = "bandits"
+		bandit_faction.faction_name = "Bandits"
+		bandit_faction.description = "Desperate outlaws driven to banditry by poverty and starvation."
+		bandit_faction.reputation = -50.0
+		factions.append(bandit_faction)
+		Log.info("Scenario", "Bandit faction created")
+	_setup_economy()
+
 
 
 func _setup_economy() -> void:
@@ -128,15 +113,164 @@ func _setup_economy() -> void:
 		if loc.population_config != null:
 			loc.population = loc.population_config.build_population(loc.location_id)
 		else:
-			loc.population = _create_population_for(loc)
+			var pop := Population.new()
+			var dev := loc.development
+			var scale := dev / 50.0
+			match loc.type:
+				StrategyTypes.LocationType.CITY:
+					var farmers := int(20 * scale)
+					var craftsmen := int(15 * scale)
+					var merchants := int(10 * scale)
+					var nobles := int(3 * scale)
+					var laborers := int(10 * scale)
+					for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 2.0):
+						pop.add_person(p)
+					for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 10.0):
+						pop.add_person(p)
+					for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 15.0):
+						pop.add_person(p)
+					for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
+						pop.add_person(p)
+					for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+						pop.add_person(p)
+				StrategyTypes.LocationType.TOWN:
+					var farmers := int(30 * scale)
+					var craftsmen := int(5 * scale)
+					var merchants := int(3 * scale)
+					var nobles := int(1 * scale)
+					for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 1.0):
+						pop.add_person(p)
+					for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 5.0):
+						pop.add_person(p)
+					for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 8.0):
+						pop.add_person(p)
+					for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 30.0):
+						pop.add_person(p)
+				StrategyTypes.LocationType.FORT:
+					var servants := int(5 * scale)
+					var laborers := int(3 * scale)
+					var nobles := int(2 * scale)
+					for p in Population.create_batch(servants, "%s_servant" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 0.0):
+						pop.add_person(p)
+					for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+						pop.add_person(p)
+					for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 80.0):
+						pop.add_person(p)
+				StrategyTypes.LocationType.VILLAGE:
+					var farmers := int(20 * scale)
+					var nobles := maxi(1, int(0.5 * scale))
+					for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.5):
+						pop.add_person(p)
+					for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 20.0):
+						pop.add_person(p)
+				_:
+					for p in Population.create_batch(5, "%s_person" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
+						pop.add_person(p)
+			loc.population = pop
 		if loc.natural_resources.is_empty():
-			loc.natural_resources = _create_natural_resources_for(loc, thing_map)
+			var resources: Array[NaturalResource] = []
+			var food: Thing = thing_map.get("food")
+			var wool: Thing = thing_map.get("wool")
+			var iron_ore: Thing = thing_map.get("iron_ore")
+			var iron: Thing = thing_map.get("iron")
+			var wood: Thing = thing_map.get("wood")
+			var cloth: Thing = thing_map.get("cloth")
+			var tools: Thing = thing_map.get("tools")
+			var pop_count: int = loc.population.size() if loc.population else 50
+			var ps := maxf(1.0, float(pop_count) / 50.0)
+			match loc.type:
+				StrategyTypes.LocationType.CITY:
+					if food:
+						resources.append(NaturalResource.create(food, 50.0 * ps))
+					if cloth:
+						resources.append(NaturalResource.create_craft(cloth, 12.0 * ps))
+					if tools:
+						resources.append(NaturalResource.create_craft(tools, 8.0 * ps))
+					if iron:
+						resources.append(NaturalResource.create(iron, 15.0 * ps))
+					if wood:
+						resources.append(NaturalResource.create(wood, 20.0 * ps))
+				StrategyTypes.LocationType.TOWN:
+					if food:
+						resources.append(NaturalResource.create(food, 60.0 * ps))
+					if wool:
+						resources.append(NaturalResource.create(wool, 20.0 * ps))
+					if iron_ore:
+						resources.append(NaturalResource.create(iron_ore, 10.0 * ps))
+					if cloth:
+						resources.append(NaturalResource.create_craft(cloth, 5.0 * ps))
+					if iron:
+						resources.append(NaturalResource.create(iron, 8.0 * ps))
+					if wood:
+						resources.append(NaturalResource.create(wood, 25.0 * ps))
+				StrategyTypes.LocationType.VILLAGE:
+					if food:
+						resources.append(NaturalResource.create(food, 40.0 * ps))
+					if wool:
+						resources.append(NaturalResource.create(wool, 15.0 * ps))
+					if iron_ore:
+						resources.append(NaturalResource.create(iron_ore, 8.0 * ps))
+					if wood:
+						resources.append(NaturalResource.create(wood, 15.0 * ps))
+				StrategyTypes.LocationType.FORT:
+					if food:
+						resources.append(NaturalResource.create(food, 30.0 * ps))
+			loc.natural_resources = resources
 		if loc.government_config == null and loc.type != StrategyTypes.LocationType.FORT:
-			loc.government_config = _create_government_config_for(loc)
+			var gov_config := GovernmentConfig.new()
+			var gov_pop_count := loc.population.size() if loc.population else 50
+			match loc.type:
+				StrategyTypes.LocationType.CITY:
+					gov_config.push_weight = 0.8
+					gov_config.pull_weight = 0.2
+					gov_config.max_budget_ratio = 0.3
+					gov_config.priority_goods = ["food", "cloth"]
+					gov_config.tax_rate = 0.05
+					gov_config.starting_treasury = gov_pop_count * 0.2
+				StrategyTypes.LocationType.TOWN:
+					gov_config.push_weight = 0.6
+					gov_config.pull_weight = 0.4
+					gov_config.max_budget_ratio = 0.25
+					gov_config.priority_goods = ["food"]
+					gov_config.tax_rate = 0.04
+					gov_config.starting_treasury = gov_pop_count * 0.15
+				StrategyTypes.LocationType.VILLAGE:
+					gov_config.push_weight = 0.5
+					gov_config.pull_weight = 0.5
+					gov_config.max_budget_ratio = 0.2
+					gov_config.priority_goods = ["food"]
+					gov_config.tax_rate = 0.03
+					gov_config.starting_treasury = gov_pop_count * 0.1
+				_:
+					gov_config.push_weight = 0.5
+					gov_config.tax_rate = 0.03
+					gov_config.starting_treasury = 20.0
+			loc.government_config = gov_config
 		if loc.guild_configs.is_empty():
-			loc.guild_configs = _create_extraction_guild_configs_for(loc, thing_map)
+			var configs: Array[GuildConfig] = []
+			for nr: NaturalResource in loc.natural_resources:
+				var covered := false
+				for existing: GuildConfig in configs:
+					for spec: GuildSpecialization in existing.specializations:
+						if spec.thing == nr.thing:
+							covered = true
+							break
+					if covered:
+						break
+				if not covered:
+					var spec := GuildSpecialization.new()
+					spec.thing = nr.thing
+					spec.max_workers = maxi(1, int(nr.workers_needed) * 2)
+					spec.worker_job = nr.worker_job
+					spec.wage_per_worker = 0.5
+					spec.recruitment_rate = maxi(1, int(nr.workers_needed) / 10)
+					var cfg := GuildConfig.new()
+					cfg.guild_name = "%s %s Extractors" % [loc.location_name, nr.thing.thing_name]
+					cfg.specializations = [spec]
+					cfg.starting_treasury = 50.0
+					configs.append(cfg)
+			loc.guild_configs = configs
 
-	# Ensure exactly one location is flagged imperial (folded central bank lives here).
 	var imperial_count := 0
 	for loc in world.locations:
 		if loc.is_imperial:
@@ -156,186 +290,10 @@ func _setup_economy() -> void:
 	engine.print_per_turn = 500.0
 	engine.noble_loan_threshold = 100.0
 	engine.loan_amount = 200.0
-	engine.enable_csharp() # asserts on failure — godot-mono required
+	engine.enable_csharp()
 	world.economy_engine = engine
 	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
 
-
-func _create_population_for(loc: Location) -> Population:
-	var pop := Population.new()
-	var dev := loc.development
-	var scale := dev / 50.0
-
-	match loc.type:
-		StrategyTypes.LocationType.CITY:
-			var farmers := int(20 * scale)
-			var craftsmen := int(15 * scale)
-			var merchants := int(10 * scale)
-			var nobles := int(3 * scale)
-			var laborers := int(10 * scale)
-			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 2.0):
-				pop.add_person(p)
-			for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 10.0):
-				pop.add_person(p)
-			for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 15.0):
-				pop.add_person(p)
-			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
-				pop.add_person(p)
-			for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
-				pop.add_person(p)
-
-		StrategyTypes.LocationType.TOWN:
-			var farmers := int(30 * scale)
-			var craftsmen := int(5 * scale)
-			var merchants := int(3 * scale)
-			var nobles := int(1 * scale)
-			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 1.0):
-				pop.add_person(p)
-			for p in Population.create_batch(craftsmen, "%s_craftsman" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 5.0):
-				pop.add_person(p)
-			for p in Population.create_batch(merchants, "%s_merchant" % loc.location_id, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.MERCHANT, 8.0):
-				pop.add_person(p)
-			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 30.0):
-				pop.add_person(p)
-
-		StrategyTypes.LocationType.FORT:
-			var servants := int(5 * scale)
-			var laborers := int(3 * scale)
-			var nobles := int(2 * scale)
-			for p in Population.create_batch(servants, "%s_servant" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 0.0):
-				pop.add_person(p)
-			for p in Population.create_batch(laborers, "%s_laborer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
-				pop.add_person(p)
-			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 80.0):
-				pop.add_person(p)
-
-		StrategyTypes.LocationType.VILLAGE:
-			var farmers := int(20 * scale)
-			var nobles := maxi(1, int(0.5 * scale))
-			for p in Population.create_batch(farmers, "%s_farmer" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.5):
-				pop.add_person(p)
-			for p in Population.create_batch(nobles, "%s_noble" % loc.location_id, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 20.0):
-				pop.add_person(p)
-
-		_:
-			for p in Population.create_batch(5, "%s_person" % loc.location_id, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0):
-				pop.add_person(p)
-
-	return pop
-
-
-func _create_natural_resources_for(loc: Location, thing_map: Dictionary) -> Array[NaturalResource]:
-	var resources: Array[NaturalResource] = []
-	var food: Thing = thing_map.get("food")
-	var wool: Thing = thing_map.get("wool")
-	var iron_ore: Thing = thing_map.get("iron_ore")
-	var iron: Thing = thing_map.get("iron")
-	var wood: Thing = thing_map.get("wood")
-	var cloth: Thing = thing_map.get("cloth")
-	var tools: Thing = thing_map.get("tools")
-	var pop_count: int = loc.population.size() if loc.population else 50
-	var ps := maxf(1.0, float(pop_count) / 50.0)
-
-	match loc.type:
-		StrategyTypes.LocationType.CITY:
-			if food:
-				resources.append(NaturalResource.create(food, 50.0 * ps))
-			if cloth:
-				resources.append(NaturalResource.create_craft(cloth, 12.0 * ps))
-			if tools:
-				resources.append(NaturalResource.create_craft(tools, 8.0 * ps))
-			if iron:
-				resources.append(NaturalResource.create(iron, 15.0 * ps))
-			if wood:
-				resources.append(NaturalResource.create(wood, 20.0 * ps))
-
-		StrategyTypes.LocationType.TOWN:
-			if food:
-				resources.append(NaturalResource.create(food, 60.0 * ps))
-			if wool:
-				resources.append(NaturalResource.create(wool, 20.0 * ps))
-			if iron_ore:
-				resources.append(NaturalResource.create(iron_ore, 10.0 * ps))
-			if cloth:
-				resources.append(NaturalResource.create_craft(cloth, 5.0 * ps))
-			if iron:
-				resources.append(NaturalResource.create(iron, 8.0 * ps))
-			if wood:
-				resources.append(NaturalResource.create(wood, 25.0 * ps))
-
-		StrategyTypes.LocationType.VILLAGE:
-			if food:
-				resources.append(NaturalResource.create(food, 40.0 * ps))
-			if wool:
-				resources.append(NaturalResource.create(wool, 15.0 * ps))
-			if iron_ore:
-				resources.append(NaturalResource.create(iron_ore, 8.0 * ps))
-			if wood:
-				resources.append(NaturalResource.create(wood, 15.0 * ps))
-
-		StrategyTypes.LocationType.FORT:
-			if food:
-				resources.append(NaturalResource.create(food, 30.0 * ps))
-
-	return resources
-
-
-func _create_extraction_guild_configs_for(loc: Location, thing_map: Dictionary) -> Array[GuildConfig]:
-	var configs: Array[GuildConfig] = []
-	for nr: NaturalResource in loc.natural_resources:
-		var covered := false
-		for existing: GuildConfig in configs:
-			for spec: GuildSpecialization in existing.specializations:
-				if spec.thing == nr.thing:
-					covered = true
-					break
-			if covered:
-				break
-		if not covered:
-			var spec := GuildSpecialization.new()
-			spec.thing = nr.thing
-			spec.max_workers = maxi(1, int(nr.workers_needed) * 2)
-			spec.worker_job = nr.worker_job
-			spec.wage_per_worker = 0.5
-			spec.recruitment_rate = maxi(1, int(nr.workers_needed) / 10)
-			var cfg := GuildConfig.new()
-			cfg.guild_name = "%s %s Extractors" % [loc.location_name, nr.thing.thing_name]
-			cfg.specializations = [spec]
-			cfg.starting_treasury = 50.0
-			configs.append(cfg)
-	return configs
-
-
-func _create_government_config_for(loc: Location) -> GovernmentConfig:
-	var config := GovernmentConfig.new()
-	var pop_count := loc.population.size() if loc.population else 50
-	match loc.type:
-		StrategyTypes.LocationType.CITY:
-			config.push_weight = 0.8
-			config.pull_weight = 0.2
-			config.max_budget_ratio = 0.3
-			config.priority_goods = ["food", "cloth"]
-			config.tax_rate = 0.05
-			config.starting_treasury = pop_count * 0.2
-		StrategyTypes.LocationType.TOWN:
-			config.push_weight = 0.6
-			config.pull_weight = 0.4
-			config.max_budget_ratio = 0.25
-			config.priority_goods = ["food"]
-			config.tax_rate = 0.04
-			config.starting_treasury = pop_count * 0.15
-		StrategyTypes.LocationType.VILLAGE:
-			config.push_weight = 0.5
-			config.pull_weight = 0.5
-			config.max_budget_ratio = 0.2
-			config.priority_goods = ["food"]
-			config.tax_rate = 0.03
-			config.starting_treasury = pop_count * 0.1
-		_:
-			config.push_weight = 0.5
-			config.tax_rate = 0.03
-			config.starting_treasury = 20.0
-	return config
 
 
 func _get_connected_ids(loc: Location) -> Array[String]:
@@ -347,12 +305,8 @@ func _get_connected_ids(loc: Location) -> Array[String]:
 	return ids
 
 
-func _load_generic_events() -> Array[GameEvent]:
-	var events: Array[GameEvent] = []
-	_collect_event_resources("res://resources/strategy/generic-events", events)
-	return events
 
-func _collect_event_resources(base_path: String, target: Array) -> void:
+func _collect_event_resources(base_path: String, target: Array[GameEvent]) -> void:
 	var dir := DirAccess.open(base_path)
 	if dir == null:
 		Log.warn("Scenario", "Missing event directory: %s" % base_path)
@@ -379,7 +333,7 @@ func _load_generic_activities() -> Array[Activity]:
 	Log.debug("Scenario", "Loaded %d generic activities" % activities.size())
 	return activities
 
-func _collect_activity_resources(base_path: String, target: Array) -> void:
+func _collect_activity_resources(base_path: String, target: Array[Activity]) -> void:
 	var dir := DirAccess.open(base_path)
 	if dir == null:
 		Log.warn("Scenario", "Missing activity directory: %s" % base_path)

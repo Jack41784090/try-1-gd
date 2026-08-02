@@ -13,7 +13,6 @@ func _ready() -> void:
 	print("COMBAT CONTROLLER - COMPREHENSIVE TEST SUITE")
 	print("=".repeat(80) + "\n")
 	
-	# Run all test suites
 	test_combat_controller_initialization()
 	test_intermission_options()
 	test_flee_mechanics()
@@ -22,7 +21,6 @@ func _ready() -> void:
 	test_result_application()
 	test_tactic_integration()
 	
-	# Print final results
 	print("\n" + "=".repeat(80))
 	print("TEST RESULTS")
 	print("=".repeat(80))
@@ -35,7 +33,6 @@ func _ready() -> void:
 		print("\n✗ SOME TESTS FAILED!")
 	print("=".repeat(80) + "\n")
 	
-	# Exit after tests
 	get_tree().quit(0 if failed_count == 0 else 1)
 
 #region Test Helpers
@@ -87,10 +84,9 @@ func end_test() -> void:
 
 #region Test Data Creation
 
+## Base attack attributes live on the class template and resolve via Character's
+## tier-2/tier-1 cascade — no need to author them per test warrior.
 func create_test_warrior(id: String, warrior_name: String, class_identification: String = "landsknecht") -> Character:
-	# Base attack attributes (strength/endurance/etc.) now live on the class template
-	# (resources/combat/classes/<class_identification>.tres) and resolve automatically
-	# via Character's tier-2/tier-1 cascade — no need to author them per test warrior.
 	var res := StrategyEntityResource.new()
 	res.name = warrior_name
 	res.identification = class_identification
@@ -115,7 +111,6 @@ func create_test_player_squad() -> StrategySquad:
 	squad.squad_name = "Test Heroes"
 	squad.current_location_id = "test_location"
 	
-	# Add warriors
 	for i in range(3):
 		var warrior = create_test_warrior("warrior_%d" % i, "Hero %d" % i)
 		squad.warriors.append(warrior)
@@ -129,7 +124,6 @@ func create_test_enemy_squad() -> StrategySquad:
 	squad.squad_name = "Test Enemies"
 	squad.current_location_id = "test_location"
 	
-	# Add warriors (fewer than player for easier testing)
 	for i in range(2):
 		var warrior = create_test_warrior("enemy_%d" % i, "Enemy %d" % i)
 		squad.warriors.append(warrior)
@@ -166,14 +160,12 @@ func test_intermission_options() -> void:
 	
 	controller.start_combat(player_squad, enemy_squad)
 	
-	# Controller should now be in combat state
 	assert_true(controller.is_in_combat, "is_in_combat is true after start_combat")
 	assert_not_null(controller.current_player_squad, "player squad stored")
 	assert_not_null(controller.current_enemy_squad, "enemy squad stored")
 	end_test()
 	
 	start_test("Intermission options calculated correctly")
-	# We can't easily test the emitted signal, but we can verify state
 	assert_not_null(controller.current_tactic, "tactic is set")
 	assert_equals(controller.current_tactic.tactic_id, "balanced", "default tactic is balanced")
 	end_test()
@@ -192,12 +184,10 @@ func test_flee_mechanics() -> void:
 	var result = await controller.process_intermission_choice(CombatController.IntermissionChoice.FLEE)
 	
 	assert_not_null(result, "result returned")
-	# Result should either be fled=true or fled=false with combat result
 	assert_true(result.fled or (not result.fled and result.turns_elapsed >= 0), "flee result valid")
 	end_test()
 	
 	start_test("Flee success has morale penalty")
-	# We can't guarantee flee success, but if it succeeded:
 	if result.fled:
 		assert_true(result.morale_change < 0, "fled has negative morale change")
 	end_test()
@@ -216,7 +206,6 @@ func test_negotiate_mechanics() -> void:
 	var result = await controller.process_intermission_choice(CombatController.IntermissionChoice.NEGOTIATE)
 	
 	assert_not_null(result, "result returned")
-	# Result should either be negotiated=true or negotiated=false with combat
 	assert_true(result.negotiated or (not result.negotiated and result.turns_elapsed >= 0), "negotiate result valid")
 	end_test()
 
@@ -300,7 +289,6 @@ func test_tactic_integration() -> void:
 	var player_squad = create_test_player_squad()
 	var enemy_squad = create_test_enemy_squad()
 	
-	# Set squad tactic before combat
 	player_squad.set_tactic(Tactic.create_full_assault())
 	
 	controller.start_combat(player_squad, enemy_squad)

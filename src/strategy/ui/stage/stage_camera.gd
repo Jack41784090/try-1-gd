@@ -9,7 +9,30 @@ var _include_padding: float = 100.0
 
 func _process(_delta: float) -> void:
 	if not _include_targets.is_empty() and _rig_lookup.is_valid() and not tweening():
-		_update_include_framing()
+		var positions: Array[Vector2] = []
+		for id in _include_targets:
+			var rig = _rig_lookup.call(id)
+			if rig and is_instance_valid(rig):
+				positions.append(rig.global_position)
+		if not positions.is_empty():
+			var center = Vector2.ZERO
+			for p in positions:
+				center += p
+			center /= positions.size()
+
+			var max_dist: float = 0.0
+			for p in positions:
+				max_dist = maxf(max_dist, center.distance_to(p))
+
+			var viewport_size = get_viewport_rect().size
+			var min_dim = minf(viewport_size.x, viewport_size.y)
+			var needed = (max_dist + _include_padding) * 2.0
+			var target_zoom = clampf(min_dim / maxf(needed, 1.0), 0.5, 3.0)
+
+			global_position = global_position.lerp(center, 0.1)
+			var z = zoom.x
+			z = lerpf(z, target_zoom, 0.1)
+			zoom = Vector2(z, z)
 
 
 func focus_on(target: Vector2, zoom_level: float, duration: float = 0.5) -> void:
@@ -97,35 +120,6 @@ func get_screen_position(world_pos: Vector2) -> Vector2:
 		return world_pos
 	var canvas_transform = viewport.canvas_transform
 	return canvas_transform * world_pos
-
-
-func _update_include_framing() -> void:
-	var positions: Array[Vector2] = []
-	for id in _include_targets:
-		var rig = _rig_lookup.call(id)
-		if rig and is_instance_valid(rig):
-			positions.append(rig.global_position)
-	if positions.is_empty():
-		return
-
-	var center = Vector2.ZERO
-	for p in positions:
-		center += p
-	center /= positions.size()
-
-	var max_dist: float = 0.0
-	for p in positions:
-		max_dist = maxf(max_dist, center.distance_to(p))
-
-	var viewport_size = get_viewport_rect().size
-	var min_dim = minf(viewport_size.x, viewport_size.y)
-	var needed = (max_dist + _include_padding) * 2.0
-	var target_zoom = clampf(min_dim / maxf(needed, 1.0), 0.5, 3.0)
-
-	global_position = global_position.lerp(center, 0.1)
-	var z = zoom.x
-	z = lerpf(z, target_zoom, 0.1)
-	zoom = Vector2(z, z)
 
 
 func kill_tween() -> void:

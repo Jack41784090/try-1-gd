@@ -74,4 +74,5 @@ weapon_class = ExtResource("6_ehy5b")
 armor_class = ExtResource("1_sp6eo")
 logic_config = ExtResource("2_logic")
 rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_arquebusier_strength"), SubResource("ReactiveStat_arquebusier_dex"), SubResource("ReactiveStat_arquebusier_acr"), SubResource("ReactiveStat_arquebusier_spd"), SubResource("ReactiveStat_arquebusier_siz"), SubResource("ReactiveStat_arquebusier_int_stat"), SubResource("ReactiveStat_arquebusier_spr"), SubResource("ReactiveStat_arquebusier_fai"), SubResource("ReactiveStat_arquebusier_cha"), SubResource("ReactiveStat_arquebusier_beu"), SubResource("ReactiveStat_arquebusier_wil"), SubResource("ReactiveStat_arquebusier_endurance")])
+identification = ""
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

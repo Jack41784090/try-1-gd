@@ -47,23 +47,23 @@ func get_contact(observer_id: String, target_id: String):
 	var key = _make_key(observer_id, target_id)
 	return contacts.get(key)
 
-func get_contacts_for(squad_id: String) -> Array:
-	var result: Array = []
+func get_contacts_for(squad_id: String) -> Array[Contact]:
+	var result: Array[Contact] = []
 	for key in contacts:
 		var c = contacts[key]
 		if c.observer_id == squad_id:
 			result.append(c)
 	return result
 
-func get_contacts_on(squad_id: String) -> Array:
-	var result: Array = []
+func get_contacts_on(squad_id: String) -> Array[Contact]:
+	var result: Array[Contact] = []
 	for key in contacts:
 		var c = contacts[key]
 		if c.target_id == squad_id:
 			result.append(c)
 	return result
 
-func update_all_contacts(world: World, all_squads: Array, activity_log: Dictionary, edge_log: Dictionary, current_hour: int, focus_map: Dictionary = {}) -> void:
+func update_all_contacts(world: World, all_squads: Array[StrategySquad], activity_log: Dictionary, edge_log: Dictionary, current_hour: int, focus_map: Dictionary = {}) -> void:
 	for i in range(all_squads.size()):
 		var observer: StrategySquad = all_squads[i]
 		var observer_activity: StrategyTypes.ActivityType = activity_log.get(observer.squad_id, StrategyTypes.ActivityType.REST)
@@ -74,8 +74,31 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 				enemies.append(all_squads[j])
 
 		var focus = focus_map.get(observer.squad_id)
-		var capacity = _get_tracking_capacity(observer, observer_activity)
-		var tracked_targets = _select_tracked_targets(observer, enemies, world, edge_log, capacity, focus)
+		var capacity = 1 + int(observer.get_aggregate_scouting() / 30.0)
+		if observer_activity == StrategyTypes.ActivityType.PATROL:
+			capacity += 1
+		var tracked_targets: Dictionary = {}
+		if enemies.size() <= capacity:
+			for e in enemies:
+				tracked_targets[e.squad_id] = true
+		else:
+			var scored: Array[Dictionary] = []
+			for candidate in enemies:
+				var score = 0.0
+				var existing_contact = get_contact(observer.squad_id, candidate.squad_id)
+				if existing_contact:
+					score += existing_contact.progress * 10.0
+				if observer.current_location_id == candidate.current_location_id:
+					score += 500.0
+				var prox = _determine_proximity(observer, candidate, world, edge_log)
+				score += prox * 100.0
+				score += candidate.get_living_warriors().size() * 5.0
+				if focus and not focus.is_empty() and focus.matches(candidate):
+					score += 300.0
+				scored.append({"squad_id": candidate.squad_id, "score": score})
+			scored.sort_custom(func(a, b): return a["score"] > b["score"])
+			for idx in range(mini(capacity, scored.size())):
+				tracked_targets[scored[idx]["squad_id"]] = true
 
 		for enemy in enemies:
 			var contact = get_or_create_contact(observer.squad_id, enemy.squad_id)
@@ -93,8 +116,8 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 			var observer_location = world.get_location_by_id(observer.current_location_id)
 			var location_vis = LOCATION_VISIBILITY.get(observer_location.type, 0.7) if observer_location else 0.7
 
-			var eff_scouting = observer.get_aggregate_scouting() * _get_scouting_mod(observer_activity) * location_vis
-			var eff_stealth = enemy.get_aggregate_stealth() * _get_stealth_mod(enemy_activity)
+			var eff_scouting = observer.get_aggregate_scouting() * ACTIVITY_MODIFIERS.get(observer_activity, [0.5, 0.5])[0] * location_vis
+			var eff_stealth = enemy.get_aggregate_stealth() * ACTIVITY_MODIFIERS.get(enemy_activity, [0.5, 0.5])[1]
 
 			if enemy.squad_role == StrategyTypes.SquadRole.MERCHANT:
 				eff_stealth *= 0.3
@@ -114,7 +137,16 @@ func update_all_contacts(world: World, all_squads: Array, activity_log: Dictiona
 
 			contact.apply_delta(rate, current_hour)
 
-	_log_contacts(current_hour)
+	for key in contacts:
+		var c = contacts[key]
+		if c.progress > 0.0:
+			Log.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
+				current_hour,
+				c.observer_id,
+				c.target_id,
+				c.progress,
+				StrategyTypes.ContactState.keys()[c.get_state()]
+			])
 
 
 func calculate_focus_multiplier(observer: StrategySquad, target: StrategySquad, focus) -> float:
@@ -153,7 +185,7 @@ func classify_engagement(attacker_id: String, defender_id: String) -> StrategyTy
 		StrategyTypes.ContactState.keys()[state_atk],
 		StrategyTypes.ContactState.keys()[state_def]])
 
-	# Only LOCKED attackers can initiate — classify by defender awareness
+	## Only LOCKED attackers can initiate — classify by defender awareness
 	if state_def <= StrategyTypes.ContactState.SUSPECTED:
 		return StrategyTypes.EngagementType.AMBUSH
 	if state_def == StrategyTypes.ContactState.TRACKED:
@@ -193,72 +225,5 @@ func _determine_proximity(observer: StrategySquad, target: StrategySquad, world:
 		return ADJACENT_PROXIMITY
 
 	return 0.0
-
-#endregion
-
-#region Tracking Capacity
-
-func _get_tracking_capacity(squad: StrategySquad, activity_type: StrategyTypes.ActivityType) -> int:
-	var base = 1 + int(squad.get_aggregate_scouting() / 30.0)
-	if activity_type == StrategyTypes.ActivityType.PATROL:
-		base += 1
-	return base
-
-func _select_tracked_targets(observer: StrategySquad, enemies: Array[StrategySquad], world: World, edge_log: Dictionary, capacity: int, focus = null) -> Dictionary:
-	if enemies.size() <= capacity:
-		var all_targets: Dictionary = {}
-		for e in enemies:
-			all_targets[e.squad_id] = true
-		return all_targets
-
-	var scored: Array[Dictionary] = []
-	for enemy in enemies:
-		var score = 0.0
-		var contact = get_contact(observer.squad_id, enemy.squad_id)
-		if contact:
-			score += contact.progress * 10.0
-
-		if observer.current_location_id == enemy.current_location_id:
-			score += 500.0
-
-		var prox = _determine_proximity(observer, enemy, world, edge_log)
-		score += prox * 100.0
-		score += enemy.get_living_warriors().size() * 5.0
-
-		if focus and not focus.is_empty() and focus.matches(enemy):
-			score += 300.0
-
-		scored.append({"squad_id": enemy.squad_id, "score": score})
-
-	scored.sort_custom(func(a, b): return a["score"] > b["score"])
-
-	var result: Dictionary = {}
-	for i in range(mini(capacity, scored.size())):
-		result[scored[i]["squad_id"]] = true
-	return result
-
-#endregion
-
-#region Helpers
-
-func _get_scouting_mod(activity: StrategyTypes.ActivityType) -> float:
-	var mods = ACTIVITY_MODIFIERS.get(activity, [0.5, 0.5])
-	return mods[0]
-
-func _get_stealth_mod(activity: StrategyTypes.ActivityType) -> float:
-	var mods = ACTIVITY_MODIFIERS.get(activity, [0.5, 0.5])
-	return mods[1]
-
-func _log_contacts(current_hour: int) -> void:
-	for key in contacts:
-		var c = contacts[key]
-		if c.progress > 0.0:
-			Log.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
-				current_hour,
-				c.observer_id,
-				c.target_id,
-				c.progress,
-				StrategyTypes.ContactState.keys()[c.get_state()]
-			])
 
 #endregion

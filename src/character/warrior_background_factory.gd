@@ -40,7 +40,3 @@ static func all() -> Array[WarriorBackground]:
 		result.append(_registry[key])
 	return result
 
-
-static func clear_cache() -> void:
-	_registry.clear()
-	_loaded = false

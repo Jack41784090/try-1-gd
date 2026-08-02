@@ -39,14 +39,6 @@ static func error(source: String, msg: String) -> void:
 	push_error("[%s] %s" % [source, msg])
 
 
-static func mute(source: String) -> void:
-	muted_sources[source] = true
-
-
-static func unmute(source: String) -> void:
-	muted_sources.erase(source)
-
-
 static func set_level(level: Level) -> void:
 	min_level = level
 

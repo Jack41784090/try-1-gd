@@ -1,22 +1,5 @@
 class_name WeaponFactory
 
-## Folder scanned for weapon config (.tres) names. Reassign to retarget the list.
-static var config_root := "res://resources/combat/weapon/config/"
-
-
-## File stems of the weapon config .tres in config_root, sorted — the live folder
-## list (use to drive a dropdown / verify which weapon configs actually exist).
-static func available_names() -> PackedStringArray:
-	var out := PackedStringArray()
-	var dir := DirAccess.open(config_root)
-	if dir == null:
-		return out
-	for f in dir.get_files():
-		if f.ends_with(".tres"):
-			out.append(f.trim_suffix(".tres"))
-	out.sort()
-	return out
-
 
 static var pathlib = {
 	"Unarmed": "res://resources/combat/weapon/unarmed.tres",

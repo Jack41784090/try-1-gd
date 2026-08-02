@@ -29,22 +29,19 @@ func get_distance_km(to_location: Location) -> float:
 	return conn.distance_km
 
 
-func get_speed_modifier(to_location: Location) -> float:
-	var modifier := 1.0
-	if self.type == StrategyTypes.LocationType.ROAD:
-		modifier += 0.2
-	if to_location.type == StrategyTypes.LocationType.ROAD:
-		modifier += 0.2
-	if stability < 50.0 or to_location.stability < 50.0:
-		modifier -= 0.2
-	return max(0.2, modifier)
-
-
 func get_travel_hours(to_location: Location, base_speed_kmh: float) -> float:
 	var dist := get_distance_km(to_location)
 	if dist < 0.0:
 		return -1.0
-	var effective_speed := base_speed_kmh * get_speed_modifier(to_location)
+	var speed_modifier := 1.0
+	if self.type == StrategyTypes.LocationType.ROAD:
+		speed_modifier += 0.2
+	if to_location.type == StrategyTypes.LocationType.ROAD:
+		speed_modifier += 0.2
+	if stability < 50.0 or to_location.stability < 50.0:
+		speed_modifier -= 0.2
+	speed_modifier = max(0.2, speed_modifier)
+	var effective_speed := base_speed_kmh * speed_modifier
 	return dist / effective_speed
 
 func get_connection_to(location_id_check: String) -> TownConnection:
@@ -61,11 +58,6 @@ func has_activity_type(activity_type: StrategyTypes.ActivityType) -> bool:
 func add_activity_type(activity_type: StrategyTypes.ActivityType) -> void:
 	if not has_activity_type(activity_type):
 		available_activity_types.append(activity_type)
-
-func set_activity_types(types: Array[StrategyTypes.ActivityType]) -> void:
-	available_activity_types.clear()
-	available_activity_types.append_array(types)
-
 
 func has_shop() -> bool:
 	if shop == null:

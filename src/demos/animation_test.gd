@@ -46,9 +46,8 @@ func _ready() -> void:
 	if config:
 		_refresh(false)
 	_play(_index)
-	_print_rig_debug()
 
-func _print_rig_debug() -> void:
+	# --- print rig debug ---
 	print("=== Rig debug ===")
 	print("rig global_position=%s scale=%s modulate=%s visible=%s" % [rig.global_position, rig.scale, rig.modulate, rig.visible])
 	var sprites := 0
@@ -84,8 +83,8 @@ func _process(delta: float) -> void:
 	if _disk_changed():
 		_refresh(true)
 	elif _config_signature() != _last_sig:
-		# Live edit to the in-memory config (e.g. a bone size tweaked in the
-		# running remote inspector) — no file changed, so re-apply directly.
+		## Live edit to the in-memory config (e.g. a bone size tweaked in the
+		## running remote inspector) — no file changed, so re-apply directly.
 		_refresh(false)
 
 ## Captures the config's current sizes, offsets, and texture assignments so an
@@ -140,14 +139,14 @@ func _watched_paths() -> Array[String]:
 	return paths
 
 func _refresh(reload_config: bool) -> void:
-	# Re-read the .tres from disk so slot reassignments are picked up.
+	## Re-read the .tres from disk so slot reassignments are picked up.
 	if reload_config and not config.resource_path.is_empty():
 		var fresh := ResourceLoader.load(
 			config.resource_path, "", ResourceLoader.CACHE_MODE_IGNORE)
 		if fresh is WarriorRigConfig:
 			config = fresh
 
-	# Use the config's imported textures directly (skip disk reload for now).
+	## Use the config's imported textures directly (skip disk reload for now).
 	var rebuilt: WarriorRigConfig = config.duplicate()
 	rebuilt.default_expression = null
 
@@ -237,11 +236,6 @@ func _play(idx: int) -> void:
 	rig.play_behavior(BEHAVIORS[_index])
 	_update_label()
 
-func _pose_rest() -> void:
-	_tpose = true
-	rig.pose_rest()
-	_update_label()
-
 func _update_label() -> void:
 	var lines := PackedStringArray()
 	var current := "T-pose (rest, no anim)" if _tpose else BEHAVIOR_NAMES[_index]
@@ -270,9 +264,12 @@ func _input(event: InputEvent) -> void:
 	elif key == KEY_E:
 		_apply_expression(_expr_index + 1)
 	elif key == KEY_T:
-		_pose_rest()
+		# --- pose rest ---
+		_tpose = true
+		rig.pose_rest()
+		_update_label()
 	elif key == KEY_R:
-		# Re-travel to force one-shot anims (attack/hurt/die) to restart.
+		## Re-travel to force one-shot anims (attack/hurt/die) to restart.
 		rig.play_behavior(AnimTypes.Behavior.IDLE)
 		await get_tree().process_frame
 		_play(_index)

@@ -59,7 +59,6 @@ func _ready() -> void:
 	_presenter = cutscene_player.vn_presenter
 	_stage = cutscene_player.stage_presenter
 	_playback = _presenter._playback
-	# CutscenePlayer already wired _presenter.stage_presenter = _stage in its _ready.
 	_presenter.character_ids_in_chain = character_ids.duplicate()
 	if _playback.timeline_complete.is_connected(_presenter._on_timeline_complete):
 		_playback.timeline_complete.disconnect(_presenter._on_timeline_complete)
@@ -81,7 +80,6 @@ func _process(delta: float) -> void:
 		return
 	_poll_accum = 0.0
 	if _disk_changed():
-		# _reapply_config_to_rigs()
 		stage_view.reload_scenery_textures()
 		_snapshot_mtimes()
 		Log.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")
@@ -161,8 +159,8 @@ func _run_headless_smoke_test() -> void:
 	assert(not stage_view.props.is_empty(), "Stage set produced no scenery props")
 	print("[SmokeTest] scenery props applied: %s" % str(stage_view.props.keys()))
 	var start_ms := Time.get_ticks_msec()
-	# Drive input every frame: in PLAYING this kicks fast-forward (5x), at gates it
-	# fast-forwards typewriters then releases — so the whole cutscene resolves quickly.
+	## Driving input every frame: in PLAYING this kicks fast-forward (5x), at gates
+	## it fast-forwards typewriters then releases — whole cutscene resolves quickly.
 	while not _completed and Time.get_ticks_msec() - start_ms < 180000:
 		_playback.on_input()
 		await get_tree().process_frame
@@ -209,27 +207,5 @@ func _snapshot_mtimes() -> void:
 		if FileAccess.file_exists(abs_path):
 			_mtimes[abs_path] = FileAccess.get_modified_time(abs_path)
 
-
-func _load_texture_from_disk(abs_path: String) -> Texture2D:
-	return SvgLoader.load_svg(abs_path, SVG_RENDER_SCALE)
-
-
-func _set_slot(cfg: WarriorRigConfig, bone_name: String, tex: Texture2D) -> void:
-	match bone_name:
-		"Head": cfg.head_texture = tex
-		"Torso": cfg.torso_texture = tex
-		"Hips": cfg.hips_texture = tex
-		"LeftArm": cfg.left_arm_texture = tex
-		"LeftForearm": cfg.left_forearm_texture = tex
-		"LeftHand": cfg.left_hand_texture = tex
-		"RightArm": cfg.right_arm_texture = tex
-		"RightForearm": cfg.right_forearm_texture = tex
-		"RightHand": cfg.right_hand_texture = tex
-		"LeftLeg": cfg.left_leg_texture = tex
-		"LeftShin": cfg.left_shin_texture = tex
-		"LeftFoot": cfg.left_foot_texture = tex
-		"RightLeg": cfg.right_leg_texture = tex
-		"RightShin": cfg.right_shin_texture = tex
-		"RightFoot": cfg.right_foot_texture = tex
 
 #endregion

@@ -24,18 +24,56 @@ var _is_marching: bool = false
 
 func _ready() -> void:
 	presenter.bind_view(self )
-	_ensure_scenery_layer()
+	scenery_layer = stage_viewport.get_node_or_null("Scenery") as Node2D
+	if not scenery_layer:
+		scenery_layer = Node2D.new()
+		scenery_layer.name = "Scenery"
+		stage_viewport.add_child(scenery_layer)
+	stage_viewport.move_child(scenery_layer, 0)
 
 
 func _process(delta: float) -> void:
 	if _is_marching:
-		_update_march(delta)
-	_update_bubble_positions()
-	_update_parallax()
+		var _march_width = _get_stage_width()
+		for rig in rigs.values():
+			if not is_instance_valid(rig):
+				continue
+			if rig.anim_controller.current_behavior != AnimTypes.Behavior.WALKING:
+				rig.play_behavior(AnimTypes.Behavior.WALKING)
+			rig.position.x += MARCH_SPEED * delta
+			if rig.position.x > _march_width * 0.5:
+				rig.position.x -= _march_width
+	var _bub_vp_size: Vector2 = Vector2(stage_viewport.size) if stage_viewport else Vector2(800, 600)
+	var _bub_margin := 8.0
+	for bubble in bubbles:
+		if not is_instance_valid(bubble):
+			continue
+		var rig = rigs.get(bubble.target_character_id)
+		if not rig or not is_instance_valid(rig):
+			continue
+		var head_world = rig.get_head_position()
+		var screen_pos = stage_camera.get_screen_position(head_world)
+		var target = screen_pos + Vector2(0, -BUBBLE_OFFSET_Y)
+		var bw = bubble.size.x
+		var bh = bubble.size.y
+		target.x = clampf(target.x, _bub_margin + bw * 0.5, _bub_vp_size.x - _bub_margin - bw * 0.5)
+		target.y = clampf(target.y, _bub_margin + bh, _bub_vp_size.y - _bub_margin)
+		bubble.set_screen_position(target)
+	if scenery_layer:
+		var cam_pos := stage_camera.global_position
+		for spr in scenery_layer.get_children():
+			var p: float = spr.get_meta("parallax", 1.0)
+			if p >= 1.0:
+				continue
+			var base: Vector2 = spr.get_meta("base_position", spr.position)
+			spr.position = base + cam_pos * (1.0 - p)
 
 
-func spawn_warriors(warriors: Array[StrategyEntity]) -> void:
-	clear_warriors()
+func spawn_warriors(warriors: Array[Character]) -> void:
+	for rig in rigs.values():
+		if is_instance_valid(rig):
+			rig.queue_free()
+	rigs.clear()
 	for i in warriors.size():
 		var warrior = warriors[i]
 		if warrior.is_dead:
@@ -48,13 +86,6 @@ func spawn_warriors(warriors: Array[StrategyEntity]) -> void:
 
 func get_rig(character_id: String) -> WarriorRig:
 	return rigs.get(character_id) as WarriorRig
-
-
-func clear_warriors() -> void:
-	for rig in rigs.values():
-		if is_instance_valid(rig):
-			rig.queue_free()
-	rigs.clear()
 
 
 func set_all_behavior(behavior: AnimTypes.Behavior) -> void:
@@ -106,29 +137,7 @@ func _get_stage_width() -> float:
 	return 800.0
 
 
-func _update_march(delta: float) -> void:
-	var width = _get_stage_width()
-	for rig in rigs.values():
-		if not is_instance_valid(rig):
-			continue
-		if rig.anim_controller.current_behavior != AnimTypes.Behavior.WALKING:
-			rig.play_behavior(AnimTypes.Behavior.WALKING)
-		rig.position.x += MARCH_SPEED * delta
-		if rig.position.x > width * 0.5:
-			rig.position.x -= width
-
 #region Scenery (backdrops + props)
-
-func _ensure_scenery_layer() -> void:
-	scenery_layer = stage_viewport.get_node_or_null("Scenery") as Node2D
-	if not scenery_layer:
-		scenery_layer = Node2D.new()
-		scenery_layer.name = "Scenery"
-		stage_viewport.add_child(scenery_layer)
-	# Draw scenery before the rigs so props sit behind characters by default
-	# (per-prop z_index can still override).
-	stage_viewport.move_child(scenery_layer, 0)
-
 
 func apply_stage_set(stage_set: StageSet) -> void:
 	clear_scenery()
@@ -215,7 +224,7 @@ func set_backdrop(svg_path: String, position: Vector2, scale: float, z: int, par
 
 
 func reload_scenery_textures() -> void:
-	# Re-rasterizes each prop's SVG from disk (used by editor hot-reload).
+	## Re-rasterizes each prop's SVG from disk (used by editor hot-reload).
 	for spr in props.values():
 		if not is_instance_valid(spr):
 			continue
@@ -252,17 +261,6 @@ func _build_sprite(prop_id: String, svg_path: String, svg_scale: float) -> Sprit
 	return spr
 
 
-func _update_parallax() -> void:
-	if not scenery_layer:
-		return
-	var cam_pos := stage_camera.global_position
-	for spr in scenery_layer.get_children():
-		var p: float = spr.get_meta("parallax", 1.0)
-		if p >= 1.0:
-			continue
-		var base: Vector2 = spr.get_meta("base_position", spr.position)
-		spr.position = base + cam_pos * (1.0 - p)
-
 #endregion
 
 #region Speech Bubbles
@@ -289,24 +287,6 @@ func dismiss_all_bubbles() -> void:
 			bubble.dismiss()
 	bubbles.clear()
 
-
-func _update_bubble_positions() -> void:
-	var vp_size: Vector2 = Vector2(stage_viewport.size) if stage_viewport else Vector2(800, 600)
-	var margin := 8.0
-	for bubble in bubbles:
-		if not is_instance_valid(bubble):
-			continue
-		var rig = rigs.get(bubble.target_character_id)
-		if not rig or not is_instance_valid(rig):
-			continue
-		var head_world = rig.get_head_position()
-		var screen_pos = stage_camera.get_screen_position(head_world)
-		var target = screen_pos + Vector2(0, -BUBBLE_OFFSET_Y)
-		var bw = bubble.size.x
-		var bh = bubble.size.y
-		target.x = clampf(target.x, margin + bw * 0.5, vp_size.x - margin - bw * 0.5)
-		target.y = clampf(target.y, margin + bh, vp_size.y - margin)
-		bubble.set_screen_position(target)
 
 #endregion
 

@@ -21,24 +21,32 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	if from_id == to_id:
 		return [from_id]
 	
-	# A* data structures
-	var open_set: Array = [from_id]
+	var open_set: Array[String] = [from_id]
 	var came_from: Dictionary = {}
 	var g_score: Dictionary = {from_id: 0}
 	var f_score: Dictionary = {from_id: _heuristic(from_id, to_id)}
 	
 	while open_set.size() > 0:
-		# Find node in open_set with lowest f_score
-		var current = _get_lowest_f_score_node(open_set, f_score)
-		
+		var current = open_set[0]
+		var lowest_f = f_score.get(current, INF)
+		for candidate in open_set:
+			var candidate_f = f_score.get(candidate, INF)
+			if candidate_f < lowest_f:
+				lowest_f = candidate_f
+				current = candidate
+
 		if current == to_id:
-			return _reconstruct_path(came_from, current)
+			var total_path: Array[String] = [current]
+			var path_node = current
+			while came_from.has(path_node):
+				path_node = came_from[path_node]
+				total_path.insert(0, path_node)
+			return total_path
 		
 		open_set.erase(current)
 		var current_location = get_location(current)
 		assert(current_location != null)
 		
-		# Check all neighbors
 		for connection in current_location.connections.tt:
 			var neighbor_id = connection.to_location_id
 			var tentative_g_score = g_score[current] + connection.distance_km
@@ -53,29 +61,10 @@ func find_path(from_id: String, to_id: String) -> Array[String]:
 	
 	return []
 
+## Simple heuristic: assume minimum travel time of 1 per connection.
+## In future could use euclidean distance if locations had coordinates.
 func _heuristic(_from_id: String, _to_id: String) -> int:
-	# Simple heuristic: assume minimum travel time of 1 per connection
-	# In future could use euclidean distance if locations had coordinates
 	return 0
-
-func _get_lowest_f_score_node(open_set: Array, f_score: Dictionary) -> String:
-	var lowest_node = open_set[0]
-	var lowest_score = f_score.get(lowest_node, INF)
-	
-	for node in open_set:
-		var score = f_score.get(node, INF)
-		if score < lowest_score:
-			lowest_score = score
-			lowest_node = node
-	
-	return lowest_node
-
-func _reconstruct_path(came_from: Dictionary, current: String) -> Array[String]:
-	var total_path: Array[String] = [current]
-	while came_from.has(current):
-		current = came_from[current]
-		total_path.insert(0, current)
-	return total_path
 
 func calculate_distance_km_between(from, to) -> float:
 	assert(from is String or from is Location)
@@ -91,7 +80,7 @@ func calculate_distance_km_between(from, to) -> float:
 		return -1.0
 	return get_path_distance_km(path)
 
-func get_path_distance_km(path: Array) -> float:
+func get_path_distance_km(path: Array[String]) -> float:
 	if path.size() <= 1:
 		return 0.0
 	
@@ -111,7 +100,7 @@ func get_path_distance_km(path: Array) -> float:
 	
 	return total_km
 
-func calculate_travel_hours(path: Array, speed_kmh: float) -> float:
+func calculate_travel_hours(path: Array[String], speed_kmh: float) -> float:
 	if path.size() <= 1:
 		return 0.0
 	

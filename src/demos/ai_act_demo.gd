@@ -7,7 +7,7 @@ extends Node
 ##
 ## Usage: godot --headless --path . scenes/demos/ai_act_demo.tscn
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter

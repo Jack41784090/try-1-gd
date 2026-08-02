@@ -13,6 +13,8 @@ class_name TravelView extends Control
 signal travel_confirmed(location_id: String)
 signal travel_cancelled()
 
+const MAP_VIEW_SCENE := preload("res://scenes/ui/maps/travel_map_view.tscn")
+
 var location_buttons: Dictionary = {}
 var map_view: TravelMapView
 var _location_btns: Array[Button]
@@ -27,9 +29,7 @@ func _ready() -> void:
 		mode_toggle_button.pressed.connect(func(): presenter.on_mode_toggle())
 	presenter.bind_view(self )
 
-	map_view = TravelMapView.new()
-	map_view.name = "TravelMapView"
-	map_view.set_anchors_preset(PRESET_FULL_RECT)
+	map_view = MAP_VIEW_SCENE.instantiate()
 	map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	map_container.add_child(map_view)
@@ -83,10 +83,6 @@ func hide_menu() -> void:
 	self.visible = false
 	_clear_location_buttons()
 
-func show_going_mode() -> void:
-	travel_progress.visible = true
-	mode_toggle_button.visible = false
-
 func show_selection_mode() -> void:
 	travel_progress.visible = false
 	mode_toggle_button.visible = true
@@ -124,7 +120,34 @@ func display_locations(location_data: Array[Dictionary], mode: TravelPresenter.T
 			var data := location_data[i]
 			var btn := _location_btns[i]
 			var loc: Location = data.location
-			btn.text = _format_location_text(loc, data.distance, mode)
+			var type_str: String = _location_type_to_string(loc.type)
+			var icon: String
+			match loc.type:
+				StrategyTypes.LocationType.CITY: icon = "🏛️"
+				StrategyTypes.LocationType.TOWN: icon = "🏘️"
+				StrategyTypes.LocationType.VILLAGE: icon = "🏡"
+				StrategyTypes.LocationType.FORT: icon = "🏰"
+				StrategyTypes.LocationType.ROAD: icon = "🛤️"
+				_: icon = "❓"
+
+			if mode == TravelPresenter.TravelMode.AUTOPILOT:
+				var distance_str = ""
+				if data.distance == 1:
+					distance_str = "1 location away"
+				else:
+					distance_str = "%d locations away" % data.distance
+				btn.text = "%s %s (%s) - %s\nDev: %d | Stab: %.0f" % [
+					icon, loc.location_name, type_str,
+					distance_str, loc.development, loc.stability
+				]
+			else:
+				if loc.type == StrategyTypes.LocationType.ROAD:
+					btn.text = "→ %s\nStab: %.0f" % [loc.location_name, loc.stability]
+				else:
+					btn.text = "%s %s (%s)\nDev: %d | Stab: %.0f" % [
+						icon, loc.location_name, type_str,
+						loc.development, loc.stability
+					]
 			for conn in btn.pressed.get_connections():
 				btn.pressed.disconnect(conn.callable)
 			btn.pressed.connect(func(): presenter.on_location_selected(loc.location_id))
@@ -143,29 +166,6 @@ func highlight_location_button(location_id: String) -> void:
 
 #region Display Helpers
 
-func _format_location_text(location: Location, distance: int, mode: TravelPresenter.TravelMode) -> String:
-	var type_str: String = _location_type_to_string(location.type)
-	var icon: String = _location_type_to_icon(location.type)
-
-	if mode == TravelPresenter.TravelMode.AUTOPILOT:
-		var distance_str = ""
-		if distance == 1:
-			distance_str = "1 location away"
-		else:
-			distance_str = "%d locations away" % distance
-		return "%s %s (%s) - %s\nDev: %d | Stab: %.0f" % [
-			icon, location.location_name, type_str,
-			distance_str, location.development, location.stability
-		]
-	else:
-		if location.type == StrategyTypes.LocationType.ROAD:
-			return "→ %s\nStab: %.0f" % [location.location_name, location.stability]
-		else:
-			return "%s %s (%s)\nDev: %d | Stab: %.0f" % [
-				icon, location.location_name, type_str,
-				location.development, location.stability
-			]
-
 func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 	match loc_type:
 		StrategyTypes.LocationType.CITY: return "City"
@@ -174,15 +174,6 @@ func _location_type_to_string(loc_type: StrategyTypes.LocationType) -> String:
 		StrategyTypes.LocationType.FORT: return "Fort"
 		StrategyTypes.LocationType.ROAD: return "Road"
 		_: return "Unknown"
-
-func _location_type_to_icon(loc_type: StrategyTypes.LocationType) -> String:
-	match loc_type:
-		StrategyTypes.LocationType.CITY: return "🏛️"
-		StrategyTypes.LocationType.TOWN: return "🏘️"
-		StrategyTypes.LocationType.VILLAGE: return "🏡"
-		StrategyTypes.LocationType.FORT: return "🏰"
-		StrategyTypes.LocationType.ROAD: return "🛤️"
-		_: return "❓"
 
 func _clear_location_buttons() -> void:
 	for btn in _location_btns:

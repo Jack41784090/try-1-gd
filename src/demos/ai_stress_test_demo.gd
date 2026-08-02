@@ -53,13 +53,37 @@ func _ready():
 		scenario.world.locations.size(),
 		scenario.world.roaming_squads.size()
 	])
-	_print_world_map()
+
+	# --- _print_world_map ---
+	Log.debug("StressTest", "[WORLD MAP]")
+	for location in scenario.world.locations:
+		var conn_names: Array[String] = []
+		for conn in location.connections.tt:
+			var target = scenario.world.get_location_by_id(conn.to_location_id)
+			if target:
+				conn_names.append(target.location_name)
+		var shop_str = " [SHOP]" if location.has_shop() else ""
+		Log.debug("StressTest", "  %s (%s)%s → %s" % [
+			location.location_name,
+			StrategyTypes.LocationType.keys()[location.type],
+			shop_str,
+			", ".join(conn_names)
+		])
 
 	fleet_manager = AISquadManager.new()
 	add_child(fleet_manager)
 
 	fleet_manager.setup(scenario)
-	_assign_profiles()
+
+	# --- _assign_profiles ---
+	var profile_base := "res://resources/ai/strategic/profiles/"
+	for squad in scenario.world.roaming_squads:
+		var profile_name = profile_assignments.get(squad.squad_id, "balanced-roamer")
+		var profile_path = profile_base + profile_name + ".tres"
+		var profile = AIProfileFactory.get_squad_profile(profile_path)
+		if profile and fleet_manager.squad_brains.has(squad.squad_id):
+			fleet_manager.squad_brains[squad.squad_id] = SquadBrain.new(squad, profile)
+			Log.debug("StressTest", "Assigned %s profile to %s" % [profile_name, squad.squad_name])
 
 	Log.info("StressTest", "Battle Royale: %d squads across %d locations" % [
 		fleet_manager.get_ai_squad_count(),
@@ -151,32 +175,6 @@ func _resolve_ai_combat_from_results(
 				"defender_id": target_id,
 			})
 
-
-func _assign_profiles() -> void:
-	var profile_base := "res://resources/ai/strategic/profiles/"
-	for squad in scenario.world.roaming_squads:
-		var profile_name = profile_assignments.get(squad.squad_id, "balanced-roamer")
-		var profile_path = profile_base + profile_name + ".tres"
-		var profile = AIProfileFactory.get_squad_profile(profile_path)
-		if profile and fleet_manager.squad_brains.has(squad.squad_id):
-			fleet_manager.squad_brains[squad.squad_id] = SquadBrain.new(squad, profile)
-			Log.debug("StressTest", "Assigned %s profile to %s" % [profile_name, squad.squad_name])
-
-func _print_world_map() -> void:
-	Log.debug("StressTest", "[WORLD MAP]")
-	for location in scenario.world.locations:
-		var conn_names: Array[String] = []
-		for conn in location.connections.tt:
-			var target = scenario.world.get_location_by_id(conn.to_location_id)
-			if target:
-				conn_names.append(target.location_name)
-		var shop_str = " [SHOP]" if location.has_shop() else ""
-		Log.debug("StressTest", "  %s (%s)%s → %s" % [
-			location.location_name,
-			StrategyTypes.LocationType.keys()[location.type],
-			shop_str,
-			", ".join(conn_names)
-		])
 
 func _print_squad_status() -> void:
 	for squad in scenario.world.roaming_squads:

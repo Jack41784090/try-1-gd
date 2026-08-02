@@ -6,24 +6,7 @@ extends Node
 func _ready():
 	print("\n=== SQUAD BRAIN DECISION-MAKING DEMO ===\n")
 
-	test_survival_low_food()
-	print("\n" + "=".repeat(60) + "\n")
-
-	test_survival_low_money()
-	print("\n" + "=".repeat(60) + "\n")
-
-	test_achievement_with_enemies()
-	print("\n" + "=".repeat(60) + "\n")
-
-	test_achievement_with_clues()
-	print("\n" + "=".repeat(60) + "\n")
-
-	test_score_comparison()
-	print("\n" + "=".repeat(60) + "\n")
-
-	print("\n=== ALL TESTS COMPLETE ===\n")
-
-func test_survival_low_food():
+	# --- test_survival_low_food ---
 	print("TEST 1: LOW FOOD - Should forage or travel to town")
 
 	var scenario = create_test_scenario()
@@ -47,11 +30,13 @@ func test_survival_low_food():
 	else:
 		print("  FAIL: Expected FORAGE or TRAVEL, got %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
-func test_survival_low_money():
+	print("\n" + "=".repeat(60) + "\n")
+
+	# --- test_survival_low_money ---
 	print("TEST 2: LOW MONEY - Should attack, patrol, or take mercenary work")
 
-	var scenario = create_test_scenario()
-	var ai_squad = create_test_squad("ai_raiders", "Poor Raiders", "village_1")
+	scenario = create_test_scenario()
+	ai_squad = create_test_squad("ai_raiders", "Poor Raiders", "village_1")
 	ai_squad.food = 50
 	ai_squad.money = 5.0
 
@@ -59,12 +44,12 @@ func test_survival_low_money():
 	enemy_squad.money = 500.0
 	scenario.world.roaming_squads.append(enemy_squad)
 
-	var profile = AIProfileFactory.get_default_squad_profile()
-	var brain = SquadBrain.new(ai_squad, profile)
-	var directive = FactionDirective.create_none()
+	profile = AIProfileFactory.get_default_squad_profile()
+	brain = SquadBrain.new(ai_squad, profile)
+	directive = FactionDirective.create_none()
 
-	var result = brain.decide(scenario.world, null, directive)
-	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+	result = brain.decide(scenario.world, null, directive)
+	activity_type = result["activity_type"]
 
 	print("\nResult:")
 	print("  Squad food: %d, money: %.1f" % [ai_squad.food, ai_squad.money])
@@ -76,23 +61,25 @@ func test_survival_low_money():
 	else:
 		print("  FAIL: Expected ATTACK/TRAVEL/MERCENARY_WORK, got %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
-func test_achievement_with_enemies():
+	print("\n" + "=".repeat(60) + "\n")
+
+	# --- test_achievement_with_enemies ---
 	print("TEST 3: ENEMIES PRESENT - Should attack when resources are good")
 
-	var scenario = create_test_scenario()
-	var ai_squad = create_test_squad("ai_hunters", "Elite Hunters", "city_1")
+	scenario = create_test_scenario()
+	ai_squad = create_test_squad("ai_hunters", "Elite Hunters", "city_1")
 	ai_squad.food = 100
 	ai_squad.money = 300.0
 
-	var enemy_squad = create_test_squad("target_squad", "Target Squad", "city_1")
+	enemy_squad = create_test_squad("target_squad", "Target Squad", "city_1")
 	scenario.world.roaming_squads.append(enemy_squad)
 
-	var profile = AIProfileFactory.get_default_squad_profile()
-	var brain = SquadBrain.new(ai_squad, profile)
-	var directive = FactionDirective.create_none()
+	profile = AIProfileFactory.get_default_squad_profile()
+	brain = SquadBrain.new(ai_squad, profile)
+	directive = FactionDirective.create_none()
 
-	var result = brain.decide(scenario.world, null, directive)
-	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+	result = brain.decide(scenario.world, null, directive)
+	activity_type = result["activity_type"]
 	var context: Dictionary = result["context"]
 
 	print("\nResult:")
@@ -107,11 +94,13 @@ func test_achievement_with_enemies():
 	else:
 		print("  FAIL: Expected ATTACK, got %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
-func test_achievement_with_clues():
+	print("\n" + "=".repeat(60) + "\n")
+
+	# --- test_achievement_with_clues ---
 	print("TEST 4: CLUES PRESENT - Should investigate")
 
-	var scenario = create_test_scenario()
-	var ai_squad = create_test_squad("ai_trackers", "Skilled Trackers", "city_1")
+	scenario = create_test_scenario()
+	ai_squad = create_test_squad("ai_trackers", "Skilled Trackers", "city_1")
 	ai_squad.food = 80
 	ai_squad.money = 250.0
 
@@ -124,12 +113,12 @@ func test_achievement_with_clues():
 	clue.left_by_squad_id = "enemy_squad"
 	city_location.add_clue(clue)
 
-	var profile = AIProfileFactory.get_default_squad_profile()
-	var brain = SquadBrain.new(ai_squad, profile)
-	var directive = FactionDirective.create_none()
+	profile = AIProfileFactory.get_default_squad_profile()
+	brain = SquadBrain.new(ai_squad, profile)
+	directive = FactionDirective.create_none()
 
-	var result = brain.decide(scenario.world, null, directive)
-	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+	result = brain.decide(scenario.world, null, directive)
+	activity_type = result["activity_type"]
 
 	print("\nResult:")
 	print("  Squad food: %d, money: %.1f" % [ai_squad.food, ai_squad.money])
@@ -141,24 +130,26 @@ func test_achievement_with_clues():
 	else:
 		print("  FAIL: Expected INVESTIGATE or FORCE_MARCH, got %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
-func test_score_comparison():
+	print("\n" + "=".repeat(60) + "\n")
+
+	# --- test_score_comparison ---
 	print("TEST 5: SCORE COMPARISON - Low food + enemies")
 	print("Expected: forage-when-hungry should outscore attack")
 
-	var scenario = create_test_scenario()
-	var ai_squad = create_test_squad("test_squad", "Test Squad", "village_1")
+	scenario = create_test_scenario()
+	ai_squad = create_test_squad("test_squad", "Test Squad", "village_1")
 	ai_squad.food = 2
 	ai_squad.money = 100.0
 
-	var enemy_squad = create_test_squad("enemy", "Enemy", "village_1")
+	enemy_squad = create_test_squad("enemy", "Enemy", "village_1")
 	scenario.world.roaming_squads.append(enemy_squad)
 
-	var profile = AIProfileFactory.get_default_squad_profile()
-	var brain = SquadBrain.new(ai_squad, profile)
-	var directive = FactionDirective.create_none()
+	profile = AIProfileFactory.get_default_squad_profile()
+	brain = SquadBrain.new(ai_squad, profile)
+	directive = FactionDirective.create_none()
 
-	var result = brain.decide(scenario.world, null, directive)
-	var activity_type: StrategyTypes.ActivityType = result["activity_type"]
+	result = brain.decide(scenario.world, null, directive)
+	activity_type = result["activity_type"]
 
 	print("\nResult:")
 	print("  Squad food: %d (very low), enemies present: yes" % ai_squad.food)
@@ -168,6 +159,10 @@ func test_score_comparison():
 		print("  PASS: Survival (forage w=10) correctly outscored attack (w=6)")
 	else:
 		print("  INFO: AI chose %s instead of FORAGE" % StrategyTypes.ActivityType.keys()[activity_type])
+
+	print("\n" + "=".repeat(60) + "\n")
+
+	print("\n=== ALL TESTS COMPLETE ===\n")
 
 func create_test_scenario() -> GameScenario:
 	var scenario = GameScenario.new()

@@ -7,7 +7,7 @@ extends Node
 ##
 ## Usage: godot-mono --headless --path . scenes/demos/economy_stress_test.tscn
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
 var presenter: StrategyPresenter
@@ -48,7 +48,15 @@ func _ready() -> void:
 	print("")
 
 	await _setup_presenter()
-	_resolve_goods()
+
+	# --- _resolve_goods ---
+	for thing: Thing in world.goods:
+		match thing.thing_id:
+			"food": _food_thing = thing
+			"cloth": _cloth_thing = thing
+			"tools": _tools_thing = thing
+			"luxury": _luxury_thing = thing
+
 	_print_world_summary()
 	await _run_simulation()
 
@@ -70,15 +78,6 @@ func _setup_presenter() -> void:
 	assert(engine != null, "Economy engine not initialized — scenario must have goods + inventory")
 	print("  Scenario loaded: %s" % SCENARIO_PATH)
 	print("  Locations with economy: %d" % world.get_economy_locations().size())
-
-
-func _resolve_goods() -> void:
-	for thing: Thing in world.goods:
-		match thing.thing_id:
-			"food": _food_thing = thing
-			"cloth": _cloth_thing = thing
-			"tools": _tools_thing = thing
-			"luxury": _luxury_thing = thing
 
 
 func _print_world_summary() -> void:
@@ -134,199 +133,110 @@ func _run_simulation() -> void:
 			economy_turn += 1
 			_turn_times.append(elapsed_ms)
 
-			_record_metrics(economy_turn)
+			# --- _record_metrics ---
+			var all_money: Array[float] = []
+			var starving := 0
+			var total := 0
+			var class_counts := {
+				"peasant": 0,
+				"bourgeois": 0,
+				"noble": 0,
+			}
+			var wealth_by_class := {
+				"peasant": 0.0,
+				"bourgeois": 0.0,
+				"noble": 0.0,
+			}
+
+			for loc in world.get_economy_locations():
+				for p in loc.population.people:
+					all_money.append(p.money)
+					total += 1
+					if p.satisfaction < 20.0:
+						starving += 1
+					match p.social_class:
+						EconomyTypes.SocialClass.PEASANT:
+							class_counts["peasant"] += 1
+							wealth_by_class["peasant"] += p.money
+						EconomyTypes.SocialClass.BOURGEOIS:
+							class_counts["bourgeois"] += 1
+							wealth_by_class["bourgeois"] += p.money
+						EconomyTypes.SocialClass.NOBLE:
+							class_counts["noble"] += 1
+							wealth_by_class["noble"] += p.money
+
+			# --- _calculate_gini ---
+			var gini_value := 0.0
+			if not all_money.is_empty():
+				var n := all_money.size()
+				all_money.sort()
+				var gini_total := 0.0
+				for v in all_money:
+					gini_total += v
+				if gini_total > 0.0:
+					var weighted_sum := 0.0
+					for i in range(n):
+						weighted_sum += (2.0 * (i + 1) - n - 1.0) * all_money[i]
+					gini_value = weighted_sum / (n * gini_total)
+
+			_gini_history.append(gini_value)
+			_starvation_history.append(float(starving) / maxf(float(total), 1.0) * 100.0)
+			_promotion_history.append(engine.total_promotions)
+			_class_counts_history.append(class_counts)
+			_wealth_by_class_history.append(wealth_by_class)
+
+			var total_money := 0.0
+			for m in all_money:
+				total_money += m
+			_total_money_history.append(total_money)
+			var bank_info := engine.get_bank_info()
+			_bank_printed_history.append(bank_info.get("total_printed", 0.0))
+			_bank_debt_history.append(bank_info.get("outstanding", 0.0))
+
+			if _food_thing:
+				for loc in world.get_economy_locations():
+					var loc_id := loc.location_id
+					if not _food_price_history.has(loc_id):
+						_food_price_history[loc_id] = []
+					(_food_price_history[loc_id] as Array).append(loc.inventory.get_price(_food_thing))
+
+			var bandit_count := 0
+			for squad in world.roaming_squads:
+				if squad.squad_role == StrategyTypes.SquadRole.BANDIT:
+					bandit_count += 1
+			_bandit_count_history.append(bandit_count)
+
+			var spawner := BanditSpawner.new()
+			var pressures: Dictionary = {}
+			for loc in world.get_economy_locations():
+				pressures[loc.location_name] = spawner.calculate_pressure(loc)
+			_bandit_pressure_history.append(pressures)
+
+			var danger_calc := RouteDangerCalculator.new()
+			var total_safety := 0.0
+			var route_count := 0
+			for loc in world.get_economy_locations():
+				if loc.connections == null:
+					continue
+				for conn in loc.connections.tt:
+					var route: Array[String] = [loc.location_id, conn.to_location_id]
+					total_safety += danger_calc.calculate_route_safety(route, world)
+					route_count += 1
+			var avg_safety := total_safety / maxf(float(route_count), 1.0)
+			_route_safety_history.append(avg_safety)
+
+			var merc_locs := 0
+			for loc in world.get_economy_locations():
+				if loc.has_activity_type(StrategyTypes.ActivityType.MERCENARY_WORK):
+					merc_locs += 1
+			_mercenary_locations_history.append(merc_locs)
 
 			if economy_turn == 1 or economy_turn % LOG_INTERVAL == 0 or economy_turn == MAX_ECONOMY_TURNS:
 				_print_turn_report(economy_turn, elapsed_ms)
 
 	print("")
-	_print_final_analysis()
 
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		get_tree().quit()
-	else:
-		await get_tree().create_timer(2.0).timeout
-		get_tree().quit()
-
-
-func _record_metrics(_turn: int) -> void:
-	var all_money: Array[float] = []
-	var starving := 0
-	var total := 0
-	var class_counts := {
-		"peasant": 0,
-		"bourgeois": 0,
-		"noble": 0,
-	}
-	var wealth_by_class := {
-		"peasant": 0.0,
-		"bourgeois": 0.0,
-		"noble": 0.0,
-	}
-
-	for loc in world.get_economy_locations():
-		for p in loc.population.people:
-			all_money.append(p.money)
-			total += 1
-			if p.satisfaction < 20.0:
-				starving += 1
-			match p.social_class:
-				EconomyTypes.SocialClass.PEASANT:
-					class_counts["peasant"] += 1
-					wealth_by_class["peasant"] += p.money
-				EconomyTypes.SocialClass.BOURGEOIS:
-					class_counts["bourgeois"] += 1
-					wealth_by_class["bourgeois"] += p.money
-				EconomyTypes.SocialClass.NOBLE:
-					class_counts["noble"] += 1
-					wealth_by_class["noble"] += p.money
-
-	_gini_history.append(_calculate_gini(all_money))
-	_starvation_history.append(float(starving) / maxf(float(total), 1.0) * 100.0)
-	_promotion_history.append(engine.total_promotions)
-	_class_counts_history.append(class_counts)
-	_wealth_by_class_history.append(wealth_by_class)
-
-	var total_money := 0.0
-	for m in all_money:
-		total_money += m
-	_total_money_history.append(total_money)
-	var bank_info := engine.get_bank_info()
-	_bank_printed_history.append(bank_info.get("total_printed", 0.0))
-	_bank_debt_history.append(bank_info.get("outstanding", 0.0))
-
-	if _food_thing:
-		for loc in world.get_economy_locations():
-			var loc_id := loc.location_id
-			if not _food_price_history.has(loc_id):
-				_food_price_history[loc_id] = []
-			(_food_price_history[loc_id] as Array).append(loc.inventory.get_price(_food_thing))
-
-	var bandit_count := 0
-	for squad in world.roaming_squads:
-		if squad.squad_role == StrategyTypes.SquadRole.BANDIT:
-			bandit_count += 1
-	_bandit_count_history.append(bandit_count)
-
-	var spawner := BanditSpawner.new()
-	var pressures: Dictionary = {}
-	for loc in world.get_economy_locations():
-		pressures[loc.location_name] = spawner.calculate_pressure(loc)
-	_bandit_pressure_history.append(pressures)
-
-	var danger_calc := RouteDangerCalculator.new()
-	var total_safety := 0.0
-	var route_count := 0
-	for loc in world.get_economy_locations():
-		if loc.connections == null:
-			continue
-		for conn in loc.connections.tt:
-			var route: Array[String] = [loc.location_id, conn.to_location_id]
-			total_safety += danger_calc.calculate_route_safety(route, world)
-			route_count += 1
-	var avg_safety := total_safety / maxf(float(route_count), 1.0)
-	_route_safety_history.append(avg_safety)
-
-	var merc_locs := 0
-	for loc in world.get_economy_locations():
-		if loc.has_activity_type(StrategyTypes.ActivityType.MERCENARY_WORK):
-			merc_locs += 1
-	_mercenary_locations_history.append(merc_locs)
-
-
-func _calculate_gini(values: Array[float]) -> float:
-	if values.is_empty():
-		return 0.0
-	var n := values.size()
-	values.sort()
-	var total := 0.0
-	for v in values:
-		total += v
-	if total <= 0.0:
-		return 0.0
-	var weighted_sum := 0.0
-	for i in range(n):
-		weighted_sum += (2.0 * (i + 1) - n - 1.0) * values[i]
-	return weighted_sum / (n * total)
-
-
-func _print_turn_report(turn: int, ms: float) -> void:
-	var gini := _gini_history[turn - 1]
-	var starve_pct := _starvation_history[turn - 1]
-	var counts: Dictionary = _class_counts_history[turn - 1]
-	var wealth: Dictionary = _wealth_by_class_history[turn - 1]
-
-	print("══════ Economy Turn %3d (Hour %d, %6.1f ms) ══════" % [turn, world.current_hour, ms])
-
-	print("  Classes: Peasant=%d  Bourgeois=%d  Noble=%d  Promotions=%d" % [
-		counts["peasant"], counts["bourgeois"], counts["noble"],
-		engine.total_promotions,
-	])
-
-	var p_avg: float = float(wealth["peasant"]) / maxf(float(counts["peasant"]), 1.0)
-	var b_avg: float = float(wealth["bourgeois"]) / maxf(float(counts["bourgeois"]), 1.0)
-	var n_avg: float = float(wealth["noble"]) / maxf(float(counts["noble"]), 1.0)
-	print("  Avg Wealth: Peasant=%.1f  Bourgeois=%.1f  Noble=%.1f" % [p_avg, b_avg, n_avg])
-	print("  Gini=%.3f  Starving=%.1f%%  Money Supply=%.0f" % [
-		gini, starve_pct, _total_money_history[turn - 1],
-	])
-
-	var bank_info := engine.get_bank_info()
-	print("  Bank: printed=%.0f  reserves=%.0f  debt=%.0f  loans=%d" % [
-		bank_info.get("total_printed", 0.0),
-		bank_info.get("reserves", 0.0),
-		bank_info.get("outstanding", 0.0),
-		bank_info.get("active_loans", 0),
-	])
-	print("  Contracts: active=%d  completed=%d" % [
-		engine.active_contracts_count,
-		engine.completed_contracts_count,
-	])
-
-	if _food_thing:
-		var food_line := "  Food prices:"
-		for loc in world.get_economy_locations():
-			food_line += " %s=%.2f" % [loc.location_name.left(6), loc.inventory.get_price(_food_thing)]
-		print(food_line)
-
-		var stock_line := "  Food stocks:"
-		for loc in world.get_economy_locations():
-			stock_line += " %s=%.0f" % [loc.location_name.left(6), loc.inventory.get_available(_food_thing)]
-		print(stock_line)
-
-	print("  Moves in transit: %d" % engine.active_moves.size())
-
-	var bandit_n := _bandit_count_history[turn - 1]
-	var safety_n := _route_safety_history[turn - 1]
-	var merc_n := _mercenary_locations_history[turn - 1]
-	var pressure_dict: Dictionary = _bandit_pressure_history[turn - 1]
-	var max_pressure := 0.0
-	var max_pressure_loc := ""
-	for loc_name: String in pressure_dict:
-		var p: float = pressure_dict[loc_name]
-		if p > max_pressure:
-			max_pressure = p
-			max_pressure_loc = loc_name
-	print("  Bandits: %d  Avg Route Safety: %.3f  Merc Locations: %d  Max Pressure: %s(%.3f)" % [
-		bandit_n, safety_n, merc_n, max_pressure_loc.left(10), max_pressure])
-
-	var worst_loc := ""
-	var worst_sat := 100.0
-	var best_loc := ""
-	var best_sat := 0.0
-	for loc in world.get_economy_locations():
-		var sat := loc.population.get_average_satisfaction()
-		if sat < worst_sat:
-			worst_sat = sat
-			worst_loc = loc.location_name
-		if sat > best_sat:
-			best_sat = sat
-			best_loc = loc.location_name
-	print("  Satisfaction: best=%s(%.0f)  worst=%s(%.0f)" % [best_loc, best_sat, worst_loc, worst_sat])
-	print("")
-
-
-func _print_final_analysis() -> void:
+	# --- _print_final_analysis ---
 	print("╔══════════════════════════════════════════════════════════╗")
 	print("║                   FINAL ANALYSIS                       ║")
 	print("╚══════════════════════════════════════════════════════════╝")
@@ -482,11 +392,8 @@ func _print_final_analysis() -> void:
 
 	print("")
 	print("── INTERESTING PHENOMENA ──")
-	_detect_phenomena()
-	print("")
 
-
-func _detect_phenomena() -> void:
+	# --- _detect_phenomena ---
 	if _gini_history.back() > 0.6:
 		print("  ⚠ EXTREME INEQUALITY: Gini %.3f suggests oligarchic wealth concentration" % _gini_history.back())
 	elif _gini_history.back() > 0.4:
@@ -502,17 +409,17 @@ func _detect_phenomena() -> void:
 	elif engine.total_promotions == 0:
 		print("  ✗ FROZEN SOCIETY: Zero social mobility in %d turns" % MAX_ECONOMY_TURNS)
 
-	var final_counts: Dictionary = _class_counts_history.back()
-	var initial_counts: Dictionary = _class_counts_history.front()
-	if final_counts["bourgeois"] > initial_counts["bourgeois"] * 2:
+	var phen_final_counts: Dictionary = _class_counts_history.back()
+	var phen_initial_counts: Dictionary = _class_counts_history.front()
+	if phen_final_counts["bourgeois"] > phen_initial_counts["bourgeois"] * 2:
 		print("  ★ BOURGEOIS EXPLOSION: merchant class more than doubled (%d → %d)" % [
-			initial_counts["bourgeois"], final_counts["bourgeois"],
+			phen_initial_counts["bourgeois"], phen_final_counts["bourgeois"],
 		])
 
-	var bank_info := engine.get_bank_info()
-	var printed: float = bank_info.get("total_printed", 0.0)
-	var reserves: float = bank_info.get("reserves", 0.0)
-	var outstanding: float = bank_info.get("outstanding", 0.0)
+	var phen_bank_info := engine.get_bank_info()
+	var printed: float = phen_bank_info.get("total_printed", 0.0)
+	var reserves: float = phen_bank_info.get("reserves", 0.0)
+	var outstanding: float = phen_bank_info.get("outstanding", 0.0)
 
 	if printed > _total_money_history.back() * 3:
 		print("  ⚠ MONEY PRINTING OUTPACES CIRCULATION: bank created %.0f but only %.0f circulates" % [
@@ -575,3 +482,87 @@ func _detect_phenomena() -> void:
 			print("  ⚠ TRADE ROUTES UNSAFE: avg safety %.3f — bandits suppressing commerce" % _route_safety_history.back())
 	else:
 		print("  ○ NO BANDITS: desperation pressure never exceeded spawn threshold")
+
+	print("")
+
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		get_tree().quit()
+	else:
+		await get_tree().create_timer(2.0).timeout
+		get_tree().quit()
+
+
+func _print_turn_report(turn: int, ms: float) -> void:
+	var gini := _gini_history[turn - 1]
+	var starve_pct := _starvation_history[turn - 1]
+	var counts: Dictionary = _class_counts_history[turn - 1]
+	var wealth: Dictionary = _wealth_by_class_history[turn - 1]
+
+	print("══════ Economy Turn %3d (Hour %d, %6.1f ms) ══════" % [turn, world.current_hour, ms])
+
+	print("  Classes: Peasant=%d  Bourgeois=%d  Noble=%d  Promotions=%d" % [
+		counts["peasant"], counts["bourgeois"], counts["noble"],
+		engine.total_promotions,
+	])
+
+	var p_avg: float = float(wealth["peasant"]) / maxf(float(counts["peasant"]), 1.0)
+	var b_avg: float = float(wealth["bourgeois"]) / maxf(float(counts["bourgeois"]), 1.0)
+	var n_avg: float = float(wealth["noble"]) / maxf(float(counts["noble"]), 1.0)
+	print("  Avg Wealth: Peasant=%.1f  Bourgeois=%.1f  Noble=%.1f" % [p_avg, b_avg, n_avg])
+	print("  Gini=%.3f  Starving=%.1f%%  Money Supply=%.0f" % [
+		gini, starve_pct, _total_money_history[turn - 1],
+	])
+
+	var bank_info := engine.get_bank_info()
+	print("  Bank: printed=%.0f  reserves=%.0f  debt=%.0f  loans=%d" % [
+		bank_info.get("total_printed", 0.0),
+		bank_info.get("reserves", 0.0),
+		bank_info.get("outstanding", 0.0),
+		bank_info.get("active_loans", 0),
+	])
+	print("  Contracts: active=%d  completed=%d" % [
+		engine.active_contracts_count,
+		engine.completed_contracts_count,
+	])
+
+	if _food_thing:
+		var food_line := "  Food prices:"
+		for loc in world.get_economy_locations():
+			food_line += " %s=%.2f" % [loc.location_name.left(6), loc.inventory.get_price(_food_thing)]
+		print(food_line)
+
+		var stock_line := "  Food stocks:"
+		for loc in world.get_economy_locations():
+			stock_line += " %s=%.0f" % [loc.location_name.left(6), loc.inventory.get_available(_food_thing)]
+		print(stock_line)
+
+	print("  Moves in transit: %d" % engine.active_moves.size())
+
+	var bandit_n := _bandit_count_history[turn - 1]
+	var safety_n := _route_safety_history[turn - 1]
+	var merc_n := _mercenary_locations_history[turn - 1]
+	var pressure_dict: Dictionary = _bandit_pressure_history[turn - 1]
+	var max_pressure := 0.0
+	var max_pressure_loc := ""
+	for loc_name: String in pressure_dict:
+		var p: float = pressure_dict[loc_name]
+		if p > max_pressure:
+			max_pressure = p
+			max_pressure_loc = loc_name
+	print("  Bandits: %d  Avg Route Safety: %.3f  Merc Locations: %d  Max Pressure: %s(%.3f)" % [
+		bandit_n, safety_n, merc_n, max_pressure_loc.left(10), max_pressure])
+
+	var worst_loc := ""
+	var worst_sat := 100.0
+	var best_loc := ""
+	var best_sat := 0.0
+	for loc in world.get_economy_locations():
+		var sat := loc.population.get_average_satisfaction()
+		if sat < worst_sat:
+			worst_sat = sat
+			worst_loc = loc.location_name
+		if sat > best_sat:
+			best_sat = sat
+			best_loc = loc.location_name
+	print("  Satisfaction: best=%s(%.0f)  worst=%s(%.0f)" % [best_loc, best_sat, worst_loc, worst_sat])
+	print("")

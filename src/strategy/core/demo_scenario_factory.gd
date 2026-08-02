@@ -116,7 +116,7 @@ static func _create_demo_shop() -> Shop:
 	shop.items.append(supply_thing)
 	return shop
 
-static func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array) -> Location:
+static func _create_location(location_id: String, location_name: String, location_type: StrategyTypes.LocationType, development: int, stability: float, activity_types: Array[StrategyTypes.ActivityType]) -> Location:
 	var location = Location.new()
 	location.location_id = location_id
 	location.location_name = location_name
@@ -221,7 +221,6 @@ static func _create_squad(squad_id: String, squad_name: String, money: float, fo
 	for warrior in warriors:
 		squad.add_warrior(warrior)
 	
-	# squad.update_aggregate_morale()
 	
 	return squad
 

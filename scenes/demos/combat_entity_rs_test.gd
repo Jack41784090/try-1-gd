@@ -7,18 +7,17 @@ extends Node
 
 const IDENTIFICATION := "landsknecht"
 
-# Hand-transcribed from resources/combat/classes/landsknecht.tres (BS_test-Landsnecht values).
 const EXPECTED_STRENGTH := 1.25
 const EXPECTED_ENDURANCE := 1.25
 const EXPECTED_SIZ := 1.0
 const EXPECTED_WIL := 1.5
 const EXPECTED_FAI := 1.0
 
-# _REALITY_TABLE[HP] = [3.0, MUL, [[ENDURANCE, 5.0], [SIZ, 2.0]]]
-#   → 3.0 + (1.25 * 5.0) * (1.0 * 2.0) = 3.0 + 6.25 * 2.0 = 15.5
+## _REALITY_TABLE[HP] = [3.0, MUL, [[ENDURANCE, 5.0], [SIZ, 2.0]]]
+##   → 3.0 + (1.25 * 5.0) * (1.0 * 2.0) = 3.0 + 6.25 * 2.0 = 15.5
 const EXPECTED_MAX_HP := 15.5
-# _REALITY_TABLE[Guts] = [10.0, ADD, [[WIL, 8.0], [FAI, 5.0]]]
-#   → 10.0 + (1.5 * 8.0) + (1.0 * 5.0) = 10.0 + 12.0 + 5.0 = 27.0
+## _REALITY_TABLE[Guts] = [10.0, ADD, [[WIL, 8.0], [FAI, 5.0]]]
+##   → 10.0 + (1.5 * 8.0) + (1.0 * 5.0) = 10.0 + 12.0 + 5.0 = 27.0
 const EXPECTED_MAX_ORG := 27.0
 
 var passed := 0
@@ -135,9 +134,8 @@ func _test_instance_duplication_independence() -> void:
 
 func _test_character_enter_battle_tier1_fallback() -> void:
 	print("\n[7] Character.enter_battle(): tier-2-miss falls through to the tier-1 template")
-	# StrategyEntityResource authors no BASE_ATTRIBUTE_STATS entries (per design — that's
-	# the extension seam for a future training/growth system), so this persistent
-	# character's STRENGTH lookup must fall all the way through to the class template.
+	## StrategyEntityResource authors no BASE_ATTRIBUTE_STATS entries (per design —
+	## extension seam for future training/growth), so STRENGTH falls through to template.
 	var res := StrategyEntityResource.new()
 	res.name = "Tier2 Siegmund"
 	res.identification = IDENTIFICATION

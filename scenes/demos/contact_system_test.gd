@@ -2,7 +2,7 @@ extends Node
 
 ## Contact system unit tests — spotting, proximity, state transitions, decay, ScoutingFocus
 
-const SCENARIO_PATH := "res://resources/scenarios/goetz-official/scenario.tres"
+const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 
 var test_count := 0
 var passed_count := 0
@@ -78,14 +78,14 @@ func _make_squad(id: String, role: StrategyTypes.SquadRole, background_id: Strin
 		sd.warriors.append(_make_warrior(background_id))
 	return sd
 
-func _find_connected_pair() -> Array:
+func _find_connected_pair() -> Array[Location]:
 	for loc_a in world.locations:
 		for loc_b in world.locations:
 			if loc_a != loc_b and loc_a.is_connected_to(loc_b.location_id):
 				return [loc_a, loc_b]
 	return []
 
-func _find_non_adjacent_pair() -> Array:
+func _find_non_adjacent_pair() -> Array[Location]:
 	for loc_a in world.locations:
 		for loc_b in world.locations:
 			if loc_a != loc_b and not loc_a.is_connected_to(loc_b.location_id):

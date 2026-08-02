@@ -24,7 +24,6 @@ class _MockVnPresenter extends Node:
 
 
 class _MockVnView extends Control:
-	# signal chain_completed
 	var presenter
 
 	func _ready():

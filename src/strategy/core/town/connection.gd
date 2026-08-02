@@ -10,7 +10,3 @@ func _init(_from = null, _to = null, _dist = null) -> void:
     from_location_id = _from
     to_location_id = _to
     distance_km = _dist
-
-func get_travel_hours(speed_kmh: float) -> float:
-    assert(speed_kmh > 0.0, "Speed must be positive")
-    return distance_km / speed_kmh

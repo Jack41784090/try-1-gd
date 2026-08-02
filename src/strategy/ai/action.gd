@@ -10,32 +10,38 @@ extends Resource
 
 
 func resolve_context(situation: StrategicSituation) -> Dictionary:
-	# Builds the execution context for this action — resolves destinations and targets
-	# e.g., StrategicAction(TRAVEL, destination_strategy=NEAREST_TOWN)
-	#   → resolves destination to "vienna", then finds next hop "linz"
-	#   → returns {travel_destination: "linz", ultimate_destination: "vienna"}
+	## Builds the execution context for this action — resolves destinations and targets
+	## e.g., StrategicAction(TRAVEL, destination_strategy=NEAREST_TOWN)
+	##   → resolves destination to "vienna", then finds next hop "linz"
+	##   → returns {travel_destination: "linz", ultimate_destination: "vienna"}
 	var context: Dictionary = {}
 
-	# 1. If action requires a destination (TRAVEL, FORCE_MARCH), resolve it
+	## 1. If action requires a destination (TRAVEL, FORCE_MARCH), resolve it
 	if requires_destination:
-		# 1.1 Find the ultimate destination using the strategy (NEAREST_TOWN, NEAREST_ENEMY, etc.)
-		# e.g., NEAREST_TOWN from "salzburg" → "vienna"
+		## 1.1 Find the ultimate destination using the strategy (NEAREST_TOWN, NEAREST_ENEMY, etc.)
+		## e.g., NEAREST_TOWN from "salzburg" → "vienna"
 		var ultimate_dest = _resolve_destination(situation)
 		if ultimate_dest.is_empty():
 			return {}
-		# 1.2 Find the next hop toward that destination (may be 1 step away)
-		# e.g., path salzburg→linz→vienna, next_hop = "linz"
-		var next_hop = _get_next_hop(situation, ultimate_dest)
+		## 1.2 Find the next hop toward that destination (may be 1 step away)
+		## e.g., path salzburg→linz→vienna, next_hop = "linz"
+		var next_hop := ""
+		if situation.location.is_connected_to(ultimate_dest):
+			next_hop = ultimate_dest
+		elif situation.world.travel_graph:
+			var path = situation.world.travel_graph.find_path(situation.location.location_id, ultimate_dest)
+			if path.size() > 1:
+				next_hop = path[1]
 		if next_hop.is_empty():
 			return {}
 		context["travel_destination"] = next_hop
-		# 1.3 For FORCE_MARCH, also store the ultimate destination for double-hop logic
+		## 1.3 For FORCE_MARCH, also store the ultimate destination for double-hop logic
 		if activity_type == StrategyTypes.ActivityType.FORCE_MARCH and ultimate_dest != next_hop:
 			context["ultimate_destination"] = ultimate_dest
 
-	# 2. If action requires a target (ATTACK), resolve it
+	## 2. If action requires a target (ATTACK), resolve it
 	if requires_target:
-		# e.g., target_strategy=WEAKEST → picks enemy with lowest morale
+		## e.g., target_strategy=WEAKEST → picks enemy with lowest morale
 		var target = _resolve_target(situation)
 		if target == null:
 			return {}
@@ -43,16 +49,6 @@ func resolve_context(situation: StrategicSituation) -> Dictionary:
 
 	return context
 
-
-func _get_next_hop(situation: StrategicSituation, ultimate_dest: String) -> String:
-	if situation.location.is_connected_to(ultimate_dest):
-		return ultimate_dest
-	if not situation.world.travel_graph:
-		return ""
-	var path = situation.world.travel_graph.find_path(situation.location.location_id, ultimate_dest)
-	if path.size() > 1:
-		return path[1]
-	return ""
 
 
 func can_resolve(situation: StrategicSituation) -> bool:
@@ -68,10 +64,10 @@ func can_resolve(situation: StrategicSituation) -> bool:
 
 
 func _resolve_destination(situation: StrategicSituation) -> String:
-	# Picks a destination location_id based on the configured strategy
-	# e.g., NEAREST_TOWN from "road_01" → BFS finds "vienna" (closest CITY/TOWN)
-	# e.g., NEAREST_ENEMY → BFS finds location with enemy squads
-	# e.g., CLUE_DESTINATION → follows freshest clue's destination_id
+	## Picks a destination location_id based on the configured strategy
+	## e.g., NEAREST_TOWN from "road_01" → BFS finds "vienna" (closest CITY/TOWN)
+	## e.g., NEAREST_ENEMY → BFS finds location with enemy squads
+	## e.g., CLUE_DESTINATION → follows freshest clue's destination_id
 	match destination_strategy:
 		StrategicAITypes.DestinationStrategy.NEAREST_TOWN:
 			if situation.nearest_town != null:
@@ -86,7 +82,22 @@ func _resolve_destination(situation: StrategicSituation) -> String:
 			if situation.directive != null and not situation.directive.target_location_id.is_empty():
 				return situation.directive.target_location_id
 		StrategicAITypes.DestinationStrategy.AWAY_FROM_ENEMY:
-			return _resolve_away_from_enemy(situation)
+			var best_id := ""
+			var best_distance := -1
+			for connection in situation.location.connections.tt:
+				var neighbor_id = connection.to_location_id
+				var neighbor_loc = situation.world.get_location_by_id(neighbor_id)
+				if not neighbor_loc:
+					continue
+				var enemy_dist := 0
+				if situation.nearest_enemy_location:
+					enemy_dist = situation.world.travel_graph.get_distance(neighbor_id, situation.nearest_enemy_location.location_id)
+				else:
+					enemy_dist = 999
+				if enemy_dist > best_distance:
+					best_distance = enemy_dist
+					best_id = neighbor_id
+			return best_id
 		StrategicAITypes.DestinationStrategy.NEAREST_MERCHANT:
 			if situation.nearest_merchant_location != null:
 				return situation.nearest_merchant_location.location_id
@@ -98,38 +109,16 @@ func _resolve_destination(situation: StrategicSituation) -> String:
 	return ""
 
 
-func _resolve_away_from_enemy(situation: StrategicSituation) -> String:
-	var best_id := ""
-	var best_distance := -1
-
-	for connection in situation.location.connections.tt:
-		var neighbor_id = connection.to_location_id
-		var neighbor_loc = situation.world.get_location_by_id(neighbor_id)
-		if not neighbor_loc:
-			continue
-
-		var enemy_dist := 0
-		if situation.nearest_enemy_location:
-			enemy_dist = situation.world.travel_graph.get_distance(neighbor_id, situation.nearest_enemy_location.location_id)
-		else:
-			enemy_dist = 999
-
-		if enemy_dist > best_distance:
-			best_distance = enemy_dist
-			best_id = neighbor_id
-
-	return best_id
-
 
 func _resolve_target(situation: StrategicSituation) -> StrategySquad:
-	# Picks a target enemy squad based on the configured strategy
-	# Only considers enemies with sufficient contact state (at least SUSPECTED)
-	# e.g., WEAKEST strategy: picks enemy with lowest morale from tracked enemies
+	## Picks a target enemy squad based on the configured strategy
+	## Only considers enemies with sufficient contact state (at least SUSPECTED)
+	## e.g., WEAKEST strategy: picks enemy with lowest morale from tracked enemies
 	var enemies = situation.enemies_here
 	if enemies.is_empty():
 		return null
 
-	# 1. For ATTACK, filter enemies by contact state — can only target what we've detected
+	## 1. For ATTACK, filter enemies by contact state — can only target what we've detected
 	if activity_type == StrategyTypes.ActivityType.ATTACK:
 		var tracker = situation.world.contact_tracker
 		var tracked: Array[StrategySquad] = []
@@ -141,7 +130,7 @@ func _resolve_target(situation: StrategicSituation) -> StrategySquad:
 			return null
 		enemies = tracked
 
-	# 2. Pick target using strategy (WEAKEST by morale, STRONGEST, or RANDOM)
+	## 2. Pick target using strategy (WEAKEST by morale, STRONGEST, or RANDOM)
 	match target_strategy:
 		StrategicAITypes.TargetStrategy.WEAKEST:
 			var weakest = enemies[0]

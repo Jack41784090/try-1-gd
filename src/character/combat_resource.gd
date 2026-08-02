@@ -26,7 +26,7 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT,
 			"hint": PROPERTY_HINT_ENUM,
-			# Leading comma = a blank "(none)" option.
+			## Leading comma = a blank "(none)" option.
 			"hint_string": "," + ",".join(CombatEntityFactory.available_identifications()),
 		},
 	]

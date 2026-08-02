@@ -1,7 +1,6 @@
 class_name WarriorAnimController
 extends Node
 
-signal action_completed
 signal behavior_changed(new_behavior: AnimTypes.Behavior)
 
 var current_behavior: AnimTypes.Behavior = AnimTypes.Behavior.IDLE
@@ -48,7 +47,26 @@ func play_action(action: AnimAction) -> void:
 		return
 	if action.expression:
 		set_expression(action.expression)
-	var state_name = _body_clip_to_state(action.body_clip)
+	var state_name: StringName
+	match action.body_clip:
+		&"idle_body":
+			state_name = &"idle"
+		&"walk_body":
+			state_name = &"walking"
+		&"attack_swing_body":
+			state_name = &"attacking"
+		&"defend_body":
+			state_name = &"defending"
+		&"hurt_body":
+			state_name = &"hurt"
+		&"die_body":
+			state_name = &"dying"
+		&"talk_body":
+			state_name = &"talking"
+		&"gesture_wave_body":
+			state_name = &"gesturing"
+		_:
+			state_name = &"idle"
 	if _state_machine:
 		_state_machine.travel(state_name)
 
@@ -75,23 +93,4 @@ func _behavior_to_state(behavior: AnimTypes.Behavior) -> StringName:
 			return &"idle"
 
 
-func _body_clip_to_state(clip: StringName) -> StringName:
-	match clip:
-		&"idle_body":
-			return &"idle"
-		&"walk_body":
-			return &"walking"
-		&"attack_swing_body":
-			return &"attacking"
-		&"defend_body":
-			return &"defending"
-		&"hurt_body":
-			return &"hurt"
-		&"die_body":
-			return &"dying"
-		&"talk_body":
-			return &"talking"
-		&"gesture_wave_body":
-			return &"gesturing"
-		_:
-			return &"idle"
+

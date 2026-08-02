@@ -58,16 +58,3 @@ func set_preset_support() -> void:
 	selected_classes.clear()
 	selected_classes.append("healer")
 	selected_classes.append("feldprediger")
-
-
-func get_summary_text() -> String:
-	if is_empty():
-		return "General Sweep (no focus)"
-
-	var parts: Array[String] = []
-	for role in selected_roles:
-		parts.append(StrategyTypes.SquadRole.keys()[role])
-	for cls in selected_classes:
-		parts.append(cls)
-
-	return "Focused on: %s" % ", ".join(parts)

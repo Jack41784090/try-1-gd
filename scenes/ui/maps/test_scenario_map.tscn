@@ -15,11 +15,25 @@ script = ExtResource("1_marker")
 location_id = "konigsberg"
 location_type = 0
 
+[node name="Label" type="Label" parent="Konigsberg"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Tilsit" type="Area2D" parent="."]
 position = Vector2(220, 260)
 script = ExtResource("1_marker")
 location_id = "tilsit"
 location_type = 1
+
+[node name="Label" type="Label" parent="Tilsit"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="Kaunas" type="Area2D" parent="."]
 position = Vector2(370, 280)
@@ -27,11 +41,25 @@ script = ExtResource("1_marker")
 location_id = "kaunas"
 location_type = 0
 
+[node name="Label" type="Label" parent="Kaunas"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Vilnius" type="Area2D" parent="."]
 position = Vector2(520, 240)
 script = ExtResource("1_marker")
 location_id = "vilnius"
 location_type = 0
+
+[node name="Label" type="Label" parent="Vilnius"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="Minsk" type="Area2D" parent="."]
 position = Vector2(680, 300)
@@ -39,11 +67,25 @@ script = ExtResource("1_marker")
 location_id = "minsk"
 location_type = 0
 
+[node name="Label" type="Label" parent="Minsk"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Dorogobuzh" type="Area2D" parent="."]
 position = Vector2(830, 340)
 script = ExtResource("1_marker")
 location_id = "dorogobuzh"
 location_type = 3
+
+[node name="Label" type="Label" parent="Dorogobuzh"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="Vyazma" type="Area2D" parent="."]
 position = Vector2(960, 290)
@@ -51,11 +93,25 @@ script = ExtResource("1_marker")
 location_id = "vyazma"
 location_type = 1
 
+[node name="Label" type="Label" parent="Vyazma"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="TsaryovoZaymishche" type="Area2D" parent="."]
 position = Vector2(1080, 320)
 script = ExtResource("1_marker")
 location_id = "tsaryovo_zaymishche"
 location_type = 0
+
+[node name="Label" type="Label" parent="TsaryovoZaymishche"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="Gzhatsk" type="Area2D" parent="."]
 position = Vector2(1200, 280)
@@ -63,11 +119,25 @@ script = ExtResource("1_marker")
 location_id = "gzhatsk"
 location_type = 1
 
+[node name="Label" type="Label" parent="Gzhatsk"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Mozhaysk" type="Area2D" parent="."]
 position = Vector2(1320, 300)
 script = ExtResource("1_marker")
 location_id = "mozhaysk"
 location_type = 3
+
+[node name="Label" type="Label" parent="Mozhaysk"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
 
 [node name="Smolensk" type="Area2D" parent="."]
 position = Vector2(1320, 450)
@@ -75,8 +145,22 @@ script = ExtResource("1_marker")
 location_id = "smolensk"
 location_type = 3
 
+[node name="Label" type="Label" parent="Smolensk"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
 [node name="Moscow" type="Area2D" parent="."]
 position = Vector2(1500, 250)
 script = ExtResource("1_marker")
 location_id = "moscow"
 location_type = 0
+
+[node name="Label" type="Label" parent="Moscow"]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1

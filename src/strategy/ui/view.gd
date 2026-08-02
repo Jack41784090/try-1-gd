@@ -62,8 +62,6 @@ var combat_overlay: CanvasLayer:
 @onready var actor: ActivityRunner = $ActivityExecuteManager
 @onready var ai_fleet: AISquadManager = $AISquadManager
 @onready var notification_bar: NotificationBar = $PanelContainer/MainVBox/NotificationBar
-# @onready var _contact_bars_panel: PanelContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel
-# @onready var _contact_bars_container: VBoxContainer = $PanelContainer/MainVBox/MainScreenArea/ContactBarsPanel/ContactMargin/ContactBars
 @onready var _game_over_overlay: ColorRect = $GameOverOverlay
 @onready var _game_over_title: Label = $GameOverOverlay/GameOverVBox/TitleLabel
 @onready var _game_over_desc: Label = $GameOverOverlay/GameOverVBox/DescLabel
@@ -80,31 +78,16 @@ func _init() -> void:
 func _ready() -> void:
 	print(" --- Main gui is ready --- ")
 	combat_ui = CombatUI.create(self , combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
-	# for child in _contact_bars_container.get_children():
-	# 	_contact_bars.append(child as ContactMiniBar)
-	# 	child.visible = false
 	rest_button.visible = false
 	_connect_signals()
-	_subscribe_event_bus()
-	_register_button_animations()
-	#GrimdarkFX.register_world_textures(main_background, foreground)
-	presenter.bind_view(self )
-
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE:
-			presenter.on_pause_toggle()
-			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_G:
-			#GrimdarkFX.toggle()
-			get_viewport().set_input_as_handled()
-
-#endregion
-
-#region Button Animations
-
-func _register_button_animations() -> void:
+	StrategyEventBus.strategy_hour_tick.connect(update_clock)
+	StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
+	StrategyEventBus.hud_location_changed.connect(update_location)
+	StrategyEventBus.hud_condition_changed.connect(update_condition)
+	StrategyEventBus.hud_stats_changed.connect(update_stats)
+	StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
+	StrategyEventBus.pause_state_changed.connect(update_pause_state)
+	StrategyEventBus.speed_changed.connect(update_speed_display)
 	var action_btns: Array[Button] = [
 		drill_button,
 		patrol_button,
@@ -119,13 +102,21 @@ func _register_button_animations() -> void:
 	for btn in action_btns:
 		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
-
 	var nav_btns: Array[Button] = [skip_button, short_button, missions_button, market_button]
 	for btn in nav_btns:
 		btn.focus_mode = Control.FOCUS_NONE
 		UIAnimations.register_button(btn)
-
 	combat_ui.register_button_animations()
+	presenter.bind_view(self )
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_SPACE:
+			presenter.on_pause_toggle()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_G:
+			get_viewport().set_input_as_handled()
 
 #endregion
 
@@ -188,19 +179,6 @@ func _connect_signals() -> void:
 		shop_view.presenter.shop_closed.connect(func(): presenter.on_shop_closed())
 
 
-## Subscribes the HUD directly to game-state signals so the Presenter no longer
-## pushes top-bar updates through a View reference. Connected before bind_view so
-## initial emissions (e.g. GameClock.pause() during setup) are captured.
-func _subscribe_event_bus() -> void:
-	StrategyEventBus.strategy_hour_tick.connect(update_clock)
-	StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
-	StrategyEventBus.hud_location_changed.connect(update_location)
-	StrategyEventBus.hud_condition_changed.connect(update_condition)
-	StrategyEventBus.hud_stats_changed.connect(update_stats)
-	StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
-	StrategyEventBus.pause_state_changed.connect(update_pause_state)
-	StrategyEventBus.speed_changed.connect(update_speed_display)
-
 #endregion
 
 #region Display Updates
@@ -243,7 +221,7 @@ func update_condition(text: String) -> void:
 	condition_label.text = text
 
 
-func update_contact_bars(contacts_data: Array) -> void:
+func update_contact_bars(contacts_data: Array[Dictionary]) -> void:
 	var new_ids: Dictionary = {}
 	for data in contacts_data:
 		new_ids[data["target_id"]] = data
@@ -253,7 +231,15 @@ func update_contact_bars(contacts_data: Array) -> void:
 		if not new_ids.has(tid):
 			removed.append(tid)
 	for tid in removed:
-		_animate_contact_remove(tid)
+		var bar: ContactMiniBar = _active_contacts.get(tid)
+		if not bar:
+			_active_contacts.erase(tid)
+			continue
+		_active_contacts.erase(tid)
+		var tween := create_tween().set_parallel(true)
+		tween.tween_property(bar, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		tween.tween_property(bar, "position:y", 40.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+		tween.chain().tween_callback(bar.reset_bar)
 
 	for data in contacts_data:
 		var tid: String = data["target_id"]
@@ -261,13 +247,19 @@ func update_contact_bars(contacts_data: Array) -> void:
 			var bar: ContactMiniBar = _active_contacts[tid]
 			bar.update_existing(data)
 		else:
-			var bar := _acquire_contact_bar()
+			var bar: ContactMiniBar = null
+			for b in _contact_bars:
+				if not b.visible:
+					bar = b
+					break
 			if bar:
 				bar.populate(data)
 				_active_contacts[tid] = bar
-				_animate_contact_appear(bar)
-
-	# _contact_bars_panel.visible = not _active_contacts.is_empty()
+				bar.modulate.a = 0.0
+				bar.position.y = 30.0
+				var tween := create_tween().set_parallel(true)
+				tween.tween_property(bar, "modulate:a", 1.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+				tween.tween_property(bar, "position:y", 0.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 
 func update_stats(money: float, food: int, karma: float, stability: float, development: int) -> void:
@@ -279,7 +271,30 @@ func update_stats(money: float, food: int, karma: float, stability: float, devel
 
 
 func update_activity_button(key: String, text: String, disabled: bool, tooltip: String, is_active: bool = false) -> void:
-	var button: Button = _get_activity_button(key)
+	var button: Button
+	match key:
+		"rest":
+			button = rest_button
+		"drill":
+			button = drill_button
+		"patrol":
+			button = patrol_button
+		"investigate":
+			button = investigate_button
+		"hold_mass":
+			button = hold_mass_button
+		"travel":
+			button = travel_button
+		"attack":
+			button = attack_button
+		"manage_squad":
+			button = manage_squad_button
+		"shop":
+			button = shop_button
+		"market":
+			button = market_button
+		_:
+			button = null
 	if button:
 		button.text = text
 		button.disabled = disabled
@@ -300,30 +315,6 @@ func disable_all_activity_buttons() -> void:
 	manage_squad_button.disabled = true
 	shop_button.disabled = true
 
-
-func _get_activity_button(key: String) -> Button:
-	match key:
-		"rest":
-			return rest_button
-		"drill":
-			return drill_button
-		"patrol":
-			return patrol_button
-		"investigate":
-			return investigate_button
-		"hold_mass":
-			return hold_mass_button
-		"travel":
-			return travel_button
-		"attack":
-			return attack_button
-		"manage_squad":
-			return manage_squad_button
-		"shop":
-			return shop_button
-		"market":
-			return market_button
-	return null
 
 #endregion
 
@@ -426,9 +417,9 @@ func peek_next_vn_transition_type() -> EventChain.TransitionType:
 #region Child GUI Delegation
 
 func setup_child_guis(a: ActivityRunner) -> void:
-	# Passes the ActivityRunner reference to child menu views that need game state access
-	# Called once during _setup_components by the presenter
-	# e.g., travel_view needs actor to get reachable locations, investigation_view needs clues, etc.
+	## Passes the ActivityRunner reference to child menu views that need game state access
+	## Called once during _setup_components by the presenter
+	## e.g., travel_view needs actor to get reachable locations, investigation_view needs clues, etc.
 	travel_view.setup(a)
 	investigation_view.setup(a)
 	recruitment_view.setup(a)
@@ -543,33 +534,6 @@ func hide_stage() -> void:
 #endregion
 
 #region Notification Bar
-
-func _acquire_contact_bar() -> ContactMiniBar:
-	for bar in _contact_bars:
-		if not bar.visible:
-			return bar
-	return null
-
-
-func _animate_contact_appear(bar: ContactMiniBar) -> void:
-	bar.modulate.a = 0.0
-	bar.position.y = 30.0
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(bar, "modulate:a", 1.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(bar, "position:y", 0.0, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-
-
-func _animate_contact_remove(target_id: String) -> void:
-	var bar: ContactMiniBar = _active_contacts.get(target_id)
-	if not bar:
-		_active_contacts.erase(target_id)
-		return
-	_active_contacts.erase(target_id)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(bar, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(bar, "position:y", 40.0, 0.3).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
-	tween.chain().tween_callback(bar.reset_bar)
-
 
 func show_notifications(notifications: Array[NotificationData]) -> void:
 	notification_bar.show_notifications(notifications)
