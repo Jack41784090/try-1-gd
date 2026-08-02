@@ -99,7 +99,7 @@ Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`Re
 - **GrimdarkFX** (`src/singletons/grimdark_fx.gd`): atmospheric shaders. Two layers: texture-based (bg/fg) + overlay (CanvasLayer 200). Disabled headless. Shaders in `assets/shaders/fx/`: `world_atmosphere`, `vignette`, `film_grain`, `damage_pulse`, `combat_atmosphere`
 - **UIAnimations** (`src/utils/ui_animations.gd`): static — `register_button()`, `show/hide_overlay()`, `stagger_buttons()`, `slide_in/out_panel()`, `pulse()`, `animate_label_number()`
 - **Log** (`src/singletons/log.gd`): `class_name Log`. Levels: TRACE/DEBUG/INFO/WARN/ERROR. `Log.info("Source", "msg")`. Default: DEBUG
-- **Theme** (`resources/theme/condor_theme.tres`): EB Garamond. `ThemeConstants` (`src/utils/theme_constants.gd`)
+- **Theme** (`resources/theme/condor_theme.tres`): EB Garamond
 - **Data models**: `StrategySquad` (squad/social.gd, tier 2), `CombatSquad` (squad/combat.gd, tier 3), `StrategyEntity`+`Character` (character/strat.gd, character/character.gd — see Character & the ReactiveStat Cascade below), `CombatEntity` (character/combat.gd, tier 3)
 
 ### Animation System (`src/animation/`)
