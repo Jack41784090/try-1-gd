@@ -11,7 +11,7 @@ var effects: Array[FeedbackEffect] = []
 func setup(entity: CombatEntity) -> void:
 	squad_entity = entity
 
-	rig = WarriorRigFactory.create_rig_for_entity(null, str(entity.player_id))
+	rig = WarriorRigFactory.create_rig_for_entity(entity)
 	add_child(rig)
 	rig.position = Vector2.ZERO
 	rig.play_behavior(AnimTypes.Behavior.IDLE)
