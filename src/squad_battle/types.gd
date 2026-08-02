@@ -69,15 +69,6 @@ enum EntityChangeable {
 	PROC
 }
 
-enum SquadEntityAction {
-	ATTACK,
-	FORWARD,
-	HEAL,
-	IDLE,
-	RETREAT,
-	CAPITULATE
-}
-
 enum Side {
 	NULL,
 	ATTACKER,
@@ -89,4 +80,20 @@ enum BattleOutcome {
 	ATTACKER_VICTORY,
 	DEFENDER_VICTORY,
 	DRAW
+}
+
+enum ReactionWindow {
+	ON_CAST,
+	ON_HIT,
+	ON_DODGE,
+	ON_PIERCE,
+	ON_BLOCK,
+	ON_DAMAGED,
+	ON_HEAL,
+	ON_KILL,
+	ON_DEATH,
+	ON_RETREAT,
+	ON_CAPITULATE,
+	ON_ROUND_START,
+	ON_ROUND_END,
 }

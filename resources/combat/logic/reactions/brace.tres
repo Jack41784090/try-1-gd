@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ReactionSkill" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/squad_battle/clash/reaction.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+reaction_name = "brace"
+window = 3
+relation_to_target = 0
+once_per_round = true
+priority = 0

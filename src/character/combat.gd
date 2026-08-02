@@ -8,7 +8,10 @@ var display_name: String
 ## !! Only set this when the template's logic is determined no sufficient
 var _logic_override: SimplifiedSquadLogic
 var weapon: Weapon
-var armor: SquadArmor
+var armor: SquadArmor:
+	set(_a):
+		armor = _a
+		_a.set_defender(self)
 
 var side: SquadBattleTypes.Side
 var player_id: int
@@ -18,17 +21,10 @@ var rs_arr: Dictionary[StatName.I, ReactiveStat] = {}
 
 var retreat_tracker: RetreatTracker = null
 
-var is_retreating: bool:
-	get:
-		return retreat_tracker != null and retreat_tracker.state != 0
-
-var has_last_stand: bool:
-	get:
-		return retreat_tracker != null and (retreat_tracker.state == 2 or retreat_tracker.state == 3)
-
 var skill_set: SkillSet
 var temporary_skills: Array[Skill]
 var status_effects: Array[StatusEffect]
+var reactions: Array[ReactionSkill] = []
 
 
 func _init(config: CombatEntityConfig) -> void:
@@ -36,7 +32,6 @@ func _init(config: CombatEntityConfig) -> void:
 	display_name = resource.codename
 	weapon = Weapon.new(resource.weapon_class)
 	armor = SquadArmor.new(resource.armor_class)
-	armor.set_defender(self)
 	side = config.side
 	player_id = config.player_id
 	skill_set = SkillSet.new()
@@ -48,24 +43,16 @@ func _init(config: CombatEntityConfig) -> void:
 		},
 		resource.logic_config,
 	)
-	_seed_constants(config.resolved_constants)
-	init_after(config.starting_location)
-	_validate_existence()
-
-
-## Receives already-resolved constant values (from Character.enter_battle(), or
-## CombatEntityFactory's template-only path). Never reads resource.rs_array directly.
-func _seed_constants(resolved: Dictionary[StatName.I, Variant]) -> void:
+	
+	
 	var rebuilt: Dictionary[StatName.I, ReactiveStat] = {}
-	for key in resolved:
+	for key in config.resolved_constants:
 		var rs := ReactiveStat.new()
 		rs.stat_name = key
-		rs.stat_value = resolved[key]
+		rs.stat_value = config.resolved_constants[key]
 		rebuilt[key] = rs
 	rs_arr = rebuilt
-
-
-func init_after(starting_location: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
+	
 	_debug_id = "[%d]" % [player_id]
 	retreat_tracker = RetreatTracker.new()
 	_build_runtime_stat(StatName.I.HP, get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP))
@@ -73,7 +60,9 @@ func init_after(starting_location: SquadBattleTypes.SquadEntityInSquadLocation) 
 	_build_runtime_stat(StatName.I.ORG, get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.ORG))
 	_build_runtime_stat(StatName.I.POS, get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.POS))
 	_build_runtime_stat(StatName.I.MAG, get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.MAG))
-	_build_runtime_stat(StatName.I.LOC, float(starting_location))
+	_build_runtime_stat(StatName.I.LOC, float(config.starting_location))
+	assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
+
 
 
 func _build_runtime_stat(key: StatName.I, value: float) -> void:
@@ -90,14 +79,6 @@ func get_stat(key: StatName.I) -> ReactiveStat:
 func get_stat_value(key: StatName.I) -> Variant:
 	var s := get_stat(key)
 	return s.stat_value if s else null
-
-
-func _validate_existence() -> void:
-	assert(side != SquadBattleTypes.Side.NULL, "Side must not be NULL")
-
-
-func set_logic(new_logic) -> void:
-	_logic_override = new_logic
 
 
 func new_round_reset() -> void:
@@ -129,9 +110,7 @@ const _REALITY_TABLE: Dictionary = {
 
 
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
-	if not _REALITY_TABLE.has(reality):
-		push_error("[%s] Reality value for %s not found" % [_debug_id, reality])
-		return 0.0
+	assert(_REALITY_TABLE.has(reality), "[%s] Reality value for %s not found" % [_debug_id, reality])
 	var entry: Array = _REALITY_TABLE[reality]
 	var base: float = entry[0]
 	var op: int = entry[1]
@@ -160,14 +139,6 @@ func get_ceiling_changeable_stat(property: SquadBattleTypes.EntityChangeable) ->
 			return 100.0
 
 
-func get_floor_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> float:
-	match property:
-		SquadBattleTypes.EntityChangeable.LOC:
-			return float(SquadBattleTypes.SquadEntityInSquadLocation.Front)
-		_:
-			return 0.0
-
-
 func _statname_for(property: SquadBattleTypes.EntityChangeable) -> StatName.I:
 	match property:
 		SquadBattleTypes.EntityChangeable.HP:
@@ -191,51 +162,28 @@ func get_changeable_stat_num(property: SquadBattleTypes.EntityChangeable) -> flo
 	return get_stat_value(_statname_for(property))
 
 
-func set_changeable_stat(property: SquadBattleTypes.EntityChangeable, to: float) -> EntityChange:
+func set_changeable_stat(property: SquadBattleTypes.EntityChangeable, to: float, p_metadata: Dictionary = {}) -> EntityChange:
 	var key := _statname_for(property)
 	var old_value: float = get_stat_value(key)
-	var new_value: float = clamp(to, get_floor_changeable_stat(property), get_ceiling_changeable_stat(property))
+	var floor_val: float
+	match property:
+		SquadBattleTypes.EntityChangeable.LOC:
+			floor_val = float(SquadBattleTypes.SquadEntityInSquadLocation.Front)
+		_:
+			floor_val = 0.0
+	var new_value: float = clamp(to, floor_val, get_ceiling_changeable_stat(property))
 	get_stat(key).stat_value = new_value
-	return EntityChange.new(property, old_value, new_value)
+	return EntityChange.new(property, old_value, new_value, p_metadata)
 
 
-func mod_changeable_stat(property: SquadBattleTypes.EntityChangeable, by: float) -> EntityChange:
-	return set_changeable_stat(property, get_changeable_stat_num(property) + by)
+func mod_changeable_stat(property: SquadBattleTypes.EntityChangeable, by: float, p_metadata: Dictionary = {}) -> EntityChange:
+	return set_changeable_stat(property, get_changeable_stat_num(property) + by, p_metadata)
 
 
-func heal(num: float) -> EntityChange:
+func heal(num: float, p_metadata: Dictionary = {}) -> EntityChange:
 	if num < 0 or is_dead():
 		return null
-	return mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, num)
-
-
-func boost(num: float) -> EntityChange:
-	if num < 0 or is_dead():
-		return null
-	return mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, num)
-
-
-func deorg_after_damage(dm: float, source: int) -> Array[EntityUpdate]:
-	if dm <= 0:
-		return []
-	if is_dead():
-		return []
-
-	var affected = player_id
-	var base_damage_deorg = -(dm * 1.5)
-	var current_hp = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
-	var max_hp = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
-	var hp_percentage = current_hp / max_hp
-	var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
-	var changes: Array[EntityUpdate] = [
-		EntityUpdate.new(source, affected, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg)),
-	]
-
-	if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
-		for u in retreat_tracker.advance(self):
-			changes.append(u)
-
-	return changes
+	return mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, num, p_metadata)
 
 
 func recover() -> Array[EntityChange]:
@@ -248,7 +196,7 @@ func recover() -> Array[EntityChange]:
 	return recover_changes
 
 
-func damage(num: float, source: int) -> Array[EntityUpdate]:
+func damage(num: float, source: int, p_metadata: Dictionary = {}) -> Array[EntityUpdate]:
 	if is_dead():
 		return []
 
@@ -256,31 +204,41 @@ func damage(num: float, source: int) -> Array[EntityUpdate]:
 	var affected = player_id
 
 	if num <= 0:
-		return [EntityUpdate.new(source, affected, EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp))]
+		return [EntityUpdate.new(source, affected, EntityChange.new(SquadBattleTypes.EntityChangeable.HP, old_hp, old_hp, p_metadata))]
 
 	var updates: Array[EntityUpdate] = [
 		EntityUpdate.new(
 			source, affected,
-			mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num)),
+			mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -num, p_metadata)),
 	]
 
 	if get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) == 0:
 		updates.append(
 			EntityUpdate.new(
 				source, affected,
-				EntityChange.new(SquadBattleTypes.EntityChangeable.DIE)))
+				EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1, p_metadata)))
 	else:
-		for u in deorg_after_damage(num, source):
-			updates.append(u)
+		if num > 0 and not is_dead():
+			var affected_deorg = player_id
+			var base_damage_deorg = -(num * 1.5)
+			var current_hp = get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+			var max_hp = get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
+			var hp_percentage = current_hp / max_hp
+			var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
+			updates.append(
+				EntityUpdate.new(source, affected_deorg, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg)))
+			if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
+				for u in retreat_tracker.advance(self):
+					updates.append(u)
 
 	return updates
 
 
-func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
+func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array[EntityUpdate]:
 	if is_dead():
 		return []
 
-	var updates: Array = []
+	var updates: Array[EntityUpdate] = []
 	var updated_logic = _logic_override.update_situation(
 		{
 			"entity": self,
@@ -292,9 +250,25 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	var chosen_skill = updated_logic.choose_skill()
 
 	if chosen_skill:
-		var skill_result = execute_skill(chosen_skill, updated_logic)
-		for eu in skill_result:
-			updates.append(eu)
+		var target = chosen_skill.targeting_consideration.score_then_return(self, updated_logic.situation, updated_logic.context)
+		assert(target is CombatEntity or target == null)
+		if target != null:
+			var all_entities: Array[CombatEntity] = []
+			for loc_entities in updated_logic.context.get("our_squad", {}).values():
+				for e in loc_entities:
+					all_entities.append(e)
+			for loc_entities in updated_logic.context.get("enemy_squad", {}).values():
+				for e in loc_entities:
+					all_entities.append(e)
+			var intent := ClashIntent.new(self, chosen_skill, target, 0, null, updated_logic.situation, updated_logic.context)
+			var resolver := ClashResolver.new()
+			resolver.set_entities(all_entities)
+			resolver.begin_round(1)
+			var skill_result = resolver.resolve(intent)
+			for eu in skill_result:
+				updates.append(eu)
+		else:
+			Log.debug("Combat", "%s/%s: no valid target for '%s'" % [_debug_id, display_name, chosen_skill.name])
 	else:
 		for c in recover():
 			updates.append(EntityUpdate.new(player_id, player_id, c))
@@ -302,61 +276,4 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
 	return updates
 
 
-func reaction(our_squad: Dictionary, enemy_squad: Dictionary) -> Array:
-	if is_dead():
-		return []
 
-	var updates: Array = []
-	var updated_logic = _logic_override.update_situation(
-		{
-			"entity": self,
-			"our_squad": our_squad,
-			"enemy_squad": enemy_squad,
-		},
-	)
-
-	var chosen_skill = updated_logic.choose_skill()
-
-	if chosen_skill:
-		var skill_result = execute_skill(chosen_skill, updated_logic)
-		if skill_result:
-			for eu in skill_result:
-				updates.append(eu)
-	else:
-		Log.debug("Combat", "%s/%s: no skill, skipping reaction" % [_debug_id, display_name])
-
-	return updates
-
-
-func execute_skill(skill: Skill, logic_obj: SimplifiedSquadLogic) -> Array:
-	if not skill:
-		return []
-
-	var updates: Array = []
-
-	var clash = logic_obj.choose_clash_with_skill(skill)
-	if clash == null:
-		Log.debug("Combat", "%s/%s: no valid target for '%s'" % [_debug_id, display_name, skill.name])
-		return []
-
-	for u in clash.commit():
-		updates.append(u)
-
-	return updates
-
-
-func add_temporary_skill(skill) -> void:
-	temporary_skills.append(skill)
-
-
-func remove_temporary_skill(skill_id: String) -> void:
-	temporary_skills = temporary_skills.filter(func(s): return s.class_id != skill_id)
-
-
-func set_team(_team) -> void:
-	team = _team
-
-
-func set_player_id(_id) -> void:
-	_debug_id = "[%d]" % [_id]
-	player_id = _id
