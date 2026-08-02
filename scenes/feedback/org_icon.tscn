@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[node name="OrgIcon" type="ColorRect"]
+offset_right = 6.0
+offset_bottom = 6.0
+color = Color(1, 0.85, 0.2, 1)
