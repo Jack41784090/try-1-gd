@@ -19,7 +19,8 @@ CONDOR — squad-based narrative strategy game. **Godot 4.7**, **GDScript** + **
   - `ai_runner_demo.tscn` — AI brain decisions; `ai_battle_royale_demo.tscn` — fleet sim; `ai_stress_test_demo.tscn` — 50-turn stress
   - `pause_system_test.tscn` — pause/unpause/menu auto-pause (headless ok)
   - `squad_battle_2d_demo.tscn` — 2D WarriorRig battle
-  - `animation_test.tscn` — `warrior_rig_2` harness. Keys `1-8`/`←→` cycle behaviors, `R` replay, `E` cycle expressions. Live texture hot-reload (0.4s poll). Script: `src/demos/animation_test.gd`
+  - `animation_test.tscn` — `warrior_rig_2` harness. Keys `1-8`/`←→` cycle behaviors, `R` replay, `E` cycle expression intents (`expression_ids` export). Live texture hot-reload (0.4s poll), body + face parts. Script: `src/demos/animation_test.gd`
+  - `face_component_test.tscn` — composable Face/FaceComponent assertions: intent cascade, no-drift baseline, unanswered intents, artwork texture swaps, faceless-config hiding (headless ok)
   - `stage_demo.tscn` — stage: rigs, march, speech bubbles, camera
   - `dialogue_demo.tscn` — dialogue system (headless ok)
   - `ranged_combat_demo.tscn`, `aoe_combat_demo.tscn` — ranged/AoE combat
@@ -104,25 +105,31 @@ Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`Re
 
 ### Animation System (`src/animation/`)
 
-5-layer: Clips→iExpression→AnimAction→Behavior→WarriorAnimController.
+Body: Clips→Behavior→`WarriorAnimController` (AnimTree state machine). Face: a separate, signal-driven system (below) — the AnimTree does not touch it.
 
 **`WarriorRig` dual mode**:
 - **Baked** (`scenes/rig/warrior_rig_2.tscn`): `Sprite2D` per bone pre-authored; `apply_config()` updates in place; textured in editor — scrub `AnimPlayer` to see poses live. Regenerate: `godot --headless --path . --script res://tools/bake_rig_scene.gd`
-- **Legacy** (`scenes/rig/warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`
+- **Legacy** (`scenes/rig/warrior_rig.tscn`): spawns `top_level` Polygon2D placeholders synced each frame in `_process()`. No face parts; only `canvas_demo` still instantiates it
 
-**Inspector-driven** (`@tool`): `config` export or `character_name`+`emotion` dropdowns (scanned from `assets/rig_textures/<name>/`). Baked rigs preview live in editor. `RigTextureLibrary` (`rig_texture_library.gd`): `build_config(name, emotion, base=null)`, `apply_textures()`.
+**Inspector-driven** (`@tool`): `config` export or `character_name`+`emotion` dropdowns (scanned from `assets/rig_textures/<name>/`). Baked rigs preview live in editor. `RigTextureLibrary` (`rig_texture_library.gd`): `build_config(name, base=null)`, `apply_textures()` — bone + head textures only; face art is baked into the rig scene, not carried on the config.
 
-**Facial expressions (texture-swap, NOT animated)**:
-- `Face` node under `Head` bone: `EyeL`, `EyeR`, `Mouth`, `Brows`, `HairBack` sprites
-- `iExpression` (`expression.gd`): per-feature `Texture2D`s; `null` = leave unchanged
-- `WarriorRig.set_expression(expr)` / `set_expression_by_name(id)`
-- `FaceBlend` disconnected from AnimTree output — animations cannot override expressions
-- **Gotcha**: `default_expression` re-applies at end of `_apply_config_internal` — null it to prevent snapping back to neutral
-- Expression `.tres` in `resources/animation/expressions/<character>/`
+**Factories**: `WarriorRigFactory` instantiates `warrior_rig_2.tscn` for all three entry points; `WarriorRigConfigFactory.get_config(id)` resolves a character/class id against `resources/animation/configs/` (stripping the `wcr_adventurer_`/`wcr_`/`rig2_` authoring prefixes), falling back to `landsknecht` with a `Log.warn`.
+
+**Composable face (`src/animation/face/`)** — the face broadcasts intent; each part decides what it means:
+- `Face` (`face.gd`, Node2D under the `Head` bone): `signal expression_changed(intent: StringName)` + `express(intent)`. Knows nothing about any intent. `character` records whose art it carries
+- `FaceComponent` (`face_component.gd`, Sprite2D): every node in the subtree, art-bearing leaves and pure grouping nodes alike. On `_ready()` walks up to the Face, connects, and captures its authored position/rotation/scale/texture as an immutable baseline
+- `FaceReaction` (`face_reaction.gd`, Resource): `intent`, `texture` (null = keep current), `position_delta`, `rotation_delta`, `scale_delta` (multiplicative), `blend_time`. Authored inline on the component in the Inspector — no per-expression `.tres`, no config-level lookup table
+- **Every reaction is measured from the baseline**, so switching intents never accumulates drift. `&"neutral"` needs no authored entry: it means "back to the baked pose". An intent no part answers is a silent no-op
+- Rachelle's tree: `Face → HairBack, Eyes → {EyeL, EyeR} → White → {Sclera, Pupil} + Lashes, Brows → {BrowL, BrowR}, Mouth`. Nesting composes — a reaction on `White` carries `Pupil` with it, then `Pupil` layers its own delta on top
+- `WarriorRig.set_expression_by_name(id)` → `face.express()`. `WarriorRigConfig.has_face_components` gates `face.visible`: all characters share one baked scene, so a config that isn't the baked character's hides the face rather than wearing it
+- Per-emotion swaps (`blink`, `wide`) are generated from the artwork by `bake_rig_scene.gd`; procedural ones (`scared`, `angry`) live in `tools/author_face_reactions.gd` and are carried across rebakes
+- Verify: `scenes/demos/face_component_test.tscn` (headless ok)
 
 **SVG art pipeline**:
 - Source heads: `assets/rig_textures/<name>/_head.svg` → bake: `python3 tools/bake_svg_clips.py` (resolves `<use>` in `<clipPath>`, flattens nested transforms)
-- Face split: `tools/export_face_features.py` emits `face/{eye_l,eye_r,mouth,brows,head_base,hair_back}_<emotion>.svg` per emotion sub-group in Inkscape "Face" layer. Run automatically by `bake_svg_clips.py`. To add emotion: author same-named sub-group in feature groups + re-bake
+- Face split: `tools/export_face_features.py` discovers parts recursively from the Inkscape "Face" layer — no hardcoded feature list. Every labelled `<g>` is a part; a label that is `Clip` or ends `-Clip`/`_Clip` is plumbing; a label ending `+clip` keeps the face-silhouette clip. Emotion sub-groups sit directly under each top-level part. Run automatically by `bake_svg_clips.py`
+- Outputs `face/<part_path>_<emotion>.svg` (e.g. `eye_l_white_pupil_neutral.svg`), each stamping itself with `data-part-path`, `data-order` (painting order) and `data-pivot` (its own bbox centre, queried from Inkscape) so the bake tool never parses filenames. Stale outputs are pruned
+- To add a part: label a group in Inkscape and re-bake. To add an emotion: author a same-named sub-group and re-bake — a part the emotion doesn't author is emitted EMPTY, never falling back to neutral art
 - **Art style**: 2D anime SD, clean 2px outlines, solid fills, 1:2.5 head-body ratio, 3/4 right-facing (big eye LEFT, small eye RIGHT). Z-order: Right* behind, Left* in front
 - Generator: `python3 tools/generate_sd_svgs.py`
 
@@ -137,8 +144,8 @@ Three-tier stat cascade, each tier a `Dictionary[StatName.I, ReactiveStat]` (`Re
 - `VnPresenter` stage-aware; `EventChain` triggers via `event_chain_path` in results
 - `GroupPlayback` processes `CinematicGroup` trees (parallel/sequential/auto-gate)
 - `CharacterInstruction` actions: MOVE/FACE/BEHAVIOR/SPAWN/SHOW/HIDE/**EXPRESSION**
-  - `EXPRESSION` → `StagePresenter.set_character_expression()` → `WarriorRig.set_expression_by_name()`
-  - BEHAVIOR + EXPRESSION in same parallel group = simultaneous animation + face swap
+  - `EXPRESSION` → `StagePresenter.set_character_expression()` → `WarriorRig.set_expression_by_name()` → `Face.express()`; the instruction's `expression` string is just an intent name
+  - BEHAVIOR + EXPRESSION in same parallel group = simultaneous animation + face reaction
 - `SceneryInstruction`: ADD/REMOVE/MOVE/MODULATE/SHOW/HIDE/SET_BACKDROP during playback
 - `CinematicGroup`/`CinematicInstruction` `@export` all fields → round-trips as `.tres` cutscene (no EventChain needed)
 
@@ -298,7 +305,7 @@ func _ready():
 - `src/strategy/ui/` — View/Presenter per feature (stage/, vn/, travel/, shop/, scouting/, squad_log/, missions/, market/, manage_squad/)
 - `src/strategy/ui/actor/` — ActivityExecuteManager (activity_execute_manager.gd), ActivityRunner, AI executors
 - `src/strategy/ai/` — fleet manager, squad brain, considerations, glances, actions, caravan brain
-- `src/animation/` — WarriorRig, configs, expressions, actions, controller
+- `src/animation/` — WarriorRig, configs, controller; `face/` (Face, FaceComponent, FaceReaction)
 - `src/character/` — StrategyEntity+StrategyEntityResource (strat.gd/strat_resource.gd, tier 2/1), Character mediator (character.gd), CombatEntity+CombatEntityResource (combat.gd/combat_resource.gd, tier 3/1), classes enum
 - `src/squad/` — StrategySquad (social.gd), CombatSquad (combat.gd), CargoManifest
 - `src/economy/` — engine, types, thing, person, population, inventory, caravan bridge; `csharp/` (CsGovernment, CsGuild, GovernmentBrain, GuildBrain)
