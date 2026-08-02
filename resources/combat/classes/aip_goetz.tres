@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3]
+
+[ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/frontline.tres" id="2_logic"]
+[ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="3_script"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="weapon_ref"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_strength"]
+script = ExtResource("rs")
+stat_value = 1.8
+stat_name = 10
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_dex"]
+script = ExtResource("rs")
+stat_value = 1.2
+stat_name = 11
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_acr"]
+script = ExtResource("rs")
+stat_value = 1.1
+stat_name = 12
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_spd"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 13
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_siz"]
+script = ExtResource("rs")
+stat_value = 1.2
+stat_name = 14
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_int_stat"]
+script = ExtResource("rs")
+stat_value = 0.9
+stat_name = 15
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_spr"]
+script = ExtResource("rs")
+stat_value = 1.1
+stat_name = 16
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_fai"]
+script = ExtResource("rs")
+stat_value = 1.3
+stat_name = 17
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_cha"]
+script = ExtResource("rs")
+stat_value = 1.8
+stat_name = 18
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_beu"]
+script = ExtResource("rs")
+stat_value = 1.0
+stat_name = 19
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_wil"]
+script = ExtResource("rs")
+stat_value = 2.0
+stat_name = 20
+
+[sub_resource type="Resource" id="ReactiveStat_goetz_endurance"]
+script = ExtResource("rs")
+stat_value = 1.5
+stat_name = 21
+
+[resource]
+script = ExtResource("3_script")
+codename = "Goetz"
+weapon_class = ExtResource("weapon_ref")
+armor_class = ExtResource("armor_ref")
+logic_config = ExtResource("2_logic")
+rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_goetz_strength"), SubResource("ReactiveStat_goetz_dex"), SubResource("ReactiveStat_goetz_acr"), SubResource("ReactiveStat_goetz_spd"), SubResource("ReactiveStat_goetz_siz"), SubResource("ReactiveStat_goetz_int_stat"), SubResource("ReactiveStat_goetz_spr"), SubResource("ReactiveStat_goetz_fai"), SubResource("ReactiveStat_goetz_cha"), SubResource("ReactiveStat_goetz_beu"), SubResource("ReactiveStat_goetz_wil"), SubResource("ReactiveStat_goetz_endurance")])
+metadata/_custom_type_script = "uid://r0wxsq4exvco"
