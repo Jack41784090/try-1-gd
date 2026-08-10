@@ -20,7 +20,7 @@ name = "Heal at Backline"
 weight = 1.1
 glances = Array[ExtResource("4_glance")]([SubResource("Resource_at_back_glance")])
 entity_limiter = "self"
-returning = ExtResource("5_heal")
+skill = ExtResource("5_heal")
 
 [sub_resource type="Resource" id="Resource_at_back_glance2"]
 script = ExtResource("4_glance")
@@ -35,7 +35,7 @@ name = "Inspire at Backline"
 weight = 0.9
 glances = Array[ExtResource("4_glance")]([SubResource("Resource_at_back_glance2")])
 entity_limiter = "self"
-returning = ExtResource("6_inspire")
+skill = ExtResource("6_inspire")
 
 [resource]
 script = ExtResource("1_config")

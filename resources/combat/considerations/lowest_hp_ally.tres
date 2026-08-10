@@ -6,7 +6,6 @@
 
 [resource]
 script = ExtResource("3_niuij")
-should_return = 1
 glances = Array[ExtResource("1_rtjfs")]([ExtResource("2_i7xhw")])
 entity_limiter = "allies"
 limited_by_weapon_loc = false

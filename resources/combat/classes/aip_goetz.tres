@@ -1,10 +1,18 @@
-[gd_resource type="Resource" script_class="CombatEntityResource" format=3]
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3 uid="uid://qmxst4f6peaf"]
 
 [ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/frontline.tres" id="2_logic"]
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="3_script"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="4_4txks"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="csdr"]
+[ext_resource type="Resource" uid="uid://c27tvndjd7u65" path="res://resources/combat/logic/skills/aip_goetz/iron_hand.tres" id="iron_hand"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="weapon_ref"]
-[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
+
+[sub_resource type="Resource" id="Consideration_iron_hand"]
+script = ExtResource("csdr")
+weight = 1.5
+skill = ExtResource("iron_hand")
 
 [sub_resource type="Resource" id="ReactiveStat_goetz_strength"]
 script = ExtResource("rs")
@@ -72,5 +80,7 @@ codename = "Goetz"
 weapon_class = ExtResource("weapon_ref")
 armor_class = ExtResource("armor_ref")
 logic_config = ExtResource("2_logic")
+personal_rules = Array[ExtResource("csdr")]([SubResource("Consideration_iron_hand")])
 rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_goetz_strength"), SubResource("ReactiveStat_goetz_dex"), SubResource("ReactiveStat_goetz_acr"), SubResource("ReactiveStat_goetz_spd"), SubResource("ReactiveStat_goetz_siz"), SubResource("ReactiveStat_goetz_int_stat"), SubResource("ReactiveStat_goetz_spr"), SubResource("ReactiveStat_goetz_fai"), SubResource("ReactiveStat_goetz_cha"), SubResource("ReactiveStat_goetz_beu"), SubResource("ReactiveStat_goetz_wil"), SubResource("ReactiveStat_goetz_endurance")])
+identification = ""
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

@@ -6,7 +6,6 @@
 
 [resource]
 script = ExtResource("3_csdr")
-should_return = 1
 glances = Array[ExtResource("1_glance")]([ExtResource("2_orggl")])
 entity_limiter = "allies"
 limited_by_weapon_loc = false

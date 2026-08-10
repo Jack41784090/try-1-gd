@@ -1,11 +1,9 @@
-[gd_resource type="Resource" script_class="CharacterManifest" format=3]
+[gd_resource type="Resource" script_class="CharacterManifest" format=3 uid="uid://orrm8d2oc7t0"]
 
-[ext_resource type="Script" path="res://src/animation/character_manifest.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://eux3sjh0xmst" path="res://src/animation/character_manifest.gd" id="1_script"]
 [ext_resource type="Resource" path="res://resources/animation/configs/rig2_merchant.tres" id="cfg"]
 
 [resource]
 script = ExtResource("1_script")
 character_id = "merchant"
-art_dir = ""
 rig_config = ExtResource("cfg")
-has_face = false

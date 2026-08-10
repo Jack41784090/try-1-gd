@@ -12,6 +12,7 @@ func _ready():
 	_test_the_grin_cancel()
 	_test_robber_knights_defiance()
 	_test_budget_enforcement()
+	_test_personal_rules_selection()
 
 	print("\n=== RESULTS: %d passed, %d failed ===\n" % [_pass_count, _fail_count])
 	get_tree().quit(0 if _fail_count == 0 else 1)
@@ -202,6 +203,33 @@ func _test_budget_enforcement():
 		if u.change.property == SquadBattleTypes.EntityChangeable.HP or u.change.property == SquadBattleTypes.EntityChangeable.DODGE or u.change.property == SquadBattleTypes.EntityChangeable.CLINK:
 			resolved = true
 	_assert(resolved, "attack resolved normally without reactions")
+
+
+func _test_personal_rules_selection():
+	print("--- Test: personal_rules drive skill selection via action() ---")
+	var goetz := _build_goetz(12)
+	var adelheid := CombatEntityFactory.get_by_identification(
+		"aip_adelheid", SquadBattleTypes.Side.DEFENDER, 13, SquadBattleTypes.SquadEntityInSquadLocation.Front)
+	adelheid.skill_set.set_level(SkillType.Types.Scholarship, 8)
+
+	var our_squad := {SquadBattleTypes.SquadEntityInSquadLocation.Front: [goetz]}
+	var enemy_squad := {SquadBattleTypes.SquadEntityInSquadLocation.Front: [adelheid]}
+
+	var updates := goetz.action(our_squad, enemy_squad)
+	var any_resolution := false
+	for u in updates:
+		if u.change.property == SquadBattleTypes.EntityChangeable.HP or u.change.property == SquadBattleTypes.EntityChangeable.DODGE or u.change.property == SquadBattleTypes.EntityChangeable.CLINK:
+			any_resolution = true
+	_assert(any_resolution, "Goetz action() resolved through personal rule (Iron Hand)")
+
+	var our_squad_a := {SquadBattleTypes.SquadEntityInSquadLocation.Front: [adelheid]}
+	var enemy_squad_a := {SquadBattleTypes.SquadEntityInSquadLocation.Front: [goetz]}
+	var updates_a := adelheid.action(our_squad_a, enemy_squad_a)
+	var any_resolution_a := false
+	for u in updates_a:
+		if u.change.property == SquadBattleTypes.EntityChangeable.HP or u.change.property == SquadBattleTypes.EntityChangeable.DODGE or u.change.property == SquadBattleTypes.EntityChangeable.CLINK:
+			any_resolution_a = true
+	_assert(any_resolution_a, "Adelheid action() resolved through personal rule (Sacred Sentence)")
 
 
 func _assert(condition: bool, msg: String) -> void:

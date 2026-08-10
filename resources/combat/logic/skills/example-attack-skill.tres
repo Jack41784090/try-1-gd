@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_58upd"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="1_skill"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glyfu"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_fie37"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_fie37"]
 
 [sub_resource type="Resource" id="Resource_ou6p4"]
 script = ExtResource("1_58upd")
@@ -17,7 +17,6 @@ metadata/_custom_type_script = "uid://b006sp1fbp8ro"
 
 [sub_resource type="Resource" id="Resource_tv15c"]
 script = ExtResource("4_fie37")
-should_return = 1
 glances = Array[ExtResource("3_glyfu")]([SubResource("Resource_12406")])
 entity_limiter = "enemies"
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"

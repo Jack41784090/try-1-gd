@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponConfig" format=3 uid="uid://ch8m2icxkiqrf"]
+[gd_resource type="Resource" script_class="WeaponResource" format=3 uid="uid://ch8m2icxkiqrf"]
 
 [ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad_battle/items/weapon/damage_translate.gd" id="1_ucsqc"]
 [ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/items/weapon/potency.gd" id="2_82r7q"]

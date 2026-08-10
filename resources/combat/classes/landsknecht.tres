@@ -2,11 +2,11 @@
 
 [ext_resource type="Texture2D" uid="uid://5giksh8h82gd" path="res://assets/Landsknecht-idle.png" id="1_ly5kv"]
 [ext_resource type="Resource" uid="uid://cvco6tu0hveri" path="res://resources/combat/logic/frontline.tres" id="2_8tqtp"]
-[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="2_q2fet"]
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="3_q2fet"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_tyx70"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="weapon_ref"]
-[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="armor_ref"]
 
 [sub_resource type="Resource" id="ReactiveStat_landsknecht_strength"]
 script = ExtResource("rs")
@@ -76,4 +76,5 @@ weapon_class = ExtResource("weapon_ref")
 armor_class = ExtResource("armor_ref")
 logic_config = ExtResource("2_8tqtp")
 rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_landsknecht_strength"), SubResource("ReactiveStat_landsknecht_dex"), SubResource("ReactiveStat_landsknecht_acr"), SubResource("ReactiveStat_landsknecht_spd"), SubResource("ReactiveStat_landsknecht_siz"), SubResource("ReactiveStat_landsknecht_int_stat"), SubResource("ReactiveStat_landsknecht_spr"), SubResource("ReactiveStat_landsknecht_fai"), SubResource("ReactiveStat_landsknecht_cha"), SubResource("ReactiveStat_landsknecht_beu"), SubResource("ReactiveStat_landsknecht_wil"), SubResource("ReactiveStat_landsknecht_endurance")])
+identification = ""
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

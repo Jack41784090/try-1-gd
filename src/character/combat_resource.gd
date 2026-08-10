@@ -12,7 +12,7 @@ var identification: String = ""
 @export var weapon_class: WeaponResource
 @export var armor_class: ArmorConfig
 @export var logic_config: SimplifiedLogicConfig
-@export var innate_skills: Array[Skill]
+@export var personal_rules: Array[Consideration] = []
 @export var rs_array: Array[ReactiveStat] = []   ## 12 base-attribute ReactiveStats, inline per-class
 
 

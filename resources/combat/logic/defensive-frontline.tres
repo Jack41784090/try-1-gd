@@ -8,7 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_attack_csdr"]
 script = ExtResource("2_csdr")
-returning = ExtResource("5_attack")
+skill = ExtResource("5_attack")
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [sub_resource type="Resource" id="Resource_not_front_glance"]
@@ -23,7 +23,7 @@ script = ExtResource("2_csdr")
 weight = 1.25
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_not_front_glance")])
 entity_limiter = "self"
-returning = ExtResource("4_movefwd")
+skill = ExtResource("4_movefwd")
 average_score_between_glances = true
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 

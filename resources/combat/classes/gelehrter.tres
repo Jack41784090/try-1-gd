@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="CombatEntityResource" format=3]
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3 uid="uid://igw5bcm0yxrm"]
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
 [ext_resource type="Resource" uid="uid://ddsvebolwomtc" path="res://resources/combat/logic/backline-caster.tres" id="2_logic"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_y82rj"]
+[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="armor"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 [ext_resource type="Resource" uid="uid://ch8m2icxkiqrf" path="res://resources/combat/weapon/config/alchemical-fire.tres" id="weapon"]
-[ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="armor"]
 
 [sub_resource type="Resource" id="ReactiveStat_gelehrter_strength"]
 script = ExtResource("rs")
@@ -73,4 +74,5 @@ weapon_class = ExtResource("weapon")
 armor_class = ExtResource("armor")
 logic_config = ExtResource("2_logic")
 rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_gelehrter_strength"), SubResource("ReactiveStat_gelehrter_dex"), SubResource("ReactiveStat_gelehrter_acr"), SubResource("ReactiveStat_gelehrter_spd"), SubResource("ReactiveStat_gelehrter_siz"), SubResource("ReactiveStat_gelehrter_int_stat"), SubResource("ReactiveStat_gelehrter_spr"), SubResource("ReactiveStat_gelehrter_fai"), SubResource("ReactiveStat_gelehrter_cha"), SubResource("ReactiveStat_gelehrter_beu"), SubResource("ReactiveStat_gelehrter_wil"), SubResource("ReactiveStat_gelehrter_endurance")])
+identification = ""
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

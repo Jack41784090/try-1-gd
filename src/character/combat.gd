@@ -42,6 +42,7 @@ func _init(config: CombatEntityConfig) -> void:
 			"enemy_squad": {},
 		},
 		resource.logic_config,
+		resource.personal_rules,
 	)
 	
 	

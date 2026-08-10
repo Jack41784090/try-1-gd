@@ -18,7 +18,7 @@ script = ExtResource("2_consideration")
 name = "Heal at Backline"
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_glance_at_back")])
 entity_limiter = "self"
-returning = ExtResource("6_heal_skill")
+skill = ExtResource("6_heal_skill")
 
 [resource]
 script = ExtResource("1_config")

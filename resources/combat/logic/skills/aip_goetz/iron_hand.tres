@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="Skill" format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://c27tvndjd7u65"]
 
-[ext_resource type="Script" uid="uid://bodhxwkgck8di" path="res://src/squad_battle/clash/skill-effect.gd" id="1_ske"]
+[ext_resource type="Script" uid="uid://bodhxwkgfl6xn" path="res://src/squad_battle/clash/skill-effect.gd" id="1_ske"]
 [ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="2_skill"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
 
 [sub_resource type="Resource" id="Resource_damage"]
 script = ExtResource("1_ske")
@@ -17,7 +17,6 @@ metadata/_custom_type_script = "uid://b006sp1fbp8ro"
 
 [sub_resource type="Resource" id="Resource_targeting"]
 script = ExtResource("4_csdr")
-should_return = 1
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_target_glance")])
 entity_limiter = "enemies"
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
@@ -27,4 +26,3 @@ script = ExtResource("2_skill")
 name = "Iron Hand"
 effects = Array[ExtResource("1_ske")]([SubResource("Resource_damage")])
 targeting_consideration = SubResource("Resource_targeting")
-roll_for_damage = true

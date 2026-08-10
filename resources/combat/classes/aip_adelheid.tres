@@ -1,10 +1,18 @@
-[gd_resource type="Resource" script_class="CombatEntityResource" format=3]
+[gd_resource type="Resource" script_class="CombatEntityResource" format=3 uid="uid://dfsryjss4h7e0"]
 
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_script"]
 [ext_resource type="Resource" uid="uid://ddsvebolwomtc" path="res://resources/combat/logic/backline-caster.tres" id="2_logic"]
-[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
-[ext_resource type="Resource" uid="uid://ch8m2icxkiqrf" path="res://resources/combat/weapon/config/alchemical-fire.tres" id="weapon"]
+[ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="4_2c4jg"]
 [ext_resource type="Resource" uid="uid://cb86jvmr0ptt1" path="res://resources/combat/armor/unarmored.tres" id="armor"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="csdr"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
+[ext_resource type="Resource" uid="uid://crgbw4vmiekyf" path="res://resources/combat/logic/skills/aip_adelheid/sacred_sentence.tres" id="sacred_sentence"]
+[ext_resource type="Resource" uid="uid://ch8m2icxkiqrf" path="res://resources/combat/weapon/config/alchemical-fire.tres" id="weapon"]
+
+[sub_resource type="Resource" id="Consideration_sacred_sentence"]
+script = ExtResource("csdr")
+weight = 1.5
+skill = ExtResource("sacred_sentence")
 
 [sub_resource type="Resource" id="ReactiveStat_adelheid_strength"]
 script = ExtResource("rs")
@@ -72,5 +80,7 @@ codename = "Adelheid"
 weapon_class = ExtResource("weapon")
 armor_class = ExtResource("armor")
 logic_config = ExtResource("2_logic")
+personal_rules = Array[ExtResource("csdr")]([SubResource("Consideration_sacred_sentence")])
 rs_array = Array[ExtResource("rs")]([SubResource("ReactiveStat_adelheid_strength"), SubResource("ReactiveStat_adelheid_dex"), SubResource("ReactiveStat_adelheid_acr"), SubResource("ReactiveStat_adelheid_spd"), SubResource("ReactiveStat_adelheid_siz"), SubResource("ReactiveStat_adelheid_int_stat"), SubResource("ReactiveStat_adelheid_spr"), SubResource("ReactiveStat_adelheid_fai"), SubResource("ReactiveStat_adelheid_cha"), SubResource("ReactiveStat_adelheid_beu"), SubResource("ReactiveStat_adelheid_wil"), SubResource("ReactiveStat_adelheid_endurance")])
+identification = ""
 metadata/_custom_type_script = "uid://r0wxsq4exvco"

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://r0wxsq4exvco" path="res://src/character/combat_resource.gd" id="1_combat"]
 [ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="1_sp6eo"]
 [ext_resource type="Resource" uid="uid://dki5wkrk2eun3" path="res://resources/combat/logic/backline-gunner.tres" id="2_logic"]
-[ext_resource type="Script" uid="uid://dj6uoycgck8di" path="res://src/squad_battle/clash/skill.gd" id="2_rm0vk"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_sp6eo"]
 [ext_resource type="Resource" uid="uid://dpnp1lb8kk4sc" path="res://resources/combat/weapon/config/arquebus.tres" id="6_ehy5b"]
 [ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="rs"]
 

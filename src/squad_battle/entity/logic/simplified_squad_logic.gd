@@ -5,13 +5,15 @@ var entity: CombatEntity
 var situation: Situation
 var context: Dictionary
 var config: SimplifiedLogicConfig
+var personal_rules: Array[Consideration] = []
 
 
-func _init(initial_context: Dictionary, logic_config: SimplifiedLogicConfig = null):
+func _init(initial_context: Dictionary, logic_config: SimplifiedLogicConfig = null, p_personal_rules: Array[Consideration] = []):
 	context = initial_context
 	entity = context["entity"]
 	situation = Situation.new(context)
 	config = logic_config if logic_config else SimplifiedLogicConfig.new()
+	personal_rules = p_personal_rules
 
 
 func update_situation(new_context: Dictionary):
@@ -24,23 +26,25 @@ func update_situation(new_context: Dictionary):
 ## skill. Each consideration scores the situation using Glances and returns a
 ## Skill if score > 0; highest score wins. Falls back to default attack.
 func choose_skill() -> Skill:
-	if config.considerations.size() == 0:
-		return get_default_attack()
+	var all_rules: Array[Consideration] = []
+	all_rules.append_array(config.considerations)
+	all_rules.append_array(personal_rules)
 
+	if all_rules.is_empty():
+		return get_default_attack()
 
 	var best_skill: Skill = null
 	var best_score := -INF
 
-	for csdr in config.considerations:
-		if csdr.should_return == Consideration.SkillOrTarget.Target:
-			push_warning("[%s] returns a target, but it should return a skill" % csdr.name)
+	for csdr in all_rules:
+		if csdr.skill == null:
 			continue
 
 		var score = csdr.score(entity, situation, context)
 
-		if score > 0.0 and score > best_score and csdr.returning != null:
+		if score > 0.0 and score > best_score:
 			best_score = score
-			best_skill = csdr.returning
+			best_skill = csdr.skill
 
 	if best_skill:
 		best_skill = best_skill.instantiate()

@@ -1,27 +1,21 @@
 class_name Consideration
 extends Resource
 
-enum SkillOrTarget {
-	Skill,
-	Target,
-}
-
-@export var should_return: SkillOrTarget = SkillOrTarget.Skill
 @export var name: String = ""
 @export var weight: float = 1.0
 @export var op: CsdrTypes.OP = CsdrTypes.OP.ADD
 @export var glances: Array[Glance] = []
 @export var entity_limiter: String = "all"
-## Skill (a Resource) when should_return == Skill; a CombatEntity (a RefCounted,
-## not a Resource) when should_return == Target — must stay untyped for both.
-@export var returning: Variant = null
+@export var skill: Skill = null
 @export var average_score_between_glances: bool = false
 @export var limited_by_weapon_loc: bool = true
 
+var resolved_target: CombatEntity = null
 
-func score_then_return(entity, situation, context):
+
+func score_then_return(entity, situation, context) -> CombatEntity:
 	score(entity, situation, context)
-	return returning
+	return resolved_target
 
 
 func score(entity, situation, context) -> float:
@@ -47,10 +41,7 @@ func score(entity, situation, context) -> float:
 		_:
 			assert(false, "Unimplemented entity limiter: %s" % entity_limiter)
 
-## Reset so a stale target/skill from a previous score() call on this shared
-## Resource (e.g. an entity that has since died) never leaks into this pass.
-	if should_return == SkillOrTarget.Target:
-		returning = null
+	resolved_target = null
 
 	if entities_to_evaluate.is_empty():
 		print("  [Consideration] No entities to evaluate, returning 0.0")
@@ -59,7 +50,6 @@ func score(entity, situation, context) -> float:
 	if glances.is_empty():
 		return weight
 
-	## 1. Glance at each entity to evaluate and return a value for each, stored in glance_scores
 	var glance_scores: Array[float] = []
 	var best_score_so_far = -INF
 	for entity_to_check in entities_to_evaluate:
@@ -68,9 +58,8 @@ func score(entity, situation, context) -> float:
 			entity_score = entity_score / glances.size()
 		glance_scores.append(entity_score)
 
-		## 1.5 if the entity score is the highest so far,
-		if should_return == SkillOrTarget.Target and best_score_so_far < entity_score:
-			returning = entity_to_check
+		if best_score_so_far < entity_score:
+			resolved_target = entity_to_check
 			best_score_so_far = entity_score
 
 	## 2. Glance scores is then evaluated into result with regards to the op variable set in the Consideration

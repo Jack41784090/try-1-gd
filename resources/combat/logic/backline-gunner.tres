@@ -8,7 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_attack"]
 script = ExtResource("3_csdr")
-returning = ExtResource("4_arquebus")
+skill = ExtResource("4_arquebus")
 metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [resource]

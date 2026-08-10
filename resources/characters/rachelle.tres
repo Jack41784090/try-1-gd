@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="CharacterManifest" format=3]
+[gd_resource type="Resource" script_class="CharacterManifest" format=3 uid="uid://cw14mlye5vehb"]
 
-[ext_resource type="Script" path="res://src/animation/character_manifest.gd" id="1_script"]
-[ext_resource type="Resource" path="res://resources/animation/configs/wcr_adventurer_rachelle.tres" id="cfg"]
+[ext_resource type="Script" uid="uid://eux3sjh0xmst" path="res://src/animation/character_manifest.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://ce3nlulj7r8s5" path="res://resources/animation/configs/wcr_adventurer_rachelle.tres" id="cfg"]
 
 [resource]
 script = ExtResource("1_script")
