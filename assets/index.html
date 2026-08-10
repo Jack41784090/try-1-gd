@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EyesExpressionTest — Anime Eyes Morph Loop</title>
+<style>
+  :root{
+    --bg:#1b1e24; --panel:#22262e; --panel2:#262b34; --line:#14171c;
+    --txt:#c6ccd6; --dim:#7c8490; --accent:#478cbf;
+    --n2d:#6aa5ff; --cam:#b48cff; --skel:#7fd0c9; --poly:#7ed37e; --anim:#c678dd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--txt);
+    font:13px/1.45 "Segoe UI",system-ui,sans-serif;overflow:hidden}
+  #app{display:flex;height:100%}
+
+  /* ── Scene dock ─────────────────────────────── */
+  #dock{width:288px;min-width:288px;background:var(--panel);
+    border-right:1px solid var(--line);display:flex;flex-direction:column}
+  #dock header{padding:8px 12px;background:var(--panel2);
+    border-bottom:1px solid var(--line);font-weight:600;letter-spacing:.4px;
+    display:flex;justify-content:space-between;align-items:center}
+  #dock header small{color:var(--dim);font-weight:400}
+  #tree{flex:1;overflow:auto;padding:8px 6px;
+    font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:12.5px}
+  #tree ul{list-style:none;border-left:1px solid #3a404b;margin-left:11px;padding-left:0}
+  #tree>ul{border:none;margin-left:0}
+  .node{display:flex;align-items:center;gap:7px;padding:2.5px 6px 2.5px 12px;
+    border-radius:4px;white-space:nowrap;position:relative}
+  .node::before{content:"";position:absolute;left:-0.5px;top:50%;width:11px;height:1px;background:#3a404b}
+  #tree>ul>.node::before{display:none}
+  .node:hover{background:#2d333d}
+  .node .dot{width:9px;height:9px;border-radius:2px;flex:none}
+  .node .nm{color:var(--txt)}
+  .node .tp{color:var(--dim)}
+  .node .note{color:#5c636e;font-size:11px}
+  .node.root .nm{font-weight:700}
+  .d-n2d{background:var(--n2d)} .d-cam{background:var(--cam)}
+  .d-skel{background:var(--skel)} .d-poly{background:var(--poly)} .d-anim{background:var(--anim)}
+  .node.playing{outline:1px solid #6b5b8f;background:#2e2938}
+  .node.playing .nm{color:#e3c8ff}
+  .node.playing::after{content:"";width:6px;height:6px;border-radius:50%;
+    background:var(--anim);margin-left:4px;animation:pulse 1s infinite}
+  .node.morphing .nm{color:#ffd9a0}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+  #legend{padding:8px 12px;border-top:1px solid var(--line);color:var(--dim);
+    font:11px ui-monospace,monospace;line-height:1.7}
+
+  /* ── Viewport ───────────────────────────────── */
+  #viewport{flex:1;position:relative;display:flex;flex-direction:column}
+  #vptoolbar{display:flex;align-items:center;gap:14px;padding:7px 14px;
+    background:var(--panel2);border-bottom:1px solid var(--line)}
+  #vptoolbar .ttl{font-weight:600;letter-spacing:.4px}
+  #vptoolbar .sp{flex:1}
+  #vptoolbar label{display:flex;align-items:center;gap:6px;color:var(--dim);
+    cursor:pointer;user-select:none}
+  #vptoolbar input{accent-color:var(--accent)}
+  #stagewrap{flex:1;position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%;cursor:pointer}
+  #statusbar{display:flex;gap:22px;padding:6px 14px;background:var(--panel2);
+    border-top:1px solid var(--line);font:11.5px ui-monospace,monospace;color:var(--dim)}
+  #statusbar b{color:var(--anim);font-weight:600}
+  #statusbar .hint{margin-left:auto;color:#565d68}
+  @media (max-width:680px){#dock{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ Scene dock ══ -->
+  <aside id="dock">
+    <header>Scene <small>EyesExpressionTest.tscn</small></header>
+    <div id="tree">
+      <ul>
+        <li>
+          <div class="node root"><span class="dot d-n2d"></span><span class="nm">EyesExpressionTest</span><span class="tp">(Node2D)</span></div>
+          <ul>
+            <li><div class="node"><span class="dot d-cam"></span><span class="nm">Camera2D</span><span class="note">zoomed on the eyes</span></div></li>
+            <li>
+              <div class="node"><span class="dot d-n2d"></span><span class="nm">Eyes</span><span class="tp">(Node2D)</span></div>
+              <ul>
+                <li>
+                  <div class="node" id="row-sclera"><span class="dot d-skel"></span><span class="nm">Sclera</span><span class="tp">(Skeleton2D)</span></div>
+                  <ul>
+                    <li><div class="node"><span class="dot d-skel"></span><span class="nm">W0..W35</span><span class="note">rim bones · PATH0_N</span></div></li>
+                    <li><div class="node"><span class="dot d-skel"></span><span class="nm">B0..B16</span><span class="note">accent bones · PATH1_N</span></div></li>
+                    <li><div class="node"><span class="dot d-poly"></span><span class="nm">EyeWhite</span><span class="tp">(Polygon2D)</span><span class="note">#f1e1cb + outline</span></div></li>
+                    <li><div class="node"><span class="dot d-poly"></span><span class="nm">Accent</span><span class="tp">(Polygon2D)</span><span class="note">#c3ceeb</span></div></li>
+                  </ul>
+                </li>
+                <li><div class="node" id="row-pupil"><span class="dot d-poly"></span><span class="nm">Pupil</span><span class="tp">(Polygon2D)</span><span class="note">dark · squishes on blink</span></div></li>
+                <li><div class="node playing" id="row-anim"><span class="dot d-anim"></span><span class="nm">AnimationPlayer</span><span class="note">autoplay morph loop</span></div></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div id="legend">
+      PATH0_N → eye-white outline (36 rim bones)<br>
+      PATH1_N → blue accent band (17 bones)<br>
+      morph tracks: <b style="color:var(--anim)">lid_open</b> · <b style="color:var(--anim)">widen</b>
+    </div>
+  </aside>
+
+  <!-- ══ Viewport ══ -->
+  <main id="viewport">
+    <div id="vptoolbar">
+      <span class="ttl">EyesExpressionTest — Viewport</span>
+      <span class="sp"></span>
+      <label><input type="checkbox" id="bones"> Show bones (W0..W35 / B0..B16)</label>
+    </div>
+    <div id="stagewrap"><canvas id="stage"></canvas></div>
+    <div id="statusbar">
+      <span>AnimationPlayer ▸ <b>morph loop</b> (autoplay)</span>
+      <span>state: <b id="st-state">idle</b></span>
+      <span>blinks: <b id="st-blinks">0</b></span>
+      <span>surprises: <b id="st-surprises">0</b></span>
+      <span class="hint">click = blink · double-click = surprise</span>
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   EyesExpressionTest (Node2D)
+   └── Camera2D            (zoomed on the eyes)
+   └── Eyes (Node2D)
+       ├── Sclera (Skeleton2D)
+       │   ├── W0..W35     rim bones on the eye-white outline PATH0_N
+       │   ├── B0..B16     bones on the blue accent PATH1_N
+       │   ├── EyeWhite    Polygon2D — PATH0_N, solid #f1e1cb + black outline
+       │   └── Accent      Polygon2D — PATH1_N, solid #c3ceeb
+       ├── Pupil           Polygon2D circle, dark, on top; squishes on blink
+       └── AnimationPlayer autoplay morph loop
+   ════════════════════════════════════════════════════════════════ */
+
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const easeInQuad   =t=>t*t;
+const easeOutCubic =t=>1-Math.pow(1-t,3);
+const easeInOutCubic=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOutBack  =t=>{const c=1.70158;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);};
+
+/* ── Skeleton2D · bone paths ─────────────────────────────────── */
+/* PATH0_N : 36 rim bones (W0..W35) — 18 along upper lid L→R, 18 along lower lid R→L.
+   Every bone position is a morph between the "closed" curve and the "open" lid. */
+function rimBones(P){
+  const pts=[], N=18;
+  const a =P.a*(1+0.08*P.widen);
+  const up=1+0.55*P.widen, lo=1+0.30*P.widen;
+  for(let i=0;i<N;i++){
+    const t=i/(N-1), x=lerp(-a,a,t);
+    const sh=Math.pow(Math.sin(Math.PI*t),0.85);
+    const closedY=P.closed*Math.sin(Math.PI*t);
+    pts.push({x, y:lerp(closedY,-P.u*sh*up,P.open)});
+  }
+  for(let i=0;i<N;i++){
+    const t=1-i/(N-1), x=lerp(-a,a,t);
+    const sh=Math.pow(Math.sin(Math.PI*t),1.15);
+    const closedY=P.closed*Math.sin(Math.PI*t);
+    pts.push({x, y:lerp(closedY,P.l*sh*lo,P.open)});
+  }
+  return pts;
+}
+/* PATH1_N : 17 bones (B0..B16) — blue accent band under the upper lash. */
+function accentBones(P){
+  const N=17, t0=0.06, t1=0.94, outer=[], inner=[];
+  const a=P.a*(1+0.08*P.widen), up=1+0.55*P.widen;
+  for(let i=0;i<N;i++){
+    const t=lerp(t0,t1,i/(N-1)), x=lerp(-a,a,t);
+    const sh=Math.pow(Math.sin(Math.PI*t),0.85);
+    const y=lerp(P.closed*Math.sin(Math.PI*t), -P.u*sh*up, P.open);
+    const th=(5+16*Math.pow(Math.sin(Math.PI*t),0.9))*(0.2+0.8*P.open);
+    const off=8*P.open;
+    outer.push({x,y:y+off});
+    inner.push({x,y:y+off+th});
+  }
+  return {outer,inner};
+}
+
+/* ── Polygon2D draws ─────────────────────────────────────────── */
+function tracePath(ctx,pts,close){
+  ctx.beginPath();
+  pts.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  if(close)ctx.closePath();
+}
+function drawPupil(ctx,P,st,t){
+  const r =30*(1-0.30*st.widen);
+  const sq=clamp(st.open,0.07,1);                    /* squish on blink */
+  const tremble=st.widen>0.85?Math.sin(t*46)*1.4*st.widen:0;
+  const px=st.look.x*(0.4+0.6*st.open)+tremble;
+  const py=st.look.y*st.open-7*st.widen*st.open+(1-st.open)*P.closed*0.4;
+  ctx.save();
+  ctx.translate(px,py); ctx.scale(1,sq);
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.35,r*0.1,0,0,r);
+  g.addColorStop(0,'#3a2d4a'); g.addColorStop(1,'#171221');
+  ctx.fillStyle=g; ctx.fill();
+  ctx.lineWidth=2; ctx.strokeStyle='#0d0a14'; ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.92)';            /* anime shine */
+  ctx.beginPath(); ctx.arc(-r*0.34,-r*0.38,r*0.26,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.arc(r*0.30,r*0.30,r*0.12,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawLash(ctx,rim){
+  const up=rim.slice(0,18);
+  ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#1c141c';
+  tracePath(ctx,up,false); ctx.lineWidth=7; ctx.stroke();
+  ctx.lineWidth=5;                                   /* corner flicks */
+  ctx.beginPath(); ctx.moveTo(up[0].x,up[0].y); ctx.lineTo(up[0].x-15,up[0].y+7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(up[17].x,up[17].y); ctx.lineTo(up[17].x+15,up[17].y+7); ctx.stroke();
+}
+function drawBones(ctx,rim,acc){
+  ctx.save();
+  ctx.strokeStyle='rgba(255,150,60,0.5)'; ctx.lineWidth=1;
+  tracePath(ctx,rim,true); ctx.stroke();
+  ctx.fillStyle='#ff963c';
+  rim.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.6,0,7);ctx.fill();});
+  ctx.fillStyle='#5ec1ff';
+  acc.outer.concat(acc.inner).forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,7);ctx.fill();});
+  ctx.restore();
+}
+function drawEye(ctx,eye,st,t,showBones){
+  ctx.save();
+  ctx.translate(eye.x,eye.y); ctx.rotate(eye.rot);
+  const s=1+0.06*st.widen; ctx.scale(s,s);
+  const P={a:118,u:74,l:36,closed:12,open:st.open,widen:st.widen};
+  const rim=rimBones(P), acc=accentBones(P);
+
+  tracePath(ctx,rim,true);                           /* EyeWhite (Polygon2D) */
+  ctx.fillStyle='#f1e1cb'; ctx.fill();
+  ctx.lineWidth=2.5; ctx.strokeStyle='#241a20'; ctx.stroke();
+
+  ctx.beginPath();                                   /* Accent (Polygon2D) */
+  acc.outer.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  for(let i=acc.inner.length-1;i>=0;i--)ctx.lineTo(acc.inner[i].x,acc.inner[i].y);
+  ctx.closePath(); ctx.fillStyle='#c3ceeb'; ctx.fill();
+
+  ctx.save();                                        /* Pupil, clipped to sclera */
+  tracePath(ctx,rim,true); ctx.clip();
+  drawPupil(ctx,P,st,t);
+  ctx.restore();
+
+  drawLash(ctx,rim);
+  if(showBones)drawBones(ctx,rim,acc);
+  ctx.restore();
+}
+
+/* ── AnimationPlayer (autoplay "morph loop") ─────────────────── */
+const anim={
+  state:'idle', t0:0, open:1, widen:0,
+  nextBlink:1.2, nextSurprise:5.5+Math.random()*4,
+  blinks:0, surprises:0, _hold:0.5, _dbl:false,
+  update(now){
+    if(this.state==='idle'){
+      if(now>=this.nextSurprise){this.state='surprise';this.t0=now;this.surprises++;}
+      else if(now>=this.nextBlink){this.state='blink';this.t0=now;this.blinks++;}
+    }
+    if(this.state==='blink'){                        /* lid_open : 1 → 0 → 1 */
+      const d=now-this.t0,c=0.11,o=0.18,T=c+o;
+      if(d<c)      this.open=1-easeInQuad(d/c);
+      else if(d<T) this.open=easeOutCubic((d-c)/o);
+      else{
+        this.open=1; this.state='idle';
+        if(!this._dbl&&Math.random()<0.22){this._dbl=true; this.nextBlink=now+0.32;}
+        else{this._dbl=false; this.nextBlink=now+1.8+Math.random()*2.8;}
+      }
+    }else if(this.state==='surprise'){               /* widen : 0 → 1 → hold → 0 */
+      const d=now-this.t0,i=0.16,h=1.15+this._hold,o=0.75,T=i+h+o;
+      if(d<i)          this.widen=easeOutBack(d/i);
+      else if(d<i+h)   this.widen=1;
+      else if(d<T)     this.widen=1-easeInOutCubic((d-i-h)/o);
+      else{
+        this.widen=0; this.state='idle'; this._hold=Math.random();
+        this.nextSurprise=now+7+Math.random()*7;
+        this.nextBlink=now+0.9+Math.random()*1.4;
+      }
+    }
+  },
+  triggerBlink(now){if(this.state==='idle'){this.state='blink';this.t0=now;this.blinks++;}},
+  triggerSurprise(now){if(this.state==='idle'){this.state='surprise';this.t0=now;this.surprises++;}}
+};
+
+/* ── Camera2D + render loop ──────────────────────────────────── */
+const canvas=document.getElementById('stage'), ctx=canvas.getContext('2d');
+const wrap=document.getElementById('stagewrap');
+const eyes=[{x:-178,rot:-0.03},{x:178,rot:0.03}];
+const look={x:0,y:0};
+let VW=0,VH=0,DPR=1;
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  VW=wrap.clientWidth; VH=wrap.clientHeight;
+  canvas.width=VW*DPR; canvas.height=VH*DPR;
+}
+window.addEventListener('resize',resize); resize();
+
+const stState=document.getElementById('st-state'),
+      stBlinks=document.getElementById('st-blinks'),
+      stSurp=document.getElementById('st-surprises'),
+      rowPupil=document.getElementById('row-pupil'),
+      rowSclera=document.getElementById('row-sclera'),
+      bonesChk=document.getElementById('bones');
+
+let start=performance.now();
+function frame(nowMs){
+  const t=(nowMs-start)/1000;
+  anim.update(t);
+
+  /* idle gaze drift */
+  look.x=7*Math.sin(t*0.33)+3*Math.sin(t*0.11);
+  look.y=4*Math.sin(t*0.27);
+
+  /* Camera2D : zoom on the eyes + gentle breathing */
+  const zoom=clamp(Math.min(VW/720,VH/360),0.45,3)*(1+0.012*Math.sin(t*0.5));
+
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const bg=ctx.createRadialGradient(VW/2,VH/2,40,VW/2,VH/2,Math.max(VW,VH)*0.75);
+  bg.addColorStop(0,'#2b303c'); bg.addColorStop(1,'#15171d');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,VW,VH);
+
+  ctx.save();
+  ctx.translate(VW/2,VH/2); ctx.scale(zoom,zoom);
+  const st={open:anim.open,widen:anim.widen,look};
+  eyes.forEach(e=>drawEye(ctx,e,st,t,bonesChk.checked));
+  ctx.restore();
+
+  /* status + tree highlights */
+  stState.textContent=anim.state;
+  stBlinks.textContent=anim.blinks;
+  stSurp.textContent=anim.surprises;
+  rowPupil.classList.toggle('morphing',anim.open<0.98);
+  rowSclera.classList.toggle('morphing',anim.open<0.98||anim.widen>0.02);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+canvas.addEventListener('click',()=>anim.triggerBlink((performance.now()-start)/1000));
+canvas.addEventListener('dblclick',()=>anim.triggerSurprise((performance.now()-start)/1000));
+</script>
+</body>
+</html>

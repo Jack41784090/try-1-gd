@@ -1,0 +1,378 @@
+[gd_scene format=3 uid="uid://dl81jik5fa4dr"]
+
+[ext_resource type="Texture2D" uid="uid://b77dnro6adejp" path="res://assets/rig_textures/rachelle/face/eye_l_white_sclera_neutral.svg" id="1_dbw5n"]
+
+[sub_resource type="Animation" id="Animation_dbw5n"]
+length = 2.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/BIris:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(60, 0), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/B0:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-26.363007, 22.175995), Vector2(-26.363007, 22.175995), Vector2(-26.363007, 22.175995)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton2D/B1:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-24.454002, 21.550995), Vector2(-24.454002, 21.550995), Vector2(-24.454002, 21.550995)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton2D/B2:position")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-22.520004, 21.14), Vector2(-22.196, 19.171982), Vector2(-22.520004, 21.14)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton2D/B3:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-20.339005, 21.058998), Vector2(-19.06697, 14.254982), Vector2(-20.339005, 21.058998)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton2D/B4:position")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-18.205002, 21.356995), Vector2(-15.421066, 8.433044), Vector2(-18.205002, 21.356995)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton2D/B5:position")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-16.416, 22.085999), Vector2(-11.580002, 3.3179626), Vector2(-16.416, 22.085999)]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Skeleton2D/B6:position")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-15.945007, 22.399994), Vector2(-11.216949, 1.8680115), Vector2(-15.945007, 22.399994)]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("Skeleton2D/B7:position")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-15.512001, 22.726997), Vector2(-10.940041, 0.7669754), Vector2(-15.512001, 22.726997)]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("Skeleton2D/B8:position")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-15.129005, 23.064995), Vector2(-10.736946, 0.096977234), Vector2(-15.129005, 23.064995)]
+}
+tracks/10/type = "value"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath("Skeleton2D/B9:position")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-14.810005, 23.409996), Vector2(-10.6100235, -0.07401276), Vector2(-14.810005, 23.409996)]
+}
+tracks/11/type = "value"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("Skeleton2D/B10:position")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-13.924004, 24.730995), Vector2(-10.372032, 4.90699), Vector2(-13.924004, 24.730995)]
+}
+tracks/12/type = "value"
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/path = NodePath("Skeleton2D/B11:position")
+tracks/12/interp = 1
+tracks/12/loop_wrap = true
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-13.368004, 25.911995), Vector2(-11.267967, 14.176033), Vector2(-13.368004, 25.911995)]
+}
+tracks/13/type = "value"
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/path = NodePath("Skeleton2D/B12:position")
+tracks/13/interp = 1
+tracks/13/loop_wrap = true
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-13.081001, 26.761993), Vector2(-12.420998, 23.089996), Vector2(-13.081001, 26.761993)]
+}
+tracks/14/type = "value"
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/path = NodePath("Skeleton2D/B13:position")
+tracks/14/interp = 1
+tracks/14/loop_wrap = true
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-12.999001, 27.087997), Vector2(-12.999001, 27.087997), Vector2(-12.999001, 27.087997)]
+}
+tracks/15/type = "value"
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/path = NodePath("Skeleton2D/B14:position")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-17.04, 26.736), Vector2(-17.04, 26.736), Vector2(-17.04, 26.736)]
+}
+tracks/16/type = "value"
+tracks/16/imported = false
+tracks/16/enabled = true
+tracks/16/path = NodePath("Skeleton2D/B15:position")
+tracks/16/interp = 1
+tracks/16/loop_wrap = true
+tracks/16/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-20.363007, 25.682999), Vector2(-20.363007, 25.682999), Vector2(-20.363007, 25.682999)]
+}
+tracks/17/type = "value"
+tracks/17/imported = false
+tracks/17/enabled = true
+tracks/17/path = NodePath("Skeleton2D/B16:position")
+tracks/17/interp = 1
+tracks/17/loop_wrap = true
+tracks/17/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-23.346, 24.103996), Vector2(-23.346, 24.103996), Vector2(-23.346, 24.103996)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_15jkj"]
+_data = {
+&"morph": SubResource("Animation_dbw5n")
+}
+
+[node name="ScleraSkinTest" type="Node2D" unique_id=1754459202]
+
+[node name="ReferenceSprite" type="Sprite2D" parent="." unique_id=1791963356]
+modulate = Color(1, 1, 1, 0.35)
+texture = ExtResource("1_dbw5n")
+offset = Vector2(-6.910002, 8.310997)
+
+[node name="Skeleton2D" type="Skeleton2D" parent="." unique_id=1738243386]
+
+[node name="BIris" type="Bone2D" parent="Skeleton2D" unique_id=1243395910]
+rest = Transform2D(1, 0, 0, 1, 0, 0)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B0" type="Bone2D" parent="Skeleton2D" unique_id=1834600866]
+position = Vector2(-26.363007, 22.175995)
+rest = Transform2D(1, 0, 0, 1, -26.363007, 22.175995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B1" type="Bone2D" parent="Skeleton2D" unique_id=1849100995]
+position = Vector2(-24.454002, 21.550995)
+rest = Transform2D(1, 0, 0, 1, -24.454002, 21.550995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B2" type="Bone2D" parent="Skeleton2D" unique_id=1987089103]
+position = Vector2(-22.520004, 21.14)
+rest = Transform2D(1, 0, 0, 1, -22.520004, 21.14)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B3" type="Bone2D" parent="Skeleton2D" unique_id=48455882]
+position = Vector2(-20.339005, 21.058998)
+rest = Transform2D(1, 0, 0, 1, -20.339005, 21.058998)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B4" type="Bone2D" parent="Skeleton2D" unique_id=97852105]
+position = Vector2(-18.205002, 21.356995)
+rest = Transform2D(1, 0, 0, 1, -18.205002, 21.356995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B5" type="Bone2D" parent="Skeleton2D" unique_id=289135816]
+position = Vector2(-16.416, 22.085999)
+rest = Transform2D(1, 0, 0, 1, -16.416, 22.085999)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B6" type="Bone2D" parent="Skeleton2D" unique_id=1193420070]
+position = Vector2(-15.945007, 22.399994)
+rest = Transform2D(1, 0, 0, 1, -15.945007, 22.399994)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B7" type="Bone2D" parent="Skeleton2D" unique_id=1365428311]
+position = Vector2(-15.512001, 22.726997)
+rest = Transform2D(1, 0, 0, 1, -15.512001, 22.726997)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B8" type="Bone2D" parent="Skeleton2D" unique_id=401356633]
+position = Vector2(-15.129005, 23.064995)
+rest = Transform2D(1, 0, 0, 1, -15.129005, 23.064995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B9" type="Bone2D" parent="Skeleton2D" unique_id=636098539]
+position = Vector2(-14.810005, 23.409996)
+rest = Transform2D(1, 0, 0, 1, -14.810005, 23.409996)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B10" type="Bone2D" parent="Skeleton2D" unique_id=1661683600]
+position = Vector2(-13.924004, 24.730995)
+rest = Transform2D(1, 0, 0, 1, -13.924004, 24.730995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B11" type="Bone2D" parent="Skeleton2D" unique_id=1618208723]
+position = Vector2(-13.368004, 25.911995)
+rest = Transform2D(1, 0, 0, 1, -13.368004, 25.911995)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B12" type="Bone2D" parent="Skeleton2D" unique_id=1142968088]
+position = Vector2(-13.081001, 26.761993)
+rest = Transform2D(1, 0, 0, 1, -13.081001, 26.761993)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B13" type="Bone2D" parent="Skeleton2D" unique_id=837829580]
+position = Vector2(-12.999001, 27.087997)
+rest = Transform2D(1, 0, 0, 1, -12.999001, 27.087997)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B14" type="Bone2D" parent="Skeleton2D" unique_id=21664872]
+position = Vector2(-17.04, 26.736)
+rest = Transform2D(1, 0, 0, 1, -17.04, 26.736)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B15" type="Bone2D" parent="Skeleton2D" unique_id=1287790115]
+position = Vector2(-20.363007, 25.682999)
+rest = Transform2D(1, 0, 0, 1, -20.363007, 25.682999)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="B16" type="Bone2D" parent="Skeleton2D" unique_id=1459611421]
+position = Vector2(-23.346, 24.103996)
+rest = Transform2D(1, 0, 0, 1, -23.346, 24.103996)
+auto_calculate_length_and_angle = false
+length = 16.0
+bone_angle = 0.0
+
+[node name="IrisPoly" type="Polygon2D" parent="Skeleton2D" unique_id=77408638]
+color = Color(0, 0.9, 0.9, 0.85)
+skeleton = NodePath("..")
+polygon = PackedVector2Array(-0.7290025, 51.868004, -0.8589997, 45.805992, -0.39500284, 39.83799, 0.995996, 34.147995, 3.6479964, 28.917, 7.8939986, 24.330994, 14.067995, 20.57, 15.587999, 20.348999, 19.577997, 19.872993, 25.185, 19.426994, 31.554995, 19.294998, 37.834, 19.760994, 43.168, 21.108994, 45.731995, 23.116997, 48.166, 25.280998, 50.367996, 27.659996, 52.239, 30.308998, 53.677994, 33.286995, 54.584, 36.648994, 54.42299, 39.975, 54.412994, 42.743996, 54.507004, 45.137, 54.655, 47.329994, 54.80899, 49.501, 54.92, 51.829994, 53.024002, 60.417, 49.539, 67.292, 45.26799, 72.56899, 41.01599, 76.36199, 37.587997, 78.784996, 35.789, 79.952, 30.545, 78.590996, 22.966005, 74.732994, 14.550997, 69.25399, 6.797998, 63.03199, 1.2059951, 56.943993)
+bones = ["BIris", PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)]
+
+[node name="AccentPoly" type="Polygon2D" parent="Skeleton2D" unique_id=1819662278]
+color = Color(1, 0.1, 0.8, 0.95)
+skeleton = NodePath("..")
+polygon = PackedVector2Array(-26.363005, 22.175995, -24.454, 21.550995, -22.520002, 21.14, -20.339003, 21.058998, -18.205, 21.356995, -16.415998, 22.085999, -15.945005, 22.399994, -15.511999, 22.726997, -15.129004, 23.064995, -14.810003, 23.409996, -13.924002, 24.730995, -13.368002, 25.911995, -13.080999, 26.761993, -12.998999, 27.087997, -17.039999, 26.736, -20.363005, 25.682999, -23.345999, 24.103996)
+bones = ["B0", PackedFloat32Array(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B1", PackedFloat32Array(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B2", PackedFloat32Array(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B3", PackedFloat32Array(0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B4", PackedFloat32Array(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B5", PackedFloat32Array(0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B6", PackedFloat32Array(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B7", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0), "B8", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0), "B9", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), "B10", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0), "B11", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0), "B12", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0), "B13", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0), "B14", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0), "B15", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0), "B16", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)]
+
+[node name="MorphPlayer" type="AnimationPlayer" parent="." unique_id=1817384063]
+libraries/ = SubResource("AnimationLibrary_15jkj")
+autoplay = &"morph"
