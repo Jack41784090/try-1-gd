@@ -2,8 +2,8 @@
 """Generate the Faust Ch.1 parliament cutscene + per-character rig2 configs.
 
 Outputs:
-  - resources/animation/configs/rig2/rig2_<char>.tres  (class textures + warrior_rig_2 sizing)
-  - scenes/demos/warrior_rig_2_cutscene.tres           (the CinematicGroup cutscene)
+  - resources/animation/configs/rig2_<char>.tres       (class textures + warrior_rig_2 sizing)
+  - scenes/demos/cutscene_test.tres                    (the CinematicGroup cutscene)
 
 The .tres files remain the editable source-of-truth artifacts; this script just
 lets us regenerate them deterministically. Run:  python3 tools/build_parliament_cutscene.py
@@ -55,7 +55,7 @@ CONFIG_SOURCES = {
 
 
 def build_configs():
-    out_dir = os.path.join(ROOT, "resources/animation/configs/rig2")
+    out_dir = os.path.join(ROOT, "resources/animation/configs")
     os.makedirs(out_dir, exist_ok=True)
     for char_id, cls in CONFIG_SOURCES.items():
         src_path = os.path.join(ROOT, "resources/animation/configs", cls + ".tres")
@@ -407,7 +407,7 @@ def build_cutscene():
     body = "\n".join(header) + "\n" + "\n\n".join(instr_blocks) + "\n\n" + \
         "\n\n".join(group_blocks) + "\n\n" + "\n".join(root) + "\n"
 
-    out_path = os.path.join(ROOT, "scenes/demos/warrior_rig_2_cutscene.tres")
+    out_path = os.path.join(ROOT, "scenes/demos/cutscene_test.tres")
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(body)
     print("wrote", os.path.relpath(out_path, ROOT),
