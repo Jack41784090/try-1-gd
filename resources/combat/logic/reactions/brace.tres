@@ -7,5 +7,6 @@ script = ExtResource("1")
 reaction_name = "brace"
 window = 3
 relation_to_target = 0
-once_per_round = true
+duration = 1
+sta_cost = 10.0
 priority = 0

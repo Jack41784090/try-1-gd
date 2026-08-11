@@ -15,6 +15,9 @@ var is_reaction: bool = false
 var situation: Situation = null
 var context: Dictionary = {}
 
+var reaction_source_name: String = ""
+var reaction_source_owner: int = -1
+
 var _window: int = 0
 
 

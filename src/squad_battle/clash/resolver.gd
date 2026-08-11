@@ -3,22 +3,16 @@ extends RefCounted
 
 const MAX_DEPTH: int = 8
 
+signal window_raised(intent, window: int)
+
 var updates: Array[EntityUpdate] = []
 var _stack: Array[ClashIntent] = []
-var _budget: Dictionary = {}
-var _latch: Dictionary = {}
-var _reaction_budget: int = 0
 var _all_entities: Array[CombatEntity] = []
 
 
 func set_entities(entities: Array[CombatEntity]) -> void:
 	_all_entities = entities
-
-
-func begin_round(reaction_budget: int) -> void:
-	_budget.clear()
-	_latch.clear()
-	_reaction_budget = reaction_budget
+	_subscribe_all_reactions()
 
 
 func resolve(root: ClashIntent) -> Array[EntityUpdate]:
@@ -29,7 +23,7 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 		var top: ClashIntent = _stack.back()
 		if top.phase == ClashIntent.Phase.PROPOSED:
 			top.phase = ClashIntent.Phase.GATHERED
-			_gather(SquadBattleTypes.ReactionWindow.ON_CAST, top)
+			raise_window(SquadBattleTypes.ReactionWindow.ON_CAST, top)
 			if _stack.back() != top:
 				continue
 		if top.phase == ClashIntent.Phase.CANCELLED:
@@ -143,7 +137,63 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 
 func raise_window(window: SquadBattleTypes.ReactionWindow, intent: ClashIntent) -> void:
 	intent._window = window
-	_gather(window, intent)
+	if intent.depth >= MAX_DEPTH:
+		return
+	window_raised.emit(intent, window)
+
+
+func reaction_allowed(owner: CombatEntity, reaction: ReactionSkill) -> bool:
+	if reaction.remaining_activations <= 0:
+		return false
+	if owner.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.STA) < reaction.sta_cost:
+		return false
+	return true
+
+
+func build_situation(owner: CombatEntity) -> Situation:
+	var squads := _build_squad_data(owner)
+	return Situation.new({"entity": owner, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
+
+
+func execute_reaction(reaction: ReactionSkill, intent: ClashIntent, owner: CombatEntity) -> void:
+	updates.append(EntityUpdate.new(
+		owner.player_id,
+		owner.player_id,
+		owner.mod_changeable_stat(SquadBattleTypes.EntityChangeable.STA, -reaction.sta_cost),
+	))
+	reaction.remaining_activations -= 1
+
+	if reaction.effect != null:
+		reaction.effect.apply(intent, owner)
+		updates.append(EntityUpdate.new(
+			owner.player_id,
+			intent.target.player_id,
+			EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, intent.metadata()),
+		))
+		if intent.phase == ClashIntent.Phase.CANCELLED:
+			_expire_if_spent(reaction, owner)
+			return
+
+	if reaction.skill != null:
+		var child_target := intent.target
+		if reaction.skill.targeting_consideration != null:
+			var squads := _build_squad_data(owner)
+			var sit := Situation.new({"entity": owner, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
+			var found = reaction.skill.targeting_consideration.score_then_return(owner, sit, intent.context)
+			if found is CombatEntity:
+				child_target = found
+		var child := ClashIntent.new(owner, reaction.skill.duplicate(), child_target, intent.depth + 1, intent, intent.situation, intent.context)
+		child.reaction_source_name = reaction.reaction_name
+		child.reaction_source_owner = owner.player_id
+		_stack.append(child)
+
+	_expire_if_spent(reaction, owner)
+
+
+func _expire_if_spent(reaction: ReactionSkill, owner: CombatEntity) -> void:
+	if reaction.remaining_activations <= 0:
+		reaction.unsubscribe()
+		owner.reactions.erase(reaction)
 
 
 func _build_squad_data(entity: CombatEntity) -> Dictionary:
@@ -164,59 +214,27 @@ func _build_squad_data(entity: CombatEntity) -> Dictionary:
 	return {"our": our, "enemy": enemy}
 
 
-func _gather(window: SquadBattleTypes.ReactionWindow, intent: ClashIntent) -> void:
-	if intent.depth >= MAX_DEPTH:
-		Log.warn("ClashResolver", "MAX_DEPTH reached (%d), skipping gather" % MAX_DEPTH)
-		return
+func has_ancestor_reaction(intent: ClashIntent, owner: CombatEntity, reaction_name: String) -> bool:
+	var cur := intent.cause
+	while cur != null:
+		if cur.reaction_source_owner == owner.player_id and cur.reaction_source_name == reaction_name:
+			return true
+		cur = cur.cause
+	return false
 
-	var candidates: Array[Dictionary] = []
+
+func _subscribe_all_reactions() -> void:
+	var subs: Array[Dictionary] = []
 	for entity in _all_entities:
 		if entity.is_dead():
 			continue
 		for reaction in entity.reactions:
-			if reaction.once_per_round:
-				var latch_key := "%d:%s" % [entity.player_id, reaction.reaction_name]
-				if _latch.has(latch_key):
-					continue
-			var budget_used: int = _budget.get(entity.player_id, 0)
-			if budget_used >= _reaction_budget:
-				continue
-			var squads := _build_squad_data(entity)
-			var situation := Situation.new({"entity": entity, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
-			if reaction.can_react(window, intent, entity, situation):
-				candidates.append({"entity": entity, "reaction": reaction})
+			subs.append({"reaction": reaction, "entity": entity})
 
-	candidates.sort_custom(func(a, b): return a["reaction"].priority > b["reaction"].priority)
+	subs.sort_custom(func(a, b): return a["reaction"].priority > b["reaction"].priority)
 
-	for c in candidates:
-		var entity: CombatEntity = c["entity"]
-		var reaction: ReactionSkill = c["reaction"]
-
-		if reaction.once_per_round:
-			var latch_key := "%d:%s" % [entity.player_id, reaction.reaction_name]
-			_latch[latch_key] = true
-		_budget[entity.player_id] = _budget.get(entity.player_id, 0) + 1
-
-		if reaction.effect != null:
-			reaction.effect.apply(intent, entity)
-			updates.append(EntityUpdate.new(
-				entity.player_id,
-				intent.target.player_id,
-				EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, intent.metadata()),
-			))
-			if intent.phase == ClashIntent.Phase.CANCELLED:
-				return
-
-		if reaction.skill != null:
-			var child_target := intent.target
-			if reaction.skill.targeting_consideration != null:
-				var squads := _build_squad_data(entity)
-				var sit := Situation.new({"entity": entity, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
-				var found = reaction.skill.targeting_consideration.score_then_return(entity, sit, intent.context)
-				if found is CombatEntity:
-					child_target = found
-			var child := ClashIntent.new(entity, reaction.skill.duplicate(), child_target, intent.depth + 1, intent, intent.situation, intent.context)
-			_stack.append(child)
+	for sub in subs:
+		sub["reaction"].subscribe_to(self, sub["entity"])
 
 
 func _get_skill_level(attacker: CombatEntity) -> float:

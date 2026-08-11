@@ -264,7 +264,6 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array[EntityUpdat
 			var intent := ClashIntent.new(self, chosen_skill, target, 0, null, updated_logic.situation, updated_logic.context)
 			var resolver := ClashResolver.new()
 			resolver.set_entities(all_entities)
-			resolver.begin_round(1)
 			var skill_result = resolver.resolve(intent)
 			for eu in skill_result:
 				updates.append(eu)

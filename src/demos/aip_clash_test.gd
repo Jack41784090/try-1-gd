@@ -27,7 +27,6 @@ func _test_goetz_iron_hand():
 	var intent := ClashIntent.new(goetz, skill, adelheid)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([goetz, adelheid])
-	resolver.begin_round(1)
 	var updates := resolver.resolve(intent)
 
 	var committed := false
@@ -60,7 +59,6 @@ func _test_adelheid_sacred_sentence():
 	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, null, context)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([adelheid, goetz, goetz_ally])
-	resolver.begin_round(1)
 	var updates := resolver.resolve(intent)
 
 	var any_resolution := false
@@ -82,7 +80,7 @@ func _test_the_grin_cancel():
 	grin.reaction_name = "the_grin"
 	grin.window = SquadBattleTypes.ReactionWindow.ON_CAST
 	grin.relation_to_target = ReactionSkill.Relation.SELF
-	grin.once_per_round = false
+	grin.duration = 1
 	grin.priority = 10
 	var cancel_effect := ReactionEffect.new()
 	cancel_effect.kind = ReactionEffect.Kind.CANCEL
@@ -95,7 +93,6 @@ func _test_the_grin_cancel():
 	var intent := ClashIntent.new(goetz, skill, adelheid)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([goetz, adelheid])
-	resolver.begin_round(5)
 	var updates := resolver.resolve(intent)
 
 	var hp_changes := 0
@@ -123,7 +120,7 @@ func _test_robber_knights_defiance():
 	defiance.reaction_name = "robber_knights_defiance"
 	defiance.window = SquadBattleTypes.ReactionWindow.ON_PIERCE
 	defiance.relation_to_target = ReactionSkill.Relation.SELF
-	defiance.once_per_round = true
+	defiance.duration = 1
 	defiance.priority = 5
 	var scale_effect := ReactionEffect.new()
 	scale_effect.kind = ReactionEffect.Kind.SCALE_DAMAGE
@@ -144,7 +141,6 @@ func _test_robber_knights_defiance():
 	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, null, context)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([adelheid, goetz])
-	resolver.begin_round(5)
 	var updates := resolver.resolve(intent)
 
 	var proc_count := 0
@@ -171,7 +167,7 @@ func _test_robber_knights_defiance():
 
 
 func _test_budget_enforcement():
-	print("--- Test: reaction budget = 0 suppresses The Grin ---")
+	print("--- Test: unaffordable STA cost suppresses The Grin ---")
 	var goetz := _build_goetz(10)
 	var adelheid := _build_adelheid(11)
 
@@ -179,7 +175,8 @@ func _test_budget_enforcement():
 	grin.reaction_name = "the_grin"
 	grin.window = SquadBattleTypes.ReactionWindow.ON_CAST
 	grin.relation_to_target = ReactionSkill.Relation.SELF
-	grin.once_per_round = false
+	grin.duration = 1
+	grin.sta_cost = 9999.0
 	var cancel_effect := ReactionEffect.new()
 	cancel_effect.kind = ReactionEffect.Kind.CANCEL
 	grin.effect = cancel_effect
@@ -189,14 +186,13 @@ func _test_budget_enforcement():
 	var intent := ClashIntent.new(goetz, skill, adelheid)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([goetz, adelheid])
-	resolver.begin_round(0)
 	var updates := resolver.resolve(intent)
 
 	var proc_found := false
 	for u in updates:
 		if u.change.property == SquadBattleTypes.EntityChangeable.PROC:
 			proc_found = true
-	_assert(not proc_found, "no reaction fired with budget=0")
+	_assert(not proc_found, "no reaction fired with unaffordable STA cost")
 
 	var resolved := false
 	for u in updates:

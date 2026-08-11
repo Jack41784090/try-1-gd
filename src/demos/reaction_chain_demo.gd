@@ -16,7 +16,7 @@ func _ready():
 	counter_reaction.reaction_name = "counterspell"
 	counter_reaction.window = SquadBattleTypes.ReactionWindow.ON_CAST
 	counter_reaction.relation_to_target = ReactionSkill.Relation.SELF
-	counter_reaction.once_per_round = false
+	counter_reaction.duration = 1
 	var cancel_effect := ReactionEffect.new()
 	cancel_effect.kind = ReactionEffect.Kind.CANCEL
 	counter_reaction.effect = cancel_effect
@@ -26,7 +26,6 @@ func _ready():
 	var intent := ClashIntent.new(attacker, skill, target)
 	var resolver := ClashResolver.new()
 	resolver.set_entities([attacker, target])
-	resolver.begin_round(5)
 	var updates := resolver.resolve(intent)
 
 	var hp_changes := 0
@@ -46,7 +45,7 @@ func _ready():
 	redirect_reaction.reaction_name = "bodyguard"
 	redirect_reaction.window = SquadBattleTypes.ReactionWindow.ON_PIERCE
 	redirect_reaction.relation_to_target = ReactionSkill.Relation.ALLY
-	redirect_reaction.once_per_round = false
+	redirect_reaction.duration = 1
 	var redirect_effect := ReactionEffect.new()
 	redirect_effect.kind = ReactionEffect.Kind.REDIRECT_TO_SELF
 	redirect_reaction.effect = redirect_effect
@@ -59,7 +58,6 @@ func _ready():
 	var intent2 := ClashIntent.new(attacker2, skill2, target2)
 	var resolver2 := ClashResolver.new()
 	resolver2.set_entities([attacker2, target2, protector])
-	resolver2.begin_round(5)
 	resolver2.resolve(intent2)
 
 	var hp_after_target := target2.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
@@ -85,7 +83,7 @@ func _ready():
 	ping_reaction.reaction_name = "ping"
 	ping_reaction.window = SquadBattleTypes.ReactionWindow.ON_DAMAGED
 	ping_reaction.relation_to_target = ReactionSkill.Relation.SELF
-	ping_reaction.once_per_round = false
+	ping_reaction.duration = 8
 	var scale_effect := ReactionEffect.new()
 	scale_effect.kind = ReactionEffect.Kind.SCALE_DAMAGE
 	scale_effect.value = 1.0
@@ -97,7 +95,6 @@ func _ready():
 	var intent3 := ClashIntent.new(attacker3, skill3, target3)
 	var resolver3 := ClashResolver.new()
 	resolver3.set_entities([attacker3, target3])
-	resolver3.begin_round(100)
 	var updates3 := resolver3.resolve(intent3)
 
 	var proc_count := 0
@@ -107,8 +104,8 @@ func _ready():
 	_assert(proc_count <= ClashResolver.MAX_DEPTH, "chain depth bounded (procs=%d, max=%d)" % [proc_count, ClashResolver.MAX_DEPTH])
 	print("  (chain produced %d PROCs)" % proc_count)
 
-	# --- test: once per round latch ---
-	print("--- Test: once_per_round prevents repeat firing ---")
+	# --- test: duration exhaustion ---
+	print("--- Test: duration=1 prevents repeat firing across the battle ---")
 	var attacker4 := _build_entity(8, SquadBattleTypes.Side.ATTACKER)
 	var target4 := _build_entity(9, SquadBattleTypes.Side.DEFENDER)
 
@@ -116,7 +113,7 @@ func _ready():
 	latch_reaction.reaction_name = "latch_test"
 	latch_reaction.window = SquadBattleTypes.ReactionWindow.ON_DAMAGED
 	latch_reaction.relation_to_target = ReactionSkill.Relation.SELF
-	latch_reaction.once_per_round = true
+	latch_reaction.duration = 1
 	var scale_effect2 := ReactionEffect.new()
 	scale_effect2.kind = ReactionEffect.Kind.SCALE_DAMAGE
 	scale_effect2.value = 0.5
@@ -126,7 +123,6 @@ func _ready():
 	var skill4: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
 	var resolver4 := ClashResolver.new()
 	resolver4.set_entities([attacker4, target4])
-	resolver4.begin_round(10)
 
 	var intent4a := ClashIntent.new(attacker4, skill4.duplicate(), target4)
 	resolver4.resolve(intent4a)
@@ -137,7 +133,65 @@ func _ready():
 	for u in updates4:
 		if u.change.property == SquadBattleTypes.EntityChangeable.PROC:
 			proc_in_second += 1
-	_assert(proc_in_second == 0, "reaction did not fire again in same round (procs=%d)" % proc_in_second)
+	_assert(proc_in_second == 0, "reaction did not fire again after exhausting duration (procs=%d)" % proc_in_second)
+
+	# --- test: carry-over duration survives multiple root actions ---
+	print("--- Test: duration=2 reaction fires once per root action (carry-over) ---")
+	var attacker5 := _build_entity(10, SquadBattleTypes.Side.ATTACKER)
+	var target5 := _build_entity(11, SquadBattleTypes.Side.DEFENDER)
+
+	var carry_reaction := ReactionSkill.new()
+	carry_reaction.reaction_name = "carry"
+	carry_reaction.window = SquadBattleTypes.ReactionWindow.ON_CAST
+	carry_reaction.relation_to_target = ReactionSkill.Relation.SELF
+	carry_reaction.duration = 2
+	carry_reaction.sta_cost = 0.0
+	var scale_carry := ReactionEffect.new()
+	scale_carry.kind = ReactionEffect.Kind.SCALE_DAMAGE
+	scale_carry.value = 1.0
+	carry_reaction.effect = scale_carry
+	target5.reactions = [carry_reaction]
+
+	var skill5: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
+	var resolver5 := ClashResolver.new()
+	resolver5.set_entities([attacker5, target5])
+
+	var total_procs := 0
+	for i in range(3):
+		var intent5 := ClashIntent.new(attacker5, skill5.duplicate(), target5)
+		var ups := resolver5.resolve(intent5)
+		for u in ups:
+			if u.change.property == SquadBattleTypes.EntityChangeable.PROC:
+				total_procs += 1
+	_assert(total_procs == 2, "duration=2 fired exactly twice across 3 root actions (got %d)" % total_procs)
+
+	# --- test: STA gates reactions ---
+	print("--- Test: unaffordable STA cost suppresses reaction ---")
+	var attacker6 := _build_entity(12, SquadBattleTypes.Side.ATTACKER)
+	var target6 := _build_entity(13, SquadBattleTypes.Side.DEFENDER)
+
+	var expensive := ReactionSkill.new()
+	expensive.reaction_name = "expensive"
+	expensive.window = SquadBattleTypes.ReactionWindow.ON_CAST
+	expensive.relation_to_target = ReactionSkill.Relation.SELF
+	expensive.duration = 5
+	expensive.sta_cost = 9999.0
+	var cancel_exp := ReactionEffect.new()
+	cancel_exp.kind = ReactionEffect.Kind.CANCEL
+	expensive.effect = cancel_exp
+	target6.reactions = [expensive]
+
+	var skill6: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
+	var intent6 := ClashIntent.new(attacker6, skill6, target6)
+	var resolver6 := ClashResolver.new()
+	resolver6.set_entities([attacker6, target6])
+	var updates6 := resolver6.resolve(intent6)
+
+	var proc6 := 0
+	for u in updates6:
+		if u.change.property == SquadBattleTypes.EntityChangeable.PROC:
+			proc6 += 1
+	_assert(proc6 == 0, "reaction with unaffordable STA cost did not fire (procs=%d)" % proc6)
 
 	print("\n=== RESULTS: %d passed, %d failed ===\n" % [_pass_count, _fail_count])
 	get_tree().quit(0 if _fail_count == 0 else 1)
