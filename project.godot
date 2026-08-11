@@ -51,4 +51,4 @@ folder_colors={
 
 [gui]
 
-theme/custom="res://resources/theme/condor_theme.tres"
+;theme/custom="res://resources/theme/condor_theme.tres"
