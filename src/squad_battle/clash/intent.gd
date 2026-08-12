@@ -13,7 +13,6 @@ var damage_multiplier: float = 1.0
 var bonus_damage: float = 0.0
 var is_reaction: bool = false
 var situation: Situation = null
-var context: Dictionary = {}
 
 var reaction_source_name: String = ""
 var reaction_source_owner: int = -1
@@ -21,7 +20,7 @@ var reaction_source_owner: int = -1
 var _window: int = 0
 
 
-func _init(p_caster: CombatEntity, p_skill: Skill, p_target: CombatEntity, p_depth: int = 0, p_cause: ClashIntent = null, p_situation: Situation = null, p_context: Dictionary = {}) -> void:
+func _init(p_caster: CombatEntity, p_skill: Skill, p_target: CombatEntity, p_depth: int = 0, p_cause: ClashIntent = null, p_situation: Situation = null) -> void:
 	caster = p_caster
 	skill = p_skill
 	target = p_target
@@ -29,7 +28,6 @@ func _init(p_caster: CombatEntity, p_skill: Skill, p_target: CombatEntity, p_dep
 	cause = p_cause
 	is_reaction = p_cause != null
 	situation = p_situation
-	context = p_context
 
 
 func cancel() -> void:

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ReactionSkill" format=3 uid="uid://b6p6vp8l0p4au"]
+
+[ext_resource type="Script" uid="uid://bhckdwiwxfkel" path="res://src/squad_battle/clash/reaction.gd" id="2_1drqp"]
+
+[resource]
+script = ExtResource("2_1drqp")
+reaction_name = "Retreat"
+window = 9
+duration = 99999
+sta_cost = 0.0
+priority = 10
+metadata/_custom_type_script = "uid://bhckdwiwxfkel"

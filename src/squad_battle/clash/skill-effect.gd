@@ -1,44 +1,17 @@
-## SkillEffects go along with Skill. Always commits the moment a Skill a committed. If commit fails, it wouldn't stay in the queue of statuses within the entity.
 class_name SkillEffect extends Resource
 
-var _debug_id: String = ""
+@export var name: String = ""
+@export var window: SquadBattleTypes.ReactionWindow = SquadBattleTypes.ReactionWindow.ON_CAST
 
-@export var name: String
-@export var stacks: int = 0
 var source: CombatEntity
-var affected: CombatEntity;
-@export var triggers: Array[StatusEffectEventBus.Signals]
+var affected: CombatEntity
+var situation: Situation = null
 
-var battle_context: BattleContext = null
-var updates_collector = null
-
-func set_attacker_and_target(attacker: CombatEntity, target: CombatEntity, _context: BattleContext = null) -> void:
+func set_attacker_and_target(attacker: CombatEntity, target: CombatEntity, _situation: Situation = null) -> void:
 	source = attacker
 	affected = target
-	battle_context = _context
-	if source and affected:
-		_debug_id = "[%s→%s:%s]" % [source.display_name, affected.display_name, name]
+	situation = _situation
 
-func setup_connections(collector = null) -> void:
-	"""Call this after the resource is loaded to connect triggers to the event bus.
-	If collector is provided, updates from signal-triggered commits will be appended to it."""
-	updates_collector = collector
-	if triggers.size() != 0:
-		print("  [effect] %s — on: %s" % [_debug_id, _format_triggers(triggers)])
-	for trigger in triggers:
-		StatusEffectEventBus.Connect(trigger, commit)
-
-func _format_triggers(trigger_array: Array[StatusEffectEventBus.Signals]) -> String:
-	if trigger_array.is_empty():
-		return "None"
-	var keys = StatusEffectEventBus.Signals.keys()
-	var values = StatusEffectEventBus.Signals.values()
-	var names: Array[String] = []
-	for t in trigger_array:
-		var idx = values.find(t)
-		names.append(keys[idx] if idx >= 0 else "Signal_%d" % t)
-	return ", ".join(names)
-
-func commit(_data = null) -> Array[EntityUpdate]:
-	assert(false, "Don't call this function directly.")
-	return [];
+func apply(intent: ClashIntent, actor: CombatEntity) -> Array[EntityUpdate]:
+	assert(false, "SkillEffect.apply() must be overridden")
+	return []

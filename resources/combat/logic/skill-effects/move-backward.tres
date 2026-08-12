@@ -7,5 +7,4 @@ script = ExtResource("1_g73j1")
 value = 1.0
 property_direct = 5
 name = "Move Backward On Cast"
-triggers = Array[int]([3])
 metadata/_custom_type_script = "uid://dsat7plvbc7li"

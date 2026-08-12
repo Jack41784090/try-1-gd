@@ -6,15 +6,10 @@
 [ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
 [ext_resource type="Script" uid="uid://d1251t8bjn6ks" path="res://src/squad_battle/clash/skill/ske-splash.gd" id="5_splash"]
 
-[sub_resource type="Resource" id="Resource_damage"]
-script = ExtResource("1_ske")
-name = "Damage"
-metadata/_custom_type_script = "uid://bodhxwkgck8di"
-
 [sub_resource type="Resource" id="Resource_splash"]
 script = ExtResource("5_splash")
 name = "Sentence Splash"
-triggers = Array[int]([1])
+window = 3
 
 [sub_resource type="Resource" id="Resource_target_glance"]
 script = ExtResource("3_glance")
@@ -25,10 +20,9 @@ metadata/_custom_type_script = "uid://b006sp1fbp8ro"
 script = ExtResource("4_csdr")
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_target_glance")])
 entity_limiter = "enemies"
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [resource]
 script = ExtResource("2_skill")
 name = "Sacred Sentence"
-effects = Array[ExtResource("1_ske")]([SubResource("Resource_damage"), SubResource("Resource_splash")])
+effects = Array[ExtResource("1_ske")]([SubResource("Resource_splash")])
 targeting_consideration = SubResource("Resource_targeting")

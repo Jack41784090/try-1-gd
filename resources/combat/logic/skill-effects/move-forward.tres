@@ -7,5 +7,4 @@ script = ExtResource("1_kwknl")
 value = -1.0
 property_direct = 5
 name = "Move Forward On Cast"
-triggers = Array[int]([3])
 metadata/_custom_type_script = "uid://dsat7plvbc7li"

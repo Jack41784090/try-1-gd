@@ -11,6 +11,11 @@ func my_location() -> int:
 func get_enemy_squad() -> Dictionary:
 	return context["enemy_squad"]
 
+func get_enemies_at(loc: int) -> Array[CombatEntity]:
+	var result: Array[CombatEntity] = []
+	result.assign(context["enemy_squad"].get(loc, []))
+	return result
+
 func all_enemy_entities() -> Array[CombatEntity]:
 	var entities: Array[CombatEntity] = []
 	for entry in context["enemy_squad"].values():

@@ -8,7 +8,7 @@ enum Relation { SELF, ALLY, ENEMY, ANY }
 @export var relation_to_target: Relation = Relation.SELF
 @export var condition: Consideration = null
 @export var skill: Skill = null
-@export var effect: ReactionEffect = null
+@export var effects: Array[SkillEffect] = []
 @export var duration: int = 1
 @export var sta_cost: float = 10.0
 @export var priority: int = 0
@@ -55,7 +55,7 @@ func _on_reaction_window(intent: ClashIntent, window: int, resolver: ClashResolv
 		situation = resolver.build_situation(owner)
 	if not can_react(window, intent, owner, situation):
 		return
-	resolver.execute_reaction(self, intent, owner)
+	resolver.apply_reaction(self, intent, owner)
 
 
 func can_react(p_window: int, intent, reactor: CombatEntity, situation: Situation) -> bool:

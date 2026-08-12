@@ -5,11 +5,6 @@
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glyfu"]
 [ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_fie37"]
 
-[sub_resource type="Resource" id="Resource_ou6p4"]
-script = ExtResource("1_58upd")
-name = "Damage"
-metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
-
 [sub_resource type="Resource" id="Resource_12406"]
 script = ExtResource("3_glyfu")
 threshold = 1.0
@@ -24,5 +19,5 @@ metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 [resource]
 script = ExtResource("1_skill")
 name = "Example Attack"
-effects = Array[ExtResource("1_58upd")]([SubResource("Resource_ou6p4")])
+effects = Array[ExtResource("1_58upd")]([])
 targeting_consideration = SubResource("Resource_tv15c")

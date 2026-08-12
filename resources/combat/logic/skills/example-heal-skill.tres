@@ -8,7 +8,6 @@
 [sub_resource type="Resource" id="Resource_yp64w"]
 script = ExtResource("2_8rkuy")
 value = 3.0
-triggers = Array[int]([3])
 metadata/_custom_type_script = "uid://dsat7plvbc7li"
 
 [resource]

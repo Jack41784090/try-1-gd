@@ -10,7 +10,6 @@ script = ExtResource("3_flat")
 value = 10.0
 property_direct = 2
 name = "Inspire"
-triggers = Array[int]([3])
 metadata/_custom_type_script = "uid://dsat7plvbc7li"
 
 [resource]

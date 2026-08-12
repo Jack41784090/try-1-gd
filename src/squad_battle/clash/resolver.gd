@@ -43,11 +43,10 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 
 		skill.caster = attacker
 		skill.situation = top.situation
-		skill.context = top.context
+		skill.context = top.situation.context if top.situation else {}
 		skill.target = targeted
-		var bc = BattleContext.from_dict(top.context) if top.context.size() > 0 else null
 		for e in skill.effects:
-			e.set_attacker_and_target(attacker, targeted, bc)
+			e.set_attacker_and_target(attacker, targeted, top.situation)
 
 		var is_self_cast := attacker.player_id == targeted.player_id
 		if is_self_cast:
@@ -55,15 +54,11 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 		else:
 			Log.debug("ClashResolver", "[%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.display_name, targeted.player_id, targeted.display_name, skill.name if skill else "?"])
 
-		var real_effects = skill.return_appropriate_skill_effects()
-		if real_effects.size() > 0:
-			for effect in real_effects:
-				assert(effect != null, "Effect instance [%s] is null" % effect.name)
-				assert(effect.source != null, "Effect source [%s] is null" % effect.name)
-				assert(effect.affected != null, "Effect affected [%s] is null" % effect.name)
-				effect.setup_connections(updates)
-
-		StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnCastSkill)
+		if skill.sta_cost > 0.0:
+			updates.append(EntityUpdate.new(
+				attacker.player_id, attacker.player_id,
+				attacker.mod_changeable_stat(SquadBattleTypes.EntityChangeable.STA, -skill.sta_cost)))
+		execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_CAST), top, attacker)
 
 		if skill.roll_for_damage:
 			# --- _roll_for_hit ---
@@ -83,9 +78,10 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 					EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1),
 				))
 				raise_window(SquadBattleTypes.ReactionWindow.ON_DODGE, top)
+				execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_DODGE), top, attacker)
 			else:
 				raise_window(SquadBattleTypes.ReactionWindow.ON_HIT, top)
-				StatusEffectEventBus.EmitSignal(StatusEffectEventBus.Signals.OnBasicAttackHit, targeted)
+				execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_HIT), top, attacker)
 
 				# --- _roll_for_pierce ---
 				var armour = targeted.get_armour()
@@ -108,9 +104,11 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 						EntityChange.new(SquadBattleTypes.EntityChangeable.CLINK, -1, -1),
 					))
 					raise_window(SquadBattleTypes.ReactionWindow.ON_BLOCK, top)
+					execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_BLOCK), top, attacker)
 				else:
 					Log.trace("ClashResolver", "✓ PIERCE")
 					raise_window(SquadBattleTypes.ReactionWindow.ON_PIERCE, top)
+					execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_PIERCE), top, attacker)
 					if top.phase != ClashIntent.Phase.CANCELLED:
 						# --- _apply_damage ---
 						var skill_bonus := skill_level * 0.5
@@ -122,12 +120,19 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 						for update in damage_updates:
 							updates.append(update)
 						var hp_after = targeted.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
+						var org_after = targeted.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
 						Log.trace("ClashResolver", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, targeted.display_name, hp_before, hp_after])
+						if org_after <= 0:
+							raise_window(SquadBattleTypes.ReactionWindow.ON_RETREAT, top)
+							execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_RETREAT), top, attacker)
 						if hp_after <= 0:
 							raise_window(SquadBattleTypes.ReactionWindow.ON_KILL, top)
+							execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_KILL), top, attacker)
 						raise_window(SquadBattleTypes.ReactionWindow.ON_DAMAGED, top)
+						execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_DAMAGED), top, attacker)
 		else:
 			raise_window(SquadBattleTypes.ReactionWindow.ON_DAMAGED, top)
+			execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_DAMAGED), top, attacker)
 
 		top.phase = ClashIntent.Phase.COMMITTED
 		_stack.erase(top)
@@ -155,7 +160,20 @@ func build_situation(owner: CombatEntity) -> Situation:
 	return Situation.new({"entity": owner, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
 
 
-func execute_reaction(reaction: ReactionSkill, intent: ClashIntent, owner: CombatEntity) -> void:
+func execute_effects(effects: Array[SkillEffect], intent: ClashIntent, actor: CombatEntity) -> void:
+	for effect in effects:
+		var eu := effect.apply(intent, actor)
+		for u in eu:
+			updates.append(u)
+		if intent.phase == ClashIntent.Phase.CANCELLED:
+			break
+	if not effects.is_empty():
+		updates.append(EntityUpdate.new(
+			actor.player_id, intent.target.player_id,
+			EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, intent.metadata())))
+
+
+func apply_reaction(reaction: ReactionSkill, intent: ClashIntent, owner: CombatEntity) -> void:
 	updates.append(EntityUpdate.new(
 		owner.player_id,
 		owner.player_id,
@@ -163,26 +181,20 @@ func execute_reaction(reaction: ReactionSkill, intent: ClashIntent, owner: Comba
 	))
 	reaction.remaining_activations -= 1
 
-	if reaction.effect != null:
-		reaction.effect.apply(intent, owner)
-		updates.append(EntityUpdate.new(
-			owner.player_id,
-			intent.target.player_id,
-			EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, intent.metadata()),
-		))
-		if intent.phase == ClashIntent.Phase.CANCELLED:
-			_expire_if_spent(reaction, owner)
-			return
+	execute_effects(reaction.effects, intent, owner)
+	if intent.phase == ClashIntent.Phase.CANCELLED:
+		_expire_if_spent(reaction, owner)
+		return
 
 	if reaction.skill != null:
 		var child_target := intent.target
 		if reaction.skill.targeting_consideration != null:
 			var squads := _build_squad_data(owner)
 			var sit := Situation.new({"entity": owner, "our_squad": squads["our"], "enemy_squad": squads["enemy"]})
-			var found = reaction.skill.targeting_consideration.score_then_return(owner, sit, intent.context)
+			var found = reaction.skill.targeting_consideration.score_then_return(owner, sit, intent.situation.context if intent.situation else {})
 			if found is CombatEntity:
 				child_target = found
-		var child := ClashIntent.new(owner, reaction.skill.duplicate(), child_target, intent.depth + 1, intent, intent.situation, intent.context)
+		var child := ClashIntent.new(owner, reaction.skill.duplicate(), child_target, intent.depth + 1, intent, intent.situation)
 		child.reaction_source_name = reaction.reaction_name
 		child.reaction_source_owner = owner.player_id
 		_stack.append(child)
@@ -226,10 +238,10 @@ func has_ancestor_reaction(intent: ClashIntent, owner: CombatEntity, reaction_na
 func _subscribe_all_reactions() -> void:
 	var subs: Array[Dictionary] = []
 	for entity in _all_entities:
-		if entity.is_dead():
-			continue
-		for reaction in entity.reactions:
-			subs.append({"reaction": reaction, "entity": entity})
+		if not entity.is_dead():
+			# default Retreat reaction
+			for reaction in entity.reactions:
+				subs.append({"reaction": reaction, "entity": entity})
 
 	subs.sort_custom(func(a, b): return a["reaction"].priority > b["reaction"].priority)
 

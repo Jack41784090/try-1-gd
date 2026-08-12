@@ -5,11 +5,6 @@
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
 [ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
 
-[sub_resource type="Resource" id="Resource_damage"]
-script = ExtResource("1_ske")
-name = "Damage"
-metadata/_custom_type_script = "uid://bodhxwkgck8di"
-
 [sub_resource type="Resource" id="Resource_target_glance"]
 script = ExtResource("3_glance")
 threshold = 1.0
@@ -19,10 +14,9 @@ metadata/_custom_type_script = "uid://b006sp1fbp8ro"
 script = ExtResource("4_csdr")
 glances = Array[ExtResource("3_glance")]([SubResource("Resource_target_glance")])
 entity_limiter = "enemies"
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 
 [resource]
 script = ExtResource("2_skill")
 name = "Iron Hand"
-effects = Array[ExtResource("1_ske")]([SubResource("Resource_damage")])
+effects = Array[ExtResource("1_ske")]([])
 targeting_consideration = SubResource("Resource_targeting")

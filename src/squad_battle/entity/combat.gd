@@ -94,38 +94,10 @@ func get_armour():
 	return armor
 
 
-enum _RealityOp { ADD, MUL }
-
-const _REALITY_TABLE: Dictionary = {
-	SquadBattleTypes.Reality.HP: [3.0, _RealityOp.MUL, [[StatName.I.ENDURANCE, 5.0], [StatName.I.SIZ, 2.0]]],
-	SquadBattleTypes.Reality.Force: [1.0, _RealityOp.MUL, [[StatName.I.STRENGTH, 2.0], [StatName.I.SPD, 1.0], [StatName.I.SIZ, 1.0]]],
-	SquadBattleTypes.Reality.Guts: [10.0, _RealityOp.ADD, [[StatName.I.WIL, 8.0], [StatName.I.FAI, 5.0]]],
-	SquadBattleTypes.Reality.Mana: [0.0, _RealityOp.ADD, [[StatName.I.INT_STAT, 3.0], [StatName.I.SPR, 2.0], [StatName.I.FAI, 1.0]]],
-	SquadBattleTypes.Reality.Spirituality: [0.0, _RealityOp.ADD, [[StatName.I.SPR, 2.0], [StatName.I.FAI, 2.0], [StatName.I.WIL, 1.0]]],
-	SquadBattleTypes.Reality.Divinity: [0.0, _RealityOp.ADD, [[StatName.I.FAI, 3.0], [StatName.I.WIL, 2.0], [StatName.I.CHA, 1.0]]],
-	SquadBattleTypes.Reality.Precision: [0.0, _RealityOp.ADD, [[StatName.I.DEX, 2.0], [StatName.I.ACR, 1.0], [StatName.I.SPD, 1.0]]],
-	SquadBattleTypes.Reality.Maneuver: [0.0, _RealityOp.ADD, [[StatName.I.ACR, 2.0], [StatName.I.SPD, 2.0], [StatName.I.DEX, 1.0]]],
-	SquadBattleTypes.Reality.Convince: [0.0, _RealityOp.ADD, [[StatName.I.CHA, 2.0], [StatName.I.BEU, 1.0], [StatName.I.INT_STAT, 1.0]]],
-	SquadBattleTypes.Reality.Bravery: [0.0, _RealityOp.ADD, [[StatName.I.WIL, 2.0], [StatName.I.ENDURANCE, 1.0], [StatName.I.FAI, 1.0]]],
-}
-
-
 func calculate_reality_value(reality: SquadBattleTypes.Reality) -> float:
-	assert(_REALITY_TABLE.has(reality), "[%s] Reality value for %s not found" % [_debug_id, reality])
-	var entry: Array = _REALITY_TABLE[reality]
-	var base: float = entry[0]
-	var op: int = entry[1]
-	var terms: Array = entry[2]
-	if op == _RealityOp.MUL:
-		var product: float = 1.0
-		for term in terms:
-			product *= get_stat_value(term[0]) * term[1]
-		return base + product
-	else:
-		var total: float = base
-		for term in terms:
-			total += get_stat_value(term[0]) * term[1]
-		return total
+	var calculation := RealityCalculationFactory.table.get_calculation(reality)
+	assert(calculation != null, "[%s] Reality value for %s not found" % [_debug_id, reality])
+	return calculation.evaluate(self)
 
 
 func get_ceiling_changeable_stat(property: SquadBattleTypes.EntityChangeable) -> float:
@@ -228,9 +200,9 @@ func damage(num: float, source: int, p_metadata: Dictionary = {}) -> Array[Entit
 			var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
 			updates.append(
 				EntityUpdate.new(source, affected_deorg, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg)))
-			if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
-				for u in retreat_tracker.advance(self):
-					updates.append(u)
+			#if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
+				#for u in retreat_tracker.advance(self):
+					#updates.append(u)
 
 	return updates
 
@@ -261,7 +233,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array[EntityUpdat
 			for loc_entities in updated_logic.context.get("enemy_squad", {}).values():
 				for e in loc_entities:
 					all_entities.append(e)
-			var intent := ClashIntent.new(self, chosen_skill, target, 0, null, updated_logic.situation, updated_logic.context)
+			var intent := ClashIntent.new(self, chosen_skill, target, 0, null, updated_logic.situation)
 			var resolver := ClashResolver.new()
 			resolver.set_entities(all_entities)
 			var skill_result = resolver.resolve(intent)
@@ -274,6 +246,3 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array[EntityUpdat
 			updates.append(EntityUpdate.new(player_id, player_id, c))
 
 	return updates
-
-
-

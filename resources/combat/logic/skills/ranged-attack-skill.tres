@@ -6,17 +6,12 @@
 [ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="4_csdr"]
 [ext_resource type="Script" uid="uid://dsat7plvbc7li" path="res://src/squad_battle/clash/skill/ske-flat.gd" id="5_flat"]
 
-[sub_resource type="Resource" id="Resource_damage"]
-script = ExtResource("1_ske")
-name = "Damage"
-metadata/_custom_type_script = "uid://bodhxwkgfl6xn"
-
 [sub_resource type="Resource" id="Resource_suppress"]
 script = ExtResource("5_flat")
 value = -4.0
 property_direct = 2
 name = "Ranged Suppression"
-triggers = Array[int]([1])
+window = 1
 metadata/_custom_type_script = "uid://dsat7plvbc7li"
 
 [sub_resource type="Resource" id="Resource_target_glance"]
@@ -33,5 +28,5 @@ metadata/_custom_type_script = "uid://dsjjbtklokbwv"
 [resource]
 script = ExtResource("2_skill")
 name = "Ranged Attack"
-effects = Array[ExtResource("1_ske")]([SubResource("Resource_damage"), SubResource("Resource_suppress")])
+effects = Array[ExtResource("1_ske")]([SubResource("Resource_suppress")])
 targeting_consideration = SubResource("Resource_targeting")

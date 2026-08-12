@@ -12,4 +12,3 @@ script = ExtResource("2_gveka")
 name = "Self"
 glances = Array[ExtResource("1_21bd7")]([SubResource("Resource_21bd7")])
 entity_limiter = "self"
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"

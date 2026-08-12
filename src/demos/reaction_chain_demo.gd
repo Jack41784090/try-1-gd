@@ -17,9 +17,7 @@ func _ready():
 	counter_reaction.window = SquadBattleTypes.ReactionWindow.ON_CAST
 	counter_reaction.relation_to_target = ReactionSkill.Relation.SELF
 	counter_reaction.duration = 1
-	var cancel_effect := ReactionEffect.new()
-	cancel_effect.kind = ReactionEffect.Kind.CANCEL
-	counter_reaction.effect = cancel_effect
+	counter_reaction.effects = [CancelReactionEffect.new()]
 	target.reactions = [counter_reaction]
 
 	var skill: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
@@ -46,9 +44,7 @@ func _ready():
 	redirect_reaction.window = SquadBattleTypes.ReactionWindow.ON_PIERCE
 	redirect_reaction.relation_to_target = ReactionSkill.Relation.ALLY
 	redirect_reaction.duration = 1
-	var redirect_effect := ReactionEffect.new()
-	redirect_effect.kind = ReactionEffect.Kind.REDIRECT_TO_SELF
-	redirect_reaction.effect = redirect_effect
+	redirect_reaction.effects = [RedirectToSelfReactionEffect.new()]
 	protector.reactions = [redirect_reaction]
 
 	var hp_before_target := target2.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
@@ -84,10 +80,7 @@ func _ready():
 	ping_reaction.window = SquadBattleTypes.ReactionWindow.ON_DAMAGED
 	ping_reaction.relation_to_target = ReactionSkill.Relation.SELF
 	ping_reaction.duration = 8
-	var scale_effect := ReactionEffect.new()
-	scale_effect.kind = ReactionEffect.Kind.SCALE_DAMAGE
-	scale_effect.value = 1.0
-	ping_reaction.effect = scale_effect
+	ping_reaction.effects = [ScaleDamageReactionEffect.new()]
 	ping_reaction.skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
 	target3.reactions = [ping_reaction]
 
@@ -114,10 +107,9 @@ func _ready():
 	latch_reaction.window = SquadBattleTypes.ReactionWindow.ON_DAMAGED
 	latch_reaction.relation_to_target = ReactionSkill.Relation.SELF
 	latch_reaction.duration = 1
-	var scale_effect2 := ReactionEffect.new()
-	scale_effect2.kind = ReactionEffect.Kind.SCALE_DAMAGE
+	var scale_effect2 := ScaleDamageReactionEffect.new()
 	scale_effect2.value = 0.5
-	latch_reaction.effect = scale_effect2
+	latch_reaction.effects = [scale_effect2]
 	target4.reactions = [latch_reaction]
 
 	var skill4: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
@@ -146,10 +138,7 @@ func _ready():
 	carry_reaction.relation_to_target = ReactionSkill.Relation.SELF
 	carry_reaction.duration = 2
 	carry_reaction.sta_cost = 0.0
-	var scale_carry := ReactionEffect.new()
-	scale_carry.kind = ReactionEffect.Kind.SCALE_DAMAGE
-	scale_carry.value = 1.0
-	carry_reaction.effect = scale_carry
+	carry_reaction.effects = [ScaleDamageReactionEffect.new()]
 	target5.reactions = [carry_reaction]
 
 	var skill5: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")
@@ -176,9 +165,7 @@ func _ready():
 	expensive.relation_to_target = ReactionSkill.Relation.SELF
 	expensive.duration = 5
 	expensive.sta_cost = 9999.0
-	var cancel_exp := ReactionEffect.new()
-	cancel_exp.kind = ReactionEffect.Kind.CANCEL
-	expensive.effect = cancel_exp
+	expensive.effects = [CancelReactionEffect.new()]
 	target6.reactions = [expensive]
 
 	var skill6: Skill = load("res://resources/combat/logic/skills/example-attack-skill.tres")

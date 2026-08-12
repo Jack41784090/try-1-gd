@@ -56,7 +56,7 @@ func _test_adelheid_sacred_sentence():
 	}
 
 	var skill: Skill = load("res://resources/combat/logic/skills/aip_adelheid/sacred_sentence.tres")
-	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, null, context)
+	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, Situation.new(context))
 	var resolver := ClashResolver.new()
 	resolver.set_entities([adelheid, goetz, goetz_ally])
 	var updates := resolver.resolve(intent)
@@ -82,9 +82,7 @@ func _test_the_grin_cancel():
 	grin.relation_to_target = ReactionSkill.Relation.SELF
 	grin.duration = 1
 	grin.priority = 10
-	var cancel_effect := ReactionEffect.new()
-	cancel_effect.kind = ReactionEffect.Kind.CANCEL
-	grin.effect = cancel_effect
+	grin.effects = [CancelReactionEffect.new()]
 	adelheid.reactions = [grin]
 
 	var hp_before := adelheid.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
@@ -122,10 +120,9 @@ func _test_robber_knights_defiance():
 	defiance.relation_to_target = ReactionSkill.Relation.SELF
 	defiance.duration = 1
 	defiance.priority = 5
-	var scale_effect := ReactionEffect.new()
-	scale_effect.kind = ReactionEffect.Kind.SCALE_DAMAGE
+	var scale_effect := ScaleDamageReactionEffect.new()
 	scale_effect.value = 0.5
-	defiance.effect = scale_effect
+	defiance.effects = [scale_effect]
 	defiance.skill = counter_skill
 	goetz.reactions = [defiance]
 
@@ -138,7 +135,7 @@ func _test_robber_knights_defiance():
 		"enemy_squad": {1: [goetz]},
 	}
 	var skill: Skill = load("res://resources/combat/logic/skills/aip_adelheid/sacred_sentence.tres")
-	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, null, context)
+	var intent := ClashIntent.new(adelheid, skill, goetz, 0, null, Situation.new(context))
 	var resolver := ClashResolver.new()
 	resolver.set_entities([adelheid, goetz])
 	var updates := resolver.resolve(intent)
@@ -177,9 +174,7 @@ func _test_budget_enforcement():
 	grin.relation_to_target = ReactionSkill.Relation.SELF
 	grin.duration = 1
 	grin.sta_cost = 9999.0
-	var cancel_effect := ReactionEffect.new()
-	cancel_effect.kind = ReactionEffect.Kind.CANCEL
-	grin.effect = cancel_effect
+	grin.effects = [CancelReactionEffect.new()]
 	adelheid.reactions = [grin]
 
 	var skill: Skill = load("res://resources/combat/logic/skills/aip_goetz/iron_hand.tres")
