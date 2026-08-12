@@ -1,4 +1,5 @@
-class_name GameScenario extends Resource
+class_name GameScenario
+extends Resource
 
 var triggerable_manager: TriggerableManager
 
@@ -91,8 +92,6 @@ func _setup(config: Dictionary) -> void:
 		factions.append(bandit_faction)
 		Log.info("Scenario", "Bandit faction created")
 	_setup_economy()
-
-
 
 func _setup_economy() -> void:
 	assert(not world.goods.is_empty(), "World requires goods array to be populated for economy")
@@ -294,8 +293,6 @@ func _setup_economy() -> void:
 	world.economy_engine = engine
 	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
 
-
-
 func _get_connected_ids(loc: Location) -> Array[String]:
 	var ids: Array[String] = []
 	if loc.connections == null:
@@ -303,8 +300,6 @@ func _get_connected_ids(loc: Location) -> Array[String]:
 	for conn in loc.connections.tt:
 		ids.append(conn.to_location_id)
 	return ids
-
-
 
 func _collect_event_resources(base_path: String, target: Array[GameEvent]) -> void:
 	var dir := DirAccess.open(base_path)
