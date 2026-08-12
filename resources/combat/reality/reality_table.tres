@@ -1,0 +1,433 @@
+[gd_resource type="Resource" script_class="RealityTable" format=3 uid="uid://kvy85dmtcrga"]
+
+[ext_resource type="Script" uid="uid://d4f4y4wiy847g" path="res://src/squad_battle/calculation/reality_table.gd" id="1_rt"]
+[ext_resource type="Script" uid="uid://cvh316plfqlud" path="res://src/squad_battle/calculation/reality_formula.gd" id="2_rf"]
+[ext_resource type="Script" uid="uid://d3p3xxqfxjkk1" path="res://src/squad_battle/calculation/calculation.gd" id="3_calc"]
+[ext_resource type="Script" uid="uid://iveh4u31b16" path="res://src/squad_battle/calculation/calculation_term.gd" id="4_term"]
+
+[sub_resource type="Curve" id="Curve_HP_ENDURANCE"]
+_limits = [0.0, 26.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 5.0, 1, 1, Vector2(5, 25), 5.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_HP_ENDURANCE"]
+script = ExtResource("4_term")
+stat = 21
+curve = SubResource("Curve_HP_ENDURANCE")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_HP_SIZ"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_HP_SIZ"]
+script = ExtResource("4_term")
+stat = 14
+curve = SubResource("Curve_HP_SIZ")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_HP"]
+script = ExtResource("3_calc")
+base = 3.0
+op = 1
+terms = Array[ExtResource("4_term")]([SubResource("Term_HP_ENDURANCE"), SubResource("Term_HP_SIZ")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_HP"]
+script = ExtResource("2_rf")
+calculation = SubResource("Calc_HP")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Force_STRENGTH"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Force_STRENGTH"]
+script = ExtResource("4_term")
+stat = 10
+curve = SubResource("Curve_Force_STRENGTH")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Force_SPD"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Force_SPD"]
+script = ExtResource("4_term")
+stat = 13
+curve = SubResource("Curve_Force_SPD")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Force_SIZ"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Force_SIZ"]
+script = ExtResource("4_term")
+stat = 14
+curve = SubResource("Curve_Force_SIZ")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Force"]
+script = ExtResource("3_calc")
+base = 1.0
+op = 1
+terms = Array[ExtResource("4_term")]([SubResource("Term_Force_STRENGTH"), SubResource("Term_Force_SPD"), SubResource("Term_Force_SIZ")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Force"]
+script = ExtResource("2_rf")
+reality = 1
+calculation = SubResource("Calc_Force")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Guts_WIL"]
+_limits = [0.0, 41.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 8.0, 1, 1, Vector2(5, 40), 8.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Guts_WIL"]
+script = ExtResource("4_term")
+stat = 20
+curve = SubResource("Curve_Guts_WIL")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Guts_FAI"]
+_limits = [0.0, 26.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 5.0, 1, 1, Vector2(5, 25), 5.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Guts_FAI"]
+script = ExtResource("4_term")
+stat = 17
+curve = SubResource("Curve_Guts_FAI")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Guts"]
+script = ExtResource("3_calc")
+base = 10.0
+terms = Array[ExtResource("4_term")]([SubResource("Term_Guts_WIL"), SubResource("Term_Guts_FAI")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Guts"]
+script = ExtResource("2_rf")
+reality = 9
+calculation = SubResource("Calc_Guts")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Mana_INT_STAT"]
+_limits = [0.0, 16.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 3.0, 1, 1, Vector2(5, 15), 3.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Mana_INT_STAT"]
+script = ExtResource("4_term")
+stat = 15
+curve = SubResource("Curve_Mana_INT_STAT")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Mana_SPR"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Mana_SPR"]
+script = ExtResource("4_term")
+stat = 16
+curve = SubResource("Curve_Mana_SPR")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Mana_FAI"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Mana_FAI"]
+script = ExtResource("4_term")
+stat = 17
+curve = SubResource("Curve_Mana_FAI")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Mana"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Mana_INT_STAT"), SubResource("Term_Mana_SPR"), SubResource("Term_Mana_FAI")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Mana"]
+script = ExtResource("2_rf")
+reality = 2
+calculation = SubResource("Calc_Mana")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Spirituality_SPR"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Spirituality_SPR"]
+script = ExtResource("4_term")
+stat = 16
+curve = SubResource("Curve_Spirituality_SPR")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Spirituality_FAI"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Spirituality_FAI"]
+script = ExtResource("4_term")
+stat = 17
+curve = SubResource("Curve_Spirituality_FAI")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Spirituality_WIL"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Spirituality_WIL"]
+script = ExtResource("4_term")
+stat = 20
+curve = SubResource("Curve_Spirituality_WIL")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Spirituality"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Spirituality_SPR"), SubResource("Term_Spirituality_FAI"), SubResource("Term_Spirituality_WIL")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Spirituality"]
+script = ExtResource("2_rf")
+reality = 3
+calculation = SubResource("Calc_Spirituality")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Divinity_FAI"]
+_limits = [0.0, 16.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 3.0, 1, 1, Vector2(5, 15), 3.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Divinity_FAI"]
+script = ExtResource("4_term")
+stat = 17
+curve = SubResource("Curve_Divinity_FAI")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Divinity_WIL"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Divinity_WIL"]
+script = ExtResource("4_term")
+stat = 20
+curve = SubResource("Curve_Divinity_WIL")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Divinity_CHA"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Divinity_CHA"]
+script = ExtResource("4_term")
+stat = 18
+curve = SubResource("Curve_Divinity_CHA")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Divinity"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Divinity_FAI"), SubResource("Term_Divinity_WIL"), SubResource("Term_Divinity_CHA")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Divinity"]
+script = ExtResource("2_rf")
+reality = 4
+calculation = SubResource("Calc_Divinity")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Precision_DEX"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Precision_DEX"]
+script = ExtResource("4_term")
+stat = 11
+curve = SubResource("Curve_Precision_DEX")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Precision_ACR"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Precision_ACR"]
+script = ExtResource("4_term")
+stat = 12
+curve = SubResource("Curve_Precision_ACR")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Precision_SPD"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Precision_SPD"]
+script = ExtResource("4_term")
+stat = 13
+curve = SubResource("Curve_Precision_SPD")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Precision"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Precision_DEX"), SubResource("Term_Precision_ACR"), SubResource("Term_Precision_SPD")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Precision"]
+script = ExtResource("2_rf")
+reality = 5
+calculation = SubResource("Calc_Precision")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Maneuver_ACR"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Maneuver_ACR"]
+script = ExtResource("4_term")
+stat = 12
+curve = SubResource("Curve_Maneuver_ACR")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Maneuver_SPD"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Maneuver_SPD"]
+script = ExtResource("4_term")
+stat = 13
+curve = SubResource("Curve_Maneuver_SPD")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Maneuver_DEX"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Maneuver_DEX"]
+script = ExtResource("4_term")
+stat = 11
+curve = SubResource("Curve_Maneuver_DEX")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Maneuver"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Maneuver_ACR"), SubResource("Term_Maneuver_SPD"), SubResource("Term_Maneuver_DEX")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Maneuver"]
+script = ExtResource("2_rf")
+reality = 6
+calculation = SubResource("Calc_Maneuver")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Convince_CHA"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Convince_CHA"]
+script = ExtResource("4_term")
+stat = 18
+curve = SubResource("Curve_Convince_CHA")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Convince_BEU"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Convince_BEU"]
+script = ExtResource("4_term")
+stat = 19
+curve = SubResource("Curve_Convince_BEU")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Convince_INT_STAT"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Convince_INT_STAT"]
+script = ExtResource("4_term")
+stat = 15
+curve = SubResource("Curve_Convince_INT_STAT")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Convince"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Convince_CHA"), SubResource("Term_Convince_BEU"), SubResource("Term_Convince_INT_STAT")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Convince"]
+script = ExtResource("2_rf")
+reality = 7
+calculation = SubResource("Calc_Convince")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[sub_resource type="Curve" id="Curve_Bravery_WIL"]
+_limits = [0.0, 11.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 2.0, 1, 1, Vector2(5, 10), 2.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Bravery_WIL"]
+script = ExtResource("4_term")
+stat = 20
+curve = SubResource("Curve_Bravery_WIL")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Bravery_ENDURANCE"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Bravery_ENDURANCE"]
+script = ExtResource("4_term")
+stat = 21
+curve = SubResource("Curve_Bravery_ENDURANCE")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Bravery_FAI"]
+_limits = [0.0, 6.0, 0.0, 5.0]
+_data = [Vector2(0, 0), 0.0, 1.0, 1, 1, Vector2(5, 5), 1.0, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Bravery_FAI"]
+script = ExtResource("4_term")
+stat = 17
+curve = SubResource("Curve_Bravery_FAI")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Resource" id="Calc_Bravery"]
+script = ExtResource("3_calc")
+terms = Array[ExtResource("4_term")]([SubResource("Term_Bravery_WIL"), SubResource("Term_Bravery_ENDURANCE"), SubResource("Term_Bravery_FAI")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"
+
+[sub_resource type="Resource" id="RF_Bravery"]
+script = ExtResource("2_rf")
+reality = 8
+calculation = SubResource("Calc_Bravery")
+metadata/_custom_type_script = "uid://cvh316plfqlud"
+
+[resource]
+script = ExtResource("1_rt")
+entries = Array[ExtResource("2_rf")]([SubResource("RF_HP"), SubResource("RF_Force"), SubResource("RF_Guts"), SubResource("RF_Mana"), SubResource("RF_Spirituality"), SubResource("RF_Divinity"), SubResource("RF_Precision"), SubResource("RF_Maneuver"), SubResource("RF_Convince"), SubResource("RF_Bravery")])
+metadata/_custom_type_script = "uid://d4f4y4wiy847g"

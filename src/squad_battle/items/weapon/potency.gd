@@ -1,7 +1,7 @@
 class_name PotencyObj extends Resource
 
 @export var potency: SquadBattleTypes.Potency
-@export var value: float
+@export var curve: Curve
 
 func _to_string() -> String:
-	return "PotencyObj(potency=%s, value=%f)" % [potency, value]
+	return "PotencyObj(potency=%s, curve=%s)" % [potency, curve]

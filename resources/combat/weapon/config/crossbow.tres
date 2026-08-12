@@ -7,16 +7,29 @@
 [ext_resource type="Resource" path="res://resources/combat/weapon/locations/back-to-all.tres" id="5_p66s5"]
 [ext_resource type="Resource" path="res://resources/combat/weapon/locations/middle-to-front-mid.tres" id="6_aqci6"]
 [ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="7_4ggnd"]
+[ext_resource type="Resource" path="res://resources/combat/formula/melee_hit.tres" id="90_hitcalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/physical_penetration.tres" id="91_pencalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/magical_penetration.tres" id="92_magpencalc"]
+
+[sub_resource type="Curve" id="Curve_Resource_pot_stab"]
+_limits = [0.0, 9.0, 0.0, 15.0]
+_data = [Vector2(0, 0), 0.0, 0.35714287, 1, 1, Vector2(7, 2.5), 0.35714287, 0.6875, 1, 1, Vector2(15.0, 8.0), 0.6875, 0.0, 1, 1]
+point_count = 3
 
 [sub_resource type="Resource" id="Resource_pot_stab"]
 script = ExtResource("2_rcw2e")
 potency = 2
-value = 0.7
+curve = SubResource("Curve_Resource_pot_stab")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Curve" id="Curve_Resource_pot_strike"]
+_limits = [0.0, 3.0, 0.0, 15.0]
+_data = [Vector2(0, 0), 0.0, 0.1, 1, 1, Vector2(7, 0.7), 0.1, 0.225, 1, 1, Vector2(15.0, 2.5), 0.225, 0.0, 1, 1]
+point_count = 3
 
 [sub_resource type="Resource" id="Resource_pot_strike"]
 script = ExtResource("2_rcw2e")
-value = 0.2
+curve = SubResource("Curve_Resource_pot_strike")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_dtsl"]
@@ -27,6 +40,9 @@ metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
 
 [resource]
 script = ExtResource("3_oo76j")
+hit_calc = ExtResource("90_hitcalc")
+penetration_calc = ExtResource("91_pencalc")
+magical_penetration_calc = ExtResource("92_magpencalc")
 weapon_class = 2
 hit_bonus = 3.0
 penetration_bonus = 2.0

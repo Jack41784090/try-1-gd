@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Calculation" format=3 uid="uid://c5elxu7jlehil"]
+
+[ext_resource type="Script" uid="uid://d3p3xxqfxjkk1" path="res://src/squad_battle/calculation/calculation.gd" id="1_calc"]
+[ext_resource type="Script" uid="uid://iveh4u31b16" path="res://src/squad_battle/calculation/calculation_term.gd" id="2_term"]
+
+[sub_resource type="Curve" id="Curve_Maneuver"]
+_limits = [0.0, 9.0, 0.0, 16.0]
+_data = [Vector2(0, 0), 0.0, 0.5, 1, 1, Vector2(16, 8), 0.5, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Maneuver"]
+script = ExtResource("2_term")
+source = 1
+reality = 6
+curve = SubResource("Curve_Maneuver")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[sub_resource type="Curve" id="Curve_Precision"]
+_limits = [0.0, 8.5, 0.0, 15.0]
+_data = [Vector2(0, 0), 0.0, 0.5, 1, 1, Vector2(15, 7.5), 0.5, 0.0, 1, 1]
+point_count = 2
+
+[sub_resource type="Resource" id="Term_Precision"]
+script = ExtResource("2_term")
+source = 1
+reality = 5
+curve = SubResource("Curve_Precision")
+metadata/_custom_type_script = "uid://iveh4u31b16"
+
+[resource]
+script = ExtResource("1_calc")
+terms = Array[ExtResource("2_term")]([SubResource("Term_Maneuver"), SubResource("Term_Precision")])
+metadata/_custom_type_script = "uid://d3p3xxqfxjkk1"

@@ -3,15 +3,25 @@
 [ext_resource type="Script" uid="uid://btspi4xaa2fse" path="res://src/squad_battle/items/weapon/potency.gd" id="1_ulfm8"]
 [ext_resource type="Script" uid="uid://bm1l2jo5k6h1" path="res://src/squad_battle/items/weapon/damage_translate.gd" id="2_12pl2"]
 
+[sub_resource type="Curve" id="Curve_Resource_lw2r7"]
+_limits = [0.0, 3.5, 0.0, 10.0]
+_data = [Vector2(0, 0), 0.0, 0.25, 1, 1, Vector2(10.0, 2.5), 0.25, 0.0, 1, 1]
+point_count = 2
+
 [sub_resource type="Resource" id="Resource_lw2r7"]
 script = ExtResource("1_ulfm8")
-value = 0.25
+curve = SubResource("Curve_Resource_lw2r7")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Curve" id="Curve_Resource_cbxkl"]
+_limits = [0.0, 10.5, 0.0, 10.0]
+_data = [Vector2(0, 0), 0.0, 0.95, 1, 1, Vector2(10.0, 9.5), 0.95, 0.0, 1, 1]
+point_count = 2
 
 [sub_resource type="Resource" id="Resource_cbxkl"]
 script = ExtResource("1_ulfm8")
 potency = 1
-value = 0.95
+curve = SubResource("Curve_Resource_cbxkl")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [resource]

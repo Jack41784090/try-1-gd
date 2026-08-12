@@ -7,16 +7,29 @@
 [ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad_battle/items/weapon/location.gd" id="4_rjrej"]
 [ext_resource type="Resource" path="res://resources/combat/weapon/locations/front-to-front-mid.tres" id="5_pocex"]
 [ext_resource type="Resource" path="res://resources/combat/weapon/locations/middle-to-front.tres" id="6_ex8i6"]
+[ext_resource type="Resource" path="res://resources/combat/formula/melee_hit.tres" id="90_hitcalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/physical_penetration.tres" id="91_pencalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/magical_penetration.tres" id="92_magpencalc"]
+
+[sub_resource type="Curve" id="Curve_Resource_pot_stab"]
+_limits = [0.0, 10.0, 0.0, 10.0]
+_data = [Vector2(0, 0), 0.0, 0.9, 1, 1, Vector2(10.0, 9.0), 0.9, 0.0, 1, 1]
+point_count = 2
 
 [sub_resource type="Resource" id="Resource_pot_stab"]
 script = ExtResource("2_jever")
 potency = 2
-value = 0.9
+curve = SubResource("Curve_Resource_pot_stab")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
+
+[sub_resource type="Curve" id="Curve_Resource_pot_strike"]
+_limits = [0.0, 2.5, 0.0, 10.0]
+_data = [Vector2(0, 0), 0.0, 0.15, 1, 1, Vector2(10.0, 1.5), 0.15, 0.0, 1, 1]
+point_count = 2
 
 [sub_resource type="Resource" id="Resource_pot_strike"]
 script = ExtResource("2_jever")
-value = 0.15
+curve = SubResource("Curve_Resource_pot_strike")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_dtsl"]
@@ -27,6 +40,9 @@ metadata/_custom_type_script = "uid://bm1l2jo5k6h1"
 
 [resource]
 script = ExtResource("3_3pukl")
+hit_calc = ExtResource("90_hitcalc")
+penetration_calc = ExtResource("91_pencalc")
+magical_penetration_calc = ExtResource("92_magpencalc")
 icon = ExtResource("3_jever")
 weapon_class = 4
 hit_bonus = 1.0

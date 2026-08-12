@@ -8,3 +8,6 @@ extends CombatEquipment
 @export var damage_translation: Array[DamageTranslation] = []
 @export var is_magical: bool = false
 @export var weapon_location_map: Array[WeaponLocation] = []
+@export var hit_calc: Calculation
+@export var penetration_calc: Calculation
+@export var magical_penetration_calc: Calculation

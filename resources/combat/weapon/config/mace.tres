@@ -6,10 +6,18 @@
 [ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad_battle/items/weapon/resource.gd" id="3_sycsy"]
 [ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad_battle/items/weapon/location.gd" id="4_8dt83"]
 [ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="5_bt8cq"]
+[ext_resource type="Resource" uid="uid://c5elxu7jlehil" path="res://resources/combat/formula/melee_hit.tres" id="90_hitcalc"]
+[ext_resource type="Resource" uid="uid://c2fmjevx4kg3" path="res://resources/combat/formula/physical_penetration.tres" id="91_pencalc"]
+[ext_resource type="Resource" uid="uid://bi7k6com3dwmi" path="res://resources/combat/formula/magical_penetration.tres" id="92_magpencalc"]
+
+[sub_resource type="Curve" id="Curve_Resource_pot_strike"]
+_limits = [0.0, 9.0, 0.0, 10.0]
+_data = [Vector2(0, 0), 0.0, 0.8, 1, 1, Vector2(10, 8), 0.8, 0.0, 1, 1]
+point_count = 2
 
 [sub_resource type="Resource" id="Resource_pot_strike"]
 script = ExtResource("2_1fygc")
-value = 0.8
+curve = SubResource("Curve_Resource_pot_strike")
 metadata/_custom_type_script = "uid://btspi4xaa2fse"
 
 [sub_resource type="Resource" id="Resource_dtsl"]
@@ -26,4 +34,7 @@ hit_bonus = 2.0
 penetration_bonus = 1.0
 damage_translation = Array[ExtResource("1_ojkm8")]([SubResource("Resource_dtsl")])
 weapon_location_map = Array[ExtResource("4_8dt83")]([ExtResource("5_bt8cq")])
+hit_calc = ExtResource("90_hitcalc")
+penetration_calc = ExtResource("91_pencalc")
+magical_penetration_calc = ExtResource("92_magpencalc")
 metadata/_custom_type_script = "uid://bbuqprgu6l833"

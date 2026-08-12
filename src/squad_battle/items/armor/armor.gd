@@ -32,21 +32,14 @@ func get_magical_PV() -> float:
 
 func get_raw_damage_taken(raw_damage: Dictionary) -> float:
 	assert(defender_ref != null, "Armor defender_ref not set. Call set_defender() first.")
-	
+
 	var total_damage = 0.0
 	var protection_dict = {}
 	for translation in protection_translation:
-		var reality = translation.Reality
-		var potency_list = translation.PotencyList
-		var defenders_reality = defender_ref.calculate_reality_value(reality)
-		for potency_entry in potency_list:
-			var potency = potency_entry.potency
-			var value = potency_entry.value
-			var potency_protection = value * defenders_reality
-			if not protection_dict.has(potency):
-				protection_dict[potency] = 0
-			protection_dict[potency] += potency_protection
-	
+		var contribution = translation.evaluate(defender_ref)
+		for potency in contribution:
+			protection_dict[potency] = protection_dict.get(potency, 0.0) + contribution[potency]
+
 	for potency in raw_damage:
 		var damage = raw_damage[potency]
 		var protection = protection_dict.get(potency, 0.0)

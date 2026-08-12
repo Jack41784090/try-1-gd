@@ -6,9 +6,15 @@
 [ext_resource type="Texture2D" uid="uid://lrkwe868w5th" path="res://assets/Weapon Sprites/wep_sw026.png" id="3_0nmf1"]
 [ext_resource type="Script" uid="uid://bwfjvewjqtd" path="res://src/squad_battle/items/weapon/location.gd" id="3_hxym5"]
 [ext_resource type="Resource" uid="uid://c2vb6d4hu3pqo" path="res://resources/combat/weapon/locations/front-to-front.tres" id="5_h6we3"]
+[ext_resource type="Resource" path="res://resources/combat/formula/melee_hit.tres" id="90_hitcalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/physical_penetration.tres" id="91_pencalc"]
+[ext_resource type="Resource" path="res://resources/combat/formula/magical_penetration.tres" id="92_magpencalc"]
 
 [resource]
 script = ExtResource("2_3w4fy")
+hit_calc = ExtResource("90_hitcalc")
+penetration_calc = ExtResource("91_pencalc")
+magical_penetration_calc = ExtResource("92_magpencalc")
 icon = ExtResource("3_0nmf1")
 weapon_class = 1
 hit_bonus = 1.0
