@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dfs2sc6aypadu"]
+
+[ext_resource type="PackedScene" uid="uid://djqysrat71bvs" path="res://scenes/test_oneye.tscn" id="1_0rhml"]
+
+[sub_resource type="Animation" id="Animation_cqex0"]
+resource_name = "blink"
+length = 0.3
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_djbcq"]
+_data = {
+&"blink": SubResource("Animation_cqex0")
+}
+
+[node name="Eyes" type="Node2D" unique_id=1329490999]
+metadata/svg_style = {
+"clip-path": "url(#clipPath44)",
+"display": "inline"
+}
+
+[node name="eye_l" parent="." unique_id=1970557422 instance=ExtResource("1_0rhml")]
+position = Vector2(-204.10728, -239.8874)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1356658552]
+libraries/ = SubResource("AnimationLibrary_djbcq")
