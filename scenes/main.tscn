@@ -1,15 +1,59 @@
-[gd_scene load_steps=4 format=3 uid="uid://d0c0t40hq113j"]
+[gd_scene format=3 uid="uid://d0c0t40hq113j"]
 
-[ext_resource type="Shader" uid="uid://b8v6dubj7w60y" path="res://assets/shaders/mysecond.gdshader" id="1_o5qli"]
+[ext_resource type="Script" uid="uid://ci4j1idlk3gek" path="res://src/main.gd" id="1_o5qli"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_0wfyh"]
-render_priority = 0
-shader = ExtResource("1_o5qli")
+[node name="MainGame" type="Node" unique_id=303385126]
+process_mode = 3
+script = ExtResource("1_o5qli")
 
-[sub_resource type="SphereMesh" id="SphereMesh_sugp2"]
+[node name="Systems" type="Node" parent="." unique_id=1477358207]
 
-[node name="Main" type="Node3D"]
+[node name="World" type="Node2D" parent="." unique_id=1127716305]
+process_mode = 1
+visible = false
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-material_override = SubResource("ShaderMaterial_0wfyh")
-mesh = SubResource("SphereMesh_sugp2")
+[node name="LevelRoot" type="Node2D" parent="World" unique_id=1235013866]
+
+[node name="EntityRoot" type="Node2D" parent="World" unique_id=1044873089]
+
+[node name="EffectsRoot" type="Node2D" parent="World" unique_id=1706420378]
+
+[node name="HudLayer" type="CanvasLayer" parent="." unique_id=519793259]
+process_mode = 1
+layer = 10
+
+[node name="Root" type="Control" parent="HudLayer" unique_id=1525524479]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PauseLayer" type="CanvasLayer" parent="." unique_id=1139956645]
+process_mode = 2
+layer = 100
+
+[node name="Root" type="Control" parent="PauseLayer" unique_id=1303155372]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TransitionLayer" type="CanvasLayer" parent="." unique_id=825001691]
+process_mode = 3
+layer = 128
+
+[node name="Root" type="Control" parent="TransitionLayer" unique_id=1923093460]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DebugLayer" type="CanvasLayer" parent="." unique_id=1598046002]
+process_mode = 3
+layer = 200
+
+[node name="Root" type="Control" parent="DebugLayer" unique_id=1616423463]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
