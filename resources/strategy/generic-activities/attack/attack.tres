@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Activity" format=3]
+[gd_resource type="Resource" script_class="Activity" format=3 uid="uid://b7i1uky5b7n3i"]
 
 [ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
 [ext_resource type="Resource" path="res://resources/strategy/generic-activities/attack/result.tres" id="2_result"]

@@ -3,12 +3,8 @@
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_by54q"]
 [ext_resource type="Resource" uid="uid://deki7xospn5wo" path="res://resources/strategy/generic-activities/travelling/result.tres" id="2_by54q"]
 [ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="3_8qpoe"]
-[ext_resource type="Script" uid="uid://n8anhnv7t1lx" path="res://src/strategy/core/triggerable/chain.gd" id="4_xu3di"]
-[ext_resource type="Resource" uid="uid://dq3v8x2lawpnh" path="res://resources/strategy/generic-activities/travelling/starvation-event.tres" id="5_starvation"]
 
 [sub_resource type="Resource" id="Resource_8dqmd"]
-script = ExtResource("4_xu3di")
-another_trigger = ExtResource("5_starvation")
 metadata/_custom_type_script = "uid://n8anhnv7t1lx"
 
 [resource]

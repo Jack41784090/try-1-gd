@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SquadBrainConfig" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="SquadBrainConfig" format=3 uid="uid://rot4f7xkb8tl"]
 
 [ext_resource type="Script" uid="uid://7ypnpyxchsbe" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://dff6hxf2m6uxd" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]

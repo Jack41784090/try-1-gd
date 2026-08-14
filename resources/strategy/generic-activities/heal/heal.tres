@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Activity" format=3]
+[gd_resource type="Resource" script_class="Activity" format=3 uid="uid://4x6mrb3jolb2"]
 
 [ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
 [ext_resource type="Script" uid="uid://bttrmws06n1o1" path="res://src/strategy/core/triggerable/conditon.gd" id="1_f54fu"]

@@ -1,11 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://b2f7wu66e0uqv"]
 
-[ext_resource type="Script" path="res://src/strategy/ui/travel/view.gd" id="1_view"]
-[ext_resource type="Script" path="res://src/strategy/ui/travel/presenter.gd" id="2_pres"]
+[ext_resource type="Script" uid="uid://dwmwc6606btdb" path="res://src/strategy/ui/travel/view.gd" id="1_view"]
+[ext_resource type="Script" uid="uid://cv0ckwd22qom1" path="res://src/strategy/ui/travel/presenter.gd" id="2_pres"]
 
-[node name="TravelView" type="Control"]
+[node name="TravelView" type="Control" unique_id=1926603354]
 visible = false
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14,7 +14,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_view")
 
-[node name="OverlayPanel" type="PanelContainer" parent="."]
+[node name="OverlayPanel" type="PanelContainer" parent="." unique_id=2044779488]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -29,128 +29,125 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"GamePanel"
 
-[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="OverlayPanel" unique_id=652852710]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 15
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 15
 
-[node name="HBoxContainer" type="HBoxContainer" parent="OverlayPanel/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="OverlayPanel/MarginContainer" unique_id=1523038675]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MapPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer"]
+[node name="MapPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer" unique_id=2015710895]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.8
 
-[node name="ListPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer"]
+[node name="ListPanel" type="PanelContainer" parent="OverlayPanel/MarginContainer/HBoxContainer" unique_id=409932036]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ListVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel"]
+[node name="ListVBox" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel" unique_id=343221790]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="SelectedLocationLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="SelectedLocationLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1063178968]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 horizontal_alignment = 1
 
-[node name="TravelProgressBar" type="ProgressBar" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="TravelProgressBar" type="ProgressBar" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=2006803038]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="ModeToggleButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="ModeToggleButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1364682187]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 13
 text = "Switch to Manual"
 
-[node name="LocationsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="LocationsScroll" type="ScrollContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=313006571]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LocationsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll"]
+[node name="LocationsContainer" type="VBoxContainer" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll" unique_id=551348628]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="NoLocationsLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="NoLocationsLabel" type="Label" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=195885140]
 visible = false
 layout_mode = 2
 text = "No reachable locations found."
 horizontal_alignment = 1
 
-[node name="LocationBtn0" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
-visible = true
+[node name="LocationBtn0" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1815982497]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "🏛️ Augsburg (City) - 2 locations away
 Dev: 8 | Stab: 75"
 
-[node name="LocationBtn1" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
-visible = true
+[node name="LocationBtn1" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1311899685]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "🏘️ Nuremberg (Town) - 1 location away
 Dev: 5 | Stab: 60"
 
-[node name="LocationBtn2" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
-visible = true
+[node name="LocationBtn2" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1492068796]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "🏡 Weissenburg (Village)
 Dev: 3 | Stab: 85"
 
-[node name="LocationBtn3" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn3" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=2070832554]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn4" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn4" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=986763391]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn5" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn5" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=234271147]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn6" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn6" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1384391361]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn7" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn7" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1897328411]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn8" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn8" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=1015554351]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="LocationBtn9" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer"]
+[node name="LocationBtn9" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox/LocationsScroll/LocationsContainer" unique_id=855688329]
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
-[node name="ConfirmButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="ConfirmButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1492787979]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Confirm Travel"
 
-[node name="CancelButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox"]
+[node name="CancelButton" type="Button" parent="OverlayPanel/MarginContainer/HBoxContainer/ListPanel/ListVBox" unique_id=1397314709]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
 text = "Cancel"
 
-[node name="TravelPresenter" type="Node" parent="."]
+[node name="TravelPresenter" type="Node" parent="." unique_id=627841851]
 script = ExtResource("2_pres")

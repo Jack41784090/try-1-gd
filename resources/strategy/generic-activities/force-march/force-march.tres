@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Activity" format=3]
+[gd_resource type="Resource" script_class="Activity" format=3 uid="uid://dxo1jepny64q1"]
 
 [ext_resource type="Script" uid="uid://bo18gilf28ttd" path="res://src/strategy/core/triggerable/activity/script.gd" id="1_activity"]
 [ext_resource type="Resource" uid="uid://3qyq6dyek8f4" path="res://resources/strategy/generic-activities/force-march/result.tres" id="2_result"]
