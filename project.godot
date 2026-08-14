@@ -47,11 +47,13 @@ project/assembly_name="try1"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/curved_lines_2d/plugin.cfg", "res://addons/godot_ai/plugin.cfg", "res://addons/log/plugin.cfg", "res://addons/script-ide/addons/script-ide/plugin.cfg", "res://addons/yard/plugin.cfg")
+enabled=PackedStringArray("res://addons/GDQuest_GDScript_formatter/plugin.cfg", "res://addons/_Godot-IDE_/plugin.cfg", "res://addons/curved_lines_2d/plugin.cfg", "res://addons/godot_ai/plugin.cfg", "res://addons/log/plugin.cfg", "res://addons/yard/plugin.cfg")
 
 [file_customization]
 
 folder_colors={
+"res://addons/_Godot-IDE_/plugins/": "blue",
+"res://addons/_Godot-IDE_/shared_resources/": "teal",
 "res://resources/": "yellow",
 "res://scenes/": "green",
 "res://src/": "blue"
