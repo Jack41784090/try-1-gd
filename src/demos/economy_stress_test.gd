@@ -40,7 +40,7 @@ var _luxury_thing: Thing
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 	print("")
 	print("╔══════════════════════════════════════════════════════════╗")
 	print("║   ECONOMY STRESS TEST — Real Pipeline (goetz-official) ║")

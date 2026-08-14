@@ -26,7 +26,7 @@ var rng := RandomNumberGenerator.new()
 
 
 func _ready():
-	Log.info("BattleRoyale", "=== AI BATTLE ROYALE — PRODUCTION PIPELINE TEST ===")
+	MyLog.info("BattleRoyale", "=== AI BATTLE ROYALE — PRODUCTION PIPELINE TEST ===")
 
 	rng.randomize()
 
@@ -62,12 +62,12 @@ func _ready():
 
 	actor.exec_at(StrategyTypes.TriggerWhen.GAME_START)
 
-	Log.info("BattleRoyale", "Player: %s at %s (%d warriors)" % [
+	MyLog.info("BattleRoyale", "Player: %s at %s (%d warriors)" % [
 		player_squad.squad_name,
 		player_squad.current_location_id,
 		player_squad.get_living_warriors().size(),
 	])
-	Log.info("BattleRoyale", "AI squads: %d | Locations: %d" % [ai_fleet.get_ai_squad_count(), scenario.world.locations.size()])
+	MyLog.info("BattleRoyale", "AI squads: %d | Locations: %d" % [ai_fleet.get_ai_squad_count(), scenario.world.locations.size()])
 	_print_all_squads()
 
 	await _run_simulation()
@@ -83,7 +83,7 @@ func _run_simulation():
 	var round_num = 0
 	while round_num < MAX_ROUNDS and _count_living_squads() > 1:
 		round_num += 1
-		Log.info("BattleRoyale", "=== ROUND %d — %d squads alive ===" % [
+		MyLog.info("BattleRoyale", "=== ROUND %d — %d squads alive ===" % [
 			round_num,
 			_count_living_squads(),
 		])
@@ -112,7 +112,7 @@ func _run_simulation():
 			if not destination.is_empty():
 				activity = actor.create_travel_activity(destination)
 
-		Log.debug("BattleRoyale", "Player chose: %s" % StrategyTypes.ActivityType.keys()[activity_type])
+		MyLog.debug("BattleRoyale", "Player chose: %s" % StrategyTypes.ActivityType.keys()[activity_type])
 
 		var player_loc_before = player_squad.current_location_id
 
@@ -144,7 +144,7 @@ func _run_simulation():
 							result.combat_target_squad_id,
 						)
 						if enemy_squad:
-							Log.info("BattleRoyale", "Activity combat vs %s" % enemy_squad.squad_name)
+							MyLog.info("BattleRoyale", "Activity combat vs %s" % enemy_squad.squad_name)
 							_resolve_headless_combat(
 								player_squad,
 								enemy_squad,
@@ -228,7 +228,7 @@ func _run_simulation():
 
 				var eng_enemy_squad = _find_enemy_squad(enemy_id)
 				if eng_enemy_squad:
-					Log.info("BattleRoyale", "ENGAGEMENT: %s vs %s (%s)" % [
+					MyLog.info("BattleRoyale", "ENGAGEMENT: %s vs %s (%s)" % [
 						player_squad.squad_name,
 						eng_enemy_squad.squad_name,
 						StrategyTypes.EngagementType.keys()[eng_type],
@@ -292,7 +292,7 @@ func _resolve_ai_combat_from_results(
 		var attacker = ai_fleet._find_squad_by_id(squad_id)
 		var defender = ai_fleet._find_squad_by_id(target_id)
 		if attacker and defender:
-			Log.info("BattleRoyale", "AI combat: %s vs %s" % [
+			MyLog.info("BattleRoyale", "AI combat: %s vs %s" % [
 				attacker.squad_name,
 				defender.squad_name,
 			])
@@ -344,7 +344,7 @@ func _resolve_headless_combat(
 	winner.modify_morale(15)
 	loser.modify_morale(-20)
 
-	Log.info("BattleRoyale", "%s WINS (morale: %.0f), %s loses %d" % [
+	MyLog.info("BattleRoyale", "%s WINS (morale: %.0f), %s loses %d" % [
 		winner.squad_name,
 		winner.get_morale(),
 		loser.squad_name,
@@ -364,7 +364,7 @@ func _resolve_headless_combat(
 		if ai_fleet.squad_brains.has(squad_id):
 			ai_fleet.squad_brains.erase(squad_id)
 			ai_fleet.squad_executors.erase(squad_id)
-		Log.info("BattleRoyale", "Eliminated: %s" % squad_id)
+		MyLog.info("BattleRoyale", "Eliminated: %s" % squad_id)
 
 #endregion
 
@@ -393,7 +393,7 @@ func _count_living_squads() -> int:
 
 func _print_all_squads():
 	var p_living = player_squad.get_living_warriors().size()
-	Log.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d [PLAYER]" % [
+	MyLog.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d [PLAYER]" % [
 		player_squad.squad_name,
 		player_squad.current_location_id,
 		player_squad.get_morale(),
@@ -404,7 +404,7 @@ func _print_all_squads():
 
 	for squad in scenario.world.roaming_squads:
 		var living = squad.get_living_warriors().size()
-		Log.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d" % [
+		MyLog.debug("BattleRoyale", "%-20s %-15s %-8.0f %d/%-9d %-6d" % [
 			squad.squad_name,
 			squad.current_location_id,
 			squad.get_morale(),
@@ -415,7 +415,7 @@ func _print_all_squads():
 
 
 func _print_final_results():
-	Log.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Hour %d ===" % scenario.world.current_hour)
+	MyLog.info("BattleRoyale", "=== BATTLE ROYALE COMPLETE — Hour %d ===" % scenario.world.current_hour)
 
 	var survivors: Array[StrategySquad] = []
 	if player_squad.get_living_warriors().size() > 0:
@@ -427,29 +427,29 @@ func _print_final_results():
 	if survivors.size() == 1:
 		var winner = survivors[0]
 		var tag = " [PLAYER]" if winner == player_squad else ""
-		Log.info("BattleRoyale", "WINNER: %s%s" % [winner.squad_name, tag])
-		Log.info("BattleRoyale", "  Location: %s | Morale: %.0f | Warriors: %d/%d" % [
+		MyLog.info("BattleRoyale", "WINNER: %s%s" % [winner.squad_name, tag])
+		MyLog.info("BattleRoyale", "  Location: %s | Morale: %.0f | Warriors: %d/%d" % [
 			winner.current_location_id,
 			winner.get_morale(),
 			winner.get_living_warriors().size(),
 			winner.warriors.size(),
 		])
 		for w in winner.get_living_warriors():
-			Log.info("BattleRoyale", "  - %s (Injured: %s)" % [
+			MyLog.info("BattleRoyale", "  - %s (Injured: %s)" % [
 				w.display_name,
 				"Yes" if w.is_injured else "No",
 			])
 	elif survivors.size() > 1:
-		Log.info("BattleRoyale", "TIME LIMIT — %d survivors:" % survivors.size())
+		MyLog.info("BattleRoyale", "TIME LIMIT — %d survivors:" % survivors.size())
 		for squad in survivors:
 			var tag = " [PLAYER]" if squad == player_squad else ""
-			Log.info("BattleRoyale", "  - %s (Morale: %.0f, Warriors: %d)%s" % [
+			MyLog.info("BattleRoyale", "  - %s (Morale: %.0f, Warriors: %d)%s" % [
 				squad.squad_name,
 				squad.get_morale(),
 				squad.get_living_warriors().size(),
 				tag,
 			])
 	else:
-		Log.info("BattleRoyale", "ALL SQUADS ELIMINATED")
+		MyLog.info("BattleRoyale", "ALL SQUADS ELIMINATED")
 
 #endregion

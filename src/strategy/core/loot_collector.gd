@@ -10,10 +10,10 @@ static func collect_equipment_loot(enemy_squad: StrategySquad, enemy_casualties:
 			continue
 		if warrior.get_equipped_weapon() != null:
 			looted_weapons.append(warrior.get_equipped_weapon().duplicate(true))
-			Log.debug("LootCollector", "Looted weapon '%s' from %s" % [SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class], warrior.display_name])
+			MyLog.debug("LootCollector", "Looted weapon '%s' from %s" % [SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class], warrior.display_name])
 		if warrior.get_equipped_armor() != null:
 			looted_armors.append(warrior.get_equipped_armor().duplicate(true))
-			Log.debug("LootCollector", "Looted armor '%s' from %s" % [SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class], warrior.display_name])
+			MyLog.debug("LootCollector", "Looted armor '%s' from %s" % [SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class], warrior.display_name])
 
 	return {
 		"weapons": looted_weapons,
@@ -34,4 +34,4 @@ static func apply_equipment_loot(inventory, loot: Dictionary) -> void:
 			inventory.add_armor(armor)
 
 	if weapons.size() > 0 or armors.size() > 0:
-		Log.info("LootCollector", "Added %d weapons and %d armors to inventory" % [weapons.size(), armors.size()])
+		MyLog.info("LootCollector", "Added %d weapons and %d armors to inventory" % [weapons.size(), armors.size()])

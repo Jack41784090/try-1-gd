@@ -13,7 +13,7 @@ var squad_a: StrategySquad
 var squad_b: StrategySquad
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 
 	var scenario: GameScenario = load(SCENARIO_PATH).duplicate(true) as GameScenario
 	world = scenario.world

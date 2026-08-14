@@ -26,7 +26,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	if food_gained > 0:
 		squad.food += food_gained
 		StrategyEventBus.squad_resource_changed.emit("food", squad.food)
-	Log.info("ForageHandler", "FORAGE at %s (%s): gained %d food (now %d)" % [
+	MyLog.info("ForageHandler", "FORAGE at %s (%s): gained %d food (now %d)" % [
 		location.location_name,
 		StrategyTypes.LocationType.keys()[location.type],
 		food_gained,

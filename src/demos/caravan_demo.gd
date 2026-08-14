@@ -24,10 +24,10 @@ var _fail_count: int = 0
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.DEBUG)
-	Log.info("CaravanDemo", "=== CARAVAN INTEGRATION DEMO ===")
-	Log.info("CaravanDemo", "Economy + Strategy bridge via production StrategyPresenter")
-	Log.info("CaravanDemo", "")
+	MyLog.set_level(MyLog.Level.DEBUG)
+	MyLog.info("CaravanDemo", "=== CARAVAN INTEGRATION DEMO ===")
+	MyLog.info("CaravanDemo", "Economy + Strategy bridge via production StrategyPresenter")
+	MyLog.info("CaravanDemo", "")
 
 	var mock_view = HeadlessView.new()
 	add_child(mock_view)
@@ -87,7 +87,7 @@ func _ready() -> void:
 
 	_setup_economy()
 
-	Log.info("CaravanDemo", "World locations: %s" % [
+	MyLog.info("CaravanDemo", "World locations: %s" % [
 		world.locations.map(func(l): return l.location_id),
 	])
 
@@ -190,8 +190,8 @@ func _setup_econ_location(loc_id: String, pop: Population, inv: LocationInventor
 func _run_simulation() -> void:
 	var target_days := 5
 	var target_hours := target_days * 24
-	Log.info("CaravanDemo", "Running %d days (%d hours) with fast clock. Economy ticks every 24h." % [target_days, target_hours])
-	Log.info("CaravanDemo", "")
+	MyLog.info("CaravanDemo", "Running %d days (%d hours) with fast clock. Economy ticks every 24h." % [target_days, target_hours])
+	MyLog.info("CaravanDemo", "")
 
 	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
 	presenter.game_clock.set_speed(200.0)
@@ -203,7 +203,7 @@ func _run_simulation() -> void:
 		var current_day := world.get_day()
 		if current_day != last_reported_day:
 			last_reported_day = current_day
-			Log.info("CaravanDemo", "=== DAY %d (hour %d) ===" % [current_day, world.current_hour])
+			MyLog.info("CaravanDemo", "=== DAY %d (hour %d) ===" % [current_day, world.current_hour])
 
 			# --- _print_turn_summary ---
 			var caravan_count := 0
@@ -211,19 +211,19 @@ func _run_simulation() -> void:
 			for squad in world.roaming_squads:
 				if squad.is_caravan():
 					caravan_count += 1
-					Log.debug("CaravanDemo", "    Caravan: %s @ %s → %s (role=%s)" % [
+					MyLog.debug("CaravanDemo", "    Caravan: %s @ %s → %s (role=%s)" % [
 						squad.squad_name,
 						squad.current_location_id,
 						squad.cargo.destination_id,
 						StrategyTypes.SquadRole.keys()[squad.squad_role],
 					])
-			Log.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
+			MyLog.info("CaravanDemo", "  Roaming squads: %d | Caravans: %d | Shipments tracked: %d" % [
 				total_in_world, caravan_count, presenter.game_scenario.world.economy_engine.active_shipment_count,
 			])
 
 			if current_day <= 3 or current_day % 5 == 0:
 				for loc in world.get_economy_locations():
-					Log.info("CaravanDemo", "    [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
+					MyLog.info("CaravanDemo", "    [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
 						loc.location_name,
 						loc.inventory.get_available(food),
 						loc.inventory.get_available(cloth),
@@ -233,12 +233,12 @@ func _run_simulation() -> void:
 
 	presenter.game_clock.pause()
 
-	Log.info("CaravanDemo", "")
+	MyLog.info("CaravanDemo", "")
 	_print_final_summary()
 
 	# --- _run_assertions ---
-	Log.info("CaravanDemo", "")
-	Log.info("CaravanDemo", "=== ASSERTIONS ===")
+	MyLog.info("CaravanDemo", "")
+	MyLog.info("CaravanDemo", "=== ASSERTIONS ===")
 
 	var castle_loc := world.get_location_by_id("castle")
 	_assert_gte("Castle food inventory exists", castle_loc.inventory.get_available(food), 0.0)
@@ -264,23 +264,23 @@ func _run_simulation() -> void:
 				squad.get_living_warriors().size() > 0,
 			)
 
-	Log.info("CaravanDemo", "")
-	Log.info("CaravanDemo", "Results: %d PASS, %d FAIL" % [_pass_count, _fail_count])
+	MyLog.info("CaravanDemo", "")
+	MyLog.info("CaravanDemo", "Results: %d PASS, %d FAIL" % [_pass_count, _fail_count])
 	if _fail_count > 0:
-		Log.error("CaravanDemo", "SOME ASSERTIONS FAILED")
+		MyLog.error("CaravanDemo", "SOME ASSERTIONS FAILED")
 	else:
-		Log.info("CaravanDemo", "ALL ASSERTIONS PASSED")
+		MyLog.info("CaravanDemo", "ALL ASSERTIONS PASSED")
 
 	await get_tree().create_timer(0.5).timeout
 	get_tree().quit()
 
 
 func _print_final_summary() -> void:
-	Log.info("CaravanDemo", "=== CARAVAN FINAL SUMMARY ===")
-	Log.info("CaravanDemo", "Active shipments: %d" % presenter.game_scenario.world.economy_engine.active_shipment_count)
+	MyLog.info("CaravanDemo", "=== CARAVAN FINAL SUMMARY ===")
+	MyLog.info("CaravanDemo", "Active shipments: %d" % presenter.game_scenario.world.economy_engine.active_shipment_count)
 
 	for loc in world.get_economy_locations():
-		Log.info("CaravanDemo", "  [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
+		MyLog.info("CaravanDemo", "  [%s] Food=%.0f Cloth=%.0f Tools=%.0f Lux=%.0f" % [
 			loc.location_name,
 			loc.inventory.get_available(food),
 			loc.inventory.get_available(cloth),
@@ -290,7 +290,7 @@ func _print_final_summary() -> void:
 
 	for squad in world.roaming_squads:
 		if squad.is_caravan():
-			Log.info("CaravanDemo", "  In-transit: %s @ %s → %s" % [
+			MyLog.info("CaravanDemo", "  In-transit: %s @ %s → %s" % [
 				squad.squad_name, squad.current_location_id, squad.cargo.destination_id,
 			])
 
@@ -298,25 +298,25 @@ func _print_final_summary() -> void:
 func _assert_gt(label: String, actual: Variant, minimum: Variant) -> void:
 	if actual > minimum:
 		_pass_count += 1
-		Log.info("CaravanDemo", "  PASS: %s = %s (> %s)" % [label, str(actual), str(minimum)])
+		MyLog.info("CaravanDemo", "  PASS: %s = %s (> %s)" % [label, str(actual), str(minimum)])
 	else:
 		_fail_count += 1
-		Log.error("CaravanDemo", "  FAIL: %s = %s (expected > %s)" % [label, str(actual), str(minimum)])
+		MyLog.error("CaravanDemo", "  FAIL: %s = %s (expected > %s)" % [label, str(actual), str(minimum)])
 
 
 func _assert_gte(label: String, actual: Variant, minimum: Variant) -> void:
 	if actual >= minimum:
 		_pass_count += 1
-		Log.info("CaravanDemo", "  PASS: %s = %s (>= %s)" % [label, str(actual), str(minimum)])
+		MyLog.info("CaravanDemo", "  PASS: %s = %s (>= %s)" % [label, str(actual), str(minimum)])
 	else:
 		_fail_count += 1
-		Log.error("CaravanDemo", "  FAIL: %s = %s (expected >= %s)" % [label, str(actual), str(minimum)])
+		MyLog.error("CaravanDemo", "  FAIL: %s = %s (expected >= %s)" % [label, str(actual), str(minimum)])
 
 
 func _assert_true(label: String, condition: bool) -> void:
 	if condition:
 		_pass_count += 1
-		Log.info("CaravanDemo", "  PASS: %s" % label)
+		MyLog.info("CaravanDemo", "  PASS: %s" % label)
 	else:
 		_fail_count += 1
-		Log.error("CaravanDemo", "  FAIL: %s" % label)
+		MyLog.error("CaravanDemo", "  FAIL: %s" % label)

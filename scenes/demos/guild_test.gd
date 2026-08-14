@@ -15,7 +15,7 @@ var sword: Thing
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 
 	print("\n" + "=".repeat(70))
 	print("GUILD SYSTEM — UNIT TEST SUITE")

@@ -18,7 +18,7 @@ var _food_thing: Thing
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 	print("\n" + "=".repeat(60))
 	print("  ECONOMY DEMO — Real Pipeline (goetz-official)")
 	print("=".repeat(60) + "\n")

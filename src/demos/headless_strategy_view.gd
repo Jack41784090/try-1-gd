@@ -160,7 +160,7 @@ var game_over: bool = false
 
 func show_game_over(_title: String, _description: String):
 	game_over = true
-	Log.info("HeadlessView", "GAME OVER: %s — %s" % [_title, _description])
+	MyLog.info("HeadlessView", "GAME OVER: %s — %s" % [_title, _description])
 
 #endregion
 

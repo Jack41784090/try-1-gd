@@ -28,7 +28,7 @@ static func get_config(id = null) -> WarriorRigConfig:
 	var wanted := String(id).to_lower() if id != null else ""
 	if not _by_id.has(wanted):
 		if not wanted.is_empty():
-			Log.warn("WarriorRigConfigFactory",
+			MyLog.warn("WarriorRigConfigFactory",
 				"No rig config for '%s' — falling back to %s" % [wanted, FALLBACK_ID])
 		wanted = FALLBACK_ID
 	var config = load(_by_id[wanted]) as WarriorRigConfig

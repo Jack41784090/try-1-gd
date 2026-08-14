@@ -24,7 +24,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 		squad.food += buy_amount
 		StrategyEventBus.squad_resource_changed.emit("money", squad.money)
 		StrategyEventBus.squad_resource_changed.emit("food", squad.food)
-		Log.info("BuySuppliesHandler", "BUY_SUPPLIES at %s: bought %d for %.0f gold (food now %d)" % [
+		MyLog.info("BuySuppliesHandler", "BUY_SUPPLIES at %s: bought %d for %.0f gold (food now %d)" % [
 			location.location_name,
 			buy_amount,
 			buy_amount * price,

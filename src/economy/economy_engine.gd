@@ -73,7 +73,7 @@ func enable_csharp() -> void:
 	_cs_bridge = instance as Node
 	_mercenary_demand = MercenaryDemandCalculator.new()
 	_route_danger = RouteDangerCalculator.new()
-	Log.info("Economy", "C# economy engine enabled")
+	MyLog.info("Economy", "C# economy engine enabled")
 
 func _calculate_guard_count(move: EconomyMove) -> int:
 	var cargo_value := move.quantity * move.thing.base_price
@@ -98,7 +98,7 @@ func tick_full(turn: int) -> EconomyTickResult:
 		_cs_bridge.call("Setup", world)
 		_cs_bridge.call("SetupBank", loan_interest_rate, print_per_turn, noble_loan_threshold, loan_amount)
 		_cs_initialized = true
-		Log.info("Economy", "C# bridge initialized with %d locations, %d goods" % [world.get_economy_locations().size(), world.goods.size(), ])
+		MyLog.info("Economy", "C# bridge initialized with %d locations, %d goods" % [world.get_economy_locations().size(), world.goods.size(), ])
 
 	## Precompute NxN inter-location danger matrix (0..1). Index order matches
 	## world.get_economy_locations(), which is also the C# Locations[] ordering.

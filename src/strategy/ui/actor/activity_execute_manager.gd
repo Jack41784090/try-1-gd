@@ -35,32 +35,32 @@ func _find_enemy_squad(squad_id: String) -> StrategySquad:
 
 
 func _apply_stats_changes_result(_scr: GenericResult):
-	Log.debug("AEM", "Applying %d squad stat change(s)" % _scr.squad_stat_changes.size())
+	MyLog.debug("AEM", "Applying %d squad stat change(s)" % _scr.squad_stat_changes.size())
 	for stat_key in _scr.squad_stat_changes:
 		var value = _scr.squad_stat_changes[stat_key]
-		Log.trace("AEM", "Stat key %s (enum value %d) = %+.2f" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key, value])
+		MyLog.trace("AEM", "Stat key %s (enum value %d) = %+.2f" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key, value])
 		match stat_key:
 			StrategyTypes.SquadProperty.MORALE:
-				Log.debug("AEM", "Modifying morale by %+.2f" % value)
+				MyLog.debug("AEM", "Modifying morale by %+.2f" % value)
 				player_squad.modify_morale(value)
 			StrategyTypes.SquadProperty.FOOD_SUPPLIES:
-				Log.debug("AEM", "Adding food: %+d" % int(value))
+				MyLog.debug("AEM", "Adding food: %+d" % int(value))
 				player_squad.food += int(value)
 			StrategyTypes.SquadProperty.MONEY:
-				Log.debug("AEM", "Adding money: %+.2f" % value)
+				MyLog.debug("AEM", "Adding money: %+.2f" % value)
 				player_squad.money += value
 			StrategyTypes.SquadProperty.AMMO_SUPPLIES:
-				Log.debug("AEM", "Travel Tools: %+.2f" % value)
+				MyLog.debug("AEM", "Travel Tools: %+.2f" % value)
 				player_squad.travel_tools += round(value)
 			_:
-				Log.error("AEM", "Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
+				MyLog.error("AEM", "Unknown stat key: %s (enum value: %d)" % [StrategyTypes.SquadProperty.keys()[stat_key], stat_key])
 				assert(false, "Unknown stat key: %s" % StrategyTypes.SquadProperty.keys()[stat_key])
 
 
 func _apply_location_change_result(_lcr: GenericResult):
 	assert(_lcr is GenericResult)
 	assert(_lcr.location_changed != null)
-	Log.debug("AEM", "[%s] Location changed to: %s (from %s)" % [player_squad.squad_name, _lcr.location_changed, player_squad.current_location_id])
+	MyLog.debug("AEM", "[%s] Location changed to: %s (from %s)" % [player_squad.squad_name, _lcr.location_changed, player_squad.current_location_id])
 
 	var current_location = world.get_location_by_id(player_squad.current_location_id)
 	previous_location = current_location
@@ -68,20 +68,20 @@ func _apply_location_change_result(_lcr: GenericResult):
 
 
 func _apply_result(result: GenericResult) -> void:
-	Log.trace("AEM", "_apply_result() called")
-	Log.trace("AEM", "Result type: %s" % result.get_class())
-	Log.trace("AEM", "Squad changes: %s" % [result.squad_stat_changes])
+	MyLog.trace("AEM", "_apply_result() called")
+	MyLog.trace("AEM", "Result type: %s" % result.get_class())
+	MyLog.trace("AEM", "Squad changes: %s" % [result.squad_stat_changes])
 
 	if result is ActivityResult and not result.location_changed.is_empty():
 		_apply_location_change_result(result)
 
 	if result.squad_stat_changes.is_empty():
-		Log.trace("AEM", "No squad stat changes to apply")
+		MyLog.trace("AEM", "No squad stat changes to apply")
 	else:
 		_apply_stats_changes_result(result)
 
 	if result.new_recruits.size() > 0:
-		Log.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
+		MyLog.info("AEM", "Adding %d new recruit(s) to squad" % result.new_recruits.size())
 
 
 func _build_context(activity: Activity = null) -> Dictionary:
@@ -151,25 +151,25 @@ func execute_triggerables_at(when: StrategyTypes.TriggerWhen) -> Array[GenericRe
 func _execute_triggerables(context: Dictionary, when: StrategyTypes.TriggerWhen) -> Array[GenericResult]:
 	if _IS_AI:
 		return []
-	Log.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[ when ])
+	MyLog.trace("AEM", "_execute_triggerables() when=%s" % StrategyTypes.TriggerWhen.keys()[ when ])
 	var when_filter = func(t: Triggerable) -> bool:
 		return t is GameEvent and (t as GameEvent).when_to_trigger == when
 
 	var triggerables: Array[Triggerable] = scenario.triggerable_manager.get_triggerables_triggered(context, when_filter)
-	Log.trace("AEM", "Found %d triggered event(s)" % triggerables.size())
+	MyLog.trace("AEM", "Found %d triggered event(s)" % triggerables.size())
 
 	_sort_triggerables_by_priority(triggerables)
-	Log.trace("AEM", "Total triggerables after sorting: %d" % triggerables.size())
+	MyLog.trace("AEM", "Total triggerables after sorting: %d" % triggerables.size())
 
 	var all_results: Array[GenericResult] = []
 	for triggerable in triggerables:
-		Log.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
+		MyLog.debug("AEM", "Triggering: %s (%s)" % [triggerable.trigger_name, triggerable.get_class()])
 		var triggered_results = triggerable.trigger(context)
 		for r in triggered_results:
-			Log.trace("AEM", "Result: squad_changes=%s" % [r.squad_stat_changes])
+			MyLog.trace("AEM", "Result: squad_changes=%s" % [r.squad_stat_changes])
 			all_results.append(r)
 
-	Log.trace("AEM", "Returning %d result(s)" % all_results.size())
+	MyLog.trace("AEM", "Returning %d result(s)" % all_results.size())
 	return all_results
 
 

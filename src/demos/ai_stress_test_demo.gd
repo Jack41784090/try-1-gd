@@ -26,13 +26,13 @@ var profile_assignments := {
 }
 
 func _ready():
-	Log.info("StressTest", "=== AI STRESS TEST — LARGE WORLD BATTLE ROYALE ===")
+	MyLog.info("StressTest", "=== AI STRESS TEST — LARGE WORLD BATTLE ROYALE ===")
 
 	var scenario_path := "res://resources/scenarios/ai-stress-test/ai-stress-test-scenario.tres"
 	scenario = load(scenario_path) as GameScenario
 
 	if scenario == null:
-		Log.error("StressTest", "Failed to load scenario")
+		MyLog.error("StressTest", "Failed to load scenario")
 		get_tree().quit(1)
 		return
 
@@ -40,22 +40,22 @@ func _ready():
 	var activities = scenario._load_generic_activities()
 	for activity in activities:
 		scenario.triggerable_manager.register(activity)
-	Log.debug("StressTest", "Registered %d activities" % activities.size())
+	MyLog.debug("StressTest", "Registered %d activities" % activities.size())
 
 	for squad in scenario.world.roaming_squads:
 		if starting_locations.has(squad.squad_id):
 			squad.starting_location_id = starting_locations[squad.squad_id]
 			squad.set_location(starting_locations[squad.squad_id])
 		else:
-			Log.warn("StressTest", "No starting location for squad: %s" % squad.squad_id)
+			MyLog.warn("StressTest", "No starting location for squad: %s" % squad.squad_id)
 
-	Log.info("StressTest", "World: %d locations, %d squads" % [
+	MyLog.info("StressTest", "World: %d locations, %d squads" % [
 		scenario.world.locations.size(),
 		scenario.world.roaming_squads.size()
 	])
 
 	# --- _print_world_map ---
-	Log.debug("StressTest", "[WORLD MAP]")
+	MyLog.debug("StressTest", "[WORLD MAP]")
 	for location in scenario.world.locations:
 		var conn_names: Array[String] = []
 		for conn in location.connections.tt:
@@ -63,7 +63,7 @@ func _ready():
 			if target:
 				conn_names.append(target.location_name)
 		var shop_str = " [SHOP]" if location.has_shop() else ""
-		Log.debug("StressTest", "  %s (%s)%s → %s" % [
+		MyLog.debug("StressTest", "  %s (%s)%s → %s" % [
 			location.location_name,
 			StrategyTypes.LocationType.keys()[location.type],
 			shop_str,
@@ -83,9 +83,9 @@ func _ready():
 		var profile = AIProfileFactory.get_squad_profile(profile_path)
 		if profile and fleet_manager.squad_brains.has(squad.squad_id):
 			fleet_manager.squad_brains[squad.squad_id] = SquadBrain.new(squad, profile)
-			Log.debug("StressTest", "Assigned %s profile to %s" % [profile_name, squad.squad_name])
+			MyLog.debug("StressTest", "Assigned %s profile to %s" % [profile_name, squad.squad_name])
 
-	Log.info("StressTest", "Battle Royale: %d squads across %d locations" % [
+	MyLog.info("StressTest", "Battle Royale: %d squads across %d locations" % [
 		fleet_manager.get_ai_squad_count(),
 		scenario.world.locations.size()
 	])
@@ -96,7 +96,7 @@ func _ready():
 
 	while fleet_manager.get_ai_squad_count() > 1 and round < max_rounds:
 		round += 1
-		Log.info("StressTest", "=== ROUND %d — %d squads alive ===" % [round, fleet_manager.get_ai_squad_count()])
+		MyLog.info("StressTest", "=== ROUND %d — %d squads alive ===" % [round, fleet_manager.get_ai_squad_count()])
 
 		var ai_results = fleet_manager.prepare_ai_turns()
 		var entries = _build_karma_sorted_entries(ai_results)
@@ -127,7 +127,7 @@ func _ready():
 
 		scenario.world.current_hour = round
 
-		Log.debug("StressTest", "--- End of Round %d ---" % round)
+		MyLog.debug("StressTest", "--- End of Round %d ---" % round)
 		_print_squad_status()
 
 		await get_tree().create_timer(0.3).timeout
@@ -166,7 +166,7 @@ func _resolve_ai_combat_from_results(
 		var attacker = fleet_manager._find_squad_by_id(squad_id)
 		var defender = fleet_manager._find_squad_by_id(target_id)
 		if attacker and defender:
-			Log.info("StressTest", "AI combat: %s vs %s" % [
+			MyLog.info("StressTest", "AI combat: %s vs %s" % [
 				attacker.squad_name,
 				defender.squad_name,
 			])
@@ -190,7 +190,7 @@ func _print_squad_status() -> void:
 		var loc_name = location.location_name if location else squad.current_location_id
 		var profile_name = profile_assignments.get(squad.squad_id, "?")
 
-		Log.debug("StressTest", "[%s] %s (%s) @ %s — W:%d/%d Inj:%d Mor:%d Food:%d Gold:%.0f" % [
+		MyLog.debug("StressTest", "[%s] %s (%s) @ %s — W:%d/%d Inj:%d Mor:%d Food:%d Gold:%.0f" % [
 			squad.squad_id.left(8),
 			squad.squad_name,
 			profile_name.left(3).to_upper(),
@@ -204,7 +204,7 @@ func _print_squad_status() -> void:
 		])
 
 func _print_final_results(rounds_played: int, max_rounds: int) -> void:
-	Log.info("StressTest", "=== BATTLE ROYALE COMPLETE — %d rounds played ===" % rounds_played)
+	MyLog.info("StressTest", "=== BATTLE ROYALE COMPLETE — %d rounds played ===" % rounds_played)
 
 	var survivors := 0
 	for squad in scenario.world.roaming_squads:
@@ -222,22 +222,22 @@ func _print_final_results(rounds_played: int, max_rounds: int) -> void:
 				if not warrior.is_dead:
 					living += 1
 			if living > 0:
-				Log.info("StressTest", "WINNER: %s" % squad.squad_name)
-				Log.info("StressTest", "  Location: %s | Warriors: %d alive | Morale: %d | Food: %d | Gold: %.0f" % [
+				MyLog.info("StressTest", "WINNER: %s" % squad.squad_name)
+				MyLog.info("StressTest", "  Location: %s | Warriors: %d alive | Morale: %d | Food: %d | Gold: %.0f" % [
 					squad.current_location_id, living, squad.get_morale(), squad.food, squad.money
 				])
 				break
 	elif survivors > 1:
-		Log.info("StressTest", "TIME LIMIT — %d survivors:" % survivors)
+		MyLog.info("StressTest", "TIME LIMIT — %d survivors:" % survivors)
 		for squad in scenario.world.roaming_squads:
 			var living := 0
 			for warrior in squad.warriors:
 				if not warrior.is_dead:
 					living += 1
 			if living > 0:
-				Log.info("StressTest", "  %s — W:%d Mor:%d Food:%d Gold:%.0f @ %s" % [
+				MyLog.info("StressTest", "  %s — W:%d Mor:%d Food:%d Gold:%.0f @ %s" % [
 					squad.squad_name, living, squad.get_morale(),
 					squad.food, squad.money, squad.current_location_id
 				])
 	else:
-		Log.info("StressTest", "ALL SQUADS ELIMINATED")
+		MyLog.info("StressTest", "ALL SQUADS ELIMINATED")

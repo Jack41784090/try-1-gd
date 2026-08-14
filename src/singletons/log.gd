@@ -1,4 +1,4 @@
-class_name Log
+class_name MyLog
 extends RefCounted
 
 enum Level { TRACE, DEBUG, INFO, WARN, ERROR }

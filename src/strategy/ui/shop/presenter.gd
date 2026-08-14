@@ -92,28 +92,28 @@ func _on_pay_pressed() -> void:
 		match thing.thing_type:
 			EconomyTypes.ThingType.FOOD:
 				squad.food += qty
-				Log.debug("Shop", "Added %d food supplies" % qty)
+				MyLog.debug("Shop", "Added %d food supplies" % qty)
 			EconomyTypes.ThingType.CLOTH:
 				squad.gain_money(float(qty) * 2.0)
-				Log.debug("Shop", "Bought %d cloth" % qty)
+				MyLog.debug("Shop", "Bought %d cloth" % qty)
 			EconomyTypes.ThingType.TOOLS:
 				squad.travel_tools += qty
-				Log.debug("Shop", "Added %d travel tools" % qty)
+				MyLog.debug("Shop", "Added %d travel tools" % qty)
 			EconomyTypes.ThingType.LUXURY:
 				squad.modify_morale(float(qty) * 3.0)
-				Log.debug("Shop", "Bought %d luxuries (morale boost)" % qty)
+				MyLog.debug("Shop", "Bought %d luxuries (morale boost)" % qty)
 			EconomyTypes.ThingType.WEAPONS:
 				if thing.weapon_config != null:
 					for i in qty:
 						squad.inventory.add_weapon(thing.weapon_config.duplicate(true))
-					Log.debug("Shop", "Added %d %s to squad inventory" % [qty, thing.thing_name])
+					MyLog.debug("Shop", "Added %d %s to squad inventory" % [qty, thing.thing_name])
 		assert(_location != null, "Shop presenter has no bound location")
 		var inv := _location.inventory
 		assert(inv != null, "Shop location '%s' has no inventory" % _location.location_id)
 		inv.consume(thing, float(qty))
-		Log.debug("Shop", "Consumed %.1f %s from economy at %s" % [float(qty), thing.thing_name, _location.location_id])
+		MyLog.debug("Shop", "Consumed %.1f %s from economy at %s" % [float(qty), thing.thing_name, _location.location_id])
 
-	Log.debug("Shop", "Purchase completed: %s for %.0f gold" % [purchases, total])
+	MyLog.debug("Shop", "Purchase completed: %s for %.0f gold" % [purchases, total])
 
 	cart.clear()
 	view.hide_shop()

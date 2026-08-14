@@ -167,9 +167,9 @@ func create_travel_activity(location_id: String) -> Activity:
 		squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
 		walking_towards = location_id
 		activity.result.location_changed = ""
-		Log.debug("Runner", "New journey to %s from %s (route: %s)" % [location_id, from_id, route])
+		MyLog.debug("Runner", "New journey to %s from %s (route: %s)" % [location_id, from_id, route])
 	elif location_id == walking_towards_location.location_id:
-		Log.debug("Runner", "Continuing journey towards %s (progress: %.1f km, segment: %d)" % [location_id, squad.travel_progress_km, squad.travel_segment_index])
+		MyLog.debug("Runner", "Continuing journey towards %s (progress: %.1f km, segment: %d)" % [location_id, squad.travel_progress_km, squad.travel_segment_index])
 		var speed := squad.get_speed_kmh()
 		squad.travel_progress_km += speed
 
@@ -183,7 +183,7 @@ func create_travel_activity(location_id: String) -> Activity:
 			var arrived_at := squad.travel_route[squad.travel_segment_index]
 			squad.set_location(arrived_at)
 			current_location = arrived_at
-			Log.debug("Runner", "Reached waypoint: %s" % arrived_at)
+			MyLog.debug("Runner", "Reached waypoint: %s" % arrived_at)
 
 			if squad.travel_segment_index < squad.travel_route.size() - 1:
 				current_seg_from = squad.travel_route[squad.travel_segment_index]
@@ -199,11 +199,11 @@ func create_travel_activity(location_id: String) -> Activity:
 			walking_towards = null
 			squad.clear_travel()
 			activity.result.location_changed = final_dest
-			Log.debug("Runner", "Arrived at final destination: %s" % final_dest)
+			MyLog.debug("Runner", "Arrived at final destination: %s" % final_dest)
 		else:
 			activity.result.location_changed = ""
 	else:
-		Log.debug("Runner", "Changing destination to %s" % location_id)
+		MyLog.debug("Runner", "Changing destination to %s" % location_id)
 		var route: Array[String] = []
 		for p in path:
 			route.append(p)

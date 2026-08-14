@@ -49,7 +49,7 @@ var _should_quit := false
 
 
 func _ready():
-	Log.set_level(Log.Level.ERROR)
+	MyLog.set_level(MyLog.Level.ERROR)
 
 	print("")
 	print("╔══════════════════════════════════════════════════╗")

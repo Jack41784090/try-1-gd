@@ -41,7 +41,7 @@ func set_stage_presenter(sp: StagePresenter) -> void:
 
 func queue_event_chain(chain_path: String) -> void:
 	event_chain_queue.append(chain_path)
-	Log.debug("VnPresenter", "Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
+	MyLog.debug("VnPresenter", "Queued event chain: %s (queue size: %d)" % [chain_path, event_chain_queue.size()])
 
 
 func play_next_queued_chain() -> bool:
@@ -195,23 +195,23 @@ func _on_instruction_fired(instruction: CinematicInstruction) -> void:
 				ids.append(instruction.target_character_id)
 
 			if not ids.is_empty():
-				Log.info("VnPresenter", "Camera → include %s" % [str(ids)])
+				MyLog.info("VnPresenter", "Camera → include %s" % [str(ids)])
 				stage_presenter.set_camera_include(ids, maxf(instruction.duration, 0.4))
 
 			if instruction.zoom_level != 1.0 and ids.is_empty():
-				Log.info("VnPresenter", "Camera → zoom %.1f over %.1fs" % [instruction.zoom_level, instruction.duration])
+				MyLog.info("VnPresenter", "Camera → zoom %.1f over %.1fs" % [instruction.zoom_level, instruction.duration])
 				stage_presenter.zoom_camera(instruction.zoom_level, maxf(instruction.duration, 0.01))
 
 			if instruction.action == CameraInstruction.Action.RESET:
-				Log.info("VnPresenter", "Camera → reset")
+				MyLog.info("VnPresenter", "Camera → reset")
 				stage_presenter.return_to_wide()
 
 			if instruction.move_offset != Vector2.ZERO:
-				Log.info("VnPresenter", "Camera → move %s over %.1fs" % [str(instruction.move_offset), instruction.duration])
+				MyLog.info("VnPresenter", "Camera → move %s over %.1fs" % [str(instruction.move_offset), instruction.duration])
 				stage_presenter.move_camera(instruction.move_offset, maxf(instruction.duration, 0.01))
 
 			if instruction.target_screen_position >= 0.0 and not instruction.target_character_id.is_empty():
-				Log.info("VnPresenter", "Camera → pan to %s at screen %.1f" % [instruction.target_character_id, instruction.target_screen_position])
+				MyLog.info("VnPresenter", "Camera → pan to %s at screen %.1f" % [instruction.target_character_id, instruction.target_screen_position])
 				stage_presenter.pan_to_character_at_screen_position(instruction.target_character_id, instruction.target_screen_position, maxf(instruction.duration, 0.4))
 	elif instruction is CharacterInstruction:
 		if stage_presenter:

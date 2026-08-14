@@ -39,7 +39,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var contact = tracker.get_contact(squad.squad_id, target_enemy.squad_id)
 	if not contact or contact.get_state() < StrategyTypes.ContactState.LOCKED:
 		var state_name = StrategyTypes.ContactState.keys()[contact.get_state()] if contact else "NONE"
-		Log.info("AttackHandler", "ATTACK blocked — contact on %s is only %s (need LOCKED)" % [
+		MyLog.info("AttackHandler", "ATTACK blocked — contact on %s is only %s (need LOCKED)" % [
 			target_enemy.squad_name, state_name])
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -3.0)
 		return result
@@ -49,7 +49,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	result.requires_async = true
 	result.engagement_type = tracker.classify_engagement(squad.squad_id, target_enemy.squad_id)
 
-	Log.info("AttackHandler", "ATTACK engagement: %s vs %s [%s]" % [
+	MyLog.info("AttackHandler", "ATTACK engagement: %s vs %s [%s]" % [
 		squad.squad_name, target_enemy.squad_name,
 		StrategyTypes.EngagementType.keys()[result.engagement_type]])
 	return result

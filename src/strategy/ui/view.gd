@@ -505,7 +505,7 @@ func animate_stat_changes(deltas: Dictionary) -> void:
 
 #endregion
 
-#region Squad Log
+#region Squad MyLog
 
 func log_squad_event(text: String, color: Color = Color(0.78, 0.75, 0.68)) -> void:
 	if squad_log_view:

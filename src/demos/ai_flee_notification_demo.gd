@@ -21,8 +21,8 @@ var _notification_log: Array[Dictionary] = []
 
 
 func _ready():
-	Log.set_level(Log.Level.DEBUG)
-	Log.info("FleeDmo", "=== AI FLEE + NOTIFICATION TEST ===")
+	MyLog.set_level(MyLog.Level.DEBUG)
+	MyLog.info("FleeDmo", "=== AI FLEE + NOTIFICATION TEST ===")
 
 	var mock_view = HeadlessView.new()
 	add_child(mock_view)
@@ -66,7 +66,7 @@ func _ready():
 		runner.warriors.append(warrior)
 
 	presenter.game_scenario.world.add_roaming_squad(runner)
-	Log.info("FleeDmo", "Injected '%s' at oehringen with %d warriors" % [runner.squad_name, runner.warriors.size()])
+	MyLog.info("FleeDmo", "Injected '%s' at oehringen with %d warriors" % [runner.squad_name, runner.warriors.size()])
 
 	# --- _assign_flee_profile ---
 	var flee_action = StrategicAction.new()
@@ -103,22 +103,22 @@ func _ready():
 	executor.setup(presenter.game_scenario, {"squad": runner_squad})
 	presenter.ai_fleet.squad_executors[runner_id] = executor
 
-	Log.info("FleeDmo", "Assigned always-flee profile to %s" % runner_squad.squad_name)
+	MyLog.info("FleeDmo", "Assigned always-flee profile to %s" % runner_squad.squad_name)
 
-	Log.info("FleeDmo", "Player: %s @ %s" % [player_squad.squad_name, player_squad.current_location_id])
-	Log.info("FleeDmo", "AI squads: %d" % presenter.ai_fleet.get_ai_squad_count())
+	MyLog.info("FleeDmo", "Player: %s @ %s" % [player_squad.squad_name, player_squad.current_location_id])
+	MyLog.info("FleeDmo", "AI squads: %d" % presenter.ai_fleet.get_ai_squad_count())
 	_log_all_squad_positions()
 
 	# --- _run_test_sequence ---
 	var T := StrategyTypes.ActivityType
 
-	Log.info("FleeDmo", "\n=== PHASE 1: Travel to Öhringen (runner's location) ===")
+	MyLog.info("FleeDmo", "\n=== PHASE 1: Travel to Öhringen (runner's location) ===")
 	await _do_travel("oehringen")
 	_capture_notifications("Phase 1: Arrive at Öhringen")
 	_log_all_squad_positions()
 	_log_contact_state()
 
-	Log.info("FleeDmo", "\n=== PHASE 2: Patrol to build contact ===")
+	MyLog.info("FleeDmo", "\n=== PHASE 2: Patrol to build contact ===")
 	await _do_activity(T.PATROL)
 	_capture_notifications("Phase 2: First patrol")
 	_log_all_squad_positions()
@@ -126,14 +126,14 @@ func _ready():
 
 	var detected := _has_notification_type(NotificationData.NotificationType.CONTACT_DETECTED)
 	if not detected:
-		Log.info("FleeDmo", "No CONTACT_DETECTED yet, patrolling again...")
+		MyLog.info("FleeDmo", "No CONTACT_DETECTED yet, patrolling again...")
 		await _do_activity(T.PATROL)
 		_capture_notifications("Phase 2b: Second patrol")
 		_log_all_squad_positions()
 		_log_contact_state()
 	_assert_ever_seen("CONTACT_DETECTED", NotificationData.NotificationType.CONTACT_DETECTED)
 
-	Log.info("FleeDmo", "\n=== PHASE 3: Continue patrolling — runner should be fleeing, contact should change ===")
+	MyLog.info("FleeDmo", "\n=== PHASE 3: Continue patrolling — runner should be fleeing, contact should change ===")
 	for i in range(5):
 		await _do_activity(T.PATROL)
 		_capture_notifications("Phase 3 patrol %d" % (i + 1))
@@ -141,12 +141,12 @@ func _ready():
 		_log_contact_state()
 
 		if _has_notification_type(NotificationData.NotificationType.CONTACT_LOST):
-			Log.info("FleeDmo", "CONTACT_LOST detected at patrol %d!" % (i + 1))
+			MyLog.info("FleeDmo", "CONTACT_LOST detected at patrol %d!" % (i + 1))
 			break
 		if _has_notification_type(NotificationData.NotificationType.CONTACT_DECAYING):
-			Log.info("FleeDmo", "CONTACT_DECAYING detected at patrol %d" % (i + 1))
+			MyLog.info("FleeDmo", "CONTACT_DECAYING detected at patrol %d" % (i + 1))
 
-	Log.info("FleeDmo", "\n=== PHASE 4: Chase runner to try to regain contact ===")
+	MyLog.info("FleeDmo", "\n=== PHASE 4: Chase runner to try to regain contact ===")
 	# --- _get_runner_location ---
 	var runner_loc := ""
 	for sq in presenter.game_scenario.world.roaming_squads:
@@ -154,7 +154,7 @@ func _ready():
 			runner_loc = sq.current_location_id
 			break
 	if not runner_loc.is_empty() and runner_loc != player_squad.current_location_id:
-		Log.info("FleeDmo", "Runner is at %s, pursuing..." % runner_loc)
+		MyLog.info("FleeDmo", "Runner is at %s, pursuing..." % runner_loc)
 		await _do_travel(runner_loc)
 		_capture_notifications("Phase 4: Chase to runner")
 		_log_all_squad_positions()
@@ -165,19 +165,19 @@ func _ready():
 		_log_all_squad_positions()
 		_log_contact_state()
 
-	Log.info("FleeDmo", "\n=== PHASE 5: Rest while runner flees further — expect contact loss ===")
+	MyLog.info("FleeDmo", "\n=== PHASE 5: Rest while runner flees further — expect contact loss ===")
 	for i in range(4):
 		await _do_activity(T.REST)
 		_capture_notifications("Phase 5 rest %d" % (i + 1))
 		_log_contact_state()
 
 		if _has_notification_type(NotificationData.NotificationType.CONTACT_LOST):
-			Log.info("FleeDmo", "CONTACT_LOST detected at rest %d!" % (i + 1))
+			MyLog.info("FleeDmo", "CONTACT_LOST detected at rest %d!" % (i + 1))
 			break
 
-	Log.info("FleeDmo", "\n=== NOTIFICATION LOG ===")
+	MyLog.info("FleeDmo", "\n=== NOTIFICATION LOG ===")
 	for entry in _notification_log:
-		Log.info("FleeDmo", "  [Turn %d] %s: %s" % [entry["turn"], entry["phase"], entry["notifications"]])
+		MyLog.info("FleeDmo", "  [Turn %d] %s: %s" % [entry["turn"], entry["phase"], entry["notifications"]])
 
 	_assert_ever_seen("CONTACT_DETECTED", NotificationData.NotificationType.CONTACT_DETECTED)
 	var saw_decaying := _ever_seen(NotificationData.NotificationType.CONTACT_DECAYING)
@@ -201,17 +201,17 @@ func _ready():
 
 
 func _do_travel(destination: String) -> void:
-	Log.info("FleeDmo", "  → Travel to %s" % destination)
+	MyLog.info("FleeDmo", "  → Travel to %s" % destination)
 	await presenter.on_travel_confirmed(destination)
 	while presenter.actor.walking_towards["location"] != null:
-		Log.debug("FleeDmo", "  Continuing travel towards %s..." % destination)
+		MyLog.debug("FleeDmo", "  Continuing travel towards %s..." % destination)
 		presenter.game_clock.force_tick()
 		await presenter.tick_completed
 
 
 func _do_activity(activity_type: StrategyTypes.ActivityType) -> void:
 	var act_name: String = StrategyTypes.ActivityType.keys()[activity_type]
-	Log.info("FleeDmo", "  → %s" % act_name)
+	MyLog.info("FleeDmo", "  → %s" % act_name)
 	await presenter.on_activity_requested(activity_type)
 
 
@@ -229,9 +229,9 @@ func _capture_notifications(phase: String) -> void:
 		"raw": notifs.duplicate(),
 	})
 	if not descs.is_empty():
-		Log.info("FleeDmo", "  Notifications: %s" % ", ".join(descs))
+		MyLog.info("FleeDmo", "  Notifications: %s" % ", ".join(descs))
 	else:
-		Log.debug("FleeDmo", "  No notifications this turn")
+		MyLog.debug("FleeDmo", "  No notifications this turn")
 
 
 func _has_notification_type(type: NotificationData.NotificationType) -> bool:
@@ -253,9 +253,9 @@ func _ever_seen(type: NotificationData.NotificationType) -> bool:
 
 
 func _log_all_squad_positions() -> void:
-	Log.info("FleeDmo", "  Positions: Player @ %s" % player_squad.current_location_id)
+	MyLog.info("FleeDmo", "  Positions: Player @ %s" % player_squad.current_location_id)
 	for sq in presenter.game_scenario.world.roaming_squads:
-		Log.info("FleeDmo", "    %s @ %s" % [sq.squad_name, sq.current_location_id])
+		MyLog.info("FleeDmo", "    %s @ %s" % [sq.squad_name, sq.current_location_id])
 
 
 func _log_contact_state() -> void:
@@ -263,7 +263,7 @@ func _log_contact_state() -> void:
 	var contacts = tracker.get_contacts_for(player_squad.squad_id)
 	for c in contacts:
 		var state_name: String = StrategyTypes.ContactState.keys()[c.get_state()]
-		Log.info("FleeDmo", "  Contact: %s → %s = %.1f (%s)" % [c.observer_id, c.target_id, c.progress, state_name])
+		MyLog.info("FleeDmo", "  Contact: %s → %s = %.1f (%s)" % [c.observer_id, c.target_id, c.progress, state_name])
 
 
 #region Assertions
@@ -277,25 +277,25 @@ func _assert_ever_seen(label: String, type: NotificationData.NotificationType) -
 
 func _pass(msg: String) -> void:
 	_pass_count += 1
-	Log.info("FleeDmo", "  PASS: %s" % msg)
+	MyLog.info("FleeDmo", "  PASS: %s" % msg)
 
 
 func _fail(msg: String) -> void:
 	_fail_count += 1
-	Log.error("FleeDmo", "  FAIL: %s" % msg)
+	MyLog.error("FleeDmo", "  FAIL: %s" % msg)
 
 
 func _info(msg: String) -> void:
-	Log.info("FleeDmo", "  INFO: %s" % msg)
+	MyLog.info("FleeDmo", "  INFO: %s" % msg)
 
 #endregion
 
 
 func _print_summary() -> void:
-	Log.info("FleeDmo", "")
-	Log.info("FleeDmo", "=== SUMMARY ===")
-	Log.info("FleeDmo", "PASS: %d  FAIL: %d" % [_pass_count, _fail_count])
+	MyLog.info("FleeDmo", "")
+	MyLog.info("FleeDmo", "=== SUMMARY ===")
+	MyLog.info("FleeDmo", "PASS: %d  FAIL: %d" % [_pass_count, _fail_count])
 	if _fail_count > 0:
-		Log.error("FleeDmo", "TEST FAILED")
+		MyLog.error("FleeDmo", "TEST FAILED")
 	else:
-		Log.info("FleeDmo", "ALL TESTS PASSED")
+		MyLog.info("FleeDmo", "ALL TESTS PASSED")

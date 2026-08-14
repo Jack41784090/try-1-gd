@@ -29,7 +29,7 @@ func tick_cleanup(world: World, faction: Faction, ai_fleet: AISquadManager) -> A
 		faction.remove_army(squad_id)
 		ai_fleet.unregister_squad(squad_id)
 		event_log.append("disbanded %s" % squad_id)
-		Log.info("BanditSpawner", "Disbanded bandit squad: %s" % squad_id)
+		MyLog.info("BanditSpawner", "Disbanded bandit squad: %s" % squad_id)
 
 	return event_log
 #endregion
@@ -62,7 +62,7 @@ func _create_squad(location: Location, _world: World) -> StrategySquad:
 		var warrior := _create_warrior(squad.squad_id, i, background_id)
 		squad.add_warrior(warrior)
 
-	Log.info("BanditSpawner", "Spawned %s (%d warriors) near %s at %s" % [
+	MyLog.info("BanditSpawner", "Spawned %s (%d warriors) near %s at %s" % [
 		squad.squad_name, warrior_count, location.location_id, spawn_location.location_id])
 	return squad
 

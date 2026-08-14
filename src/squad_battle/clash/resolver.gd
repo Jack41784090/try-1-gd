@@ -50,9 +50,9 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 
 		var is_self_cast := attacker.player_id == targeted.player_id
 		if is_self_cast:
-			Log.debug("ClashResolver", "[%d]%s ‹%s› on self" % [attacker.player_id, attacker.display_name, skill.name if skill else "?"])
+			MyLog.debug("ClashResolver", "[%d]%s ‹%s› on self" % [attacker.player_id, attacker.display_name, skill.name if skill else "?"])
 		else:
-			Log.debug("ClashResolver", "[%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.display_name, targeted.player_id, targeted.display_name, skill.name if skill else "?"])
+			MyLog.debug("ClashResolver", "[%d]%s → [%d]%s | ‹%s›" % [attacker.player_id, attacker.display_name, targeted.player_id, targeted.display_name, skill.name if skill else "?"])
 
 		if skill.sta_cost > 0.0:
 			updates.append(EntityUpdate.new(
@@ -69,9 +69,9 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 			var hit_def = targeted.calculate_reality_value(SquadBattleTypes.Reality.Maneuver)
 			var roll_offence_hit = randf() * try_hit
 			var roll_defence_hit = randf() * hit_def
-			Log.trace("ClashResolver", "Hit roll: %s vs %s — attacker %.2f / weapon base %.2f, defender evasion %.2f" % [attacker.display_name, targeted.display_name, roll_offence_hit, try_hit, roll_defence_hit])
+			MyLog.trace("ClashResolver", "Hit roll: %s vs %s — attacker %.2f / weapon base %.2f, defender evasion %.2f" % [attacker.display_name, targeted.display_name, roll_offence_hit, try_hit, roll_defence_hit])
 			if roll_defence_hit >= roll_offence_hit:
-				Log.trace("ClashResolver", "✗ DODGED")
+				MyLog.trace("ClashResolver", "✗ DODGED")
 				updates.append(EntityUpdate.new(
 					attacker.player_id,
 					targeted.player_id,
@@ -95,9 +95,9 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 					pierce_def = armour.get_PV()
 				var roll_offence_pierce = randf() * try_pierce
 				var roll_defence_pierce = randf() * pierce_def
-				Log.trace("ClashResolver", "Pierce roll: pen %.2f/%.2f vs arm %.2f/%.2f%s" % [roll_offence_pierce, try_pierce, roll_defence_pierce, pierce_def, " [magical]" if chosen_weapon.resource.is_magical else ""])
+				MyLog.trace("ClashResolver", "Pierce roll: pen %.2f/%.2f vs arm %.2f/%.2f%s" % [roll_offence_pierce, try_pierce, roll_defence_pierce, pierce_def, " [magical]" if chosen_weapon.resource.is_magical else ""])
 				if roll_defence_pierce >= roll_offence_pierce:
-					Log.trace("ClashResolver", "✗ BLOCKED")
+					MyLog.trace("ClashResolver", "✗ BLOCKED")
 					updates.append(EntityUpdate.new(
 						attacker.player_id,
 						targeted.player_id,
@@ -106,7 +106,7 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 					raise_window(SquadBattleTypes.ReactionWindow.ON_BLOCK, top)
 					execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_BLOCK), top, attacker)
 				else:
-					Log.trace("ClashResolver", "✓ PIERCE")
+					MyLog.trace("ClashResolver", "✓ PIERCE")
 					raise_window(SquadBattleTypes.ReactionWindow.ON_PIERCE, top)
 					execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_PIERCE), top, attacker)
 					if top.phase != ClashIntent.Phase.CANCELLED:
@@ -121,7 +121,7 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 							updates.append(update)
 						var hp_after = targeted.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP)
 						var org_after = targeted.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)
-						Log.trace("ClashResolver", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, targeted.display_name, hp_before, hp_after])
+						MyLog.trace("ClashResolver", "→ Dealt %.2f to %s — HP %.1f→%.1f" % [dm, targeted.display_name, hp_before, hp_after])
 						if org_after <= 0:
 							raise_window(SquadBattleTypes.ReactionWindow.ON_RETREAT, top)
 							execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_RETREAT), top, attacker)

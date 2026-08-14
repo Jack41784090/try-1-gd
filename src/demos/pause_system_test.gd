@@ -19,8 +19,8 @@ var _fail_count: int = 0
 
 
 func _ready():
-	Log.set_level(Log.Level.INFO)
-	Log.info("PauseTest", "=== PAUSE SYSTEM TEST ===")
+	MyLog.set_level(MyLog.Level.INFO)
+	MyLog.info("PauseTest", "=== PAUSE SYSTEM TEST ===")
 
 	var mock_view = HeadlessView.new()
 	add_child(mock_view)
@@ -34,14 +34,14 @@ func _ready():
 	await presenter.bind_view(mock_view)
 
 	# --- _test_game_starts_paused ---
-	Log.info("PauseTest", "--- Test: Game starts paused ---")
+	MyLog.info("PauseTest", "--- Test: Game starts paused ---")
 	_assert_true(
 		presenter.game_scenario.world.is_paused,
 		"Game should start paused"
 	)
 
 	# --- _test_activity_does_not_unpause ---
-	Log.info("PauseTest", "--- Test: Activity selection does not unpause ---")
+	MyLog.info("PauseTest", "--- Test: Activity selection does not unpause ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Precondition: game is paused")
 
@@ -69,7 +69,7 @@ func _ready():
 	)
 
 	# --- _test_pause_toggle ---
-	Log.info("PauseTest", "--- Test: Explicit pause toggle ---")
+	MyLog.info("PauseTest", "--- Test: Explicit pause toggle ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Should be paused")
 
@@ -86,7 +86,7 @@ func _ready():
 	)
 
 	# --- _test_menu_handlers_pause ---
-	Log.info("PauseTest", "--- Test: Menu handlers auto-pause ---")
+	MyLog.info("PauseTest", "--- Test: Menu handlers auto-pause ---")
 
 	presenter.game_clock.unpause()
 	_assert_true(not presenter.game_scenario.world.is_paused, "Precondition: game is unpaused")
@@ -133,7 +133,7 @@ func _ready():
 	)
 
 	# --- _test_resting_banner_state ---
-	Log.info("PauseTest", "--- Test: Resting banner state ---")
+	MyLog.info("PauseTest", "--- Test: Resting banner state ---")
 	presenter.game_clock.pause()
 	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)
 	var squad := presenter.actor.player_squad
@@ -157,12 +157,12 @@ func _ready():
 		"Activity should return to REST"
 	)
 
-	Log.info("PauseTest", "")
-	Log.info("PauseTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
+	MyLog.info("PauseTest", "")
+	MyLog.info("PauseTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
 	if _fail_count > 0:
-		Log.error("PauseTest", "SOME TESTS FAILED")
+		MyLog.error("PauseTest", "SOME TESTS FAILED")
 	else:
-		Log.info("PauseTest", "ALL TESTS PASSED")
+		MyLog.info("PauseTest", "ALL TESTS PASSED")
 
 	await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
@@ -171,16 +171,16 @@ func _ready():
 func _assert_true(condition: bool, msg: String) -> void:
 	if condition:
 		_pass_count += 1
-		Log.info("PauseTest", "  PASS: %s" % msg)
+		MyLog.info("PauseTest", "  PASS: %s" % msg)
 	else:
 		_fail_count += 1
-		Log.error("PauseTest", "  FAIL: %s" % msg)
+		MyLog.error("PauseTest", "  FAIL: %s" % msg)
 
 
 func _assert_eq(actual, expected, msg: String) -> void:
 	if actual == expected:
 		_pass_count += 1
-		Log.info("PauseTest", "  PASS: %s" % msg)
+		MyLog.info("PauseTest", "  PASS: %s" % msg)
 	else:
 		_fail_count += 1
-		Log.error("PauseTest", "  FAIL: %s (expected %s, got %s)" % [msg, expected, actual])
+		MyLog.error("PauseTest", "  FAIL: %s (expected %s, got %s)" % [msg, expected, actual])

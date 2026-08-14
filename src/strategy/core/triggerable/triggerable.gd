@@ -26,14 +26,14 @@ func _init() -> void:
 ## Evaluates all conditions against the provided context dict.
 ## ALL conditions must pass (AND logic) for the triggerable to fire.
 func check_conditions(context: Dictionary) -> bool:
-	Log.trace("Triggerable", "Checking conditions for: %s" % trigger_name)
+	MyLog.trace("Triggerable", "Checking conditions for: %s" % trigger_name)
 	for condition in conditions:
 		var e = condition.evaluate(context)
 		if not e:
-			Log.trace("Triggerable", "  ❎ %s" % condition._to_string())
+			MyLog.trace("Triggerable", "  ❎ %s" % condition._to_string())
 			return false
 		else:
-			Log.trace("Triggerable", "  ✅ %s" % condition._to_string())
+			MyLog.trace("Triggerable", "  ✅ %s" % condition._to_string())
 	return true
 
 func can_trigger(context: Dictionary) -> bool:

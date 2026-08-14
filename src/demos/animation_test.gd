@@ -165,7 +165,7 @@ func _refresh(reload_config: bool) -> void:
 	_snapshot_mtimes()
 	_last_sig = _config_signature()
 	if reload_config:
-		Log.info("AnimationTest", "Textures reloaded from disk")
+		MyLog.info("AnimationTest", "Textures reloaded from disk")
 
 ## Broadcasts expression_ids[idx]. Every face part answers on its own, so one
 ## call can move brows, shrink pupils and swap lashes together.

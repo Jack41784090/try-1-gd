@@ -16,7 +16,7 @@ var _assertions_failed := 0
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 	print("")
 	print("╔══════════════════════════════════════════════════════════╗")
 	print("║       BANDIT SYSTEM DEMO — Desperation Spawning        ║")

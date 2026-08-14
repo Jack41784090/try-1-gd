@@ -64,7 +64,7 @@ func apply_injury_penalties(strategic_squad: StrategySquad) -> void:
 		var max_hp = entity.get_ceiling_changeable_stat(SquadBattleTypes.EntityChangeable.HP)
 		var penalty = max_hp * 0.5
 		entity.mod_changeable_stat(SquadBattleTypes.EntityChangeable.HP, -penalty)
-		Log.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.display_name, max_hp - penalty, max_hp])
+		MyLog.info("CombatBridge", "Injured warrior '%s' starts at %.0f/%.0f HP" % [warrior.display_name, max_hp - penalty, max_hp])
 
 
 func _build_squad_config(strategic_squad: StrategySquad, side: SquadBattleTypes.Side) -> Array:

@@ -240,7 +240,7 @@ func action(our_squad: Dictionary, enemy_squad: Dictionary) -> Array[EntityUpdat
 			for eu in skill_result:
 				updates.append(eu)
 		else:
-			Log.debug("Combat", "%s/%s: no valid target for '%s'" % [_debug_id, display_name, chosen_skill.name])
+			MyLog.debug("Combat", "%s/%s: no valid target for '%s'" % [_debug_id, display_name, chosen_skill.name])
 	else:
 		for c in recover():
 			updates.append(EntityUpdate.new(player_id, player_id, c))

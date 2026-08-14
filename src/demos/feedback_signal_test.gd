@@ -18,8 +18,8 @@ var _fired_effects: Array[String] = []
 
 
 func _ready():
-	Log.set_level(Log.Level.INFO)
-	Log.info("FeedbackSignalTest", "=== FEEDBACK SIGNAL TEST ===")
+	MyLog.set_level(MyLog.Level.INFO)
+	MyLog.info("FeedbackSignalTest", "=== FEEDBACK SIGNAL TEST ===")
 
 	var battle := _create_battle()
 	var entities: Array[CombatEntity] = []
@@ -47,7 +47,7 @@ func _ready():
 		target_display._on_update_fired(update)
 
 	# --- Test 1: HP change reaches target display as TARGET role ---
-	Log.info("FeedbackSignalTest", "--- Test: HP change signal dispatch ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: HP change signal dispatch ---")
 	_fired_effects.clear()
 	var hp_change := EntityChange.new(SquadBattleTypes.EntityChangeable.HP, 60.0, 45.0)
 	var hp_update := EntityUpdate.new(attacker.player_id, defender.player_id, hp_change)
@@ -64,7 +64,7 @@ func _ready():
 		"Target display does NOT receive SOURCE role")
 
 	# --- Test 2: Source display gets SOURCE role ---
-	Log.info("FeedbackSignalTest", "--- Test: Source role assignment ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: Source role assignment ---")
 	received_roles.clear()
 	source_display.change_received.connect(spy)
 	update_fired.call(hp_update)
@@ -74,7 +74,7 @@ func _ready():
 		"Source display receives SOURCE role for HP change")
 
 	# --- Test 3: wants() filtering — DODGE only fires for TARGET ---
-	Log.info("FeedbackSignalTest", "--- Test: DODGE wants() filtering ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: DODGE wants() filtering ---")
 	var dodge_change := EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1)
 	var dodge_update := EntityUpdate.new(attacker.player_id, defender.player_id, dodge_change)
 
@@ -85,7 +85,7 @@ func _ready():
 		"DodgeTextFeedback rejects DODGE as SOURCE")
 
 	# --- Test 4: wants() filtering — AttackLunge only fires for SOURCE ---
-	Log.info("FeedbackSignalTest", "--- Test: AttackLunge wants() filtering ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: AttackLunge wants() filtering ---")
 	var lunge_fx := AttackLungeFeedback.new()
 	_assert_true(lunge_fx.wants(hp_change, FeedbackEffect.Role.SOURCE),
 		"AttackLungeFeedback wants HP as SOURCE")
@@ -93,7 +93,7 @@ func _ready():
 		"AttackLungeFeedback rejects HP as TARGET")
 
 	# --- Test 5: wants() filtering — Death only for TARGET + DIE ---
-	Log.info("FeedbackSignalTest", "--- Test: Death wants() filtering ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: Death wants() filtering ---")
 	var die_change := EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1)
 	var death_fx := DeathFeedback.new()
 	_assert_true(death_fx.wants(die_change, FeedbackEffect.Role.TARGET),
@@ -104,7 +104,7 @@ func _ready():
 		"DeathFeedback rejects HP change")
 
 	# --- Test 6: wants() filtering — ProcPopup only for SOURCE + PROC ---
-	Log.info("FeedbackSignalTest", "--- Test: ProcPopup wants() filtering ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: ProcPopup wants() filtering ---")
 	var proc_change := EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, {"skill_name": "Brace"})
 	var proc_fx := ProcPopupFeedback.new()
 	_assert_true(proc_fx.wants(proc_change, FeedbackEffect.Role.SOURCE),
@@ -115,7 +115,7 @@ func _ready():
 		"ProcPopupFeedback rejects HP change")
 
 	# --- Test 7: Full signal chain — emit update, effects fire autonomously ---
-	Log.info("FeedbackSignalTest", "--- Test: Full signal chain (HP damage) ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: Full signal chain (HP damage) ---")
 	var rig_before := target_display.rig.modulate
 	update_fired.call(hp_update)
 	await get_tree().create_timer(0.1).timeout
@@ -124,7 +124,7 @@ func _ready():
 		"HP damage triggers visual feedback on target rig (modulate changed)")
 
 	# --- Test 8: Self-update (source == affected) fires both roles ---
-	Log.info("FeedbackSignalTest", "--- Test: Self-update fires both roles ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: Self-update fires both roles ---")
 	received_roles.clear()
 	var self_change := EntityChange.new(SquadBattleTypes.EntityChangeable.HP, 50.0, 60.0)
 	var self_update := EntityUpdate.new(attacker.player_id, attacker.player_id, self_change)
@@ -138,7 +138,7 @@ func _ready():
 		"Self-update fires TARGET role")
 
 	# --- Test 9: Unrelated entity does not receive signal ---
-	Log.info("FeedbackSignalTest", "--- Test: Unrelated entity ignores update ---")
+	MyLog.info("FeedbackSignalTest", "--- Test: Unrelated entity ignores update ---")
 	var unrelated := entities[2]
 	var unrelated_display := BattleEntityDisplay.new()
 	add_child(unrelated_display)
@@ -154,12 +154,12 @@ func _ready():
 		"Unrelated display receives no signal for others' update")
 
 	# --- Results ---
-	Log.info("FeedbackSignalTest", "")
-	Log.info("FeedbackSignalTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
+	MyLog.info("FeedbackSignalTest", "")
+	MyLog.info("FeedbackSignalTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
 	if _fail_count > 0:
-		Log.error("FeedbackSignalTest", "SOME TESTS FAILED")
+		MyLog.error("FeedbackSignalTest", "SOME TESTS FAILED")
 	else:
-		Log.info("FeedbackSignalTest", "ALL TESTS PASSED")
+		MyLog.info("FeedbackSignalTest", "ALL TESTS PASSED")
 
 	await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
@@ -180,7 +180,7 @@ func _create_battle() -> SquadBattle:
 func _assert_true(condition: bool, msg: String) -> void:
 	if condition:
 		_pass_count += 1
-		Log.info("FeedbackSignalTest", "  PASS: %s" % msg)
+		MyLog.info("FeedbackSignalTest", "  PASS: %s" % msg)
 	else:
 		_fail_count += 1
-		Log.error("FeedbackSignalTest", "  FAIL: %s" % msg)
+		MyLog.error("FeedbackSignalTest", "  FAIL: %s" % msg)

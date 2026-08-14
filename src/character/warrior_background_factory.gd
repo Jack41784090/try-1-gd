@@ -12,7 +12,7 @@ static func _ensure_loaded() -> void:
 
 	var dir := DirAccess.open(BACKGROUNDS_DIR)
 	if dir == null:
-		Log.warn("WarriorBackgroundFactory", "Backgrounds directory not found: %s" % BACKGROUNDS_DIR)
+		MyLog.warn("WarriorBackgroundFactory", "Backgrounds directory not found: %s" % BACKGROUNDS_DIR)
 		return
 
 	dir.list_dir_begin()

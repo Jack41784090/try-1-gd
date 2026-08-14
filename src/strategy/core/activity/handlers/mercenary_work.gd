@@ -19,7 +19,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 
 	var bandit := demand_calc.find_nearest_bandit(location, world)
 	if bandit == null:
-		Log.info("MercenaryWorkHandler", "MERCENARY_WORK: no bandits found — uneventful patrol")
+		MyLog.info("MercenaryWorkHandler", "MERCENARY_WORK: no bandits found — uneventful patrol")
 		return result
 
 	result.requires_combat = true
@@ -28,7 +28,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	var bounty := demand_calc.get_bounty(bandit)
 	squad.gain_money(bounty)
 
-	Log.info("MercenaryWorkHandler", "MERCENARY_WORK: targeting bandit %s — bounty %.0f gold" % [
+	MyLog.info("MercenaryWorkHandler", "MERCENARY_WORK: targeting bandit %s — bounty %.0f gold" % [
 		bandit.squad_name, bounty])
 
 	return result
@@ -67,7 +67,7 @@ func _execute_legacy(squad: StrategySquad, result: ActivityResult) -> ActivityRe
 	if casualties > 0:
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, -5.0)
 
-	Log.info("MercenaryWorkHandler", "MERCENARY_WORK: %d monsters — %d kills, %d injuries, earned %.0f gold" % [
+	MyLog.info("MercenaryWorkHandler", "MERCENARY_WORK: %d monsters — %d kills, %d injuries, earned %.0f gold" % [
 		monster_count,
 		kills,
 		casualties,

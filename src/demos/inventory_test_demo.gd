@@ -7,7 +7,7 @@ var _fail_count: int = 0
 
 
 func _ready() -> void:
-	Log.set_level(Log.Level.WARN)
+	MyLog.set_level(MyLog.Level.WARN)
 	_print("=== INVENTORY & EQUIPMENT UNIT TESTS ===")
 
 	# --- _test_inventory_add_remove ---

@@ -62,7 +62,7 @@ func execute(context: Dictionary) -> Array[ActivityResult]:
 		var c_chance = chain.chance
 		if chained_trigger.can_trigger(context):
 			if c_chance == 1.0 or (c_chance < 1.0 and RandomNumberGenerator.new().randf() <= c_chance):
-				Log.debug("Activity", "Executing chained activity: %s" % chained_trigger.trigger_name)
+				MyLog.debug("Activity", "Executing chained activity: %s" % chained_trigger.trigger_name)
 				var chained_results = chained_trigger.execute(context)
 				if chained_results is Array:
 					for cr in chained_results:
@@ -72,6 +72,6 @@ func execute(context: Dictionary) -> Array[ActivityResult]:
 					if chained_results is ActivityResult:
 						all_triggered_results.append(chained_results)
 			else:
-				Log.debug("Activity", "Skipped chained activity (chance failed): %s" % chained_trigger.trigger_name)
+				MyLog.debug("Activity", "Skipped chained activity (chance failed): %s" % chained_trigger.trigger_name)
 
 	return all_triggered_results

@@ -14,6 +14,6 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 			detected_count += 1
 
 	result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, 2.0)
-	Log.info("PatrolHandler", "PATROL: detected %d contacts, morale +2" % detected_count)
+	MyLog.info("PatrolHandler", "PATROL: detected %d contacts, morale +2" % detected_count)
 
 	return result

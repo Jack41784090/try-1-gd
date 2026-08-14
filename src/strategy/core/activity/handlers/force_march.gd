@@ -42,7 +42,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 				squad.set_location(second_hop)
 				StrategyEventBus.location_changed.emit(old_location2, second_hop)
 				final_location = second_hop
-				Log.info("ForceMarchHandler", "Double-hop: %s → %s → %s" % [
+				MyLog.info("ForceMarchHandler", "Double-hop: %s → %s → %s" % [
 					squad.squad_name, activity.destination_id, second_hop])
 
 	result.location_changed = final_location

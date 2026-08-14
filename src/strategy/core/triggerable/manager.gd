@@ -26,13 +26,13 @@ func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t)
 			triggered.append(triggerable)
 
 			for chain in triggerable.trigger_chains:
-				Log.debug("TriggerableManager", "Processing chain for trigger: %s" % triggerable.trigger_name)
+				MyLog.debug("TriggerableManager", "Processing chain for trigger: %s" % triggerable.trigger_name)
 				var chained_trigger = chain.another_trigger
 				var chance = chain.chance
 				if chained_trigger.can_trigger(context) and (chance == 1.0 or (chance < 1.0 and RandomNumberGenerator.new().randf() <= chance)):
-					Log.debug("TriggerableManager", "  Added chained trigger: %s" % chained_trigger.trigger_name)
+					MyLog.debug("TriggerableManager", "  Added chained trigger: %s" % chained_trigger.trigger_name)
 					triggered.append(chained_trigger)
 				else:
-					Log.debug("TriggerableManager", "  Skipped chained trigger (chance failed): %s" % chained_trigger.trigger_name)
+					MyLog.debug("TriggerableManager", "  Skipped chained trigger (chance failed): %s" % chained_trigger.trigger_name)
 
 	return triggered

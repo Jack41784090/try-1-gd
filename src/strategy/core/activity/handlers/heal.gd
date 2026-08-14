@@ -23,12 +23,12 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 	if healed_count > 0:
 		StrategyEventBus.squad_resource_changed.emit("money", squad.money)
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, 10.0)
-		Log.info("HealHandler", "HEAL at %s: healed %d warriors for %.0f gold (morale +10)" % [
+		MyLog.info("HealHandler", "HEAL at %s: healed %d warriors for %.0f gold (morale +10)" % [
 			location.location_name,
 			healed_count,
 			healed_count * cost_per_warrior,
 		])
 	else:
-		Log.info("HealHandler", "HEAL at %s: no warriors to heal or not enough money" % location.location_name)
+		MyLog.info("HealHandler", "HEAL at %s: no warriors to heal or not enough money" % location.location_name)
 
 	return result

@@ -22,8 +22,8 @@ var _fail_count: int = 0
 
 
 func _ready():
-	Log.set_level(Log.Level.DEBUG)
-	Log.info("AIActDemo", "=== AI ACT HEADLESS TEST (Presenter Mode) ===")
+	MyLog.set_level(MyLog.Level.DEBUG)
+	MyLog.info("AIActDemo", "=== AI ACT HEADLESS TEST (Presenter Mode) ===")
 
 	var mock_view = HeadlessView.new()
 	add_child(mock_view)
@@ -43,7 +43,7 @@ func _ready():
 	_log_economy_state("INIT")
 
 	var acts := _build_test_sequence()
-	Log.info("AIActDemo", "Test sequence: %d acts" % acts.size())
+	MyLog.info("AIActDemo", "Test sequence: %d acts" % acts.size())
 
 	await _run_acts(acts)
 	_print_summary()
@@ -62,23 +62,23 @@ func _on_triggerable_fired(triggerable, _result):
 	if triggerable is Mission:
 		_missions_completed_this_turn.append(tid)
 		_all_missions_completed.append(tid)
-		Log.info("AIActDemo", "  MISSION COMPLETED: %s" % tid)
+		MyLog.info("AIActDemo", "  MISSION COMPLETED: %s" % tid)
 	else:
 		_events_fired_this_turn.append(tid)
 		_all_events_fired.append(tid)
-		Log.info("AIActDemo", "  EVENT FIRED: %s" % tid)
+		MyLog.info("AIActDemo", "  EVENT FIRED: %s" % tid)
 
 
 func _retroactive_detect_game_start_events():
 	for t in presenter.game_scenario.triggerable_manager.registered_triggerables:
 		if t is GameEvent and t.times_triggered > 0:
 			_all_events_fired.append(t.trigger_id)
-			Log.info("AIActDemo", "  [INIT] Event already fired: %s (x%d)" % [t.trigger_id, t.times_triggered])
+			MyLog.info("AIActDemo", "  [INIT] Event already fired: %s (x%d)" % [t.trigger_id, t.times_triggered])
 	for faction in presenter.game_scenario.factions:
 		for mission in faction.missions:
 			if mission.is_completed:
 				_all_missions_completed.append(mission.mission_id)
-				Log.info("AIActDemo", "  [INIT] Mission already completed: %s" % mission.mission_id)
+				MyLog.info("AIActDemo", "  [INIT] Mission already completed: %s" % mission.mission_id)
 
 
 func _build_test_sequence() -> Array[AIAct]:
@@ -129,10 +129,10 @@ func _run_acts(acts: Array[AIAct]):
 		_events_fired_this_turn.clear()
 		_missions_completed_this_turn.clear()
 
-		Log.info("AIActDemo", "")
-		Log.info("AIActDemo", "=== ACT %d: %s ===" % [i + 1, act.get_display_name()])
+		MyLog.info("AIActDemo", "")
+		MyLog.info("AIActDemo", "=== ACT %d: %s ===" % [i + 1, act.get_display_name()])
 		if not act.description.is_empty():
-			Log.info("AIActDemo", "  Description: %s" % act.description)
+			MyLog.info("AIActDemo", "  Description: %s" % act.description)
 
 		await _execute_via_presenter(act)
 		_check_assertions(act, i + 1)
@@ -149,7 +149,7 @@ func _execute_via_presenter(act: AIAct):
 		presenter.on_travel_confirmed(act.destination_id)
 		await _force_tick_and_wait()
 		while presenter.actor.walking_towards["location"] != null:
-			Log.debug("AIActDemo", "  Continuing travel towards %s..." % act.destination_id)
+			MyLog.debug("AIActDemo", "  Continuing travel towards %s..." % act.destination_id)
 			await _force_tick_and_wait()
 	elif act.activity_type == StrategyTypes.ActivityType.FORCE_MARCH:
 		assert(not act.destination_id.is_empty(), "FORCE_MARCH acts require destination_id")
@@ -157,7 +157,7 @@ func _execute_via_presenter(act: AIAct):
 		presenter.on_travel_confirmed(act.destination_id)
 		await _force_tick_and_wait()
 		while presenter.actor.walking_towards["location"] != null:
-			Log.debug("AIActDemo", "  Continuing force march towards %s..." % act.destination_id)
+			MyLog.debug("AIActDemo", "  Continuing force march towards %s..." % act.destination_id)
 			await _force_tick_and_wait()
 	else:
 		presenter.on_activity_requested(act.activity_type)
@@ -175,7 +175,7 @@ func _check_assertions(act: AIAct, act_num: int):
 	if not act.has_assertions():
 		return
 
-	Log.info("AIActDemo", "  --- Assertions for Act %d ---" % act_num)
+	MyLog.info("AIActDemo", "  --- Assertions for Act %d ---" % act_num)
 
 	if not act.expect_location.is_empty():
 		_assert_eq(
@@ -210,38 +210,38 @@ func _check_assertions(act: AIAct, act_num: int):
 func _assert_eq(label: String, actual: Variant, expected: Variant):
 	if actual == expected:
 		_pass_count += 1
-		Log.info("AIActDemo", "  PASS: %s == %s" % [label, actual])
+		MyLog.info("AIActDemo", "  PASS: %s == %s" % [label, actual])
 	else:
 		_fail_count += 1
-		Log.error("AIActDemo", "  FAIL: %s == %s (expected %s)" % [label, actual, expected])
+		MyLog.error("AIActDemo", "  FAIL: %s == %s (expected %s)" % [label, actual, expected])
 
 
 func _assert_gte(label: String, actual: Variant, minimum: Variant):
 	if actual >= minimum:
 		_pass_count += 1
-		Log.info("AIActDemo", "  PASS: %s = %s (>= %s)" % [label, actual, minimum])
+		MyLog.info("AIActDemo", "  PASS: %s = %s (>= %s)" % [label, actual, minimum])
 	else:
 		_fail_count += 1
-		Log.error("AIActDemo", "  FAIL: %s = %s (expected >= %s)" % [label, actual, minimum])
+		MyLog.error("AIActDemo", "  FAIL: %s = %s (expected >= %s)" % [label, actual, minimum])
 
 
 func _assert_lte(label: String, actual: Variant, maximum: Variant):
 	if actual <= maximum:
 		_pass_count += 1
-		Log.info("AIActDemo", "  PASS: %s = %s (<= %s)" % [label, actual, maximum])
+		MyLog.info("AIActDemo", "  PASS: %s = %s (<= %s)" % [label, actual, maximum])
 	else:
 		_fail_count += 1
-		Log.error("AIActDemo", "  FAIL: %s = %s (expected <= %s)" % [label, actual, maximum])
+		MyLog.error("AIActDemo", "  FAIL: %s = %s (expected <= %s)" % [label, actual, maximum])
 
 
 func _assert_event_fired(event_id: String):
 	var found := event_id in _events_fired_this_turn or event_id in _missions_completed_this_turn
 	if found:
 		_pass_count += 1
-		Log.info("AIActDemo", "  PASS: event/mission '%s' fired this act" % event_id)
+		MyLog.info("AIActDemo", "  PASS: event/mission '%s' fired this act" % event_id)
 	else:
 		_fail_count += 1
-		Log.error("AIActDemo", "  FAIL: event/mission '%s' NOT fired (events: %s, missions: %s)" % [
+		MyLog.error("AIActDemo", "  FAIL: event/mission '%s' NOT fired (events: %s, missions: %s)" % [
 			event_id,
 			_events_fired_this_turn,
 			_missions_completed_this_turn,
@@ -256,7 +256,7 @@ func _log_squad_state(tag: String):
 	for w in living:
 		if w.is_injured:
 			injured += 1
-	Log.info("AIActDemo", "[%s] %s @ %s — Warriors:%d Injured:%d Morale:%.0f Food:%d Gold:%.0f" % [
+	MyLog.info("AIActDemo", "[%s] %s @ %s — Warriors:%d Injured:%d Morale:%.0f Food:%d Gold:%.0f" % [
 		tag,
 		player_squad.squad_name,
 		player_squad.current_location_id,
@@ -271,7 +271,7 @@ func _log_squad_state(tag: String):
 func _log_economy_state(tag: String):
 	var world = presenter.game_scenario.world
 	assert(world.economy_engine != null, "AIActDemo requires initialized economy engine")
-	Log.info("AIActDemo", "[%s] --- Economy State ---" % tag)
+	MyLog.info("AIActDemo", "[%s] --- Economy State ---" % tag)
 	for loc in world.get_economy_locations():
 		var pop_count := loc.population.size() if loc.population else 0
 		var avg_sat := loc.population.get_average_satisfaction() if loc.population else 0.0
@@ -282,19 +282,19 @@ func _log_economy_state(tag: String):
 				food_stock = loc.inventory.stocks[thing]
 				break
 		var fed_ratio := food_stock / maxf(pop_count, 1.0)
-		Log.info("AIActDemo", "  %s: Pop=%d Sat=%.0f Food=%.0f (%.1f turns)" % [
+		MyLog.info("AIActDemo", "  %s: Pop=%d Sat=%.0f Food=%.0f (%.1f turns)" % [
 			loc.location_name, pop_count, avg_sat, food_stock, fed_ratio])
 
 
 func _print_summary():
-	Log.info("AIActDemo", "")
-	Log.info("AIActDemo", "=== TEST SUMMARY ===")
-	Log.info("AIActDemo", "Assertions: %d passed, %d failed" % [_pass_count, _fail_count])
-	Log.info("AIActDemo", "All events fired: %s" % [_all_events_fired])
-	Log.info("AIActDemo", "All missions completed: %s" % [_all_missions_completed])
+	MyLog.info("AIActDemo", "")
+	MyLog.info("AIActDemo", "=== TEST SUMMARY ===")
+	MyLog.info("AIActDemo", "Assertions: %d passed, %d failed" % [_pass_count, _fail_count])
+	MyLog.info("AIActDemo", "All events fired: %s" % [_all_events_fired])
+	MyLog.info("AIActDemo", "All missions completed: %s" % [_all_missions_completed])
 	_log_squad_state("FINAL")
 
 	if _fail_count > 0:
-		Log.error("AIActDemo", "SOME TESTS FAILED")
+		MyLog.error("AIActDemo", "SOME TESTS FAILED")
 	else:
-		Log.info("AIActDemo", "ALL TESTS PASSED")
+		MyLog.info("AIActDemo", "ALL TESTS PASSED")

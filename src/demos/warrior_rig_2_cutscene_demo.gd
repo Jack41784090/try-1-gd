@@ -145,7 +145,7 @@ func _process(delta: float) -> void:
 			rig.apply_config(rebuilt)
 		stage_view.reload_scenery_textures()
 		_snapshot_mtimes()
-		Log.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")
+		MyLog.info("RigCutsceneDemo", "Rig + scenery textures reloaded from disk")
 
 
 func _unhandled_input(event: InputEvent) -> void:

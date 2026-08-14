@@ -53,7 +53,7 @@ static func apply_delivery(
 		var thing := _find_thing(thing_id, goods_registry)
 		if thing:
 			dest_inventory.add(thing, qty)
-			Log.info("Caravan", "Delivered %.1f %s to %s" % [
+			MyLog.info("Caravan", "Delivered %.1f %s to %s" % [
 				qty, thing.thing_name, squad.cargo.destination_id,
 			])
 	squad.cargo.manifest.clear()
@@ -71,7 +71,7 @@ static func apply_loot(
 		else:
 			attacker.gain_money(qty * 2.0)
 		looted[thing_id] = qty
-		Log.info("Caravan", "Looted %.1f %s from %s" % [
+		MyLog.info("Caravan", "Looted %.1f %s from %s" % [
 			qty, thing_id, caravan.squad_name,
 		])
 	caravan.cargo.manifest.clear()
@@ -89,7 +89,7 @@ static func execute_caravan_reassignment(
 	squad.cargo.shipment_id = shipment_id
 	squad.money = move.quantity * move.thing.base_price
 	squad.food = maxi(squad.get_living_warriors().size() * move.turns_remaining, 3)
-	Log.info("Caravan", "Reassigned %s: %s → %s (%.1f %s)" % [
+	MyLog.info("Caravan", "Reassigned %s: %s → %s (%.1f %s)" % [
 		squad.squad_name, squad.current_location_id,
 		move.dest_location_id, move.quantity, move.thing.thing_name,
 	])

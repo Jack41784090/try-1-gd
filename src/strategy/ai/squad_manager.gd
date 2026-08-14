@@ -20,7 +20,7 @@ func setup(_scenario: GameScenario) -> void:
 	
 	scenario = _scenario
 
-	Log.info("Fleet", "Setting up fleet with %d roaming squads" % scenario.world.roaming_squads.size())
+	MyLog.info("Fleet", "Setting up fleet with %d roaming squads" % scenario.world.roaming_squads.size())
 
 	## 1. Load the default AI behavior profile (considerations + fallback action)
 	## e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
@@ -39,16 +39,16 @@ func setup(_scenario: GameScenario) -> void:
 		var brain = SquadBrain.new(squad, profile)
 		_register_brain_and_executor(squad, brain)
 
-		Log.debug("Fleet", "Created brain for squad: %s" % squad.squad_name)
+		MyLog.debug("Fleet", "Created brain for squad: %s" % squad.squad_name)
 
-	Log.info("Fleet", "Fleet setup complete with %d squad brains" % squad_brains.size())
+	MyLog.info("Fleet", "Fleet setup complete with %d squad brains" % squad_brains.size())
 
 
 func prepare_ai_turns() -> Dictionary:
 	if squad_brains.is_empty():
 		return {}
 
-	Log.debug("Fleet", "=== Preparing AI Turn for %d squads ===" % squad_brains.size())
+	MyLog.debug("Fleet", "=== Preparing AI Turn for %d squads ===" % squad_brains.size())
 	decisions_this_turn.clear()
 
 	var directives = faction_brain.produce_directives(scenario.world)
@@ -126,7 +126,7 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 	var defender_id: String = combat_data["defender_id"]
 	var is_mutual: bool = combat_data.get("is_mutual", false)
 
-	Log.info("Fleet", "Resolving combat: %s vs %s%s" % [
+	MyLog.info("Fleet", "Resolving combat: %s vs %s%s" % [
 		attacker_id,
 		defender_id,
 		" (MUTUAL)" if is_mutual else "",
@@ -136,7 +136,7 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 	var defender = _find_squad_by_id(defender_id)
 
 	if not attacker or not defender:
-		Log.error("Fleet", "Could not find squads for combat")
+		MyLog.error("Fleet", "Could not find squads for combat")
 		return
 
 	var rng = RandomNumberGenerator.new()
@@ -144,7 +144,7 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 	var atk_strength := _roll_strength(attacker, rng)
 	var def_strength := _roll_strength(defender, rng)
 
-	Log.debug("Fleet", "Strength: %s=%.0f vs %s=%.0f" % [
+	MyLog.debug("Fleet", "Strength: %s=%.0f vs %s=%.0f" % [
 		attacker.squad_name,
 		atk_strength,
 		defender.squad_name,
@@ -164,17 +164,17 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 	var casualties := maxi(1, int(loser_living.size() / 2.0))
 	for i in range(mini(casualties, loser_living.size())):
 		loser_living[i].is_dead = true
-	Log.info("Fleet", "%s lost %d warriors" % [loser.squad_name, casualties])
+	MyLog.info("Fleet", "%s lost %d warriors" % [loser.squad_name, casualties])
 
 	var winner_living = winner.get_living_warriors()
 	if winner_living.size() > 1 and rng.randf() < 0.4:
 		winner_living[0].is_injured = true
-		Log.debug("Fleet", "%s had 1 warrior injured" % winner.squad_name)
+		MyLog.debug("Fleet", "%s had 1 warrior injured" % winner.squad_name)
 
 	winner.modify_morale(15)
 	loser.modify_morale(-20)
-	Log.info("Fleet", "%s VICTORIOUS (morale: %d)" % [winner.squad_name, winner.get_morale()])
-	Log.info("Fleet", "%s DEFEATED (morale: %d, living: %d)" % [
+	MyLog.info("Fleet", "%s VICTORIOUS (morale: %d)" % [winner.squad_name, winner.get_morale()])
+	MyLog.info("Fleet", "%s DEFEATED (morale: %d, living: %d)" % [
 		loser.squad_name,
 		loser.get_morale(),
 		loser.get_living_warriors().size(),
@@ -184,13 +184,13 @@ func _execute_headless_combat(combat_data: Dictionary) -> void:
 
 	if loser.is_caravan() and loser.has_cargo():
 		CaravanBridge.apply_loot(loser, winner)
-		Log.info("Fleet", "%s looted caravan %s" % [winner.squad_name, loser.squad_name])
+		MyLog.info("Fleet", "%s looted caravan %s" % [winner.squad_name, loser.squad_name])
 
 	if loser.get_living_warriors().size() > 0:
 		var nearest = scenario.world.find_nearest_location(loser.current_location_id)
 		if nearest != "":
 			loser.set_location(nearest)
-			Log.info("Fleet", "%s fled to %s" % [loser.squad_name, nearest])
+			MyLog.info("Fleet", "%s fled to %s" % [loser.squad_name, nearest])
 
 
 func cleanup_defeated_squads() -> void:
@@ -207,14 +207,14 @@ func cleanup_defeated_squads() -> void:
 			if warrior != null and not warrior.is_dead:
 				living_count += 1
 
-		Log.trace("Fleet", "Squad %s: %d/%d warriors alive" % [
+		MyLog.trace("Fleet", "Squad %s: %d/%d warriors alive" % [
 			squad.squad_name,
 			living_count,
 			total_count,
 		])
 
 		if living_count == 0:
-			Log.info("Fleet", "Squad %s eliminated - removing from fleet" % squad.squad_name)
+			MyLog.info("Fleet", "Squad %s eliminated - removing from fleet" % squad.squad_name)
 			to_remove.append(squad_id)
 			continue
 
@@ -225,9 +225,9 @@ func cleanup_defeated_squads() -> void:
 					warrior.is_dead = true
 					deserters += 1
 			if deserters > 0:
-				Log.info("Fleet", "%s: %d warrior(s) deserted (0 morale)" % [squad.squad_name, deserters])
+				MyLog.info("Fleet", "%s: %d warrior(s) deserted (0 morale)" % [squad.squad_name, deserters])
 			if squad.get_living_warriors().size() == 0:
-				Log.info("Fleet", "Squad %s disbanded from mass desertion" % squad.squad_name)
+				MyLog.info("Fleet", "Squad %s disbanded from mass desertion" % squad.squad_name)
 				to_remove.append(squad_id)
 
 	for squad_id in to_remove:
@@ -238,7 +238,7 @@ func cleanup_defeated_squads() -> void:
 	if to_remove.size() > 0:
 		for sid in to_remove:
 			combat_log.append("ELIMINATED squad removed from world")
-		Log.info("Fleet", "%d squads eliminated. Remaining: %d" % [to_remove.size(), squad_brains.size()])
+		MyLog.info("Fleet", "%d squads eliminated. Remaining: %d" % [to_remove.size(), squad_brains.size()])
 
 
 func fill_activity_log(activity_log: Dictionary, edge_log: Dictionary) -> void:
@@ -288,12 +288,12 @@ func register_squad(squad: StrategySquad, profile_path: String = "") -> void:
 	var profile = AIProfileFactory.get_squad_profile(resolved_profile_path)
 	var brain = SquadBrain.new(squad, profile)
 	_register_brain_and_executor(squad, brain)
-	Log.debug("Fleet", "Registered squad brain: %s (%s)" % [squad.squad_name, profile.profile_name])
+	MyLog.debug("Fleet", "Registered squad brain: %s (%s)" % [squad.squad_name, profile.profile_name])
 
 
 func unregister_squad(squad_id: String) -> void:
 	_erase_squad_runtime_state(squad_id)
-	Log.debug("Fleet", "Unregistered squad: %s" % squad_id)
+	MyLog.debug("Fleet", "Unregistered squad: %s" % squad_id)
 
 
 func tick_bandit_lifecycle(faction: Faction) -> Array[String]:

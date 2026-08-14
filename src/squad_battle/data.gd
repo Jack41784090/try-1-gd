@@ -49,7 +49,7 @@ func get_entity_by_id(entity_id: int) -> CombatEntity:
 				if entity.player_id == entity_id:
 					return entity
 
-	Log.error("SquadBattle", "Entity with ID %d not found!" % entity_id)
+	MyLog.error("SquadBattle", "Entity with ID %d not found!" % entity_id)
 	return null
 
 
@@ -185,12 +185,12 @@ func advance_round() -> Array[EntityUpdate]:
 				for i in range(squad.entities.size()):
 					if squad.entities[i].player_id == cap_entity.player_id:
 						cap_entities_to_remove.append(i)
-						Log.warn("SquadBattle", "Entity %d has capitulated and left the battle!" % squad.entities[i].player_id)
+						MyLog.warn("SquadBattle", "Entity %d has capitulated and left the battle!" % squad.entities[i].player_id)
 				for i in range(cap_entities_to_remove.size() - 1, -1, -1):
 					squad.entities.remove_at(cap_entities_to_remove[i])
 
 	var outcome = get_battle_outcome()
-	Log.debug("SquadBattle", "Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
+	MyLog.debug("SquadBattle", "Round %d: %s (attacker HP %d, defender HP %d)" % [round_count, SquadBattleTypes.BattleOutcome.keys()[outcome], check_team_strength(SquadBattleTypes.Side.ATTACKER), check_team_strength(SquadBattleTypes.Side.DEFENDER)])
 	return updates
 
 
@@ -200,15 +200,15 @@ func advance_round() -> Array[EntityUpdate]:
 func run_headless() -> Array[EntityUpdate]:
 	var all_updates: Array[EntityUpdate] = []
 
-	Log.info("SquadBattle", "Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
+	MyLog.info("SquadBattle", "Starting headless simulation — attacker '%s' (actions=%d, rounds=%d), defender '%s' (reactions=%d)" % [attacker_tactic.tactic_name, attacker_tactic.action_count, max_rounds, defender_tactic.tactic_name, defender_tactic.reaction_count])
 
 	round_count = 0
 
 	while get_battle_outcome() == SquadBattleTypes.BattleOutcome.ONGOING and round_count < max_rounds:
-		Log.debug("SquadBattle", "=== Round %d/%d ===" % [round_count + 1, max_rounds])
+		MyLog.debug("SquadBattle", "=== Round %d/%d ===" % [round_count + 1, max_rounds])
 		all_updates.append_array(advance_round())
 
 	var final_outcome = get_battle_outcome()
-	Log.info("SquadBattle", "Battle complete after %d round(s): %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[final_outcome]])
+	MyLog.info("SquadBattle", "Battle complete after %d round(s): %s" % [round_count, SquadBattleTypes.BattleOutcome.keys()[final_outcome]])
 
 	return all_updates

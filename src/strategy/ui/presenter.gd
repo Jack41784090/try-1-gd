@@ -58,12 +58,12 @@ func bind_view(v) -> void:
 	ai_fleet = view.ai_fleet
 	vn_view = view.vn_view
 	stage_presenter = view.get_stage_presenter()
-	Log.info("Presenter", "Initialising scenario")
+	MyLog.info("Presenter", "Initialising scenario")
 	if is_demo_scenario:
-		Log.info("Presenter", "Loading DEMO scenario")
+		MyLog.info("Presenter", "Loading DEMO scenario")
 		actor.setup(DemoScenarioFactory.create_demo_scenario())
 	else:
-		Log.info("Presenter", "Loading scenario: %s" % scenario_path)
+		MyLog.info("Presenter", "Loading scenario: %s" % scenario_path)
 		assert(not scenario_path.is_empty(), "Scenario path is empty")
 		assert(ResourceLoader.exists(scenario_path), "Scenario resource does not exist at path: %s" % scenario_path)
 		var loaded = ResourceLoader.load(scenario_path)
@@ -73,7 +73,7 @@ func bind_view(v) -> void:
 			error_msg += "  - Missing dependencies (check ExtResource paths)\n"
 			error_msg += "  - Circular reference in resources\n"
 			error_msg += "  - Corrupted .tres file\n"
-			Log.error("Presenter", error_msg)
+			MyLog.error("Presenter", error_msg)
 			assert(false, error_msg)
 		assert(loaded is GameScenario, "Loaded resource is not a GameScenario (got %s): %s" % [loaded.get_class(), scenario_path])
 		actor.setup(loaded)
@@ -86,8 +86,8 @@ func bind_view(v) -> void:
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	_bind_scouting_data()
-	Log.info("Presenter", "Orchestrators initialized")
-	Log.info("Presenter", "AISquadManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
+	MyLog.info("Presenter", "Orchestrators initialized")
+	MyLog.info("Presenter", "AISquadManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
 	StrategyEventBus.squad_morale_changed.emit(actor.player_squad.get_morale())
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
@@ -210,7 +210,7 @@ func on_investigation_closed() -> void:
 
 
 func on_recruitment_completed(warrior: Character) -> void:
-	Log.info("Presenter", "Recruited warrior: %s" % warrior.display_name)
+	MyLog.info("Presenter", "Recruited warrior: %s" % warrior.display_name)
 	view.log_squad_event("Recruited: %s (%s)" % [warrior.display_name, warrior.identification], Color(0.3, 0.8, 1.0))
 	stage_presenter.refresh_warriors(actor.player_squad)
 	actor.player_squad.current_activity_type = StrategyTypes.ActivityType.RECRUIT
@@ -226,7 +226,7 @@ func on_manage_squad_closed() -> void:
 
 
 func on_purchase_completed(purchases: Dictionary) -> void:
-	Log.debug("Presenter", "Purchase completed: %s" % [purchases])
+	MyLog.debug("Presenter", "Purchase completed: %s" % [purchases])
 	for item_name in purchases:
 		var qty: int = purchases[item_name]
 		if qty > 0:
@@ -279,7 +279,7 @@ func on_market_closed() -> void:
 func on_combat_choice(choice: CombatController.IntermissionChoice) -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
-	Log.debug("Presenter", "Player chose: %s" % CombatController.IntermissionChoice.keys()[choice])
+	MyLog.debug("Presenter", "Player chose: %s" % CombatController.IntermissionChoice.keys()[choice])
 	_process_encounter_choice(choice)
 
 
@@ -303,7 +303,7 @@ func on_summary_pressed() -> void:
 
 
 func on_battle_close() -> void:
-	Log.debug("Presenter", "User closed battle manually")
+	MyLog.debug("Presenter", "User closed battle manually")
 	view.cleanup_battle_scene()
 
 
@@ -319,7 +319,7 @@ func on_speed_changed(speed: float) -> void:
 
 
 func on_retreat_requested() -> void:
-	Log.info("Presenter", "Player requested retreat mid-battle")
+	MyLog.info("Presenter", "Player requested retreat mid-battle")
 	var battle_view: SquadBattleNode = null
 	for child in view.combat_overlay.get_children():
 		if child is SquadBattleNode:
@@ -474,9 +474,9 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 	var encounter_result: CombatController.CombatResult = await combat_orch.execute_choice(choice)
 	view.hide_combat_panel()
 
-	Log.info("Presenter", "Combat result received: %s" % [encounter_result.to_string() if encounter_result else "null"])
+	MyLog.info("Presenter", "Combat result received: %s" % [encounter_result.to_string() if encounter_result else "null"])
 	var result := encounter_result
-	Log.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
+	MyLog.info("Presenter", "COMBAT RESOLVED: %s" % result.to_string())
 	if not result.player_casualties.is_empty():
 		pass
 	var outcome = combat_orch.apply_result(result, actor.player_squad, actor.current_location, game_scenario.world, turn_log)
@@ -511,7 +511,7 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 func _on_combat_timeout() -> void:
 	if ui_mode != UIMode.COMBAT_INTERMISSION:
 		return
-	Log.info("Presenter", "COMBAT TIMEOUT - Auto-fighting!")
+	MyLog.info("Presenter", "COMBAT TIMEOUT - Auto-fighting!")
 	view.set_combat_info_text("Time's up! Engaging in combat...")
 	_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
 
@@ -523,12 +523,12 @@ func _on_combat_timeout() -> void:
 #region Stat Tracking
 
 func _animate_stat_changes() -> void:
-	Log.trace("StatAnim", "_animate_stat_changes() called")
+	MyLog.trace("StatAnim", "_animate_stat_changes() called")
 	var deltas := {}
 	if not game_scenario:
-		Log.warn("StatAnim", "Cannot calculate deltas - no game_scenario")
+		MyLog.warn("StatAnim", "Cannot calculate deltas - no game_scenario")
 	elif stat_snapshot.is_empty():
-		Log.warn("StatAnim", "Cannot calculate deltas - snapshot is empty")
+		MyLog.warn("StatAnim", "Cannot calculate deltas - snapshot is empty")
 	else:
 		var delta_squad = actor.player_squad
 		var current_stats := {
@@ -537,25 +537,25 @@ func _animate_stat_changes() -> void:
 			"karma": delta_squad.karma,
 			"morale": delta_squad.get_morale(),
 		}
-		Log.trace("StatAnim", "Current stats: %s" % [current_stats])
+		MyLog.trace("StatAnim", "Current stats: %s" % [current_stats])
 		for stat_name in stat_snapshot:
 			var old_value = stat_snapshot[stat_name]
 			var new_value = current_stats[stat_name]
 			var delta = new_value - old_value
 			if abs(delta) >= 0.01:
 				deltas[stat_name] = delta
-				Log.trace("StatAnim", "Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
+				MyLog.trace("StatAnim", "Delta for %s: %.2f (from %.2f to %.2f)" % [stat_name, delta, old_value, new_value])
 		if deltas.is_empty():
-			Log.trace("StatAnim", "No meaningful deltas detected (all changes < 0.01)")
+			MyLog.trace("StatAnim", "No meaningful deltas detected (all changes < 0.01)")
 		else:
-			Log.debug("StatAnim", "Total deltas to animate: %s" % [deltas])
+			MyLog.debug("StatAnim", "Total deltas to animate: %s" % [deltas])
 	if deltas.is_empty():
-		Log.trace("StatAnim", "No deltas to animate, returning early")
+		MyLog.trace("StatAnim", "No deltas to animate, returning early")
 		return
 
-	Log.trace("StatAnim", "Starting animation with %d delta(s)" % deltas.size())
+	MyLog.trace("StatAnim", "Starting animation with %d delta(s)" % deltas.size())
 	await view.animate_stat_changes(deltas)
-	Log.trace("StatAnim", "Animation completed")
+	MyLog.trace("StatAnim", "Animation completed")
 
 #endregion
 
@@ -794,7 +794,7 @@ func _on_hour_tick(hour: int) -> void:
 						view.log_squad_event("Contact: %s — %s → %s" % [target_name, before_name.capitalize(), after_name.capitalize()], contact_color)
 			if entry["is_player"]:
 				if not game_scenario:
-					Log.warn("StatAnim", "Cannot capture snapshot - no game_scenario")
+					MyLog.warn("StatAnim", "Cannot capture snapshot - no game_scenario")
 				else:
 					var snapshot_squad = actor.player_squad
 					stat_snapshot = {
@@ -803,7 +803,7 @@ func _on_hour_tick(hour: int) -> void:
 						"karma": snapshot_squad.karma,
 						"morale": snapshot_squad.get_morale(),
 					}
-					Log.trace("StatAnim", "Snapshot captured: %s" % [stat_snapshot])
+					MyLog.trace("StatAnim", "Snapshot captured: %s" % [stat_snapshot])
 				var all_activity_result = actor["exec_%s" % phase].call(activity)
 				_pending_results.append_array(all_activity_result)
 				_queue_multiple_eventchains_from_results(all_activity_result)
@@ -815,8 +815,8 @@ func _on_hour_tick(hour: int) -> void:
 					assert(combat_result.combat_target_squad_id != "", "[GameScenario] Combat required but no target squad ID specified in activity result")
 					var enemy_squad = actor.aem._find_enemy_squad(combat_result.combat_target_squad_id)
 					if enemy_squad:
-						Log.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[combat_result.engagement_type])
-						Log.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
+						MyLog.info("Presenter", "COMBAT ENCOUNTER INITIATED (%s)" % StrategyTypes.EngagementType.keys()[combat_result.engagement_type])
+						MyLog.info("Presenter", "Enemy: %s (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()])
 						view.log_squad_event("⚔ Engaging %s! (%d warriors)" % [enemy_squad.squad_name, enemy_squad.get_living_warriors().size()], Color(1.0, 0.4, 0.4))
 						combat_options = combat_orch.inject_context(
 							actor.player_squad,
@@ -829,7 +829,7 @@ func _on_hour_tick(hour: int) -> void:
 						_process_encounter_choice(CombatController.IntermissionChoice.FIGHT)
 						await encounter_resolved
 					else:
-						Log.warn("Presenter", "Combat required but enemy squad with ID '%s' not found" % combat_result.combat_target_squad_id)
+						MyLog.warn("Presenter", "Combat required but enemy squad with ID '%s' not found" % combat_result.combat_target_squad_id)
 					has_combat = found_combat_actR_index != -1
 				if not has_combat:
 					await _animate_stat_changes()
@@ -868,7 +868,7 @@ func _on_hour_tick(hour: int) -> void:
 		if econ_squad.is_caravan() and econ_squad.has_reached_destination():
 			engine.execute_caravan_delivery(econ_squad)
 			econ_event_log.append("CARAVAN delivered %s to %s" % [econ_squad.squad_name, econ_squad.cargo.destination_id])
-			Log.info("Economy", "Caravan %s delivered to %s" % [econ_squad.squad_name, econ_squad.cargo.destination_id])
+			MyLog.info("Economy", "Caravan %s delivered to %s" % [econ_squad.squad_name, econ_squad.cargo.destination_id])
 			idle_caravans.append(econ_squad)
 	var dispatches: Array[EconomyTickResult.ShipmentDispatch] = economy_tick_result_full.shipment_dispatches
 	var dispatch_index := 0
@@ -903,7 +903,7 @@ func _on_hour_tick(hour: int) -> void:
 				spawn_squad.cargo.destination_id,
 			],
 		)
-		Log.info(
+		MyLog.info(
 			"Economy",
 			"Spawned caravan: %s at %s → %s (%d guards)" % [
 				spawn_squad.squad_name,
@@ -914,7 +914,7 @@ func _on_hour_tick(hour: int) -> void:
 		)
 	for retire_squad in idle_caravans:
 		econ_event_log.append("CARAVAN retired %s" % retire_squad.squad_name)
-		Log.info("Economy", "Retiring idle caravan: %s" % retire_squad.squad_name)
+		MyLog.info("Economy", "Retiring idle caravan: %s" % retire_squad.squad_name)
 		engine.clear_shipment_for_squad(retire_squad.squad_id)
 		econ_world.remove_roaming_squad(retire_squad.squad_id)
 		ai_fleet.unregister_squad(retire_squad.squad_id)

@@ -140,7 +140,7 @@ func update_all_contacts(world: World, all_squads: Array[StrategySquad], activit
 	for key in contacts:
 		var c = contacts[key]
 		if c.progress > 0.0:
-			Log.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
+			MyLog.trace("Contact", "T%d %s → %s: %.1f (%s)" % [
 				current_hour,
 				c.observer_id,
 				c.target_id,
@@ -163,7 +163,7 @@ func apply_clue_bonus(clue: Clue, target_squad: StrategySquad, observer_squad: S
 		var bonus = remap(clue.detail_level, 0.0, 10.0, 10.0, 20.0)
 		var contact = get_or_create_contact(observer_squad.squad_id, target_squad.squad_id)
 		contact.apply_delta(bonus, 0)
-		Log.debug("Contact", "Clue bonus +%.1f on %s → %s" % [bonus, observer_squad.squad_id, target_squad.squad_id])
+		MyLog.debug("Contact", "Clue bonus +%.1f on %s → %s" % [bonus, observer_squad.squad_id, target_squad.squad_id])
 
 func clear_contacts_for(squad_id: String) -> void:
 	var keys_to_remove: Array[String] = []
@@ -181,7 +181,7 @@ func classify_engagement(attacker_id: String, defender_id: String) -> StrategyTy
 	var state_atk = contact_atk.get_state() if contact_atk else StrategyTypes.ContactState.NONE
 	var state_def = contact_def.get_state() if contact_def else StrategyTypes.ContactState.NONE
 
-	Log.debug("Contact", "Engagement classification: attacker=%s defender=%s" % [
+	MyLog.debug("Contact", "Engagement classification: attacker=%s defender=%s" % [
 		StrategyTypes.ContactState.keys()[state_atk],
 		StrategyTypes.ContactState.keys()[state_def]])
 

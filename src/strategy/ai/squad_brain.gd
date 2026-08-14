@@ -66,7 +66,7 @@ func decide(world: World, faction: Faction, directive: FactionDirective) -> Dict
 		if not can_exec:
 			continue
 
-		Log.trace("Brain:%s" % squad.squad_name, "%s → %.2f" % [consideration.name, score])
+		MyLog.trace("Brain:%s" % squad.squad_name, "%s → %.2f" % [consideration.name, score])
 
 		## 2.5 Track the highest-scoring action
 		if score > best_score:
@@ -76,7 +76,7 @@ func decide(world: World, faction: Faction, directive: FactionDirective) -> Dict
 	## 3. Fallback if no consideration scored > 0 — use profile's default action (usually REST)
 	if best_action == null:
 		best_action = config.fallback_action
-		Log.debug("Brain:%s" % squad.squad_name, "Using fallback: %s" % [best_action.action_name if best_action else "NONE"])
+		MyLog.debug("Brain:%s" % squad.squad_name, "Using fallback: %s" % [best_action.action_name if best_action else "NONE"])
 
 	if best_action == null:
 		return {"activity_type": StrategyTypes.ActivityType.REST, "context": {}}
@@ -84,7 +84,7 @@ func decide(world: World, faction: Faction, directive: FactionDirective) -> Dict
 	## 4. Resolve context for the chosen action (e.g., pick travel destination, pick attack target)
 	## e.g., StrategicAction(TRAVEL, destination_strategy=NEAREST_TOWN) → context={travel_destination: "vienna"}
 	var context = best_action.resolve_context(situation)
-	Log.debug("Brain:%s" % squad.squad_name, "Decided: %s (score=%.2f)" % [best_action.action_name, best_score])
+	MyLog.debug("Brain:%s" % squad.squad_name, "Decided: %s (score=%.2f)" % [best_action.action_name, best_score])
 	return {"activity_type": best_action.activity_type, "context": context}
 
 
