@@ -3,7 +3,7 @@ class_name BanditSpawner extends Spawner
 const SPAWN_THRESHOLD := 0.3
 const SPAWN_RATE := 0.5
 const MAX_BANDITS_PER_LOCATION := 2
-const BANDIT_PROFILE_PATH := "res://resources/ai/strategic/profiles/bandit-raider.tres"
+const BANDIT_PROFILE_PATH := "bandit_raider"
 
 func calculate_pressure(location: Location, world: World = null) -> float:
 	assert(world != null, "Bandit pressure calculation requires world context")

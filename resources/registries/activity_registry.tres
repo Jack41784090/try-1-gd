@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="Registry" format=3 uid="uid://c2rnx6ajc0ttc"]
+
+[ext_resource type="Script" uid="uid://dqtv77mng5dyh" path="res://addons/yard/registry.gd" id="1_qufo2"]
+
+[resource]
+script = ExtResource("1_qufo2")
+_version = 2
+_scan_rulesets = Array[Dictionary]([{
+&"allowed_file_extensions": Array[String]([]),
+&"class_restrictions": Array[StringName]([&"Activity"]),
+&"recursive_scan": true,
+&"scan_directories": Array[String](["res://resources/strategy/generic-activities"]),
+&"scan_regex_exclude": "",
+&"scan_regex_include": ""
+}])
+_uids_to_string_ids = Dictionary[StringName, StringName]({
+&"uid://4x6mrb3jolb2": &"heal",
+&"uid://b7i1uky5b7n3i": &"attack",
+&"uid://bcbaxi1cwabgm": &"patrol",
+&"uid://bhtouskrqit7o": &"mercenary_work",
+&"uid://bnqtc72ulgd3y": &"investigate",
+&"uid://bssy1nd1ydnr4": &"hold_mass",
+&"uid://c2j4avukn715a": &"buy_supplies",
+&"uid://c4bqpvat338ea": &"forage",
+&"uid://dnot34o6jn56r": &"drill",
+&"uid://dto2tvlqqylg": &"rest",
+&"uid://dwg60ymu20exh": &"travel",
+&"uid://dxo1jepny64q1": &"force_march",
+&"uid://kwc6dpwun100": &"recruit"
+})
+_string_ids_to_uids = Dictionary[StringName, StringName]({
+&"attack": &"uid://b7i1uky5b7n3i",
+&"buy_supplies": &"uid://c2j4avukn715a",
+&"drill": &"uid://dnot34o6jn56r",
+&"forage": &"uid://c4bqpvat338ea",
+&"force_march": &"uid://dxo1jepny64q1",
+&"heal": &"uid://4x6mrb3jolb2",
+&"hold_mass": &"uid://bssy1nd1ydnr4",
+&"investigate": &"uid://bnqtc72ulgd3y",
+&"mercenary_work": &"uid://bhtouskrqit7o",
+&"patrol": &"uid://bcbaxi1cwabgm",
+&"recruit": &"uid://kwc6dpwun100",
+&"rest": &"uid://dto2tvlqqylg",
+&"travel": &"uid://dwg60ymu20exh"
+})

@@ -4,6 +4,9 @@ extends Control
 
 signal closed
 
+const PRESETS: Registry = preload("res://resources/registries/preset_registry.tres")
+const WEAPONS: Registry = preload("res://resources/registries/weapon_registry.tres")
+
 #@onready var overlay_panel: PanelContainer = $OverlayPanel
 @onready var desktop: DesktopManager = $Desktop
 #@onready var tab_tactics: Button = $OverlayPanel/MainMargin/MainVBox/NavBar/TacticsBtn
@@ -28,12 +31,12 @@ func _process(_d) -> void:
 
 func _build_demo_squad() -> StrategySquad:
 	squad = StrategySquad.new()
-	var w = load("res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres")
+	var w = PRESETS.load_entry("crossbowman_demo_squad")
 	for i in range(5):
 		var nw = Character.new(StrategyEntity.new(w))
 		squad.add_warrior(nw)
 
-	var mace = load("res://resources/combat/weapon/config/mace.tres")
+	var mace = WEAPONS.load_entry("mace")
 	for i in range(15):
 		squad.inventory.add_weapon(mace)
 
@@ -87,7 +90,7 @@ func close() -> void:
 	#actor = null
 	var save_err = ResourceSaver.save(squad, "res://resources/saved_squads/squad.tres")
 	if save_err != OK:
-		Log.error("ManageSquadPage", "Failed to save squad")
+		MyLog.error("ManageSquadPage", "Failed to save squad")
 	closed.emit()
 
 
@@ -108,7 +111,7 @@ func _update_nav_highlight(tab: int) -> void:
 
 func _on_tactic_selected(tactic: Tactic) -> void:
 	squad.set_tactic(tactic)
-	Log.info("ManageSquadPage", "Tactic set to %s" % tactic.tactic_id)
+	MyLog.info("ManageSquadPage", "Tactic set to %s" % tactic.tactic_id)
 
 
 func _on_formation_changed(warrior: Character, new_pos: SquadBattleTypes.SquadEntityInSquadLocation) -> void:
@@ -129,7 +132,7 @@ func _on_recruit(background: WarriorBackground) -> void:
 	# 	StrategyTypes.Religion.CATHOLIC,
 	# )
 	# squad.add_warrior(new_warrior)
-	# Log.info("ManageSquadPage", "Recruited %s for %d gold" % [new_warrior.display_name, cost])
+	# MyLog.info("ManageSquadPage", "Recruited %s for %d gold" % [new_warrior.display_name, cost])
 	# recruitment_completed.emit(new_warrior)
 
 
@@ -173,21 +176,21 @@ func _on_armor_display_removed(warrior: Character, _window: Control) -> void:
 
 func _on_equip_weapon(warrior: Character, weapon: WeaponResource) -> void:
 	squad.inventory.equip_weapon(warrior, weapon)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
+	MyLog.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.WeaponClasses.keys()[weapon.weapon_class]])
 
 
 func _on_equip_armor(warrior: Character, armor: ArmorConfig) -> void:
 	squad.inventory.equip_armor(warrior, armor)
-	Log.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
+	MyLog.info("ManageSquadPage", "Equipped %s with %s" % [warrior.display_name, SquadBattleTypes.ArmorClasses.keys()[armor.armor_class]])
 
 
 func _on_unequip_weapon(warrior: Character) -> void:
 	var weapon_name = SquadBattleTypes.WeaponClasses.keys()[warrior.get_equipped_weapon().weapon_class] if warrior.get_equipped_weapon() else "nothing"
 	squad.inventory.unequip_weapon(warrior)
-	Log.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.display_name])
+	MyLog.info("ManageSquadPage", "Unequipped %s from %s" % [weapon_name, warrior.display_name])
 
 
 func _on_unequip_armor(warrior: Character) -> void:
 	var armor_name = SquadBattleTypes.ArmorClasses.keys()[warrior.get_equipped_armor().armor_class] if warrior.get_equipped_armor() else "nothing"
 	squad.inventory.unequip_armor(warrior)
-	Log.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.display_name])
+	MyLog.info("ManageSquadPage", "Unequipped %s from %s" % [armor_name, warrior.display_name])

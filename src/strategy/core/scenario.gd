@@ -1,6 +1,9 @@
 class_name GameScenario
 extends Resource
 
+const EVENT_REGISTRY: Registry = preload("res://resources/registries/event_registry.tres")
+const ACTIVITY_REGISTRY: Registry = preload("res://resources/registries/activity_registry.tres")
+
 var triggerable_manager: TriggerableManager
 
 @export var starting_player_squad: StrategySquadResource
@@ -13,7 +16,7 @@ var triggerable_manager: TriggerableManager
 var _initialized: bool = false
 
 func _init(config: Dictionary = {}) -> void:
-	Log.debug("Scenario", "init (config empty=%s)" % str(config.is_empty()))
+	MyLog.debug("Scenario", "init (config empty=%s)" % str(config.is_empty()))
 
 	if config.is_empty():
 		pass
@@ -22,14 +25,14 @@ func _init(config: Dictionary = {}) -> void:
 		_initialized = true
 
 func initialize(_config = {}) -> void:
-	Log.debug("Scenario", "Manual initialize called")
+	MyLog.debug("Scenario", "Manual initialize called")
 	assert(not _initialized, "scenario->initialize must not be called when it has already initialised through other means.")
 	_setup(_config)
 	_initialized = true
 
 func _setup(config: Dictionary) -> void:
-	Log.debug("Scenario", "Setup with config keys: %s" % str(config.keys()))
-	Log.debug("Scenario", "Scenario setup: %s" % str(config))
+	MyLog.debug("Scenario", "Setup with config keys: %s" % str(config.keys()))
+	MyLog.debug("Scenario", "Scenario setup: %s" % str(config))
 	triggerable_manager = TriggerableManager.new()
 	
 	if world == null:
@@ -60,7 +63,9 @@ func _setup(config: Dictionary) -> void:
 	
 	var events: Array = config.get("events", [])
 	if events.is_empty():
-		_collect_event_resources("res://resources/strategy/generic-events", events)
+		for res in EVENT_REGISTRY.load_all_blocking().values():
+			if res is GameEvent:
+				events.append(res)
 	for extra_dir in extra_event_directories:
 		_collect_event_resources(extra_dir, events)
 	for event in events:
@@ -90,7 +95,7 @@ func _setup(config: Dictionary) -> void:
 		bandit_faction.description = "Desperate outlaws driven to banditry by poverty and starvation."
 		bandit_faction.reputation = -50.0
 		factions.append(bandit_faction)
-		Log.info("Scenario", "Bandit faction created")
+		MyLog.info("Scenario", "Bandit faction created")
 	_setup_economy()
 
 func _setup_economy() -> void:
@@ -278,7 +283,7 @@ func _setup_economy() -> void:
 		for loc in world.locations:
 			if loc.type == StrategyTypes.LocationType.CITY:
 				loc.is_imperial = true
-				Log.info("Scenario", "No imperial location flagged; promoting %s (CITY) to imperial" % loc.location_id)
+				MyLog.info("Scenario", "No imperial location flagged; promoting %s (CITY) to imperial" % loc.location_id)
 				imperial_count = 1
 				break
 	assert(imperial_count == 1, "Expected exactly one imperial location, found %d" % imperial_count)
@@ -291,7 +296,7 @@ func _setup_economy() -> void:
 	engine.loan_amount = 200.0
 	engine.enable_csharp()
 	world.economy_engine = engine
-	Log.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
+	MyLog.info("Scenario", "Economy initialized: %d locations with economy" % world.get_economy_locations().size())
 
 func _get_connected_ids(loc: Location) -> Array[String]:
 	var ids: Array[String] = []
@@ -304,7 +309,7 @@ func _get_connected_ids(loc: Location) -> Array[String]:
 func _collect_event_resources(base_path: String, target: Array[GameEvent]) -> void:
 	var dir := DirAccess.open(base_path)
 	if dir == null:
-		Log.warn("Scenario", "Missing event directory: %s" % base_path)
+		MyLog.warn("Scenario", "Missing event directory: %s" % base_path)
 		return
 	dir.list_dir_begin()
 	var entry = dir.get_next()
@@ -318,33 +323,14 @@ func _collect_event_resources(base_path: String, target: Array[GameEvent]) -> vo
 			if resource and resource is GameEvent:
 				target.append(resource)
 			else:
-				Log.warn("Scenario", "Skipping non-GameEvent resource: %s" % rp)
+				MyLog.warn("Scenario", "Skipping non-GameEvent resource: %s" % rp)
 		entry = dir.get_next()
 	dir.list_dir_end()
 
 func _load_generic_activities() -> Array[Activity]:
 	var activities: Array[Activity] = []
-	_collect_activity_resources("res://resources/strategy/generic-activities", activities)
-	Log.debug("Scenario", "Loaded %d generic activities" % activities.size())
+	for res in ACTIVITY_REGISTRY.load_all_blocking().values():
+		if res is Activity:
+			activities.append(res)
+	MyLog.debug("Scenario", "Loaded %d generic activities" % activities.size())
 	return activities
-
-func _collect_activity_resources(base_path: String, target: Array[Activity]) -> void:
-	var dir := DirAccess.open(base_path)
-	if dir == null:
-		Log.warn("Scenario", "Missing activity directory: %s" % base_path)
-		return
-	dir.list_dir_begin()
-	var entry = dir.get_next()
-	while entry != "":
-		if dir.current_is_dir():
-			if entry != "." and entry != "..":
-				_collect_activity_resources("%s/%s" % [base_path, entry], target)
-		elif entry.ends_with(".tres"):
-			var rp = "%s/%s" % [base_path, entry]
-			var resource = load(rp)
-			if resource and resource is Activity:
-				target.append(resource)
-			else:
-				Log.warn("Scenario", "Skipping non-Activity resource: %s" % rp)
-		entry = dir.get_next()
-	dir.list_dir_end()

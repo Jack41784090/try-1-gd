@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="Registry" format=3 uid="uid://mqq0ompqcprq"]
+
+[ext_resource type="Script" uid="uid://dqtv77mng5dyh" path="res://addons/yard/registry.gd" id="1_j081c"]
+
+[resource]
+script = ExtResource("1_j081c")
+_version = 2
+_scan_rulesets = Array[Dictionary]([{
+&"allowed_file_extensions": Array[String]([]),
+&"class_restrictions": Array[StringName]([&"GameEvent"]),
+&"recursive_scan": false,
+&"scan_directories": Array[String](["res://resources/strategy/generic-events"]),
+&"scan_regex_exclude": "",
+&"scan_regex_include": ""
+}])
+_uids_to_string_ids = Dictionary[StringName, StringName]({
+&"uid://beutkj7d3y078": &"mysterious_stranger",
+&"uid://bli7pe5y5qj": &"forest_bandits",
+&"uid://c1mm4dyt6uh7g": &"religious_vision",
+&"uid://c5ytk6mfptugr": &"city_toll",
+&"uid://c7ynaj2kl4pqr": &"faction_attention",
+&"uid://cb12wosm1pf60": &"smolensk_gates",
+&"uid://cehrtteqc7iri": &"yam_resupply",
+&"uid://cyn8um0qvhbow": &"moscow_arrival",
+&"uid://d3i1q17alquk0": &"muddy_road"
+})
+_string_ids_to_uids = Dictionary[StringName, StringName]({
+&"city_toll": &"uid://c5ytk6mfptugr",
+&"faction_attention": &"uid://c7ynaj2kl4pqr",
+&"forest_bandits": &"uid://bli7pe5y5qj",
+&"moscow_arrival": &"uid://cyn8um0qvhbow",
+&"muddy_road": &"uid://d3i1q17alquk0",
+&"mysterious_stranger": &"uid://beutkj7d3y078",
+&"religious_vision": &"uid://c1mm4dyt6uh7g",
+&"smolensk_gates": &"uid://cb12wosm1pf60",
+&"yam_resupply": &"uid://cehrtteqc7iri"
+})

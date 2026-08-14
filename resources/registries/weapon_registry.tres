@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Registry" format=3 uid="uid://cbcvd2dodkcaf"]
+
+[ext_resource type="Script" uid="uid://dqtv77mng5dyh" path="res://addons/yard/registry.gd" id="1_rg0ta"]
+
+[resource]
+script = ExtResource("1_rg0ta")
+_version = 2
+_scan_rulesets = Array[Dictionary]([{
+&"allowed_file_extensions": Array[String]([]),
+&"class_restrictions": Array[StringName]([&"WeaponResource"]),
+&"recursive_scan": false,
+&"scan_directories": Array[String](["res://resources/combat/weapon/config"]),
+&"scan_regex_exclude": "",
+&"scan_regex_include": ""
+}])
+_uids_to_string_ids = Dictionary[StringName, StringName]({
+&"uid://b1ky46cluj0on": &"flammenschwert",
+&"uid://bdyqacr8yaiqx": &"pike",
+&"uid://ch8m2icxkiqrf": &"alchemical_fire",
+&"uid://dpnp1lb8kk4sc": &"arquebus",
+&"uid://mndwnjoe8idb": &"crossbow",
+&"uid://wtjmoptcuffo": &"unarmed",
+&"uid://xkhk1tlejr0w": &"mace"
+})
+_string_ids_to_uids = Dictionary[StringName, StringName]({
+&"alchemical_fire": &"uid://ch8m2icxkiqrf",
+&"arquebus": &"uid://dpnp1lb8kk4sc",
+&"crossbow": &"uid://mndwnjoe8idb",
+&"flammenschwert": &"uid://b1ky46cluj0on",
+&"mace": &"uid://xkhk1tlejr0w",
+&"pike": &"uid://bdyqacr8yaiqx",
+&"unarmed": &"uid://wtjmoptcuffo"
+})

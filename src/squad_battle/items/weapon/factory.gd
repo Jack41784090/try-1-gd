@@ -1,15 +1,7 @@
 class_name WeaponFactory
 
 
-static var pathlib = {
-	"Unarmed": "res://resources/combat/weapon/unarmed.tres",
-	"Flammenschwert": "res://resources/combat/weapon/flammenschwert.tres",
-	"Crossbow": "res://resources/combat/weapon/crossbow.tres",
-	"Arquebus": "res://resources/combat/weapon/arquebus.tres",
-	"Pike": "res://resources/combat/weapon/pike.tres",
-	"Mace": "res://resources/combat/weapon/mace.tres",
-	"AlchemicalFire": "res://resources/combat/weapon/alchemical-fire.tres",
-}
+const WEAPONS: Registry = preload("res://resources/registries/weapon_registry.tres")
 
 static var _skill_map: Dictionary = {
 	SquadBattleTypes.WeaponClasses.Unarmed: SkillType.Types.Healing,
@@ -27,10 +19,9 @@ static func get_skill_used(weapon_class: SquadBattleTypes.WeaponClasses) -> Skil
 	return _skill_map.get(weapon_class, SkillType.Types.Swords)
 
 static func get_weapon(_weapon: SquadBattleTypes.WeaponClasses) -> Weapon:
-	var path = pathlib.get(_cached_key[_weapon]);
-	var weapon_template = load(path)
-	assert(weapon_template != null, "Failed to load weapon from path: %s" % path)
-	assert(weapon_template is WeaponResource, "Path %s loaded wrong type; got %s instead of WeaponResource" % [path, weapon_template.get_class()])
+	var id: String = _cached_key[_weapon].to_snake_case()
+	var weapon_template := WEAPONS.load_entry(id) as WeaponResource
+	assert(weapon_template != null, "Weapon not registered in weapon_registry.tres: %s" % id)
 	var weapon_conf = weapon_template.duplicate(true)
 	var weapon = Weapon.new(weapon_conf)
 	return weapon

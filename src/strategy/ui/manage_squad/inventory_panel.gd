@@ -13,6 +13,8 @@ signal unequip_armor_requested(warrior: Character)
 const GRID_ITEM_SCENE = preload("res://scenes/ui/manage_squad/inventory_item_grid.tscn")
 const WEAPON_SLOT_SCENE = preload("res://src/squad_battle/items/weapon/ui.tscn")
 const ARMOR_SLOT_SCENE = preload("res://src/squad_battle/items/armor/ui.tscn")
+const PRESETS: Registry = preload("res://resources/registries/preset_registry.tres")
+const WEAPONS: Registry = preload("res://resources/registries/weapon_registry.tres")
 
 @export var preview_in_editor: bool = false:
 	set(v):
@@ -40,12 +42,12 @@ var _squad: StrategySquad:
 
 func _build_demo_squad() -> StrategySquad:
 	_squad = StrategySquad.new()
-	var w = load("res://resources/strategy/warrior-presets/crossbowman_demo_squad.tres")
+	var w = PRESETS.load_entry("crossbowman_demo_squad")
 	for i in range(5):
 		var nw = Character.new(StrategyEntity.new(w))
 		_squad.add_warrior(nw)
 
-	var mace = load("res://resources/combat/weapon/config/mace.tres")
+	var mace = WEAPONS.load_entry("mace")
 	for i in range(15):
 		_squad.inventory.add_weapon(mace)
 	return _squad

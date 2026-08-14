@@ -1,24 +1,24 @@
 class_name AIProfileFactory extends RefCounted
 
-const DEFAULT_SQUAD_PROFILE_PATH = "res://resources/ai/strategic/profiles/balanced-roamer.tres"
+const PROFILES: Registry = preload("res://resources/registries/profile_registry.tres")
+
+const DEFAULT_SQUAD_PROFILE_PATH = "balanced_roamer"
+# caravan-courier.tres currently fails to load (its considerations ext_resource
+# points at a missing res://resources/ai/strategic/considerations/caravan-rest-when-out-of-food.tres),
+# so it isn't registered — kept as a raw path so it still resolves once that's fixed.
 const CARAVAN_PROFILE_PATH = "res://resources/ai/strategic/profiles/caravan-courier.tres"
 
-static var _squad_profile_cache: Dictionary = {}
+static func get_squad_profile(id_or_path: String) -> SquadBrainConfig:
+	var resolved := id_or_path.strip_edges()
+	if resolved.is_empty():
+		resolved = DEFAULT_SQUAD_PROFILE_PATH
 
-static func get_squad_profile(path: String) -> SquadBrainConfig:
-	var resolved_path := path.strip_edges()
-	if resolved_path.is_empty():
-		resolved_path = DEFAULT_SQUAD_PROFILE_PATH
+	if PROFILES.has(resolved):
+		return PROFILES.load_entry(resolved) as SquadBrainConfig
 
-	if _squad_profile_cache.has(resolved_path):
-		var cached_profile := _squad_profile_cache[resolved_path] as SquadBrainConfig
-		if cached_profile != null:
-			return cached_profile
-		_squad_profile_cache.erase(resolved_path)
-
-	var profile := load(resolved_path) as SquadBrainConfig
-	assert(profile != null, "AI profile not found: %s" % resolved_path)
-	_squad_profile_cache[resolved_path] = profile
+	# Back-compat fallback for callers still passing a raw res:// path.
+	var profile := load(resolved) as SquadBrainConfig
+	assert(profile != null, "AI profile not found: %s" % resolved)
 	return profile
 
 static func get_default_squad_profile() -> SquadBrainConfig:
