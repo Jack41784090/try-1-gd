@@ -97,7 +97,7 @@ func get_demand() -> Dictionary:
 
 
 func get_attribute(_attribute: StrategyTypes.WarriorAttribute) -> int:
-	assert(false, "StrategyEntity.get_attribute not implemented")
+	#assert(false, "StrategyEntity.get_attribute not implemented")
 	return 0
 
 

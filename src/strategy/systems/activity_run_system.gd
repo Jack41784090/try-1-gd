@@ -13,27 +13,20 @@ extends Node
 ## behalf itself.
 
 signal activity_resolved(squad: StrategySquad, activity: Activity, results: Array)
+signal request_travel(squad: StrategySquad, travel_route: Array[String])
+signal request_combat(squad: StrategySquad, activity_result: ActivityResult)
 
 ## Untyped sibling-system refs: bare class_name typing across brand-new
 ## scripts in the same compile batch can fail to resolve ("Could not find
 ## type X in the current scope") before Godot's global class cache has
 ## indexed them. Dynamic dispatch sidesteps it.
 var scenario: GameScenario
-var squad_being_system
-var travel_system
-var battle_system
 
 
 func setup(
 	_scenario: GameScenario,
-	_squad_being_system,
-	_travel_system,
-	_battle_system,
 ) -> void:
 	scenario = _scenario
-	squad_being_system = _squad_being_system
-	travel_system = _travel_system
-	battle_system = _battle_system
 
 
 func _on_squad_turn(squad: StrategySquad) -> void:
@@ -53,7 +46,7 @@ func _on_squad_turn(squad: StrategySquad) -> void:
 
 	for result in results:
 		if result is ActivityResult and (result as ActivityResult).requires_combat:
-			await _dispatch_combat(squad, result as ActivityResult)
+			request_combat.emit(squad, result as ActivityResult)
 
 	LogGd.debug("[ActivityRunSystem] %s: ran %s -> %d result(s)" % [
 		squad.squad_name, StrategyTypes.ActivityType.keys()[activity.activity_type], results.size(),
@@ -66,19 +59,11 @@ func _on_squad_turn(squad: StrategySquad) -> void:
 ## Activity resource up in the triggerable_manager.
 func _resolve_activity_for(squad: StrategySquad) -> Activity:
 	if squad.current_activity_type == StrategyTypes.ActivityType.TRAVEL:
-		if squad.travel_route.is_empty():
-			return null
-		return travel_system.advance_travel(squad)
+		if not squad.travel_route.is_empty():
+			request_travel.emit(squad, squad.travel_route)
+		return null
 
 	for triggerable in scenario.triggerable_manager.registered_triggerables:
 		if triggerable is Activity and triggerable.activity_type == squad.current_activity_type:
 			return triggerable as Activity
 	return null
-
-
-func _dispatch_combat(squad: StrategySquad, result: ActivityResult) -> void:
-	var enemy: StrategySquad = squad_being_system.get_squad(result.combat_target_squad_id)
-	if enemy == null:
-		LogGd.warn("[ActivityRunSystem] combat required but enemy squad '%s' not found in SquadBeingSystem" % result.combat_target_squad_id)
-		return
-	await battle_system.resolve_combat(squad, enemy, result.engagement_type)

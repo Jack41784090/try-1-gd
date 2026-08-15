@@ -18,6 +18,11 @@ func setup(_scenario: GameScenario) -> void:
 	scenario = _scenario
 
 
+## request_travel handoff, wired by main.gd
+func on_request_travel(squad: StrategySquad, _route: Array[String]) -> void:
+	advance_travel(squad)
+
+
 func get_distance(from_id, to_id) -> float:
 	return scenario.world.travel_graph.calculate_distance_km_between(from_id, to_id)
 
@@ -86,6 +91,11 @@ func begin_travel(squad: StrategySquad, destination_id: String) -> void:
 ## Activity resource (mirrors every other Activity type's execute() shape),
 ## with .result.location_changed set to the arrived-at id, or "" mid-journey.
 func advance_travel(squad: StrategySquad) -> Activity:
+	## mirrors TravelHandler.execute(), which this path bypasses
+	if not squad.consume_supplies_by_demand():
+		squad.modify_morale(-5.0)
+	squad.apply_travel_morale_penalty(-2.0)
+
 	var activity := _find_travel_activity_definition()
 	var destination_id: String = squad.travel_route[-1]
 	activity.destination_id = destination_id

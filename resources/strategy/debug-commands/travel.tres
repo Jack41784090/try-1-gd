@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CommandResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/systems/command_resource.gd" id="1_cmdres"]
+
+[resource]
+script = ExtResource("1_cmdres")
+command_name = "Travel"
+command = "/travel"
+target_system_name = &"SquadTravelSystem"
+target_signal_name = &"begin_travel"
+arg_kinds = Array[StringName]([&"squad", &"location_id"])

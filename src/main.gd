@@ -10,14 +10,18 @@ extends Node
 
 var clock_system: ClockSystem
 var squad_being_system: SquadBeingSystem
+var squad_ai_system: SquadAISystem
 var travel_system: SquadTravelSystem
 var battle_system: BattleResolutionSystem
 var activity_run_system: ActivityRunSystem
+var debug_command_system: DebugCommandSystem
+var command_bar_hud: CommandBarHud
 
 
 func _ready() -> void:
 	_setup_default_systems()
-	_run_prototype_tests()
+	_setup_hud()
+	#_run_prototype_tests()
 
 
 func _enter_system(system_node: GDScript) -> Node:
@@ -30,21 +34,87 @@ func _enter_system(system_node: GDScript) -> Node:
 func _setup_default_systems() -> void:
 	clock_system = _enter_system(ClockSystem) as ClockSystem
 	squad_being_system = _enter_system(SquadBeingSystem) as SquadBeingSystem
+	squad_ai_system = _enter_system(SquadAISystem) as SquadAISystem
 	travel_system = _enter_system(SquadTravelSystem) as SquadTravelSystem
 	battle_system = _enter_system(BattleResolutionSystem) as BattleResolutionSystem
 	activity_run_system = _enter_system(ActivityRunSystem) as ActivityRunSystem
+	debug_command_system = _enter_system(DebugCommandSystem) as DebugCommandSystem
+
+	debug_command_system.command_dispatched.connect(_on_debug_command_dispatched)
+
+
+## Builds the command-bar HUD as a plain child of hud_root, not a System —
+## it's UI, it doesn't participate in the Systems signal graph itself, it
+## only feeds raw text into DebugCommandSystem (wired in load_scenario(),
+## once DebugCommandSystem's arg resolvers can actually be built).
+func _setup_hud() -> void:
+	command_bar_hud = CommandBarHud.new()
+	command_bar_hud.name = "CommandBarHud"
+	hud_root.add_child(command_bar_hud)
 
 
 func load_scenario(scenario: GameScenario, squads: Array[StrategySquad]) -> void:
 	travel_system.setup(scenario)
 	battle_system.setup(scenario.world.contact_tracker if scenario.world else null)
-	activity_run_system.setup(scenario, squad_being_system, travel_system, battle_system)
+	activity_run_system.setup(scenario)
+	squad_ai_system.setup(scenario)
 
 	for squad in squads:
 		squad_being_system.register_squad(squad)
 
+	# AI decision must land before ActivityRunSystem reads current_activity_type
+	# for the same squad_turn emission — Godot fires signal listeners in
+	# connection order, so squad_ai_system's connect() MUST stay first. Do not
+	# reorder these two lines.
+	squad_being_system.squad_turn.connect(squad_ai_system._on_squad_turn)
 	squad_being_system.squad_turn.connect(activity_run_system._on_squad_turn)
+	squad_ai_system.ai_travel_requested.connect(travel_system.begin_travel)
+	activity_run_system.request_travel.connect(travel_system.on_request_travel)
+	# _on_request_combat: resolves combat_target_squad_id via SquadBeingSystem, neither side may know about
+	activity_run_system.request_combat.connect(
+		func(squad: StrategySquad, activity_result: ActivityResult) -> void:
+			var defender := squad_being_system.get_squad(activity_result.combat_target_squad_id)
+			if defender == null:
+				LogGd.warn("[Main] combat requested but enemy squad '%s' not found" % activity_result.combat_target_squad_id)
+				return
+			await battle_system.resolve_combat(squad, defender, activity_result.engagement_type)
+	)
 	clock_system.hour_changed.connect(squad_being_system.on_hour_pass)
+
+	debug_command_system.setup(_load_default_commands(), {
+		&"squad": func(token: String) -> StrategySquad: return squad_being_system.get_squad(token),
+		&"location": func(token: String) -> Location: return scenario.world.get_location_by_id(token),
+		&"location_id": func(token: String) -> Variant:
+			var loc := scenario.world.get_location_by_id(token)
+			return loc.location_id if loc else null,
+		&"raw": func(token: String) -> String: return token,
+	})
+	command_bar_hud.command_submitted.connect(debug_command_system.interpret)
+
+
+## Every CommandResource DebugCommandSystem knows about. New commands are
+## new .tres files added here — not new code/wiring in main.gd.
+func _load_default_commands() -> Array[CommandResource]:
+	var commands: Array[CommandResource] = []
+	commands.append(load("res://resources/strategy/debug-commands/travel.tres"))
+	return commands
+
+
+## The one place that turns a resolved (target_system_name, target_signal_name,
+## args) triple into an actual call — DebugCommandSystem only names the
+## target by StringName, since it never holds sibling-System refs itself.
+func _on_debug_command_dispatched(target_system_name: StringName, target_signal_name: StringName, args: Array) -> void:
+	var target := systems.get_node_or_null(NodePath(String(target_system_name)))
+	if target == null:
+		LogGd.warn("[Main] debug command target system '%s' not found under Systems" % target_system_name)
+		return
+
+	if target.has_signal(target_signal_name):
+		target.callv("emit_signal", [target_signal_name] + args)
+	elif target.has_method(target_signal_name):
+		target.callv(target_signal_name, args)
+	else:
+		LogGd.warn("[Main] debug command target '%s' has no signal or method '%s'" % [target_system_name, target_signal_name])
 
 
 #region Prototype tests (no demo files/scenes — run inline against main.tscn)
@@ -58,10 +128,11 @@ func _run_prototype_tests() -> void:
 	var scenario := _build_test_scenario()
 	var wanderer := _build_test_squad("wanderer", "Wanderer Squad", "alpha")
 	var forager := _build_test_squad("forager", "Forager Squad", "alpha")
+	var commander := _build_test_squad("commander", "Commander Squad", "alpha")
 	var attacker: StrategySquad = ResourceLoader.load("res://resources/strategy/squads-presets/test-player-squad-full.tres")
 	var bandits: StrategySquad = ResourceLoader.load("res://resources/strategy/squads-presets/test-squad-bandits.tres")
 
-	load_scenario(scenario, [wanderer, forager, attacker, bandits])
+	load_scenario(scenario, [wanderer, forager, commander, attacker, bandits])
 	clock_system.pause() ## drive time via force_tick() only, not real-time _process
 
 	travel_system.location_changed.connect(
@@ -85,6 +156,14 @@ func _run_prototype_tests() -> void:
 	forager.current_activity_type = StrategyTypes.ActivityType.FORAGE
 	var food_before := forager.food
 
+	# Same journey as `wanderer`, but driven through the HUD -> DebugCommandSystem
+	# pipeline instead of calling SquadTravelSystem directly, to prove the
+	# command bar's full round trip: text -> CommandResource match -> arg
+	# resolution ("commander" -> StrategySquad, "beta" -> location_id) ->
+	# command_dispatched -> main.gd's get_node()+callv onto SquadTravelSystem.
+	LogGd.info("[Test] issuing debug command: /travel commander beta")
+	command_bar_hud.command_submitted.emit("/travel commander beta")
+
 	# Speed 10 km/h, alpha<->beta is 20km. Tick 1 only registers the journey
 	# (SquadTravelSystem.begin_travel doesn't move the squad yet), so
 	# arrival lands on hour 3 (10km + 10km after two advance_travel calls).
@@ -94,6 +173,7 @@ func _run_prototype_tests() -> void:
 
 	_check("wanderer arrived at beta", wanderer.current_location_id == "beta")
 	_check("forager gained food while foraging at a VILLAGE", forager.food > food_before)
+	_check("commander arrived at beta via /travel debug command", commander.current_location_id == "beta")
 
 	LogGd.info("[Test] resolving direct battle: %s vs %s" % [attacker.squad_name, bandits.squad_name])
 	var result: CombatController.CombatResult = await battle_system.resolve_combat(attacker, bandits)

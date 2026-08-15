@@ -204,6 +204,14 @@ HOI4-inspired: 0-100 → NONE/SUSPECTED/TRACKED/LOCKED. ATTACK requires LOCKED.
 - **Caravan Bridge** (`strategy_bridge/caravan_bridge.gd`): materializes trade dispatches as MERCHANT squads. Uses the `caravan-courier` brain profile
 - **Bandit System** (`bandit_spawner.gd`, `mercenary_demand.gd`): desperation-driven spawning. `BanditSpawner.calculate_pressure(location)`. `bandit-raider.tres` brain. Lifecycle: pressure→spawn→roam→attack merchants→disband
 
+### Systems Layer (prototype, `src/strategy/systems/` + `src/strategy/core/clock_system.gd`)
+
+A composition-root pattern replacing the old Presenter-orchestrates-everything flow, wired entirely from `main.gd`/`main.tscn` (not `scenario.tscn`, which is still the legacy path):
+- `ClockSystem`, `SquadBeingSystem`, `SquadTravelSystem`, `BattleResolutionSystem`, `ActivityRunSystem` — each a `Node` added under `main.tscn`'s `Systems` root by `main.gd._enter_system()`
+- **Rule: no system may hold a reference to, `preload`, or call another system directly.** All cross-system data flow goes through signals (`squad_turn`, `request_travel`, `request_combat`, `hour_changed`, ...) connected by `main.gd` in `load_scenario()` — the composition root is the only place allowed to know about every system at once
+- When a signal handler needs to reach a system the emitting system isn't allowed to know about (e.g. resolving `ActivityResult.combat_target_squad_id` to a `StrategySquad` needs `SquadBeingSystem`, but neither `ActivityRunSystem` nor `BattleResolutionSystem` may reference it), that bridging logic lives in `main.gd`, not in either system
+- Still prototype-stage: `main.gd._run_prototype_tests()` runs scripted assertions inline against `main.tscn` on `_ready()` (no separate demo scene yet)
+
 ### Key Enums
 
 - Classes: `src/character/entity_classes.gd` — Landsknecht, Healer, Crossbowman, Arquebusier, Pikeman, Feldprediger, Gelehrter. `CombatEntityFactory` identifies templates by lowercase string (`"landsknecht"`), scanned from `resources/combat/classes/*.tres`
