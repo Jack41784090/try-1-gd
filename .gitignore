@@ -6,6 +6,8 @@ assets/hoi4_icons
 assets/Weapon Sprites
 .obsidian
 addons
+.godot_ide/
+.script_splitter/
 log
 *.zip
 
