@@ -24,7 +24,8 @@ This is a one-man project that changes very frequently — docs can drift out of
 
 ### Editor plugins
 
-`addons/GDQuest_GDScript_formatter/` (GDScript formatter) and `addons/script-ide/` are enabled.
+Enabled (`project.godot` `[editor_plugins]`): `GDQuest_GDScript_formatter` (formatter), `_Godot-IDE_`, `curved_lines_2d`, `godot_ai`, `log`, `yard`.
+- The `log` addon exposes a global `LogGd` — this project's own logger is `class_name MyLog` (`src/singletons/log.gd`, renamed from `Log` to avoid the clash). New code should prefer the addon's `LogGd`; `MyLog` remains for existing call sites.
 
 ## Build, Run & Test Commands
 
@@ -111,7 +112,7 @@ Combat's stat→value math (raw stat → Reality, Reality → Hit/Penetration, R
 - **SFX** (`src/singletons/sfx.gd`): semantic play methods. Disabled headless
 - **GrimdarkFX** (`src/singletons/grimdark_fx.gd`): atmospheric shaders. Two layers: texture-based (bg/fg) + overlay (CanvasLayer 200). Disabled headless. Shaders in `assets/shaders/fx/`: `world_atmosphere`, `vignette`, `film_grain`, `damage_pulse`, `combat_atmosphere`
 - **UIAnimations** (`src/utils/ui_animations.gd`): static — `register_button()`, `show/hide_overlay()`, `stagger_buttons()`, `slide_in/out_panel()`
-- **Log** (`src/singletons/log.gd`): `class_name Log`. Levels: TRACE/DEBUG/INFO/WARN/ERROR. `Log.info("Source", "msg")`. Default: DEBUG
+- **MyLog** (`src/singletons/log.gd`): `class_name MyLog` (renamed from `Log` — see Editor plugins above). Levels: TRACE/DEBUG/INFO/WARN/ERROR. `MyLog.info("Source", "msg")`. Default: DEBUG
 - **Data models**: `StrategySquad` (squad/social.gd, tier 2), `CombatSquad` (squad/combat.gd, tier 3), `StrategyEntity`+`Character` (character/strat.gd, character/character.gd), `CombatEntity` (character/combat.gd, tier 3)
 
 ### Animation System (`src/animation/`)
@@ -203,6 +204,10 @@ HOI4-inspired: 0-100 → NONE/SUSPECTED/TRACKED/LOCKED. ATTACK requires LOCKED.
 - **Person decisions**: per-class logic lives directly on `CsPerson` (no separate brain classes); noble loans via `CsLoan` + `SetupBank()` thresholds
 - **Caravan Bridge** (`strategy_bridge/caravan_bridge.gd`): materializes trade dispatches as MERCHANT squads. Uses the `caravan-courier` brain profile
 - **Bandit System** (`bandit_spawner.gd`, `mercenary_demand.gd`): desperation-driven spawning. `BanditSpawner.calculate_pressure(location)`. `bandit-raider.tres` brain. Lifecycle: pressure→spawn→roam→attack merchants→disband
+
+### Registries (YARD) (`resources/registries/`)
+
+Six `Registry` `.tres` files (`activity_registry`, `armor_registry`, `event_registry`, `preset_registry`, `profile_registry`, `weapon_registry`) built via the `yard` editor plugin. Lookup consumers `preload` the registry and call `.load_entry(id)` / `.load_all_blocking()` / `.has(id)` — ids are `snake_case` (e.g. `SquadBattleTypes.WeaponClasses` key `.to_snake_case()`) — instead of hardcoding `res://` paths in a `static var pathlib` dictionary or walking a resources directory at runtime. See `WeaponFactory`/`ArmorFactory` (`src/squad_battle/items/`), `AIProfileFactory`, `GameScenario._setup()`/`_load_generic_activities()`.
 
 ### Systems Layer (prototype, `src/strategy/systems/` + `src/strategy/core/clock_system.gd`)
 
