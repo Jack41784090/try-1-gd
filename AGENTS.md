@@ -254,13 +254,13 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - **Enums over strings**. **Typed arrays**: `Array[EntityUpdate]` not `Array`
 - **No comments** unless `##` doc or complex algorithms
 - **Instantiate squads through `SquadDataFactory.create_squad()`** (named params: squad_id, squad_name, money, food, travel_tools, karma, location ids, squad_role)
-- **Don't use `preload`** on "class not found" errors. **Don't export RefCounted** types. **Don't use `class_name` for inner classes**
+- **Don't use `preload`/untyped vars as a workaround for "class not found" / "identifier not declared" errors** on a brand-new `class_name` script — that's a stale `.godot/global_script_class_cache.cfg`, not a real ordering constraint. Fix it by forcing a real editor filesystem scan (plain `--headless --quit <scene>` only *reads* the cache, it never writes it — it only looks fixed if some earlier editor session already warmed it): `godot-mono --headless --editor --path . --quit-after 3` (~5-10s; the "Scan thread aborted" warning on exit is harmless, the class cache is written before that). Normal static typing (`var x: NewClass`, `NewClass.new()`) then resolves immediately, including in the same files that just failed. **Don't export RefCounted** types. **Don't use `class_name` for inner classes**
 - **`Resource.duplicate(true)` does NOT deep-copy external `.tres` sub-resources** — explicitly duplicate: `activity.result = activity.result.duplicate(true)`
 - **Never programmatically create GUI** — define in `.tscn`, use `@onready` refs. **Exception**: one-time-use offline generator scripts (Python, EditorScript, etc.) that *output* `.tscn`/`.tres` files to disk are fine — the generated file becomes the source of truth afterward. The generator is a build step, not a runtime dependency. Never re-run it to "refresh" a scene; edit the `.tscn` directly after generation
 - **Pre-built hidden nodes** for bounded lists; scene instantiation only for unbounded/compositional needs
 - **Compartmentalize GUI into scenes** — each distinct UI component gets its own `.tscn`
 - **Custom-drawn Controls must also be `.tscn` scenes** — prefer SVG assets over runtime `_draw()`
-- **No single-use functions**: don't extract a named function/method unless the code is called from more than one call site across the entire project. A block used once stays inline where it's used; if it needs a name for clarity, use a comment above it instead of a function signature. Exempt: Godot-invoked entry points the engine or scene tree calls directly — virtual/lifecycle methods (`_ready`, `_process`, `_input`, `_draw`, ...), signal-callback handlers (`_on_*` wired via `connect()`/editor signal), and `@tool`/exported methods invoked from the inspector. Not exempt: ordinary helper methods called from exactly one place in the same script — inline those
+- **No single-use functions**: don't extract a named function/method unless the code is called from more than one call site across the entire project. A block used once stays inline where it's used; if it needs a name for clarity, use a short one-line comment above it (the name you would've given the function) instead of a function signature — not a multi-paragraph doc comment. This applies to `connect()`-target lambdas too: an inline `func(...)` at the `.connect()` call site with a `# _on_whatever: ...` comment above it, not a named `_on_whatever` method, unless it's genuinely called from more than one place. Exempt: Godot-invoked entry points the engine or scene tree calls directly — virtual/lifecycle methods (`_ready`, `_process`, `_input`, `_draw`, ...), signal-callback handlers wired via editor signal (not `connect()`), and `@tool`/exported methods invoked from the inspector. Not exempt: ordinary helper methods called from exactly one place in the same script — inline those
 
 ### Commit Message Format
 
@@ -279,6 +279,8 @@ Pierce: physical (Force+Precision vs armor PV) or magical (Mana+Spirituality vs 
 - `data` — `.tres` / `.tscn` resource or scene files only
 
 **Scopes** (optional, pick the most specific): `combat`, `strategy`, `economy`, `vn`, `animation`, `stage`, `rig`, `ai`, `ui`, `tools`
+
+**No `Co-Authored-By` trailer** — do not append one to commits in this repo.
 
 **Subject rules**: imperative mood (`add X` not `added`), lowercase first letter, no trailing period, ≤ 72 chars total including type and scope.
 
