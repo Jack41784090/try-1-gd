@@ -21,7 +21,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 				healed_count += 1
 
 	if healed_count > 0:
-		StrategyEventBus.squad_resource_changed.emit("money", squad.money)
+		# StrategyEventBus.squad_resource_changed.emit("money", squad.money)
 		result.modify_squad_stat(StrategyTypes.SquadProperty.MORALE, 10.0)
 		MyLog.info("HealHandler", "HEAL at %s: healed %d warriors for %.0f gold (morale +10)" % [
 			location.location_name,

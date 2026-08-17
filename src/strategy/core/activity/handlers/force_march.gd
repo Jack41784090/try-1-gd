@@ -28,7 +28,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 
 	var old_location: String = squad.current_location_id
 	squad.set_location(activity.destination_id)
-	StrategyEventBus.location_changed.emit(old_location, activity.destination_id)
+	# StrategyEventBus.location_changed.emit(old_location, activity.destination_id)
 	var final_location = activity.destination_id
 
 	if not activity.ultimate_destination_id.is_empty() and activity.ultimate_destination_id != activity.destination_id:
@@ -40,7 +40,7 @@ func execute(context: Dictionary, result: ActivityResult) -> ActivityResult:
 				squad.consume_supplies_by_demand(config.supply_multiplier)
 				var old_location2: String = squad.current_location_id
 				squad.set_location(second_hop)
-				StrategyEventBus.location_changed.emit(old_location2, second_hop)
+				# StrategyEventBus.location_changed.emit(old_location2, second_hop)
 				final_location = second_hop
 				MyLog.info("ForceMarchHandler", "Double-hop: %s → %s → %s" % [
 					squad.squad_name, activity.destination_id, second_hop])

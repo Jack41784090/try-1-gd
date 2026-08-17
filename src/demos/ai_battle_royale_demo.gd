@@ -12,7 +12,7 @@ extends Node
 ##   4. Contact tracking (ContactTracker.update_all_contacts)
 ##   5. Commit AI decisions (AISquadManager)
 ##   6. Engagement detection & headless combat
-##   7. Advance turn (StrategyEventBus.hour_advanced)
+##   7. Advance turn (# StrategyEventBus.hour_advanced)
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/combat-test/combat-test-scenario.tres"
 const MAX_ROUNDS = 20

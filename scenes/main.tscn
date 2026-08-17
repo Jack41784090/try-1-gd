@@ -1,12 +1,15 @@
 [gd_scene format=3 uid="uid://d0c0t40hq113j"]
 
 [ext_resource type="Script" uid="uid://ci4j1idlk3gek" path="res://src/main.gd" id="1_o5qli"]
+[ext_resource type="Script" uid="uid://ikmkfkmmggqx" path="res://src/strategy/systems/systems_root.gd" id="2_systemsroot"]
+[ext_resource type="Script" uid="uid://8du5abhs1hnp" path="res://src/hud/hud_layer.gd" id="3_hudlayer"]
 
 [node name="MainGame" type="Node" unique_id=303385126]
 process_mode = 3
 script = ExtResource("1_o5qli")
 
 [node name="Systems" type="Node" parent="." unique_id=1477358207]
+script = ExtResource("2_systemsroot")
 
 [node name="World" type="Node2D" parent="." unique_id=1127716305]
 process_mode = 1
@@ -21,6 +24,7 @@ visible = false
 [node name="HudLayer" type="CanvasLayer" parent="." unique_id=519793259]
 process_mode = 1
 layer = 10
+script = ExtResource("3_hudlayer")
 
 [node name="Root" type="Control" parent="HudLayer" unique_id=1525524479]
 layout_mode = 3

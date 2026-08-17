@@ -80,14 +80,14 @@ func _ready() -> void:
 	combat_ui = CombatUI.create(self , combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
 	rest_button.visible = false
 	_connect_signals()
-	StrategyEventBus.strategy_hour_tick.connect(update_clock)
-	StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
-	StrategyEventBus.hud_location_changed.connect(update_location)
-	StrategyEventBus.hud_condition_changed.connect(update_condition)
-	StrategyEventBus.hud_stats_changed.connect(update_stats)
-	StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
-	StrategyEventBus.pause_state_changed.connect(update_pause_state)
-	StrategyEventBus.speed_changed.connect(update_speed_display)
+	# StrategyEventBus.strategy_hour_tick.connect(update_clock)
+	# StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
+	# StrategyEventBus.hud_location_changed.connect(update_location)
+	# StrategyEventBus.hud_condition_changed.connect(update_condition)
+	# StrategyEventBus.hud_stats_changed.connect(update_stats)
+	# StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
+	# StrategyEventBus.pause_state_changed.connect(update_pause_state)
+	# StrategyEventBus.speed_changed.connect(update_speed_display)
 	var action_btns: Array[Button] = [
 		drill_button,
 		patrol_button,

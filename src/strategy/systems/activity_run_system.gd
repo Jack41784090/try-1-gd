@@ -7,7 +7,7 @@ extends Node
 ## through a fresh, per-call ActivityExecuteManager, and — if the result
 ## demands it — redirects to BattleResolutionSystem. AEM already mutates the
 ## squad in place; whatever signals the squad itself fires as a side effect
-## of that (today: StrategyEventBus.squad_resource_changed / money_changed
+## of that (today: # StrategyEventBus.squad_resource_changed / money_changed
 ## on the squad's own gain_money()-driven paths) are the "onchange" hook a
 ## HUD would listen to — this system doesn't fire anything on the squad's
 ## behalf itself.
