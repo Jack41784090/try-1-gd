@@ -11,6 +11,7 @@ class_name Location
 @export var shop: Shop
 @export var clues: Array[Clue] = []
 @export var natural_resources: Array[NaturalResource] = []
+@export var consumer_demand: Dictionary = {} ## Thing -> {"qty": float, "priority": float} — hourly consumer orders for LocationEconomySystem
 @export var inventory: LocationInventory
 @export var population_config: PopulationConfig
 @export var government_config: GovernmentConfig

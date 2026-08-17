@@ -10,7 +10,8 @@ extends Node
 ## Usage: godot-mono --headless --path . scenes/demos/interactive_main.tscn
 ##
 ## Commands:
-##   status        — Clock state + every squad (location, activity, travel)
+##   status        — Clock state + every squad (location, activity, travel, cargo)
+##   market [loc]  — Market report: stocks, prices, unmet demand (all or one location)
 ##   tick [n]      — Advance n hours via ClockSystem.force_tick() (default 1)
 ##   pause         — Pause the clock
 ##   unpause       — Resume the clock
@@ -119,6 +120,8 @@ func _handle_command(input: String):
 		_cmd_help()
 	elif cmd in ["status", "s"]:
 		_cmd_status()
+	elif cmd in ["market", "m"]:
+		_cmd_market(arg)
 	elif cmd == "tick":
 		await _cmd_tick(arg)
 	elif cmd == "pause":
@@ -145,15 +148,45 @@ func _handle_command(input: String):
 func _cmd_help():
 	print("----------------------------------------------------")
 	print("  STATUS  (s)        Clock state + all squads")
+	print("  MARKET  (m) [loc]  Market prices/stocks (all or one)")
 	print("  TICK    [n]        Advance n hours (default 1)")
 	print("  PAUSE              Pause the clock")
 	print("  UNPAUSE            Resume the clock")
 	print("  SPEED   <n>        Set clock hours/second")
 	print("  /<cmd>  ...        DebugCommandSystem command")
 	print("                     (e.g. /travel commander beta)")
+	print("                     (e.g. /buy test-player grain 10)")
+	print("                     (e.g. /sell test-player grain 10)")
 	print("  HELP    (h/?)      This help text")
 	print("  QUIT    (q)        Exit the game")
 	print("----------------------------------------------------")
+
+
+func _cmd_market(arg: String):
+	var any_printed := false
+	for loc: Location in main.scenario.world.locations:
+		if not arg.is_empty() and loc.location_id != arg and loc.location_name != arg:
+			continue
+		any_printed = true
+		print("----------------------------------------------------")
+		print("=== MARKET: %s (%s) ===" % [loc.location_name, loc.location_id])
+		var offer: Dictionary = main.market_offers.get(loc.location_id, {})
+		var unmet: Dictionary = offer.get("unmet", {})
+		for thing: Thing in loc.inventory.stocks:
+			var stock: float = loc.inventory.stocks[thing]
+			var price: float = loc.inventory.get_price(thing)
+			var base: float = thing.base_price
+			var trend := "=="
+			if price > base * 1.05:
+				trend = "^^ high"
+			elif price < base * 0.95:
+				trend = "vv low"
+			print("  %-8s stock %6.1f  price %6.2f (base %.2f) %s  unmet %.1f" % [
+				thing.thing_name, stock, price, base, trend, unmet.get(thing, 0.0),
+			])
+		print("----------------------------------------------------")
+	if not any_printed:
+		print("No location '%s'. Try: market alpha | market beta" % arg)
 
 
 func _cmd_status():
@@ -169,6 +202,12 @@ func _cmd_status():
 		]
 		if squad.is_traveling():
 			line += " — traveling %s (%.0f km into route)" % ["->".join(squad.travel_route), squad.travel_progress_km]
+		var cargo_parts: Array[String] = []
+		for thing: Thing in squad.cargo.manifest:
+			if squad.cargo.manifest[thing] > 0.0:
+				cargo_parts.append("%.0f %s" % [squad.cargo.manifest[thing], thing.thing_name])
+		if not cargo_parts.is_empty():
+			line += " — cargo: %s" % ", ".join(cargo_parts)
 		print(line)
 	print("----------------------------------------------------")
 

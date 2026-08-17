@@ -40,7 +40,7 @@ Enabled (`project.godot` `[editor_plugins]`): `GDQuest_GDScript_formatter`, `_Go
 ### AI Interactive Play (`tools/play.sh`)
 
 - `bash tools/play.sh "status"` — auto-starts a game session per `CONDOR_SESSION`. Set `export CONDOR_SESSION=<id>` for persistence.
-- Systems layer (main.tscn): `bash tools/start_main.sh [session]` runs `interactive_main.tscn` — the prototype alpha/beta scenario driven through `DebugCommandSystem` (`status`, `tick [n]`, `pause`/`unpause`/`speed`, `/travel <squad> <loc>`)
+- Systems layer (main.tscn): `bash tools/start_main.sh [session]` runs `interactive_main.tscn` — the prototype alpha/beta scenario driven through `DebugCommandSystem` (`status`, `tick [n]`, `pause`/`unpause`/`speed`, `/travel <squad> <loc>`, `/buy|/sell <squad> <thing> <qty>`, `market [loc]`)
 - GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`
 - Flags: `--gui` (visible window), `--stop` (kill session)
 - Screenshots: `bash tools/play.sh "screenshot" --gui`. MCP server: `tools/mcp-screenshot/server.py` (auto-starts its own game)
@@ -331,7 +331,7 @@ There is no unit-test framework — **demo scenes in `scenes/demos/` are the tes
 - `contact_system_test.tscn`, `government_test.tscn`, `guild_test.tscn` — unit tests
 - `reactive_stat_ui_test.tscn` — ReactiveStat → units_panel/unit_item UI wiring regression test (headless ok)
 - `interactive_demo.tscn` — terminal game (stdin commands)
-- `interactive_main.tscn` — Systems-layer (main.tscn) terminal driver: `status`, `tick [n]`, `pause`/`unpause`/`speed`, `/travel <squad> <loc>` via `DebugCommandSystem` (headless ok). Start: `bash tools/start_main.sh [session]`
+- `interactive_main.tscn` — Systems-layer (main.tscn) terminal driver: `status`, `tick [n]`, `pause`/`unpause`/`speed`, `market [loc]`, `/travel <squad> <loc>`, `/buy|/sell <squad> <thing> <qty>` via `DebugCommandSystem` (headless ok). Start: `bash tools/start_main.sh [session]`. The prototype world is a merchant sandbox: alpha (grain surplus/tools-starved) vs beta (tools surplus/grain-starved) with hourly supply/demand pricing — free auto-caravans are parked so the player can work the price gaps
 - `canvas_demo.tscn` — SVG drawing canvas. Start: `bash tools/start_canvas.sh [session]`
 
 **All strategy tests MUST use `HeadlessStrategyView` + `StrategyPresenter`** — same code path as the real game. Load the real scenario: `presenter.scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"`. Drive time: `game_clock.force_tick()` + `await presenter.tick_completed`.

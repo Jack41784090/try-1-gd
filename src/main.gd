@@ -8,15 +8,26 @@ extends Node
 @onready var systems: SystemsRoot = $Systems
 @onready var hud_layer: HudLayerRoot = $HudLayer
 
+signal buy_requested(squad: StrategySquad, thing: Thing, qty: float)
+signal sell_requested(squad: StrategySquad, thing: Thing, qty: float)
+
+var scenario: GameScenario
+## location_id -> {"surplus": Dictionary, "unmet": Dictionary} — latest
+## LocationEconomySystem.trade_offer per location (market report display).
+var market_offers: Dictionary = {}
+
 
 func _ready() -> void:
 	systems.setup()
 	hud_layer.setup()
 	systems.debug_command_system.command_dispatched.connect(_on_debug_command_dispatched)
+	buy_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _execute_trade(squad, thing, qty, true))
+	sell_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _execute_trade(squad, thing, qty, false))
 	#_run_prototype_tests()
 
 
-func load_scenario(scenario: GameScenario, squads: Array[StrategySquad]) -> void:
+func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad]) -> void:
+	scenario = scenario_to_load
 	systems.travel_system.setup(scenario)
 	systems.battle_system.setup(scenario.world.contact_tracker if scenario.world else null)
 	systems.activity_run_system.setup(scenario)
@@ -26,13 +37,15 @@ func load_scenario(scenario: GameScenario, squads: Array[StrategySquad]) -> void
 		systems.location_eco_system.setup(scenario.world)
 		systems.caravan_eco_system.setup(scenario.world.locations.size())
 		for loc in scenario.world.locations:
-			systems.location_eco_system.register_location(loc, _build_crafting_guilds(loc), {})
+			systems.location_eco_system.register_location(loc, _build_crafting_guilds(loc), loc.consumer_demand)
 
 		# Connection order matters here too — see both systems' doc-comments.
 		systems.clock_system.hour_changed.connect(systems.caravan_eco_system._on_hour_changed)
 		systems.caravan_eco_system.location_arrived.connect(systems.location_eco_system._on_location_arrived)
 		systems.clock_system.hour_changed.connect(systems.location_eco_system._on_hour_changed)
 		systems.location_eco_system.trade_offer.connect(systems.caravan_eco_system._on_trade_offer)
+		systems.location_eco_system.trade_offer.connect(
+			func(location_id: String, surplus: Dictionary, unmet: Dictionary): market_offers[location_id] = {"surplus": surplus, "unmet": unmet})
 
 	for squad in squads:
 		systems.squad_being_system.register_squad(squad)
@@ -62,6 +75,13 @@ func load_scenario(scenario: GameScenario, squads: Array[StrategySquad]) -> void
 		&"location_id": func(token: String) -> Variant:
 			var loc := scenario.world.get_location_by_id(token)
 			return loc.location_id if loc else null,
+		&"thing": func(token: String) -> Variant:
+			for loc in scenario.world.locations:
+				for thing: Thing in loc.inventory.stocks:
+					if thing.thing_id == token:
+						return thing
+			return null,
+		&"qty": func(token: String) -> Variant: return float(token) if token.is_valid_float() else null,
 		&"raw": func(token: String) -> String: return token,
 	})
 	hud_layer.command_bar_hud.command_submitted.connect(systems.debug_command_system.interpret)
@@ -81,6 +101,15 @@ func load_prototype_scenario() -> Array[StrategySquad]:
 		ResourceLoader.load("res://resources/strategy/squads-presets/test-squad-bandits.tres"),
 	]
 	load_scenario(_build_test_scenario(), squads)
+	# Merchant sandbox: the player squad eats 15 food/hour (3 warriors) —
+	# provision it for a multi-day trading session so food never interrupts.
+	squads[3].food = 1500
+	# Preset squads carry no current_location_id (only the factory-built ones do).
+	squads[3].current_location_id = "alpha"
+	# Free auto-caravans would arbitrage every price gap within hours (ship
+	# min(surplus, unmet) per hour, 1h delivery, zero cost), leaving the
+	# player-merchant no margin — the sandbox plays with caravans parked.
+	systems.location_eco_system.trade_offer.disconnect(systems.caravan_eco_system._on_trade_offer)
 	systems.clock_system.pause()
 	return squads
 
@@ -100,14 +129,19 @@ func _build_crafting_guilds(loc: Location) -> Array[CraftingGuild]:
 func _load_default_commands() -> Array[CommandResource]:
 	var commands: Array[CommandResource] = []
 	commands.append(load("res://resources/strategy/debug-commands/travel.tres"))
+	commands.append(load("res://resources/strategy/debug-commands/buy.tres"))
+	commands.append(load("res://resources/strategy/debug-commands/sell.tres"))
 	return commands
 
 
 ## The one place that turns a resolved (target_system_name, target_signal_name,
 ## args) triple into an actual call — DebugCommandSystem only names the
 ## target by StringName, since it never holds sibling-System refs itself.
+## &"Main" targets this composition root itself — for cross-system bridging
+## commands (buy/sell touch BOTH a squad and a location, so no single System
+## may own them).
 func _on_debug_command_dispatched(target_system_name: StringName, target_signal_name: StringName, args: Array) -> void:
-	var target := systems.get_node_or_null(NodePath(String(target_system_name)))
+	var target: Node = self if target_system_name == &"Main" else systems.get_node_or_null(NodePath(String(target_system_name)))
 	if target == null:
 		LogGd.warn("[Main] debug command target system '%s' not found under Systems" % target_system_name)
 		return
@@ -118,6 +152,47 @@ func _on_debug_command_dispatched(target_system_name: StringName, target_signal_
 		target.callv(target_signal_name, args)
 	else:
 		LogGd.warn("[Main] debug command target '%s' has no signal or method '%s'" % [target_system_name, target_signal_name])
+
+
+## Squad <-> location market trade at the location's current price. Buy/sell
+## is composition-root logic: it spans StrategySquad (money/cargo) and
+## Location (inventory/prices), which no single System may own.
+func _execute_trade(squad: StrategySquad, thing: Thing, qty: float, is_buy: bool) -> void:
+	if qty <= 0.0:
+		LogGd.warn("[Trade] quantity must be positive")
+		return
+	var loc := scenario.world.get_location_by_id(squad.current_location_id)
+	if loc == null or loc.inventory == null:
+		LogGd.warn("[Trade] %s is not at a market location" % squad.squad_name)
+		return
+
+	var price := loc.inventory.get_price(thing)
+	if is_buy:
+		var available := loc.inventory.get_available(thing)
+		if available < qty:
+			LogGd.warn("[Trade] %s has only %.1f %s in stock" % [loc.location_name, available, thing.thing_name])
+			return
+		var cost := price * qty
+		if not squad.spend_money(cost):
+			LogGd.warn("[Trade] %s needs %.2f gold but has %.2f" % [squad.squad_name, cost, squad.money])
+			return
+		loc.inventory.consume(thing, qty)
+		squad.cargo.manifest[thing] = squad.cargo.manifest.get(thing, 0.0) + qty
+		LogGd.info("[Trade] %s bought %.0f %s @ %.2f for %.2f gold (%.2f left)" % [
+			squad.squad_name, qty, thing.thing_name, price, cost, squad.money,
+		])
+	else:
+		var carried: float = squad.cargo.manifest.get(thing, 0.0)
+		if carried < qty:
+			LogGd.warn("[Trade] %s carries only %.1f %s" % [squad.squad_name, carried, thing.thing_name])
+			return
+		var revenue := price * qty
+		squad.cargo.manifest[thing] = carried - qty
+		loc.inventory.add(thing, qty)
+		squad.gain_money(revenue)
+		LogGd.info("[Trade] %s sold %.0f %s @ %.2f for %.2f gold (now %.2f)" % [
+			squad.squad_name, qty, thing.thing_name, price, revenue, squad.money,
+		])
 
 
 #region Prototype tests (no demo files/scenes — run inline against main.tscn)
@@ -222,6 +297,14 @@ func _build_test_world() -> World:
 	var world := World.new()
 	world.current_hour = 0
 
+	# Merchant-sandbox economy: Alpha is a farming village (grain surplus,
+	# starved of tools), Beta a craft city (tools surplus, starved of grain).
+	# Price gaps emerge from the hourly supply/demand imbalance formula in
+	# LocationEconomySystem._price_update — buy low at the source, sell high
+	# at the hungry market.
+	var grain := Thing.create("grain", "Grain", EconomyTypes.ThingType.FOOD, 2.0)
+	var tools := Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 10.0)
+
 	var alpha := Location.new()
 	alpha.location_id = "alpha"
 	alpha.location_name = "Alpha"
@@ -229,6 +312,16 @@ func _build_test_world() -> World:
 	alpha.development = 30
 	alpha.stability = 60.0
 	alpha.inventory = LocationInventory.new() ## LocationEconomySystem reads loc.inventory each hour
+	alpha.natural_resources = [
+		NaturalResource.create(grain, 13.0),
+		NaturalResource.create_craft(tools, 1.0),
+	]
+	alpha.consumer_demand = {
+		grain: {"qty": 12.0, "priority": 8.0},
+		tools: {"qty": 5.0, "priority": 8.0},
+	}
+	alpha.inventory.init_thing(grain, 40.0)
+	alpha.inventory.init_thing(tools, 0.0)
 	alpha.add_connection("beta", 20.0)
 
 	var beta := Location.new()
@@ -238,6 +331,16 @@ func _build_test_world() -> World:
 	beta.development = 50
 	beta.stability = 80.0
 	beta.inventory = LocationInventory.new()
+	beta.natural_resources = [
+		NaturalResource.create_craft(tools, 5.0),
+		NaturalResource.create(grain, 2.0),
+	]
+	beta.consumer_demand = {
+		grain: {"qty": 10.0, "priority": 8.0},
+		tools: {"qty": 3.0, "priority": 8.0},
+	}
+	beta.inventory.init_thing(tools, 12.0)
+	beta.inventory.init_thing(grain, 0.0)
 	beta.add_connection("alpha", 20.0)
 
 	world.add_location(alpha)
