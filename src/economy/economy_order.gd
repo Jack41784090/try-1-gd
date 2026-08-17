@@ -16,8 +16,7 @@ var source_kind: String        ## "consumer" | "guild_intent" | "guild_derived" 
 var guild: CraftingGuild        ## null for plain consumer/extraction orders
 var origin_intent: EconomyOrder ## null except on guild_derived orders — back-ref to the guild_intent that spawned it
 
-static func create(p_thing: Thing, p_qty: float, p_priority: float, p_source_kind: String,
-		p_unit_price: float = 0.0, p_guild: CraftingGuild = null, p_origin_intent: EconomyOrder = null) -> EconomyOrder:
+static func create(p_thing: Thing, p_qty: float, p_priority: float, p_source_kind: String, p_unit_price: float = 0.0, p_guild: CraftingGuild = null, p_origin_intent: EconomyOrder = null) -> EconomyOrder:
 	var o := EconomyOrder.new()
 	o.thing = p_thing
 	o.quantity = p_qty
