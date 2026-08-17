@@ -16,6 +16,7 @@ var battle_system: BattleResolutionSystem
 var activity_run_system: ActivityRunSystem
 var debug_command_system: DebugCommandSystem
 var command_bar_hud: CommandBarHud
+var location_eco_system: LocationEconomySystem
 
 
 func _ready() -> void:
@@ -39,6 +40,7 @@ func _setup_default_systems() -> void:
 	battle_system = _enter_system(BattleResolutionSystem) as BattleResolutionSystem
 	activity_run_system = _enter_system(ActivityRunSystem) as ActivityRunSystem
 	debug_command_system = _enter_system(DebugCommandSystem) as DebugCommandSystem
+	location_eco_system = _enter_system(LocationEconomySystem) as LocationEconomySystem
 
 	debug_command_system.command_dispatched.connect(_on_debug_command_dispatched)
 
