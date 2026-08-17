@@ -67,6 +67,24 @@ func load_scenario(scenario: GameScenario, squads: Array[StrategySquad]) -> void
 	hud_layer.command_bar_hud.command_submitted.connect(systems.debug_command_system.interpret)
 
 
+## Builds and loads the prototype alpha/beta world + its five squads, then
+## pauses the clock so time only advances via ClockSystem.force_tick() (the
+## interactive driver's `tick` command, or _run_prototype_tests()). Returns
+## the registered squads in build order: wanderer, forager, commander,
+## attacker (player preset), bandits.
+func load_prototype_scenario() -> Array[StrategySquad]:
+	var squads: Array[StrategySquad] = [
+		_build_test_squad("wanderer", "Wanderer Squad", "alpha"),
+		_build_test_squad("forager", "Forager Squad", "alpha"),
+		_build_test_squad("commander", "Commander Squad", "alpha"),
+		ResourceLoader.load("res://resources/strategy/squads-presets/test-player-squad-full.tres"),
+		ResourceLoader.load("res://resources/strategy/squads-presets/test-squad-bandits.tres"),
+	]
+	load_scenario(_build_test_scenario(), squads)
+	systems.clock_system.pause()
+	return squads
+
+
 ## max_capacity assumes full staffing — no worker roster modeled here yet.
 func _build_crafting_guilds(loc: Location) -> Array[CraftingGuild]:
 	var guilds: Array[CraftingGuild] = []
@@ -110,15 +128,12 @@ var _test_failures: Array[String] = []
 func _run_prototype_tests() -> void:
 	LogGd.info("=== Systems prototype test (HourPassSystem -> SquadBeingSystem -> ActivityRunSystem -> {SquadTravelSystem, BattleResolutionSystem}) ===")
 
-	var scenario := _build_test_scenario()
-	var wanderer := _build_test_squad("wanderer", "Wanderer Squad", "alpha")
-	var forager := _build_test_squad("forager", "Forager Squad", "alpha")
-	var commander := _build_test_squad("commander", "Commander Squad", "alpha")
-	var attacker: StrategySquad = ResourceLoader.load("res://resources/strategy/squads-presets/test-player-squad-full.tres")
-	var bandits: StrategySquad = ResourceLoader.load("res://resources/strategy/squads-presets/test-squad-bandits.tres")
-
-	load_scenario(scenario, [wanderer, forager, commander, attacker, bandits])
-	systems.clock_system.pause() ## drive time via force_tick() only, not real-time _process
+	var squads := load_prototype_scenario()
+	var wanderer := squads[0]
+	var forager := squads[1]
+	var commander := squads[2]
+	var attacker := squads[3]
+	var bandits := squads[4]
 
 	systems.travel_system.location_changed.connect(
 		func(squad_id, from_id, to_id): LogGd.info("[Test] location_changed: %s %s -> %s" % [squad_id, from_id, to_id])
@@ -213,6 +228,7 @@ func _build_test_world() -> World:
 	alpha.type = StrategyTypes.LocationType.VILLAGE
 	alpha.development = 30
 	alpha.stability = 60.0
+	alpha.inventory = LocationInventory.new() ## LocationEconomySystem reads loc.inventory each hour
 	alpha.add_connection("beta", 20.0)
 
 	var beta := Location.new()
@@ -221,6 +237,7 @@ func _build_test_world() -> World:
 	beta.type = StrategyTypes.LocationType.CITY
 	beta.development = 50
 	beta.stability = 80.0
+	beta.inventory = LocationInventory.new()
 	beta.add_connection("alpha", 20.0)
 
 	world.add_location(alpha)

@@ -25,6 +25,11 @@
 #     export CONDOR_SESSION=myagent
 #     bash tools/play.sh "status"
 #
+# Scene selection:
+#   Sessions started via tools/start_canvas.sh run the SVG canvas;
+#   sessions started via tools/start_main.sh run the Systems-layer
+#   prototype (main.tscn). Plain sessions run interactive_demo.tscn.
+#
 # Default wait is 4 seconds. Use longer waits for travel (15s) and
 # activities (6s) that trigger the full turn pipeline.
 #
@@ -87,7 +92,12 @@ _start_game() {
 
     local TYPE_FILE="/tmp/condor_type_${CONDOR_SESSION}"
     local SCENE="scenes/demos/interactive_demo.tscn"
-    [ -f "$TYPE_FILE" ] && [ "$(cat "$TYPE_FILE")" = "canvas" ] && SCENE="scenes/demos/canvas_demo.tscn"
+    if [ -f "$TYPE_FILE" ]; then
+        case "$(cat "$TYPE_FILE")" in
+            canvas) SCENE="scenes/demos/canvas_demo.tscn" ;;
+            main) SCENE="scenes/demos/interactive_main.tscn" ;;
+        esac
+    fi
     nohup setsid bash -c "tail -f '$INPUT_FILE' | godot-mono $MODE_FLAG --path '$PROJECT_DIR' $SCENE 2>&1 | tee '$OUTPUT_FILE'" > /dev/null 2>&1 &
     local GAME_PID=$!
     echo $GAME_PID > "$PID_FILE"
@@ -162,13 +172,13 @@ fi
     if [ "$VERBOSE" = true ]; then
         # Verbose: show everything except low-level Godot engine noise
         tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
-            | grep -vE "^(  at: |  <[A-Z])" \
+            | grep -vE "^\s*(at: |<[A-Z])" \
             | grep -vE "(backtrace|variant_iter)" \
             | grep -vE "^\s*$"
     else
         # Normal: show game output, hide engine internals
         tail -n +$((BEFORE + 1)) "$OUTPUT_FILE" \
-            | grep -vE "^(WARNING:|ERROR:|USER WARNING:|USER ERROR:|  at: |  <[A-Z])" \
+            | grep -vE "^(WARNING:|ERROR:|USER WARNING:|USER ERROR:)|^\s*(at: |<[A-Z])" \
             | grep -vE "^(Godot Engine )" \
             | grep -vE "(\.gd:[0-9]+|\.cs:[0-9]+|backtrace|variant_)" \
             | grep -vE "^\[" \

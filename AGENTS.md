@@ -40,6 +40,7 @@ Enabled (`project.godot` `[editor_plugins]`): `GDQuest_GDScript_formatter`, `_Go
 ### AI Interactive Play (`tools/play.sh`)
 
 - `bash tools/play.sh "status"` — auto-starts a game session per `CONDOR_SESSION`. Set `export CONDOR_SESSION=<id>` for persistence.
+- Systems layer (main.tscn): `bash tools/start_main.sh [session]` runs `interactive_main.tscn` — the prototype alpha/beta scenario driven through `DebugCommandSystem` (`status`, `tick [n]`, `pause`/`unpause`/`speed`, `/travel <squad> <loc>`)
 - GOD commands: `god_squads`/`gs`, `god_contacts`/`gc`, `god_lock`/`gl <id>`, `god_economy`/`ge`
 - Flags: `--gui` (visible window), `--stop` (kill session)
 - Screenshots: `bash tools/play.sh "screenshot" --gui`. MCP server: `tools/mcp-screenshot/server.py` (auto-starts its own game)
@@ -215,7 +216,7 @@ A composition-root pattern replacing the old Presenter-orchestrates-everything f
 - `ClockSystem`, `SquadBeingSystem`, `SquadTravelSystem`, `BattleResolutionSystem`, `ActivityRunSystem` — each a `Node` added under `main.tscn`'s `Systems` root by `main.gd._enter_system()`
 - **Rule: no system may hold a reference to, `preload`, or call another system directly.** All cross-system data flow goes through signals (`squad_turn`, `request_travel`, `request_combat`, `hour_changed`, ...) connected by `main.gd` in `load_scenario()` — the composition root is the only place allowed to know about every system at once
 - When a signal handler needs to reach a system the emitting system isn't allowed to know about (e.g. resolving `ActivityResult.combat_target_squad_id` to a `StrategySquad` needs `SquadBeingSystem`, but neither `ActivityRunSystem` nor `BattleResolutionSystem` may reference it), that bridging logic lives in `main.gd`, not in either system
-- Still prototype-stage: `main.gd._run_prototype_tests()` runs scripted assertions inline against `main.tscn` on `_ready()` (no separate demo scene yet)
+- Still prototype-stage: `main.gd._run_prototype_tests()` runs scripted assertions inline against `main.tscn` (call it from `_ready()` to run them). `scenes/demos/interactive_main.tscn` (`src/demos/interactive_main.gd`) is the terminal driver: it instantiates `main.tscn`, calls `load_prototype_scenario()` and reads stdin commands — see `tools/start_main.sh`
 
 ### Key Enums
 
@@ -330,6 +331,7 @@ There is no unit-test framework — **demo scenes in `scenes/demos/` are the tes
 - `contact_system_test.tscn`, `government_test.tscn`, `guild_test.tscn` — unit tests
 - `reactive_stat_ui_test.tscn` — ReactiveStat → units_panel/unit_item UI wiring regression test (headless ok)
 - `interactive_demo.tscn` — terminal game (stdin commands)
+- `interactive_main.tscn` — Systems-layer (main.tscn) terminal driver: `status`, `tick [n]`, `pause`/`unpause`/`speed`, `/travel <squad> <loc>` via `DebugCommandSystem` (headless ok). Start: `bash tools/start_main.sh [session]`
 - `canvas_demo.tscn` — SVG drawing canvas. Start: `bash tools/start_canvas.sh [session]`
 
 **All strategy tests MUST use `HeadlessStrategyView` + `StrategyPresenter`** — same code path as the real game. Load the real scenario: `presenter.scenario_path = "res://resources/strategy/scenarios/goetz-official/scenario.tres"`. Drive time: `game_clock.force_tick()` + `await presenter.tick_completed`.
