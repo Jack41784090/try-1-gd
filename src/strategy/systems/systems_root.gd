@@ -10,6 +10,7 @@ var activity_run_system: ActivityRunSystem
 var debug_command_system: DebugCommandSystem
 var location_eco_system: LocationEconomySystem
 var caravan_eco_system: CaravanEconomySystem
+var trade_system: TradeSystem
 
 
 func setup() -> void:
@@ -22,6 +23,7 @@ func setup() -> void:
 	debug_command_system = _enter_system(DebugCommandSystem) as DebugCommandSystem
 	location_eco_system = _enter_system(LocationEconomySystem) as LocationEconomySystem
 	caravan_eco_system = _enter_system(CaravanEconomySystem) as CaravanEconomySystem
+	trade_system = _enter_system(TradeSystem) as TradeSystem
 
 
 func _enter_system(system_script: GDScript) -> Node:

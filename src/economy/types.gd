@@ -26,6 +26,12 @@ enum MoveState {
 	CAPTURED,
 }
 
+enum TradeState {
+	PENDING,
+	COMMITTED,
+	REJECTED,
+}
+
 enum RuleAction {
 	EXTRACT,
 	PRODUCE,

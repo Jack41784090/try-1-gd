@@ -8,21 +8,13 @@ extends Node
 @onready var systems: SystemsRoot = $Systems
 @onready var hud_layer: HudLayerRoot = $HudLayer
 
-signal buy_requested(squad: StrategySquad, thing: Thing, qty: float)
-signal sell_requested(squad: StrategySquad, thing: Thing, qty: float)
-
 var scenario: GameScenario
-## location_id -> {"surplus": Dictionary, "unmet": Dictionary} — latest
-## LocationEconomySystem.trade_offer per location (market report display).
-var market_offers: Dictionary = {}
 
 
 func _ready() -> void:
 	systems.setup()
 	hud_layer.setup()
 	systems.debug_command_system.command_dispatched.connect(_on_debug_command_dispatched)
-	buy_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _execute_trade(squad, thing, qty, true))
-	sell_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _execute_trade(squad, thing, qty, false))
 	#_run_prototype_tests()
 
 
@@ -42,10 +34,16 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 		# Connection order matters here too — see both systems' doc-comments.
 		systems.clock_system.hour_changed.connect(systems.caravan_eco_system._on_hour_changed)
 		systems.caravan_eco_system.location_arrived.connect(systems.location_eco_system._on_location_arrived)
+		systems.clock_system.hour_changed.connect(systems.trade_system._on_hour_changed)
 		systems.clock_system.hour_changed.connect(systems.location_eco_system._on_hour_changed)
 		systems.location_eco_system.trade_offer.connect(systems.caravan_eco_system._on_trade_offer)
-		systems.location_eco_system.trade_offer.connect(
-			func(location_id: String, surplus: Dictionary, unmet: Dictionary): market_offers[location_id] = {"surplus": surplus, "unmet": unmet})
+		systems.location_eco_system.trade_offer.connect(systems.trade_system._on_trade_offer)
+
+		# TradeSystem owns Trades, never World — the composition root resolves
+		# the squad's Location and builds the Trade (same bridging rule as the
+		# request_combat handler below).
+		systems.trade_system.buy_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _queue_player_trade(squad, thing, qty, true))
+		systems.trade_system.sell_requested.connect(func(squad: StrategySquad, thing: Thing, qty: float): _queue_player_trade(squad, thing, qty, false))
 
 	for squad in squads:
 		systems.squad_being_system.register_squad(squad)
@@ -137,11 +135,8 @@ func _load_default_commands() -> Array[CommandResource]:
 ## The one place that turns a resolved (target_system_name, target_signal_name,
 ## args) triple into an actual call — DebugCommandSystem only names the
 ## target by StringName, since it never holds sibling-System refs itself.
-## &"Main" targets this composition root itself — for cross-system bridging
-## commands (buy/sell touch BOTH a squad and a location, so no single System
-## may own them).
 func _on_debug_command_dispatched(target_system_name: StringName, target_signal_name: StringName, args: Array) -> void:
-	var target: Node = self if target_system_name == &"Main" else systems.get_node_or_null(NodePath(String(target_system_name)))
+	var target := systems.get_node_or_null(NodePath(String(target_system_name)))
 	if target == null:
 		LogGd.warn("[Main] debug command target system '%s' not found under Systems" % target_system_name)
 		return
@@ -154,45 +149,14 @@ func _on_debug_command_dispatched(target_system_name: StringName, target_signal_
 		LogGd.warn("[Main] debug command target '%s' has no signal or method '%s'" % [target_system_name, target_signal_name])
 
 
-## Squad <-> location market trade at the location's current price. Buy/sell
-## is composition-root logic: it spans StrategySquad (money/cargo) and
-## Location (inventory/prices), which no single System may own.
-func _execute_trade(squad: StrategySquad, thing: Thing, qty: float, is_buy: bool) -> void:
-	if qty <= 0.0:
-		LogGd.warn("[Trade] quantity must be positive")
-		return
+## TradeSystem owns Trades, never World — resolve the squad's Location here
+## and hand the built Trade over (the composition-root bridging rule).
+func _queue_player_trade(squad: StrategySquad, thing: Thing, qty: float, is_buy: bool) -> void:
 	var loc := scenario.world.get_location_by_id(squad.current_location_id)
-	if loc == null or loc.inventory == null:
-		LogGd.warn("[Trade] %s is not at a market location" % squad.squad_name)
+	if loc == null:
+		LogGd.warn("[Main] %s cannot trade — location '%s' unresolved" % [squad.squad_name, squad.current_location_id])
 		return
-
-	var price := loc.inventory.get_price(thing)
-	if is_buy:
-		var available := loc.inventory.get_available(thing)
-		if available < qty:
-			LogGd.warn("[Trade] %s has only %.1f %s in stock" % [loc.location_name, available, thing.thing_name])
-			return
-		var cost := price * qty
-		if not squad.spend_money(cost):
-			LogGd.warn("[Trade] %s needs %.2f gold but has %.2f" % [squad.squad_name, cost, squad.money])
-			return
-		loc.inventory.consume(thing, qty)
-		squad.cargo.manifest[thing] = squad.cargo.manifest.get(thing, 0.0) + qty
-		LogGd.info("[Trade] %s bought %.0f %s @ %.2f for %.2f gold (%.2f left)" % [
-			squad.squad_name, qty, thing.thing_name, price, cost, squad.money,
-		])
-	else:
-		var carried: float = squad.cargo.manifest.get(thing, 0.0)
-		if carried < qty:
-			LogGd.warn("[Trade] %s carries only %.1f %s" % [squad.squad_name, carried, thing.thing_name])
-			return
-		var revenue := price * qty
-		squad.cargo.manifest[thing] = carried - qty
-		loc.inventory.add(thing, qty)
-		squad.gain_money(revenue)
-		LogGd.info("[Trade] %s sold %.0f %s @ %.2f for %.2f gold (now %.2f)" % [
-			squad.squad_name, qty, thing.thing_name, price, revenue, squad.money,
-		])
+	systems.trade_system.queue_trade(Trade.create(squad, loc, thing, qty, is_buy))
 
 
 #region Prototype tests (no demo files/scenes — run inline against main.tscn)

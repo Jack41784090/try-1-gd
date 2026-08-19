@@ -6,6 +6,6 @@
 script = ExtResource("1_cmdres")
 command_name = "Sell"
 command = "/sell"
-target_system_name = &"Main"
+target_system_name = &"TradeSystem"
 target_signal_name = &"sell_requested"
 arg_kinds = Array[StringName]([&"squad", &"thing", &"qty"])

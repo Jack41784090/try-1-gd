@@ -170,7 +170,7 @@ func _cmd_market(arg: String):
 		any_printed = true
 		print("----------------------------------------------------")
 		print("=== MARKET: %s (%s) ===" % [loc.location_name, loc.location_id])
-		var offer: Dictionary = main.market_offers.get(loc.location_id, {})
+		var offer: Dictionary = main.systems.trade_system.market_offers.get(loc.location_id, {})
 		var unmet: Dictionary = offer.get("unmet", {})
 		for thing: Thing in loc.inventory.stocks:
 			var stock: float = loc.inventory.stocks[thing]
