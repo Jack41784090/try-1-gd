@@ -189,9 +189,9 @@ func on_travel_confirmed(location_id: String) -> void:
 	actor.walking_towards = location_id
 
 	# StrategyEventBus.hud_location_changed.emit(
-		"Travelling to %s" % walking_towards.location_name if walking_towards
-		else current_location.location_name
-	)
+	# 	"Travelling to %s" % walking_towards.location_name if walking_towards
+	# 	else current_location.location_name
+	# )
 	view.hide_travel_menu()
 	view.set_travel_mode_autopilot()
 	_update_activity_buttons()
@@ -575,26 +575,30 @@ func _update_ui() -> void:
 		if squad.is_traveling():
 			var total_km = world.travel_graph.get_path_distance_km(squad.travel_route)
 			# StrategyEventBus.hud_location_changed.emit("Travelling to %s (%.0f/%.0f km)" % [dest.location_name, squad.travel_progress_km, total_km])
+			pass
 		else:
 			# StrategyEventBus.hud_location_changed.emit("Travelling to %s" % dest.location_name)
+			pass
 	else:
 		# StrategyEventBus.hud_location_changed.emit(
-			"%s (%s)" % [
-				location.location_name if location else "Unknown",
-				_location_type_to_string(location.type) if location else "",
-			],
-		)
+		# 	"%s (%s)" % [
+		# 		location.location_name if location else "Unknown",
+		# 		_location_type_to_string(location.type) if location else "",
+		# 	],
+		# )
+		pass
 
 	# StrategyEventBus.hud_condition_changed.emit(
-		"Excellent" if squad.get_morale() >= 90.0
-		else "Good" if squad.get_morale() >= 70.0
-		else "Fair" if squad.get_morale() >= 50.0
-		else "Poor" if squad.get_morale() >= 30.0
-		else "Critical"
-	)
+	# 	"Excellent" if squad.get_morale() >= 90.0
+	# 	else "Good" if squad.get_morale() >= 70.0
+	# 	else "Fair" if squad.get_morale() >= 50.0
+	# 	else "Poor" if squad.get_morale() >= 30.0
+	# 	else "Critical"
+	# )
 	# StrategyEventBus.squad_morale_changed.emit(squad.get_morale())
 	if not world.contact_tracker:
 		# StrategyEventBus.hud_contact_bars_changed.emit([])
+		pass
 	else:
 		var our_contacts = world.contact_tracker.get_contacts_for(squad.squad_id)
 		var bars: Array[Dictionary] = []
@@ -628,12 +632,12 @@ func _update_ui() -> void:
 		# StrategyEventBus.hud_contact_bars_changed.emit(bars)
 
 	# StrategyEventBus.hud_stats_changed.emit(
-		squad.money,
-		squad.food,
-		squad.karma,
-		location.stability if location else 0.0,
-		location.development if location else 0,
-	)
+	# 	squad.money,
+	# 	squad.food,
+	# 	squad.karma,
+	# 	location.stability if location else 0.0,
+	# 	location.development if location else 0,
+	# )
 
 	_update_activity_buttons()
 

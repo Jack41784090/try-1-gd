@@ -345,11 +345,9 @@ func hide_combat_panel() -> void:
 
 
 func transition_to_strategy() -> void:
-	await SceneManager.transition_quick(
-		func():
-			vn_view.exit()
-			show_strategy_ui()
-	)
+	# SceneManager (obsolete autoload, dropped in 42703b0) used to wrap this in a fade transition
+	vn_view.exit()
+	show_strategy_ui()
 
 
 func transition_to_vn(trans_type: EventChain.TransitionType = EventChain.TransitionType.QUICK) -> void:
@@ -357,10 +355,8 @@ func transition_to_vn(trans_type: EventChain.TransitionType = EventChain.Transit
 		EventChain.TransitionType.NONE:
 			vn_view.enter()
 		_:
-			await SceneManager.transition_quick(
-				func():
-					vn_view.enter()
-			)
+			# SceneManager (obsolete autoload, dropped in 42703b0) used to wrap this in a fade transition
+			vn_view.enter()
 
 #endregion
 
