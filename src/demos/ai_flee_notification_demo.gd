@@ -50,14 +50,8 @@ func _ready():
 	)
 
 	for i in range(3):
-		var stats = CombatEntityBaseStats.new()
-		var warrior = StrategyEntityFactory.Create(
-			EntityClasses.Types.Landsknecht,
-			"scout_%d" % i,
-			"Scout %d" % (i + 1),
-			StrategyTypes.Religion.CATHOLIC,
-			stats,
-		)
+		var background := WarriorBackgroundFactory.get_background(&"landsknecht")
+		var warrior = StrategyEntityFactory.Create(background, StrategyTypes.Religion.CATHOLIC)
 		warrior.attributes["diplomacy"] = 30
 		warrior.attributes["survival"] = 60
 		warrior.attributes["perception"] = 70

@@ -629,7 +629,8 @@ func create_test_entity(config: Dictionary) -> CombatEntity:
 	var resource := CombatEntityFactory.get_resource("landsknecht")
 	var player_id: int = config.get("player_id", 0)
 	var location: SquadBattleTypes.SquadEntityInSquadLocation = config.get("location", SquadBattleTypes.SquadEntityInSquadLocation.Front)
-	var entity_config = CombatEntityConfig.new(resource, player_id, location)
+	var side: SquadBattleTypes.Side = config.get("side", SquadBattleTypes.Side.ATTACKER)
+	var entity_config = CombatEntityConfig.new(resource, side, player_id, location)
 	var entity = CombatEntity.new(entity_config)
 	return entity
 

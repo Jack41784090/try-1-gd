@@ -60,12 +60,8 @@ func check(condition: bool, test_name: String, detail: String = "") -> void:
 		print(msg)
 
 func _make_warrior(background_id: StringName) -> StrategyEntity:
-	var w := StrategyEntityFactory.Create(
-		background_id,
-		"w_%s_%d" % [background_id, randi()],
-		"w_%s" % background_id,
-		StrategyTypes.Religion.CATHOLIC
-	)
+	var background := WarriorBackgroundFactory.get_background(background_id)
+	var w := StrategyEntityFactory.Create(background, StrategyTypes.Religion.CATHOLIC)
 	w.attributes = {"diplomacy": 30, "survival": 30, "perception": 40, "leadership": 50, "stealth": 35}
 	return w
 
