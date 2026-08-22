@@ -9,6 +9,7 @@ var battle_system: BattleResolutionSystem
 var activity_run_system: ActivityRunSystem
 var debug_command_system: DebugCommandSystem
 var location_eco_system: LocationEconomySystem
+var population_system: PopulationSystem
 var caravan_eco_system: CaravanEconomySystem
 var trade_system: TradeSystem
 
@@ -22,6 +23,7 @@ func setup() -> void:
 	activity_run_system = _enter_system(ActivityRunSystem) as ActivityRunSystem
 	debug_command_system = _enter_system(DebugCommandSystem) as DebugCommandSystem
 	location_eco_system = _enter_system(LocationEconomySystem) as LocationEconomySystem
+	population_system = _enter_system(PopulationSystem) as PopulationSystem
 	caravan_eco_system = _enter_system(CaravanEconomySystem) as CaravanEconomySystem
 	trade_system = _enter_system(TradeSystem) as TradeSystem
 

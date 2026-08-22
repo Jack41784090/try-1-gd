@@ -27,6 +27,7 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 
 	if scenario.world:
 		systems.location_eco_system.setup(scenario.world)
+		systems.population_system.setup(scenario.world)
 		systems.caravan_eco_system.setup(scenario.world.locations.size())
 		for loc in scenario.world.locations:
 			systems.location_eco_system.register_location(loc, _build_crafting_guilds(loc), loc.consumer_demand)
@@ -35,9 +36,22 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 		systems.clock_system.hour_changed.connect(systems.caravan_eco_system._on_hour_changed)
 		systems.caravan_eco_system.location_arrived.connect(systems.location_eco_system._on_location_arrived)
 		systems.clock_system.hour_changed.connect(systems.trade_system._on_hour_changed)
+		# PopulationSystem must recompute wants (and update satisfaction from
+		# last hour's cached unmet) BEFORE LocationEconomySystem's own
+		# hour_changed handler runs this same tick, since
+		# LocationEconomySystem._generate_intents() pull-reads
+		# loc.population.get_total_demand() as THIS hour's consumer demand.
+		# Reversing this order would make LocationEconomySystem read last
+		# hour's stale wants instead of this hour's — do not reorder.
+		systems.clock_system.hour_changed.connect(systems.population_system._on_hour_changed)
 		systems.clock_system.hour_changed.connect(systems.location_eco_system._on_hour_changed)
 		systems.location_eco_system.trade_offer.connect(systems.caravan_eco_system._on_trade_offer)
 		systems.location_eco_system.trade_offer.connect(systems.trade_system._on_trade_offer)
+		# PopulationSystem caches last hour's unmet the same way
+		# TradeSystem/CaravanEconomySystem cache trade_offer — connected AFTER
+		# trade_offer emits, so satisfaction updates next hour use this hour's
+		# real settlement outcome.
+		systems.location_eco_system.trade_offer.connect(systems.population_system._on_trade_offer)
 
 		# TradeSystem owns Trades, never World — the composition root resolves
 		# the squad's Location and builds the Trade (same bridging rule as the
@@ -268,6 +282,7 @@ func _build_test_world() -> World:
 	# at the hungry market.
 	var grain := Thing.create("grain", "Grain", EconomyTypes.ThingType.FOOD, 2.0)
 	var tools := Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 10.0)
+	world.goods = [grain, tools]
 
 	var alpha := Location.new()
 	alpha.location_id = "alpha"
@@ -287,6 +302,14 @@ func _build_test_world() -> World:
 	alpha.inventory.init_thing(grain, 40.0)
 	alpha.inventory.init_thing(tools, 0.0)
 	alpha.add_connection("beta", 20.0)
+	# PopulationSystem drives consumer demand from real individuals — Alpha
+	# is a farming village, so mostly peasants with a couple of landlords.
+	alpha.population_config = PopulationConfig.new()
+	alpha.population_config.groups = [
+		PopulationGroup.create(10, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 2.0),
+		PopulationGroup.create(2, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 20.0),
+	]
+	alpha.population = alpha.population_config.build_population(alpha.location_id)
 
 	var beta := Location.new()
 	beta.location_id = "beta"
@@ -306,6 +329,15 @@ func _build_test_world() -> World:
 	beta.inventory.init_thing(tools, 12.0)
 	beta.inventory.init_thing(grain, 0.0)
 	beta.add_connection("alpha", 20.0)
+	# Beta is a craft city — bourgeois-heavy, grain-starved, so its population
+	# should show up hungrier and more elastic on Tools than Alpha's.
+	beta.population_config = PopulationConfig.new()
+	beta.population_config.groups = [
+		PopulationGroup.create(8, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 10.0),
+		PopulationGroup.create(3, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0),
+		PopulationGroup.create(1, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 30.0),
+	]
+	beta.population = beta.population_config.build_population(beta.location_id)
 
 	world.add_location(alpha)
 	world.add_location(beta)

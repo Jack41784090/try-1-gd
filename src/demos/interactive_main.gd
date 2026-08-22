@@ -184,6 +184,10 @@ func _cmd_market(arg: String):
 			print("  %-8s stock %6.1f  price %6.2f (base %.2f) %s  unmet %.1f" % [
 				thing.thing_name, stock, price, base, trend, unmet.get(thing, 0.0),
 			])
+		if loc.population != null:
+			print("  pop %d  avg_satisfaction %.1f  avg_money %.2f" % [
+				loc.population.size(), loc.population.get_average_satisfaction(), loc.population.get_average_money(),
+			])
 		print("----------------------------------------------------")
 	if not any_printed:
 		print("No location '%s'. Try: market alpha | market beta" % arg)

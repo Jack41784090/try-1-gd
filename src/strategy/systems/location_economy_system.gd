@@ -132,10 +132,24 @@ func _price_update(loc: Location) -> void:
 
 func _generate_intents(loc: Location) -> Dictionary:
 	var consumer_demands: Array[EconomyOrder] = []
-	var rules: Dictionary = _consumer_demand_by_location.get(loc.location_id, {})
-	for thing in rules:
-		var rule: Dictionary = rules[thing]
-		consumer_demands.append(EconomyOrder.create(thing, rule.qty, rule.priority, "consumer"))
+	if loc.population != null and not loc.population.people.is_empty():
+		# Population-sourced demand: real per-individual wants, recomputed
+		# this same hour by PopulationSystem (connected BEFORE this System's
+		# own hour_changed handler — see main.gd's ordering comment) replace
+		# the hand-authored _consumer_demand_by_location rules for any
+		# location with a live Population.
+		for thing: Thing in loc.inventory.stocks:
+			var qty := loc.population.get_total_demand(thing)
+			if qty <= 0.0:
+				continue
+			consumer_demands.append(EconomyOrder.create(thing, qty, _consumer_priority_for(thing), "consumer"))
+	else:
+		# Fallback for locations with no Population wired up yet: the
+		# original hand-authored rules dict, unchanged.
+		var rules: Dictionary = _consumer_demand_by_location.get(loc.location_id, {})
+		for thing in rules:
+			var rule: Dictionary = rules[thing]
+			consumer_demands.append(EconomyOrder.create(thing, rule.qty, rule.priority, "consumer"))
 
 	var crafting_intents: Array[EconomyOrder] = []
 	for guild: CraftingGuild in _guilds_by_location.get(loc.location_id, []):
@@ -143,6 +157,17 @@ func _generate_intents(loc: Location) -> Dictionary:
 
 	intents_generated.emit(loc.location_id, consumer_demands, crafting_intents)
 	return {"consumer_demands": consumer_demands, "crafting_intents": crafting_intents}
+
+
+## Port of CsPerson.GenerateOrders' priority-by-ThingType table
+## (CsPerson.cs:162-167): food outranks weapons outranks everything else.
+func _consumer_priority_for(thing: Thing) -> float:
+	match thing.thing_type:
+		EconomyTypes.ThingType.FOOD:
+			return 10.0
+		EconomyTypes.ThingType.WEAPONS:
+			return 8.0
+	return 5.0
 
 
 func _explode_boms(loc: Location, crafting_intents: Array[EconomyOrder]) -> Array[EconomyOrder]:
