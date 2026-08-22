@@ -24,6 +24,8 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 	systems.battle_system.setup(scenario.world.contact_tracker if scenario.world else null)
 	systems.activity_run_system.setup(scenario)
 	systems.squad_ai_system.setup(scenario)
+	systems.monster_spawn_system.setup(scenario)
+	systems.sin_inhering_system.setup(scenario)
 
 	if scenario.world:
 		systems.location_eco_system.setup(scenario.world)
@@ -80,6 +82,16 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 			await systems.battle_system.resolve_combat(squad, defender, activity_result.engagement_type)
 	)
 	systems.clock_system.hour_changed.connect(systems.squad_being_system.on_hour_pass)
+
+	# Monster spawning: SinInheringSystem ("why") triggers MonsterSpawnSystem
+	# ("what"), whose squad_spawned lands here — the one place all three
+	# registration steps (World, SquadBeingSystem, SquadAISystem) run
+	# together, since no system may call another directly. Connected AFTER
+	# squad_being_system.on_hour_pass so a squad spawned this hour doesn't
+	# also receive a squad_turn the same hour.
+	systems.sin_inhering_system.spawn_triggered.connect(systems.monster_spawn_system._on_spawn_triggered)
+	systems.monster_spawn_system.squad_spawned.connect(_on_monster_squad_spawned)
+	systems.clock_system.hour_changed.connect(systems.sin_inhering_system.on_hour_pass)
 
 	systems.debug_command_system.setup(_load_default_commands(), {
 		&"squad": func(token: String) -> StrategySquad: return systems.squad_being_system.get_squad(token),
@@ -143,6 +155,7 @@ func _load_default_commands() -> Array[CommandResource]:
 	commands.append(load("res://resources/strategy/debug-commands/travel.tres"))
 	commands.append(load("res://resources/strategy/debug-commands/buy.tres"))
 	commands.append(load("res://resources/strategy/debug-commands/sell.tres"))
+	commands.append(load("res://resources/strategy/debug-commands/spawn-monster.tres"))
 	return commands
 
 
@@ -161,6 +174,15 @@ func _on_debug_command_dispatched(target_system_name: StringName, target_signal_
 		target.callv(target_signal_name, args)
 	else:
 		LogGd.warn("[Main] debug command target '%s' has no signal or method '%s'" % [target_system_name, target_signal_name])
+
+
+## The one place all three monster-squad registration steps run together —
+## World, SquadBeingSystem, SquadAISystem — since no system may call another
+## directly.
+func _on_monster_squad_spawned(squad: StrategySquad) -> void:
+	scenario.world.add_roaming_squad(squad)
+	systems.squad_being_system.register_squad(squad)
+	systems.squad_ai_system.register_squad(squad, "res://resources/ai/strategic/profiles/monster-roamer.tres")
 
 
 ## TradeSystem owns Trades, never World — resolve the squad's Location here

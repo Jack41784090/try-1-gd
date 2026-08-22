@@ -75,6 +75,7 @@ enum SquadRole {
 	COMBAT,
 	MERCHANT,
 	BANDIT,
+	MONSTER,
 }
 
 enum ContactState {

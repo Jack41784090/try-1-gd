@@ -12,6 +12,8 @@ var location_eco_system: LocationEconomySystem
 var population_system: PopulationSystem
 var caravan_eco_system: CaravanEconomySystem
 var trade_system: TradeSystem
+var monster_spawn_system: MonsterSpawnSystem
+var sin_inhering_system: SinInheringSystem
 
 
 func setup() -> void:
@@ -26,6 +28,8 @@ func setup() -> void:
 	population_system = _enter_system(PopulationSystem) as PopulationSystem
 	caravan_eco_system = _enter_system(CaravanEconomySystem) as CaravanEconomySystem
 	trade_system = _enter_system(TradeSystem) as TradeSystem
+	monster_spawn_system = _enter_system(MonsterSpawnSystem) as MonsterSpawnSystem
+	sin_inhering_system = _enter_system(SinInheringSystem) as SinInheringSystem
 
 
 func _enter_system(system_script: GDScript) -> Node:

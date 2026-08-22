@@ -21,11 +21,13 @@ extends Node
 ## this System never holds a SquadTravelSystem ref itself (see the
 ## documented convention in activity_run_system.gd / debug_command_system.gd).
 ##
-## No dynamic registration: brains are built once, from a snapshot of
-## world.roaming_squads at setup() time. A squad added to world.roaming_squads
-## afterward (e.g. future bandit spawning) won't get a brain unless a
-## register_squad()-style method is added later, mirroring AISquadManager's
-## (squad_manager.gd:280-291) — deliberately out of scope here.
+## Dynamic registration: register_squad() builds one more brain the same way
+## setup()'s loop does, for a squad spawned mid-game after setup() already
+## ran (e.g. MonsterSpawnSystem). Mirrors only the brain-construction half of
+## AISquadManager.register_squad() (squad_manager.gd:280-291) — no executor,
+## no _ensure_unique_warriors (legacy AISquadManager machinery this layer
+## doesn't use, and it would crash on template-only warriors anyway since it
+## dereferences .strategy.id unconditionally).
 
 signal ai_travel_requested(squad: StrategySquad, destination_id: String)
 
@@ -94,6 +96,17 @@ func _on_squad_turn(squad: StrategySquad) -> void:
 			_begin_ai_travel(squad, context)
 		_:
 			squad.current_activity_type = activity_type
+
+
+## Generically useful for any squad spawned mid-game, not monster-specific.
+func register_squad(squad: StrategySquad, profile_path: String = "") -> void:
+	assert(scenario != null, "SquadAISystem.register_squad requires setup() first")
+	assert(not squad_brains.has(squad.squad_id), "squad %s already has a brain" % squad.squad_id)
+	if squad.current_location_id.is_empty() and not squad.starting_location_id.is_empty():
+		squad.set_location(squad.starting_location_id)
+	var profile := AIProfileFactory.get_squad_profile(profile_path)
+	squad_brains[squad.squad_id] = SquadBrain.new(squad, profile)
+	LogGd.debug("[SquadAISystem] registered brain for %s (%s)" % [squad.squad_name, squad.squad_id])
 
 
 func _begin_ai_travel(squad: StrategySquad, context: Dictionary) -> void:

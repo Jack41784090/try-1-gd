@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SquadBrainConfig" format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ai/squad_brain_config.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/strategy/ai/consideration.gd" id="2_csdr_type"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/attack-weak-enemy.tres" id="3_attack"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/patrol-for-info.tres" id="4_patrol"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/considerations/rest-when-exhausted.tres" id="5_rest"]
+[ext_resource type="Resource" path="res://resources/ai/strategic/actions/patrol.tres" id="6_fallback"]
+
+[resource]
+script = ExtResource("1_script")
+profile_name = "monster-roamer"
+considerations = Array[ExtResource("2_csdr_type")]([ExtResource("3_attack"), ExtResource("4_patrol"), ExtResource("5_rest")])
+fallback_action = ExtResource("6_fallback")
