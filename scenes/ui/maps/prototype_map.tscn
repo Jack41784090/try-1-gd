@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" uid="uid://c3xlocmarker" path="res://scenes/ui/maps/location_marker.tscn" id="1_marker"]
+
+[node name="PrototypeMap" type="Node2D"]
+
+[node name="Road_AlphaBeta" type="Line2D" parent="."]
+points = PackedVector2Array(480, 540, 1440, 540)
+width = 3.0
+default_color = Color(0.55, 0.45, 0.3, 0.75)
+
+[node name="Alpha" type="Area2D" parent="." instance=ExtResource("1_marker")]
+position = Vector2(480, 540)
+location_id = "alpha"
+location_type = 2
+
+[node name="Beta" type="Area2D" parent="." instance=ExtResource("1_marker")]
+position = Vector2(1440, 540)
+location_id = "beta"
+location_type = 0

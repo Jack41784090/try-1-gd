@@ -103,8 +103,12 @@ func _handle_command(input: String):
 		_cmd_status()
 	elif cmd in ["market", "m"]:
 		_cmd_market(arg)
+	elif cmd == "map":
+		_cmd_map()
 	elif cmd == "tick":
 		await _cmd_tick(arg)
+	elif cmd in ["screenshot", "ss"]:
+		await _cmd_screenshot(arg)
 	elif cmd == "pause":
 		main.systems.clock_system.pause()
 		print("Clock paused at hour %d." % main.systems.clock_system.current_hour)
@@ -130,7 +134,9 @@ func _cmd_help():
 	print("----------------------------------------------------")
 	print("  STATUS  (s)        Clock state + all squads")
 	print("  MARKET  (m) [loc]  Market prices/stocks (all or one)")
+	print("  MAP                Marker + moving-token positions")
 	print("  TICK    [n]        Advance n hours (default 1)")
+	print("  SCREENSHOT (ss) [path]  Save viewport screenshot (GUI mode only)")
 	print("  PAUSE              Pause the clock")
 	print("  UNPAUSE            Resume the clock")
 	print("  SPEED   <n>        Set clock hours/second")
@@ -212,3 +218,37 @@ func _cmd_tick(arg: String):
 		clock.force_tick()
 		await get_tree().process_frame
 	print("Advanced %d hour(s). Now: Hour %d (Day %d)." % [hours, clock.current_hour, clock.current_hour / 24])
+
+
+const SCREENSHOT_PATH := "/tmp/condor_screenshot.jpg"
+
+func _cmd_screenshot(arg: String):
+	var path := arg if not arg.is_empty() else SCREENSHOT_PATH
+	if DisplayServer.get_name() == "headless":
+		print("ERROR: Screenshots require GUI mode.")
+		return
+	await RenderingServer.frame_post_draw
+	var image := get_viewport().get_texture().get_image()
+	var max_width := 1280
+	if image.get_width() > max_width:
+		var scale := float(max_width) / float(image.get_width())
+		var new_h := int(float(image.get_height()) * scale)
+		image.resize(max_width, new_h, Image.INTERPOLATE_BILINEAR)
+	var err := image.save_jpg(path, 0.8) if path.ends_with(".jpg") or path.ends_with(".jpeg") else image.save_png(path)
+	if err != OK:
+		print("ERROR: Failed to save screenshot (error %d)" % err)
+		return
+	print("SCREENSHOT_SAVED:%s" % path)
+
+
+func _cmd_map():
+	var view := main.map_view
+	print("----------------------------------------------------")
+	print("=== MAP (px) ===")
+	for loc_id: String in view._marker_by_id:
+		var marker: Node2D = view._marker_by_id[loc_id]
+		print("  marker %-8s @ (%.0f, %.0f)" % [loc_id, marker.position.x, marker.position.y])
+	for squad_id: String in view._token_by_squad_id:
+		var token: Node2D = view._token_by_squad_id[squad_id]
+		print("  token  %-28s @ (%.0f, %.0f)" % [squad_id, token.position.x, token.position.y])
+	print("----------------------------------------------------")

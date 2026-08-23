@@ -1,6 +1,7 @@
 extends Node
 @onready var level_root: Node2D = $World/LevelRoot
 @onready var entity_root: Node2D = $World/EntityRoot
+@onready var map_view: SquadMapView = $World/EntityRoot/Map
 @onready var effects_root: Node2D = $World/EffectsRoot
 @onready var pause_root: Control = $PauseLayer/Root
 @onready var trans_root: Control = $TransitionLayer/Root
@@ -79,6 +80,15 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 			if defender: await systems.battle_system.resolve_combat(squad, defender, activity_result.engagement_type)
 	)
 	systems.clock_system.hour_changed.connect(systems.squad_acting_system.on_hour_pass)
+
+	#region Map view
+	map_view.squad_resolver = systems.squad_acting_system.get_squad
+	map_view.distance_resolver = systems.travel_system.get_distance
+	systems.squad_acting_system.squad_registered.connect(map_view._on_squad_registered)
+	systems.squad_acting_system.squad_unregistered.connect(map_view._on_squad_unregistered)
+	systems.travel_system.travel_progress_updated.connect(map_view._on_travel_progress)
+	systems.travel_system.location_changed.connect(map_view._on_location_changed)
+	#endregion
 
 	systems.sin_inhering_system.spawn_triggered.connect(systems.monster_spawn_system._on_spawn_triggered)
 	systems.monster_spawn_system.squad_spawned.connect(_on_monster_squad_spawned)

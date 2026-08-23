@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/strategy/ui/map/squad_map_view.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/maps/prototype_map.tscn" id="2_map"]
+
+[node name="SquadMapView" type="Node2D"]
+script = ExtResource("1")
+map_scene = ExtResource("2_map")
