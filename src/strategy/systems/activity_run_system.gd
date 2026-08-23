@@ -1,7 +1,7 @@
 class_name ActivityRunSystem
 extends Node
 
-## Wired externally by main.gd to SquadBeingSystem.squad_turn (no NodePath lookup); onchange signals come from AEM mutating the squad directly, not from this system.
+## Wired externally by main.gd to SquadActingSystem.squad_turn (no NodePath lookup); onchange signals come from AEM mutating the squad directly, not from this system.
 
 signal activity_resolved(squad: StrategySquad, activity: Activity, results: Array)
 signal request_travel(squad: StrategySquad, travel_route: Array[String])

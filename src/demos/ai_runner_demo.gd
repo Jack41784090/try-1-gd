@@ -1,6 +1,6 @@
 extends Node
 
-## Tests SquadBrain decision-making across scenarios using data-driven consideration scoring.
+## Tests StrategySquadBrain decision-making across scenarios using data-driven consideration scoring.
 
 func _ready():
 	print("\n=== SQUAD BRAIN DECISION-MAKING DEMO ===\n")
@@ -13,7 +13,7 @@ func _ready():
 	ai_squad.money = 100.0
 
 	var profile = AIProfileFactory.get_default_squad_profile()
-	var brain = SquadBrain.new(ai_squad, profile)
+	var brain = StrategySquadBrain.new(ai_squad, profile)
 	var directive = FactionDirective.create_none()
 
 	var result = brain.decide(scenario.world, null, directive)
@@ -42,7 +42,7 @@ func _ready():
 	scenario.world.roaming_squads.append(enemy_squad)
 
 	profile = AIProfileFactory.get_default_squad_profile()
-	brain = SquadBrain.new(ai_squad, profile)
+	brain = StrategySquadBrain.new(ai_squad, profile)
 	directive = FactionDirective.create_none()
 
 	result = brain.decide(scenario.world, null, directive)
@@ -71,7 +71,7 @@ func _ready():
 	scenario.world.roaming_squads.append(enemy_squad)
 
 	profile = AIProfileFactory.get_default_squad_profile()
-	brain = SquadBrain.new(ai_squad, profile)
+	brain = StrategySquadBrain.new(ai_squad, profile)
 	directive = FactionDirective.create_none()
 
 	result = brain.decide(scenario.world, null, directive)
@@ -109,7 +109,7 @@ func _ready():
 	city_location.add_clue(clue)
 
 	profile = AIProfileFactory.get_default_squad_profile()
-	brain = SquadBrain.new(ai_squad, profile)
+	brain = StrategySquadBrain.new(ai_squad, profile)
 	directive = FactionDirective.create_none()
 
 	result = brain.decide(scenario.world, null, directive)
@@ -139,7 +139,7 @@ func _ready():
 	scenario.world.roaming_squads.append(enemy_squad)
 
 	profile = AIProfileFactory.get_default_squad_profile()
-	brain = SquadBrain.new(ai_squad, profile)
+	brain = StrategySquadBrain.new(ai_squad, profile)
 	directive = FactionDirective.create_none()
 
 	result = brain.decide(scenario.world, null, directive)

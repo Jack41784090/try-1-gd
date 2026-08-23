@@ -26,7 +26,7 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 	systems.travel_system.setup(scenario)
 	systems.battle_system.setup(scenario.world.contact_tracker if scenario.world else null)
 	systems.activity_run_system.setup(scenario)
-	systems.squad_ai_system.setup(scenario)
+	systems.squad_acting_system.setup(scenario)
 	systems.monster_spawn_system.setup(scenario)
 	systems.sin_inhering_system.setup(scenario)
 	systems.location_eco_system.setup(scenario.world)
@@ -57,24 +57,26 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 			if loc: systems.trade_system.queue_trade(Trade.create(squad, loc, thing, qty, false)))
 
 	for squad in squads:
-		systems.squad_being_system.register_squad(squad)
+		systems.squad_acting_system.register_squad(squad)
 
-	systems.squad_being_system.squad_turn.connect(systems.squad_ai_system._on_squad_turn)
-	systems.squad_being_system.squad_turn.connect(systems.activity_run_system._on_squad_turn)
-	systems.squad_ai_system.ai_travel_requested.connect(systems.travel_system.begin_travel)
+	# SquadActingSystem decides each AI squad's activity internally before
+	# broadcasting squad_turn, so listeners always read this hour's fresh
+	# current_activity_type — no connection-order constraint here.
+	systems.squad_acting_system.squad_turn.connect(systems.activity_run_system._on_squad_turn)
+	systems.squad_acting_system.ai_travel_requested.connect(systems.travel_system.begin_travel)
 	systems.activity_run_system.request_travel.connect(systems.travel_system.on_request_travel)
 	systems.activity_run_system.request_combat.connect(
 		func(squad: StrategySquad, activity_result: ActivityResult) -> void:
-			var defender := systems.squad_being_system.get_squad(activity_result.combat_target_squad_id)
+			var defender := systems.squad_acting_system.get_squad(activity_result.combat_target_squad_id)
 			if defender: await systems.battle_system.resolve_combat(squad, defender, activity_result.engagement_type)
 	)
-	systems.clock_system.hour_changed.connect(systems.squad_being_system.on_hour_pass)
+	systems.clock_system.hour_changed.connect(systems.squad_acting_system.on_hour_pass)
 
 	systems.sin_inhering_system.spawn_triggered.connect(systems.monster_spawn_system._on_spawn_triggered)
 	systems.monster_spawn_system.squad_spawned.connect(_on_monster_squad_spawned)
 	systems.clock_system.hour_changed.connect(systems.sin_inhering_system.on_hour_pass)
 	systems.debug_command_system.setup(_load_default_commands(), {
-		&"squad": func(token: String) -> StrategySquad: return systems.squad_being_system.get_squad(token),
+		&"squad": func(token: String) -> StrategySquad: return systems.squad_acting_system.get_squad(token),
 		&"location": func(token: String) -> Location: return scenario.world.get_location_by_id(token),
 		&"location_id": func(token: String) -> Variant:
 			var loc := scenario.world.get_location_by_id(token)
@@ -151,8 +153,10 @@ func _on_debug_command_dispatched(target_system_name: StringName, target_signal_
 
 func _on_monster_squad_spawned(squad: StrategySquad) -> void:
 	scenario.world.add_roaming_squad(squad)
-	systems.squad_being_system.register_squad(squad)
-	systems.squad_ai_system.register_squad(squad, "res://resources/ai/strategic/profiles/monster-roamer.tres")
+	# One registration step: the squad already carries its brain (attached by
+	# MonsterSpawnSystem), so SquadActingSystem.register_squad() covers both
+	# the being-map entry and AI control.
+	systems.squad_acting_system.register_squad(squad)
 
 
 
@@ -163,7 +167,7 @@ var _test_failures: Array[String] = []
 
 
 func _run_prototype_tests() -> void:
-	LogGd.info("=== Systems prototype test (HourPassSystem -> SquadBeingSystem -> ActivityRunSystem -> {SquadTravelSystem, BattleResolutionSystem}) ===")
+	LogGd.info("=== Systems prototype test (ClockSystem -> SquadActingSystem -> ActivityRunSystem -> {SquadTravelSystem, BattleResolutionSystem}) ===")
 
 	var squads := load_prototype_scenario()
 	var wanderer := squads[0]
@@ -224,7 +228,7 @@ func _check(label: String, condition: bool) -> void:
 		LogGd.error("[Test]   FAIL: %s" % label)
 
 
-## Bypasses GameScenario._setup(), which has a pre-existing bug calling .set_location() on the typed-as-Resource starting_player_squad; unneeded here since squads are owned by SquadBeingSystem instead.
+## Bypasses GameScenario._setup(), which has a pre-existing bug calling .set_location() on the typed-as-Resource starting_player_squad; unneeded here since squads are owned by SquadActingSystem instead.
 func _build_test_scenario() -> GameScenario:
 	var scenario := GameScenario.new()
 	scenario.world = _build_test_world()

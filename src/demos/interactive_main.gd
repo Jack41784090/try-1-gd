@@ -179,7 +179,7 @@ func _cmd_status():
 	var state := "PAUSED" if clock.is_paused else "RUNNING (%.1f h/s)" % clock.hours_per_second
 	print("----------------------------------------------------")
 	print("=== Hour %d (Day %d) — %s ===" % [clock.current_hour, clock.current_hour / 24, state])
-	for squad: StrategySquad in main.systems.squad_being_system.get_all_squads():
+	for squad: StrategySquad in main.systems.squad_acting_system.get_all_squads():
 		var line := "  %s [%s] @ %s — %s — %dw — food %d, gold %.0f" % [
 			squad.squad_name, squad.squad_id, squad.current_location_id,
 			StrategyTypes.ActivityType.keys()[squad.current_activity_type],

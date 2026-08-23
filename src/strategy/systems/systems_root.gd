@@ -2,8 +2,7 @@ class_name SystemsRoot
 extends Node
 
 var clock_system: ClockSystem
-var squad_being_system: SquadBeingSystem
-var squad_ai_system: SquadAISystem
+var squad_acting_system: SquadActingSystem
 var travel_system: SquadTravelSystem
 var battle_system: BattleResolutionSystem
 var activity_run_system: ActivityRunSystem
@@ -18,8 +17,7 @@ var sin_inhering_system: SinInheringSystem
 
 func setup() -> void:
 	clock_system = _enter_system(ClockSystem) as ClockSystem
-	squad_being_system = _enter_system(SquadBeingSystem) as SquadBeingSystem
-	squad_ai_system = _enter_system(SquadAISystem) as SquadAISystem
+	squad_acting_system = _enter_system(SquadActingSystem) as SquadActingSystem
 	travel_system = _enter_system(SquadTravelSystem) as SquadTravelSystem
 	battle_system = _enter_system(BattleResolutionSystem) as BattleResolutionSystem
 	activity_run_system = _enter_system(ActivityRunSystem) as ActivityRunSystem

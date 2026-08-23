@@ -1,5 +1,5 @@
 extends Node
-## Headless production-pipeline test: mirrors StrategyPresenter._on_hour_tick's exact class/execution order, with SquadBrain standing in for player input and AISquadManager for the rest.
+## Headless production-pipeline test: mirrors StrategyPresenter._on_hour_tick's exact class/execution order, with StrategySquadBrain standing in for player input and AISquadManager for the rest.
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/combat-test/combat-test-scenario.tres"
 const MAX_ROUNDS = 20
@@ -7,7 +7,7 @@ const MAX_ROUNDS = 20
 var scenario: GameScenario
 var actor: ActivityRunner
 var player_squad: StrategySquad
-var player_brain: SquadBrain
+var player_brain: StrategySquadBrain
 var ai_fleet: AISquadManager
 var rng := RandomNumberGenerator.new()
 
@@ -40,7 +40,7 @@ func _ready():
 	StrategyTypes.EngagementStance.ALWAYS_ENGAGE
 
 	var profile = AIProfileFactory.get_default_squad_profile()
-	player_brain = SquadBrain.new(player_squad, profile)
+	player_brain = StrategySquadBrain.new(player_squad, profile)
 
 	ai_fleet = AISquadManager.new()
 	add_child(ai_fleet)

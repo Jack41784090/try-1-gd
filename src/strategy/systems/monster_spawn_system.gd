@@ -1,12 +1,15 @@
 class_name MonsterSpawnSystem
 extends Node
 
-## Owns "what to spawn" only — registration with World/SquadBeingSystem/SquadAISystem happens in main.gd's squad_spawned handler (composition-root convention, see AGENTS.md's Systems Layer).
+## Owns "what to spawn" only — registration with World/SquadActingSystem happens in main.gd's squad_spawned handler (composition-root convention, see AGENTS.md's Systems Layer).
 ## Each warrior gets a minimal StrategyEntity carrying only MV_SPD+MORALE, since travel/morale assert(strategy != null) even though monsters are template-only combat entities.
+## The brain is part of the squad's identity, so it's attached here — SquadActingSystem.register_squad() is then the single registration step for both the being-map and AI control.
 
 signal squad_spawned(squad: StrategySquad)
 
 const MONSTER_TEMPLATE_ID := "feral_beast"
+# Not in the profile registry — loaded by raw path via AIProfileFactory's back-compat fallback.
+const MONSTER_BRAIN_PROFILE := "res://resources/ai/strategic/profiles/monster-roamer.tres"
 
 var scenario: GameScenario
 
@@ -55,6 +58,11 @@ func spawn_at(near_location_id: String) -> StrategySquad:
 	squad.travel_segment_index = 0
 	squad.travel_progress_km = randf_range(0.0, edge.distance_km)
 	squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
+
+	# SquadDataFactory.create_squad leaves .resource null — create one just to
+	# carry the brain, which SquadActingSystem picks up at registration.
+	squad.resource = StrategySquadResource.new()
+	squad.resource.brain = StrategySquadBrain.new(squad, AIProfileFactory.get_squad_profile(MONSTER_BRAIN_PROFILE))
 
 	LogGd.debug("[MonsterSpawnSystem] spawned %s (%d warriors) mid-edge %s -> %s" % [
 		squad.squad_id, warrior_count, edge.from_location_id, edge.to_location_id,

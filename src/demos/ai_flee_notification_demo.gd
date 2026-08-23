@@ -81,7 +81,7 @@ func _ready():
 			break
 	assert(runner_squad != null, "Runner squad must exist")
 
-	presenter.ai_fleet.squad_brains[runner_id] = SquadBrain.new(runner_squad, config)
+	presenter.ai_fleet.squad_brains[runner_id] = StrategySquadBrain.new(runner_squad, config)
 
 	var executor = ActivityExecuteManager.new(true)
 	executor.setup(presenter.game_scenario, {"squad": runner_squad})

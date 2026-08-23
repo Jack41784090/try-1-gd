@@ -80,7 +80,7 @@ func _ready():
 		var profile_path = profile_base + profile_name + ".tres"
 		var profile = AIProfileFactory.get_squad_profile(profile_path)
 		if profile and fleet_manager.squad_brains.has(squad.squad_id):
-			fleet_manager.squad_brains[squad.squad_id] = SquadBrain.new(squad, profile)
+			fleet_manager.squad_brains[squad.squad_id] = StrategySquadBrain.new(squad, profile)
 			MyLog.debug("StressTest", "Assigned %s profile to %s" % [profile_name, squad.squad_name])
 
 	MyLog.info("StressTest", "Battle Royale: %d squads across %d locations" % [
