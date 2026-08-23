@@ -12,31 +12,23 @@ var _bandit_spawner: BanditSpawner = BanditSpawner.new()
 
 
 func setup(_scenario: GameScenario) -> void:
-	## Initializes the AI fleet — creates a SquadBrain + ActivityExecuteManager for each roaming squad
-	## e.g., scenario has 3 roaming squads: ["Wolves", "Hawks", "Bears"]
-	##   → creates 3 SquadBrain instances (decision makers) + 3 ActivityExecuteManagers (action executors)
 	assert(_scenario != null, "AISquadManager requires a GameScenario")
 	assert(squad_brains.is_empty() and squad_executors.is_empty())
-	
+
 	scenario = _scenario
 
 	MyLog.info("Fleet", "Setting up fleet with %d roaming squads" % scenario.world.roaming_squads.size())
 
-	## 1. Load the default AI behavior profile (considerations + fallback action)
-	## e.g., "balanced-roamer.tres" with considerations like ["low_food_forage", "enemy_nearby_attack", ...]
 	var profile = AIProfileFactory.get_default_squad_profile()
 
-	## 2. For each roaming squad, create its brain and executor
 	for squad in scenario.world.roaming_squads:
-		## 2.1 If squad has no current location, use its starting_location_id
 		if squad.current_location_id.is_empty() and not squad.starting_location_id.is_empty():
 			squad.set_location(squad.starting_location_id)
 
-		## 2.2 Duplicate warriors to prevent shared-resource mutation across squads
+		# duplicated so squads don't share mutable warrior instances
 		_ensure_unique_warriors(squad)
 
-		## 2.3 Create brain (decides WHAT to do) and executor (executes the activity)
-		var brain = SquadBrain.new(squad, profile)
+		var brain = StrategySquadBrain.new(squad, profile)
 		_register_brain_and_executor(squad, brain)
 
 		MyLog.debug("Fleet", "Created brain for squad: %s" % squad.squad_name)
@@ -117,11 +109,7 @@ func _get_activity_from_scenario(activity_type: StrategyTypes.ActivityType) -> A
 
 
 func _execute_headless_combat(combat_data: Dictionary) -> void:
-	## Simplified AI vs AI combat — no tactical SquadBattle, just strength comparison + RNG
-	## e.g., Wolves(3 warriors, morale=80) vs Bears(2 warriors, morale=60)
-	##   → atk_strength = 3 × (80+50) = 390 × random(0.7-1.3)
-	##   → def_strength = 2 × (60+50) = 220 × random(0.7-1.3)
-	##   → Wolves win, Bears lose half their warriors
+	# simplified AI-vs-AI combat: no tactical SquadBattle, just strength comparison + RNG
 	var attacker_id: String = combat_data["attacker_id"]
 	var defender_id: String = combat_data["defender_id"]
 	var is_mutual: bool = combat_data.get("is_mutual", false)
@@ -286,7 +274,7 @@ func register_squad(squad: StrategySquad, profile_path: String = "") -> void:
 		else:
 			resolved_profile_path = AIProfileFactory.DEFAULT_SQUAD_PROFILE_PATH
 	var profile = AIProfileFactory.get_squad_profile(resolved_profile_path)
-	var brain = SquadBrain.new(squad, profile)
+	var brain = StrategySquadBrain.new(squad, profile)
 	_register_brain_and_executor(squad, brain)
 	MyLog.debug("Fleet", "Registered squad brain: %s (%s)" % [squad.squad_name, profile.profile_name])
 
