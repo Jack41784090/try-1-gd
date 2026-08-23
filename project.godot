@@ -24,12 +24,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="try1"
 run/main_scene="uid://dmbcxxfr6jwmu"
-config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+config/features=PackedStringArray("4.7", "C#", "Mobile")
 config/icon="res://assets/icon.svg"
-
-[autoload]
-
-_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]
 
@@ -42,7 +38,11 @@ project/assembly_name="try1"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GDQuest_GDScript_formatter/plugin.cfg", "res://addons/_Godot-IDE_/plugin.cfg", "res://addons/curved_lines_2d/plugin.cfg", "res://addons/godot_ai/plugin.cfg", "res://addons/log/plugin.cfg", "res://addons/yard/plugin.cfg")
+enabled=PackedStringArray("res://addons/_Godot-IDE_/plugin.cfg", "res://addons/curved_lines_2d/plugin.cfg", "res://addons/log/plugin.cfg", "res://addons/yard/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="mobile"
 
 [file_customization]
 
