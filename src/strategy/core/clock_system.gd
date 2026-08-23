@@ -9,6 +9,7 @@ var is_paused: bool = false:
 var current_hour: int = 0:
 	set(_p):
 		current_hour = _p	
+		LogGd.info("T:%d"% current_hour)
 		hour_changed.emit(current_hour)
 @export var hours_per_second := 1.0:
 	set(v):
