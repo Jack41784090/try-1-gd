@@ -7,6 +7,6 @@
 [resource]
 script = ExtResource("1_script")
 name = "caravan-deliver-cargo"
-weight = 1.0
+weight = 5.0
 glances = Array[ExtResource("2_glance_type")]([])
 returning = ExtResource("3_action")
