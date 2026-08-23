@@ -188,9 +188,14 @@ func _cmd_status():
 		if squad.is_traveling():
 			line += " — traveling %s (%.0f km into route)" % ["->".join(squad.travel_route), squad.travel_progress_km]
 		var cargo_parts: Array[String] = []
-		for thing: Thing in squad.cargo.manifest:
-			if squad.cargo.manifest[thing] > 0.0:
-				cargo_parts.append("%.0f %s" % [squad.cargo.manifest[thing], thing.thing_name])
+		for thing_id: String in squad.cargo.manifest:
+			if squad.cargo.manifest[thing_id] > 0.0:
+				var thing_name := thing_id
+				for thing: Thing in main.scenario.world.goods:
+					if thing.thing_id == thing_id:
+						thing_name = thing.thing_name
+						break
+				cargo_parts.append("%.0f %s" % [squad.cargo.manifest[thing_id], thing_name])
 		if not cargo_parts.is_empty():
 			line += " — cargo: %s" % ", ".join(cargo_parts)
 		print(line)

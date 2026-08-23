@@ -10,13 +10,19 @@ static func create_caravan_squad(
 		"caravan_%s" % shipment_id,
 		_next_convoy_name(move.thing.thing_name),
 		move.quantity * move.thing.base_price,
-		maxi(guard_count * move.turns_remaining, 3),
+		# Guards eat 5 food/h each — provision ~8 travel-hours so a convoy
+		# doesn't starve into a permanent REST mid-route (no resupply in v1).
+		maxi(maxi(guard_count, 3) * 40, 15),
 		5,
 		-50.0,
 		move.source_location_id,
 		move.source_location_id,
 		StrategyTypes.SquadRole.MERCHANT,
 	)
+	# Guards must be real warriors — an empty squad has speed 0 and can never
+	# complete the journey that now IS the delivery timer.
+	for i in range(maxi(guard_count, 3)):
+		squad.add_warrior(_create_caravan_guard())
 	squad.cargo.shipment_id = shipment_id
 	squad.cargo.manifest[move.thing.thing_id] = move.quantity
 	squad.cargo.destination_id = move.dest_location_id
@@ -24,9 +30,23 @@ static func create_caravan_squad(
 	return squad
 
 
-static func _create_caravan_guard(_squad_id: String, _index: int) -> StrategyEntity:
-	push_error("CaravanBridge._create_caravan_guard disabled during StrategyEntity rewrite")
-	return null
+## Minimal StrategyEntity (MV_SPD+MORALE) like MonsterSpawnSystem's; the
+## landsknecht template is a combat fallback if the convoy is ever engaged.
+static func _create_caravan_guard() -> Character:
+	var res := StrategyEntityResource.new()
+	res.name = "Caravan Guard"
+
+	var speed_stat := ReactiveStat.new()
+	speed_stat.stat_name = StatName.I.MV_SPD
+	speed_stat.stat_value = 8.0
+	var morale_stat := ReactiveStat.new()
+	morale_stat.stat_name = StatName.I.MORALE
+	# Near-top-of-scale: the caravan-tired glance (1 - morale/25) would
+	# otherwise outscore deliver-cargo and rest the convoy forever.
+	morale_stat.stat_value = 25.0
+	res.rs_array = [speed_stat, morale_stat]
+
+	return Character.new(StrategyEntity.new(res), "landsknecht")
 
 
 static func calculate_guard_count(move: EconomyMove) -> int:
@@ -85,7 +105,7 @@ static func execute_caravan_reassignment(
 	squad.cargo.destination_id = move.dest_location_id
 	squad.cargo.shipment_id = shipment_id
 	squad.money = move.quantity * move.thing.base_price
-	squad.food = maxi(squad.get_living_warriors().size() * move.turns_remaining, 3)
+	squad.food = maxi(squad.get_living_warriors().size() * 2, 3)
 	MyLog.info("Caravan", "Reassigned %s: %s → %s (%.1f %s)" % [
 		squad.squad_name, squad.current_location_id,
 		move.dest_location_id, move.quantity, move.thing.thing_name,

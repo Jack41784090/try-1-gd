@@ -229,5 +229,4 @@ func _move_from_dict(d: Dictionary) -> EconomyMove:
 		d.get("quantity", 0.0),
 		d.get("source_location_id", ""),
 		d.get("dest_location_id", ""),
-		d.get("turns_remaining", 1),
 	)

@@ -33,9 +33,9 @@ func _ready() -> void:
 	_wire_systems()
 
 	clock_system.force_tick() # hour 1: contention resolves + shipment dispatches at the barrier
-	_check_priority_fair_allocation() # must run BEFORE hour 2 — town_b's shipment lands at hour 2's start and would mask the contention this checks for
+	_check_priority_fair_allocation()
 
-	clock_system.force_tick() # hour 2: shipment arrives — smoke-tests the full multi-hour pipeline
+	clock_system.force_tick() # hour 2: smoke-tests the full multi-hour pipeline (convoys now travel as real squads, so no arrival is expected here)
 
 	_check_barrier()
 	_check_arrival_filtering()
@@ -150,7 +150,7 @@ func _check_barrier() -> void:
 	probe.setup(2)
 	# Single-element Array, not a bool: GDScript lambdas capture outer locals by value, so a plain bool couldn't be mutated from inside.
 	var probe_dispatched := [false]
-	probe.shipment_dispatched.connect(func(_m: EconomyMove, _g: int) -> void: probe_dispatched[0] = true)
+	probe.shipment_dispatched.connect(func(_m: EconomyMove) -> void: probe_dispatched[0] = true)
 
 	var town_a_unmet := {}
 	town_a_unmet[iron] = 5.0

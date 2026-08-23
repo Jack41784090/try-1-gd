@@ -41,6 +41,14 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 
 	systems.clock_system.hour_changed.connect(systems.caravan_eco_system._on_hour_changed)
 	systems.caravan_eco_system.location_arrived.connect(systems.location_eco_system._on_location_arrived)
+	# The composition root is the only place allowed to know both sides: the
+	# economy system builds the convoy squad, the acting system registers it.
+	systems.caravan_eco_system.shipment_dispatched.connect(
+		func(move: EconomyMove) -> void:
+			scenario.world.add_roaming_squad(move.squad)
+			systems.squad_acting_system.register_squad(move.squad)
+	)
+	systems.travel_system.location_changed.connect(systems.caravan_eco_system._on_squad_moved)
 	systems.clock_system.hour_changed.connect(systems.trade_system._on_hour_changed)
 	systems.clock_system.hour_changed.connect(systems.population_system._on_hour_changed)
 	systems.clock_system.hour_changed.connect(systems.location_eco_system._on_hour_changed)
@@ -113,8 +121,6 @@ func load_prototype_scenario() -> Array[StrategySquad]:
 	squads[3].food = 1500
 	# Preset squads carry no current_location_id (only the factory-built ones do).
 	squads[3].current_location_id = "alpha"
-	# Free auto-caravans would arbitrage every price gap within hours, leaving the player-merchant no margin.
-	systems.location_eco_system.trade_offer.disconnect(systems.caravan_eco_system._on_trade_offer)
 	# systems.clock_system.pause()
 	return squads
 
