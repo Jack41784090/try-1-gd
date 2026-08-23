@@ -1,10 +1,7 @@
 class_name CaravanEconomySystem
 extends Node
 
-## Owns in-flight shipments (EconomyMove, src/economy/economy_move.gd —
-## reused as-is) and the trade-offer barrier. Never references
-## LocationEconomySystem directly — wiring is done entirely by the demo
-## driver's own local signal connections.
+## Never references LocationEconomySystem directly — wiring is done entirely by the demo driver's own local signal connections.
 
 signal location_arrived(location_id: String, thing: Thing, qty: float)
 signal shipment_dispatched(move: EconomyMove, guard_count: int)
@@ -20,10 +17,7 @@ func setup(location_count: int) -> void:
 	_expected_reports = location_count
 
 
-## Connected to ClockSystem.hour_changed by the demo driver — must be
-## connected BEFORE LocationEconomySystem's own hour_changed handler:
-## Godot fires signal listeners in connection order, same documented
-## technique main.gd uses for squad_ai_system/activity_run_system ordering.
+## Must connect to ClockSystem.hour_changed BEFORE LocationEconomySystem's handler — Godot fires listeners in connection order.
 func _on_hour_changed(_hour: int) -> void:
 	_reports_this_hour = 0
 	_pending_offers.clear()
@@ -38,31 +32,14 @@ func _on_hour_changed(_hour: int) -> void:
 		location_arrived.emit(move.dest_location_id, move.thing, move.quantity)
 
 
-## Connected to LocationEconomySystem.trade_offer by the demo driver.
-##
-## BARRIER, not rolling match: a rolling/greedy match (running the global
-## match as soon as any two locations happen to have compatible offers)
-## would make the outcome depend on which location's phase column happened
-## to finish first — the exact ordering-accident class of bug this whole
-## redesign exists to eliminate, just recreated one level up (at the
-## inter-location trade layer instead of the intra-location crafting
-## layer). Waiting for every location to report before running the global
-## match guarantees the result is a function of the declared per-location
-## unmet/surplus data only, never of Location iteration order.
+## BARRIER, not rolling match: waits for every location to report so the match result depends only on declared unmet/surplus data, never on Location iteration order.
 func _on_trade_offer(location_id: String, surplus: Dictionary, unmet: Dictionary) -> void:
 	_pending_offers.append({"location_id": location_id, "surplus": surplus, "unmet": unmet})
 	_reports_this_hour += 1
-	if _reports_this_hour < _expected_reports:
-		return
-	_run_global_trade_match()
+	if _reports_this_hour >= _expected_reports: _run_global_trade_match()
 
 
-## Simplified GDScript port of RunTradeMatching's scored-pair shape
-## (CsEconomyEngine.cs:404-537) — margin/safety scoring is collapsed to
-## plain matched-quantity scoring (no danger matrix / bandit system in this
-## prototype; safety is implicitly 1.0 everywhere). This simplification is
-## scoped deliberately: the demo's required assertions are about barrier
-## TIMING and delivery FILTERING, not about trade-economics fidelity.
+## Margin/safety scoring is deliberately collapsed to plain matched-quantity scoring — the demo only asserts barrier TIMING and delivery FILTERING, not trade-economics fidelity.
 func _run_global_trade_match() -> void:
 	var demand_entries: Array[Dictionary] = []
 	var supply_entries: Array[Dictionary] = []
@@ -75,12 +52,9 @@ func _run_global_trade_match() -> void:
 	var scored: Array[Dictionary] = []
 	for s in supply_entries:
 		for d in demand_entries:
-			if s.thing != d.thing or s.location_id == d.location_id:
-				continue
-			var qty: float = minf(s.qty, d.qty)
-			if qty <= 0.0:
-				continue
-			scored.append({"supply": s, "demand": d, "score": qty})
+			if s.thing == d.thing and s.location_id != d.location_id:
+				var qty: float = minf(s.qty, d.qty)
+				if qty > 0.0: scored.append({"supply": s, "demand": d, "score": qty})
 	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.score > b.score)
 
 	for pair in scored:

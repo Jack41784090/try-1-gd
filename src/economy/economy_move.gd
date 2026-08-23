@@ -1,5 +1,5 @@
-extends RefCounted
 class_name EconomyMove
+extends RefCounted
 
 var thing: Thing
 var quantity: float

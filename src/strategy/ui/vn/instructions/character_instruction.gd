@@ -2,8 +2,7 @@ extends CinematicInstruction
 
 class_name CharacterInstruction
 
-## Character stage direction in the timeline. Replaces walk_to, face_direction,
-## and behavior fields that were previously baked into Dialogue.
+## Replaces the walk_to/face_direction/behavior fields that used to be baked directly into Dialogue.
 
 enum Action {
 	MOVE, ## Walk character to a position over duration
@@ -28,27 +27,22 @@ enum StageAnchor {
 
 @export var action: Action = Action.MOVE
 
-## Which character this instruction targets.
 @export var character_id: String = ""
 
-## Target position for MOVE / SPAWN.
 @export var target_position: Vector2 = Vector2.ZERO
 
-## Facing direction for FACE: -1 = left, 1 = right.
+## -1 = left, 1 = right.
 @export_range(-1, 1) var face_direction: int = 1
 
-## Animation behavior name for BEHAVIOR action.
-## Valid: idle, walking, attacking, defending, hurt, dying, talking, gesturing
+## Valid values: idle, walking, attacking, defending, hurt, dying, talking, gesturing.
 @export var behavior: String = ""
 
-## Expression intent for EXPRESSION action, broadcast to the rig's Face. Each
-## face part answers for itself; an intent no part answers changes nothing.
+## Broadcast to the rig's Face; each face part answers for itself, and an intent no part answers changes nothing.
 @export var expression: String = ""
 
-## Named anchor for position resolution. Overrides raw target_position when set.
+## Overrides raw target_position when set.
 @export var anchor: StageAnchor = StageAnchor.NONE
 
-## Offset from the anchor position.
 @export var anchor_offset: Vector2 = Vector2.ZERO
 
 

@@ -1,11 +1,6 @@
 class_name WarriorRigConfigFactory extends RefCounted
 
-## Resolves a character or class id to its WarriorRigConfig.
-##
-## Configs are named after who they dress, with an authoring prefix that isn't
-## part of the identity (`wcr_adventurer_rachelle.tres` is rachelle's,
-## `rig2_bishop.tres` is the bishop's), so the lookup is keyed on the id that
-## remains once the prefix is stripped.
+## Configs are named after who they dress with an authoring prefix that isn't part of the identity (`wcr_adventurer_rachelle.tres` is rachelle's), so the lookup is keyed on the id with the prefix stripped.
 
 const CONFIG_BASE_PATH = "res://resources/animation/configs/"
 const FALLBACK_ID = "landsknecht"

@@ -1,13 +1,5 @@
 extends Node
-## Caravan Integration Demo — Tests the real StrategyPresenter's economy+caravan pipeline.
-##
-## Creates a 3-location demo world with EconomyEngine, wires it to
-## StrategyPresenter via HeadlessStrategyView, and drives REST turns.
-## EconomyEngine.tick_full() emits shipment dispatches, the StrategyPresenter
-## materializes them as MERCHANT squads, and notifies the engine on arrival:
-## spawning, movement, and delivery. This demo only asserts correctness.
-##
-## Usage: godot --headless --path . scenes/demos/caravan_demo.tscn
+## Tests the real economy+caravan pipeline: EconomyEngine.tick_full() dispatches shipments, StrategyPresenter materializes them as MERCHANT squads and reports back on arrival. Run: godot --headless --path . scenes/demos/caravan_demo.tscn
 
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
 
@@ -67,7 +59,6 @@ func _ready() -> void:
 
 	world = presenter.game_scenario.world
 
-	# --- _add_castle_location ---
 	var castle := Location.new()
 	castle.location_id = "castle"
 	castle.location_name = "Castle"
@@ -101,7 +92,6 @@ func _setup_economy() -> void:
 	luxury = Thing.create("luxury", "Luxuries", EconomyTypes.ThingType.LUXURY, 15.0)
 	world.goods = [food, cloth, tools, luxury]
 
-	# --- _farmstead_pop ---
 	var fp := Population.new()
 	for p in Population.create_batch(50, "farmer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 0.0):
 		fp.add_person(p)
@@ -110,12 +100,10 @@ func _setup_economy() -> void:
 	for p in Population.create_batch(2, "squire", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
 		fp.add_person(p)
 
-	# --- _farmstead_inv ---
 	var fi := LocationInventory.new()
 	fi.init_thing(food, 60.0)
 	fi.init_thing(cloth, 10.0)
 
-	# --- _farmstead_resources ---
 	var fr: Array[NaturalResource] = [
 		NaturalResource.create(food, 250.0),
 		NaturalResource.create(cloth, 50.0),
@@ -123,7 +111,6 @@ func _setup_economy() -> void:
 
 	_setup_econ_location("farmstead", fp, fi, fr)
 
-	# --- _market_town_pop ---
 	var mp := Population.new()
 	for p in Population.create_batch(10, "laborer", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 5.0):
 		mp.add_person(p)
@@ -134,14 +121,12 @@ func _setup_economy() -> void:
 	for p in Population.create_batch(10, "lord", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
 		mp.add_person(p)
 
-	# --- _market_town_inv ---
 	var mi := LocationInventory.new()
 	mi.init_thing(food, 60.0)
 	mi.init_thing(cloth, 5.0)
 	mi.init_thing(tools, 5.0)
 	mi.init_thing(luxury, 2.0)
 
-	# --- _market_town_resources ---
 	var mr: Array[NaturalResource] = [
 		NaturalResource.create_craft(cloth, 15.0),
 		NaturalResource.create_craft(tools, 25.0),
@@ -150,21 +135,18 @@ func _setup_economy() -> void:
 
 	_setup_econ_location("market_town", mp, mi, mr)
 
-	# --- _castle_pop ---
 	var cp := Population.new()
 	for p in Population.create_batch(10, "servant", EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.SERVANT, 5.0):
 		cp.add_person(p)
 	for p in Population.create_batch(5, "baron", EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 50.0):
 		cp.add_person(p)
 
-	# --- _castle_inv ---
 	var ci := LocationInventory.new()
 	ci.init_thing(food, 20.0)
 	ci.init_thing(cloth, 3.0)
 	ci.init_thing(tools, 2.0)
 	ci.init_thing(luxury, 1.0)
 
-	# --- _castle_resources ---
 	var cr: Array[NaturalResource] = []
 
 	_setup_econ_location("castle", cp, ci, cr)
@@ -205,7 +187,6 @@ func _run_simulation() -> void:
 			last_reported_day = current_day
 			MyLog.info("CaravanDemo", "=== DAY %d (hour %d) ===" % [current_day, world.current_hour])
 
-			# --- _print_turn_summary ---
 			var caravan_count := 0
 			var total_in_world := world.roaming_squads.size()
 			for squad in world.roaming_squads:
@@ -236,7 +217,6 @@ func _run_simulation() -> void:
 	MyLog.info("CaravanDemo", "")
 	_print_final_summary()
 
-	# --- _run_assertions ---
 	MyLog.info("CaravanDemo", "")
 	MyLog.info("CaravanDemo", "=== ASSERTIONS ===")
 

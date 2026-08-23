@@ -10,9 +10,6 @@ class_name StatChangeAnimator extends Control
 @onready var karma_label: Label = get_node("MainVBox/StatusHeader/HeaderPanel/HeaderHBox/StatsPanel(NoMargin)/Karma/MarginContainer/BoxContainer/Label")
 
 
-## Animates stat changes with floating delta labels and UI interpolation
-## Similar to DamageNumbersManager but adapted for 2D strategic UI
-
 const FLOAT_DURATION := 1.0
 const FLOAT_HEIGHT := 40.0
 const FADE_DELAY := 0.3
@@ -25,8 +22,7 @@ const DELTA_THRESHOLD := 0.1
 
 var active_tweens: Array[Tween] = []
 
-## Animates all stat changes with floating deltas, interpolation, and visual feedback
-## Returns when all animations complete
+## Callers should await this — it doesn't return until all tweens finish.
 func animate_changes(stat_deltas: Dictionary) -> void:
 	print("[StatChangeAnimator] animate_changes() called with %d deltas" % stat_deltas.size())
 	print("[StatChangeAnimator] Deltas: ", stat_deltas)

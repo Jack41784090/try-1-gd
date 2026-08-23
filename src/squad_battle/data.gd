@@ -78,8 +78,7 @@ func get_battle_outcome() -> SquadBattleTypes.BattleOutcome:
 
 	return SquadBattleTypes.BattleOutcome.ONGOING
 
-## Same query as [method get_battle_outcome], but emits [signal battle_completed]
-## exactly once on the ONGOING → terminal transition.
+## Emits [signal battle_completed] exactly once, on the ONGOING → terminal transition.
 func evaluate_outcome() -> SquadBattleTypes.BattleOutcome:
 	var outcome = get_battle_outcome()
 	if outcome != SquadBattleTypes.BattleOutcome.ONGOING and not _outcome_notified:
@@ -131,8 +130,6 @@ func _determine_actions(side: SquadBattleTypes.Side) -> Array[EntityUpdate]:
 	return updates
 
 
-## Advances one full round: recoveries → actions → status tick → cleanup.
-## Both headless and view drivers call this identically.
 func advance_round() -> Array[EntityUpdate]:
 	round_count += 1
 	var updates: Array[EntityUpdate] = []
@@ -194,9 +191,6 @@ func advance_round() -> Array[EntityUpdate]:
 	return updates
 
 
-## Run battle to completion without scene instantiation or visualization
-## Returns all EntityUpdate objects collected across all rounds
-## Used for AI vs AI combat resolution
 func run_headless() -> Array[EntityUpdate]:
 	var all_updates: Array[EntityUpdate] = []
 

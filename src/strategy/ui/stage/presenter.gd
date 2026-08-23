@@ -1,7 +1,6 @@
 class_name StagePresenter
 extends Node
-## The visual theater. Executes commands: place character, move camera, show bubble.
-## Knows nothing about EventChains or timelines. Commanded by VnPresenter.
+## Knows nothing about EventChains or timelines — only executes placement/camera/bubble commands sent by VnPresenter.
 
 enum StageMode {MARCH, VN, HIDDEN}
 

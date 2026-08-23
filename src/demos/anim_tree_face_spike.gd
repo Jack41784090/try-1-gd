@@ -1,13 +1,6 @@
 extends Node2D
 
-## Phase 0 spike for docs/refactors/animation-tree-unification.md.
-## Builds face clips + AnimationTree blend graphs at runtime against the real
-## warrior_rig_2 face nodes and prints a report answering:
-##   Q1 — does Blend2 crossfade two clips keying the SAME nodes smoothly?
-##   Q2 — do clips keying DISJOINT nodes compose (absolute vs additive)?
-##   Q3 — must RESET carry face tracks, or do unkeyed parts collapse?
-## Run headless: godot --headless --path . scenes/demos/anim_tree_face_spike.tscn
-## Run --gui and use LEFT/RIGHT to scrub the Q1 crossfade by eye.
+## Phase 0 spike (docs/refactors/animation-tree-unification.md) answering: does Blend2 crossfade same-keyed clips smoothly (Q1), do disjoint-keyed clips compose (Q2), must RESET carry face tracks (Q3)? Run headless for the report, or --gui with LEFT/RIGHT to scrub the Q1 crossfade.
 
 const FACE := "Skeleton2D/Root/Hips/Torso/Head/Face/"
 const BL := FACE + "Brows/BrowL"

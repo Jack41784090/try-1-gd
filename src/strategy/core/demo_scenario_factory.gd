@@ -1,9 +1,6 @@
 extends RefCounted
 class_name DemoScenarioFactory
 
-## Factory for creating demo/test GameScenario instances
-## Extracts demo scenario creation logic from TrainingGUI
-
 static var DEFAULT_DEMO_VALUES: Dictionary = {
 	"city": {
 		"location_id": "test_city",

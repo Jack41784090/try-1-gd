@@ -1,11 +1,5 @@
 class_name VnPresenter extends Node
-## Group-driven VN playback engine.
-## Reads EventChain timelines/groups, dispatches CinematicInstructions to the Stage,
-## manages player interaction gates and speed control via GroupPlayback.
-##
-## Roles:
-##   VnPresenter = the director (reads timelines, issues commands)
-##   StagePresenter = the theater (executes visual commands, knows nothing about timelines)
+## The director: reads EventChain timelines/groups and issues commands to StagePresenter, the theater that executes them.
 
 var _DEBUG: bool = true
 

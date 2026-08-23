@@ -60,7 +60,6 @@ static func _play_sfx(method_name: String) -> void:
 		sfx.call(method_name)
 
 
-## Fade + slide an overlay panel in from below
 static func show_overlay(overlay: Control, panel: Control = null) -> void:
 	overlay.visible = true
 	overlay.modulate = Color(1, 1, 1, 0)
@@ -80,7 +79,6 @@ static func show_overlay(overlay: Control, panel: Control = null) -> void:
 	await tw.finished
 
 
-## Fade + slide an overlay panel out downward
 static func hide_overlay(overlay: Control, panel: Control = null) -> void:
 	var target_panel := panel if panel else _find_panel(overlay)
 
@@ -98,7 +96,6 @@ static func hide_overlay(overlay: Control, panel: Control = null) -> void:
 		target_panel.position.y -= PANEL_SLIDE_OFFSET
 
 
-## Stagger-animate buttons appearing one by one (e.g., when strategy UI shows)
 static func stagger_buttons(buttons: Array[Button], delay_between: float = BUTTON_STAGGER_DELAY) -> void:
 	for i in buttons.size():
 		var btn := buttons[i]
@@ -116,7 +113,6 @@ static func stagger_buttons(buttons: Array[Button], delay_between: float = BUTTO
 			.set_delay(i * delay_between)
 
 
-## Animate a panel sliding in from the bottom and fading in
 static func slide_in_panel(panel: Control) -> void:
 	var original_y := panel.position.y
 	panel.position.y = original_y + PANEL_SLIDE_OFFSET
@@ -131,7 +127,6 @@ static func slide_in_panel(panel: Control) -> void:
 	await tw.finished
 
 
-## Animate a panel sliding out downward and fading out
 static func slide_out_panel(panel: Control) -> void:
 	var tw := panel.create_tween().set_parallel(true)
 	tw.tween_property(panel, "modulate:a", 0.0, OVERLAY_FADE_DURATION) \

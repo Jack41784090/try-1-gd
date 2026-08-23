@@ -1,11 +1,7 @@
 class_name BattleResolutionSystem
 extends Node
 
-## Thin wrapper around CombatOrchestrator/CombatController — the existing
-## "ClashResolve" tactical combat pipeline. Owns the offscreen SubViewport +
-## CanvasLayer combat needs to build a battle scene into when no real Hud
-## has injected its own (mirrors the fallback HeadlessStrategyView already
-## uses for the legacy scenario.tscn path).
+## Owns the offscreen SubViewport/CanvasLayer combat builds into when no real Hud injected its own, mirroring HeadlessStrategyView's legacy fallback.
 
 signal battle_resolved(attacker: StrategySquad, defender: StrategySquad, result: CombatController.CombatResult)
 

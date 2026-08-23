@@ -1,16 +1,5 @@
 extends Node
-## Feedback Signal Test — Validates signal-driven FeedbackEffect dispatch.
-##
-## Tests:
-## 1. update_fired signal reaches displays and triggers change_received
-## 2. Effects self-filter via wants() — only matching effects fire
-## 3. Role determination: source vs target correctly assigned
-## 4. HP change triggers hp_bar, rig_behavior, attack_lunge, combat_sfx
-## 5. DODGE change triggers dodge_text only (target role)
-## 6. DIE change triggers death feedback (target role)
-## 7. PROC change triggers proc_popup (source role)
-##
-## Usage: godot --headless --path . scenes/demos/feedback_signal_test.tscn
+## Validates signal-driven FeedbackEffect dispatch. Run: godot --headless --path . scenes/demos/feedback_signal_test.tscn
 
 var _pass_count: int = 0
 var _fail_count: int = 0
@@ -46,7 +35,6 @@ func _ready():
 		source_display._on_update_fired(update)
 		target_display._on_update_fired(update)
 
-	# --- Test 1: HP change reaches target display as TARGET role ---
 	MyLog.info("FeedbackSignalTest", "--- Test: HP change signal dispatch ---")
 	_fired_effects.clear()
 	var hp_change := EntityChange.new(SquadBattleTypes.EntityChangeable.HP, 60.0, 45.0)
@@ -63,7 +51,6 @@ func _ready():
 	_assert_true(not received_roles.has(FeedbackEffect.Role.SOURCE),
 		"Target display does NOT receive SOURCE role")
 
-	# --- Test 2: Source display gets SOURCE role ---
 	MyLog.info("FeedbackSignalTest", "--- Test: Source role assignment ---")
 	received_roles.clear()
 	source_display.change_received.connect(spy)
@@ -73,7 +60,6 @@ func _ready():
 	_assert_true(received_roles.has(FeedbackEffect.Role.SOURCE),
 		"Source display receives SOURCE role for HP change")
 
-	# --- Test 3: wants() filtering — DODGE only fires for TARGET ---
 	MyLog.info("FeedbackSignalTest", "--- Test: DODGE wants() filtering ---")
 	var dodge_change := EntityChange.new(SquadBattleTypes.EntityChangeable.DODGE, -1, -1)
 	var dodge_update := EntityUpdate.new(attacker.player_id, defender.player_id, dodge_change)
@@ -84,7 +70,6 @@ func _ready():
 	_assert_true(not dodge_fx.wants(dodge_change, FeedbackEffect.Role.SOURCE),
 		"DodgeTextFeedback rejects DODGE as SOURCE")
 
-	# --- Test 4: wants() filtering — AttackLunge only fires for SOURCE ---
 	MyLog.info("FeedbackSignalTest", "--- Test: AttackLunge wants() filtering ---")
 	var lunge_fx := AttackLungeFeedback.new()
 	_assert_true(lunge_fx.wants(hp_change, FeedbackEffect.Role.SOURCE),
@@ -92,7 +77,6 @@ func _ready():
 	_assert_true(not lunge_fx.wants(hp_change, FeedbackEffect.Role.TARGET),
 		"AttackLungeFeedback rejects HP as TARGET")
 
-	# --- Test 5: wants() filtering — Death only for TARGET + DIE ---
 	MyLog.info("FeedbackSignalTest", "--- Test: Death wants() filtering ---")
 	var die_change := EntityChange.new(SquadBattleTypes.EntityChangeable.DIE, -1, -1)
 	var death_fx := DeathFeedback.new()
@@ -103,7 +87,6 @@ func _ready():
 	_assert_true(not death_fx.wants(hp_change, FeedbackEffect.Role.TARGET),
 		"DeathFeedback rejects HP change")
 
-	# --- Test 6: wants() filtering — ProcPopup only for SOURCE + PROC ---
 	MyLog.info("FeedbackSignalTest", "--- Test: ProcPopup wants() filtering ---")
 	var proc_change := EntityChange.new(SquadBattleTypes.EntityChangeable.PROC, -1, -1, {"skill_name": "Brace"})
 	var proc_fx := ProcPopupFeedback.new()
@@ -114,7 +97,6 @@ func _ready():
 	_assert_true(not proc_fx.wants(hp_change, FeedbackEffect.Role.SOURCE),
 		"ProcPopupFeedback rejects HP change")
 
-	# --- Test 7: Full signal chain — emit update, effects fire autonomously ---
 	MyLog.info("FeedbackSignalTest", "--- Test: Full signal chain (HP damage) ---")
 	var rig_before := target_display.rig.modulate
 	update_fired.call(hp_update)
@@ -123,7 +105,6 @@ func _ready():
 	_assert_true(rig_before != rig_after,
 		"HP damage triggers visual feedback on target rig (modulate changed)")
 
-	# --- Test 8: Self-update (source == affected) fires both roles ---
 	MyLog.info("FeedbackSignalTest", "--- Test: Self-update fires both roles ---")
 	received_roles.clear()
 	var self_change := EntityChange.new(SquadBattleTypes.EntityChangeable.HP, 50.0, 60.0)
@@ -137,7 +118,6 @@ func _ready():
 	_assert_true(received_roles.has(FeedbackEffect.Role.TARGET),
 		"Self-update fires TARGET role")
 
-	# --- Test 9: Unrelated entity does not receive signal ---
 	MyLog.info("FeedbackSignalTest", "--- Test: Unrelated entity ignores update ---")
 	var unrelated := entities[2]
 	var unrelated_display := BattleEntityDisplay.new()
@@ -153,7 +133,6 @@ func _ready():
 	_assert_true(received_roles.is_empty(),
 		"Unrelated display receives no signal for others' update")
 
-	# --- Results ---
 	MyLog.info("FeedbackSignalTest", "")
 	MyLog.info("FeedbackSignalTest", "=== RESULTS: %d passed, %d failed ===" % [_pass_count, _fail_count])
 	if _fail_count > 0:

@@ -1,7 +1,5 @@
 class_name Calculation extends Resource
 
-## Mirrors the ADD/MUL fold semantics previously hardcoded in
-## CombatEntity._RealityOp / _REALITY_TABLE.
 enum Op { ADD, MUL }
 
 @export var base: float = 0.0

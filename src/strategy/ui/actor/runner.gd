@@ -8,8 +8,7 @@ var hour_count: int = 0
 	set(_ps):
 		player_squad = _ps
 	get:
-		## DISABLED: building a runtime StrategySquad from StrategySquadResource
-		## (starting_player_squad) needs the runtime-build bridge, not yet written.
+		## Building a runtime StrategySquad from StrategySquadResource needs a runtime-build bridge not yet written, so this just returns the raw property.
 		return player_squad
 
 var locations:
@@ -44,8 +43,7 @@ var current_location: Variant:
 		if _cl is String:
 			var world_location: Location = aem.scenario.world.travel_graph.get_location(_cl)
 			assert(world_location != null, "Invalid location id '%s'" % _cl)
-			## Non-deep duplicate so we don't dupe the town connections; dupe to be able
-			## to change location type to road for temporary travelling between towns.
+			## Shallow duplicate: keeps town connections shared, but lets us flip location type to road for temporary inter-town travel.
 			current_location = world_location.duplicate()
 			if current_location.population == null and world_location.population != null:
 				current_location.population = world_location.population

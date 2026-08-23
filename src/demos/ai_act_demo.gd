@@ -1,11 +1,5 @@
 extends Node
-## AIAct Headless Demo — Tests the real StrategyPresenter with a headless mock view.
-##
-## Creates a HeadlessStrategyView (no-op UI) and wires it to an actual
-## StrategyPresenter so the full production turn pipeline executes:
-## karma-sorted phases, AI fleet, contacts, missions, triggerables.
-##
-## Usage: godot --headless --path . scenes/demos/ai_act_demo.tscn
+## Tests the real StrategyPresenter's full production turn pipeline (karma-sorted phases, AI fleet, contacts, missions, triggerables) via a no-op HeadlessStrategyView. Run: godot --headless --path . scenes/demos/ai_act_demo.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")

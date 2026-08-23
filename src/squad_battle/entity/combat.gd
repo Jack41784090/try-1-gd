@@ -5,7 +5,7 @@ var _debug_id := "Entity_script_unknown"
 var resource: CombatEntityResource
 var display_name: String
 
-## !! Only set this when the template's logic is determined no sufficient
+## Only set this when the template's own logic is determined insufficient.
 var _logic_override: SimplifiedSquadLogic
 var weapon: Weapon
 var armor: SquadArmor:
@@ -200,9 +200,6 @@ func damage(num: float, source: int, p_metadata: Dictionary = {}) -> Array[Entit
 			var close_to_death_deorg = -((1.0 - hp_percentage) * 10)
 			updates.append(
 				EntityUpdate.new(source, affected_deorg, mod_changeable_stat(SquadBattleTypes.EntityChangeable.ORG, base_damage_deorg + close_to_death_deorg)))
-			#if retreat_tracker.should_retreat(get_changeable_stat_num(SquadBattleTypes.EntityChangeable.ORG)):
-				#for u in retreat_tracker.advance(self):
-					#updates.append(u)
 
 	return updates
 

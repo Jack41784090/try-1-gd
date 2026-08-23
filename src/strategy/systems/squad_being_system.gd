@@ -1,11 +1,7 @@
 class_name SquadBeingSystem
 extends Node
 
-## Holds every Squad in the scenario — player and AI alike, no distinction.
-## Doesn't run any game logic itself: on each hour_pass from the clock it
-## just re-broadcasts squad_turn per squad. ActivityRunSystem (or anything
-## else) listens for that and decides what to do — SquadBeingSystem doesn't
-## know or care who's listening.
+## Doesn't run any game logic itself: just re-broadcasts squad_turn per squad on hour_pass — SquadBeingSystem doesn't know or care who's listening.
 
 signal squad_turn(squad: StrategySquad)
 signal squad_registered(squad: StrategySquad)
@@ -37,7 +33,6 @@ func get_all_squads() -> Array[StrategySquad]:
 	return result
 
 
-## Connected to the clock's hour signal by main.gd — see load_scenario().
 func on_hour_pass(hour: int) -> void:
 	LogGd.debug("[SquadBeingSystem] hour_pass(%d) — %d squad(s)" % [hour, squads.size()])
 	for squad: StrategySquad in squads.values():

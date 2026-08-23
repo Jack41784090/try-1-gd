@@ -3,7 +3,6 @@ extends Node
 func _ready():
 	print("\n=== RANGED COMBAT DEMO ===\n")
 
-	# --- run ranged battle ---
 	print("Setting up mixed squads with ranged units...\n")
 
 	var attacker_entities = [

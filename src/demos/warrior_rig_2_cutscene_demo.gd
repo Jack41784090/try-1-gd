@@ -1,16 +1,5 @@
 extends Control
-## Cutscene test harness for warrior_rig_2 (the new-proportion rig).
-##
-## Drives GroupPlayback DIRECTLY — no EventChain. The cutscene is a CinematicGroup
-## resource attached to the `cutscene` export (a saved .tres). That resource is
-## the single source of truth: edit it in the inspector and press R to replay.
-## Visuals are dispatched through the existing VnPresenter (the director) →
-## StagePresenter (the theater), so no playback or stage logic is reimplemented.
-##
-## Authoring a cutscene = build a CinematicGroup .tres and attach it here. The
-## GroupPlayback engine (src/strategy/ui/vn/group_playback.gd) is driven unmodified.
-##
-## Controls: SPACE / click = advance gate   R = replay
+## Cutscene test harness for warrior_rig_2: drives GroupPlayback directly (no EventChain) against the `cutscene` .tres, through the unmodified VnPresenter/StagePresenter. Controls: SPACE/click = advance gate, R = replay.
 
 const RIG_2_SCENE_PATH := "res://scenes/rig/warrior_rig_2.tscn"
 const POLL_INTERVAL := 0.4
@@ -19,17 +8,13 @@ const SVG_RENDER_SCALE := 4.0
 ## The CinematicGroup cutscene fed straight into GroupPlayback (no EventChain).
 @export var cutscene: CinematicGroup
 
-## Default textured config (rachelle). Used for any character without a per-id
-## entry in character_configs — the Duchess and Gretchen reuse this look.
+## Default textured config (rachelle) — fallback for any character without a character_configs entry.
 @export var config: WarriorRigConfig
 
-## Per-character look overrides: character_id -> WarriorRigConfig. Lets each
-## delegate in the parliament wear a different class look. Missing ids fall back
-## to `config`.
+## Per-character look overrides (character_id -> WarriorRigConfig); missing ids fall back to `config`.
 @export var character_configs: Dictionary = {}
 
-## Fixed chamber seats: character_id -> Vector2. Characters without an entry are
-## auto-spread left→right. Facing is derived from x sign.
+## Fixed chamber seats (character_id -> Vector2); characters without an entry auto-spread left→right, facing derived from x sign.
 @export var seat_positions: Dictionary = {}
 
 ## One warrior_rig_2 per id, placed across the chamber facing inward.
@@ -56,8 +41,7 @@ func _ready() -> void:
 	_stage = stage_view.presenter
 	_playback = _presenter._playback
 	_presenter.stage_presenter = _stage
-	## The presenter normally learns these from an EventChain in load_chain(); we
-	## set them directly so its dispatch (_on_instruction_fired) works without one.
+	# Set directly since there's no EventChain.load_chain() here to populate this for _on_instruction_fired.
 	_presenter.character_ids_in_chain = character_ids.duplicate()
 
 	## Take over completion: the presenter's default handler assumes a current_chain.
@@ -69,7 +53,6 @@ func _ready() -> void:
 	print("=== warrior_rig_2 Cutscene Demo (direct GroupPlayback) ===")
 	print("SPACE/click: advance gate | R: replay")
 
-	# --- spawn rigs ---
 	var scene := load(RIG_2_SCENE_PATH) as PackedScene
 	assert(scene != null, "Failed to load %s" % RIG_2_SCENE_PATH)
 	for char_id in character_ids:
@@ -86,7 +69,6 @@ func _ready() -> void:
 	_snapshot_mtimes()
 
 	if DisplayServer.get_name() == "headless":
-		# --- headless smoke test ---
 		print("=== HEADLESS SMOKE TEST ===")
 		var fired: Array[String] = []
 		_playback.instruction_fired.connect(func(inst: CinematicInstruction) -> void:
@@ -124,13 +106,11 @@ func _process(delta: float) -> void:
 		return
 	_poll_accum = 0.0
 	if _disk_changed():
-		# --- reapply config to rigs ---
 		for char_id in _rig_configs:
 			var src: WarriorRigConfig = _rig_configs[char_id]
 			var rig = stage_view.rigs.get(char_id)
 			if not src or not is_instance_valid(rig):
 				continue
-			# --- rebuild config from disk ---
 			var rebuilt: WarriorRigConfig = src.duplicate()
 			for bone_name in src.get_bone_textures():
 				var tex: Texture2D = src.get_bone_textures()[bone_name]
@@ -170,7 +150,6 @@ func _play_cutscene() -> void:
 	vn_view.hide_narrator_box()
 	_stage.prepare_for_dialogue(character_ids)
 	_stage.apply_stage_set(stage_set)
-	# --- place characters ---
 	var n := character_ids.size()
 	for i in n:
 		var char_id := character_ids[i]

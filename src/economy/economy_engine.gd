@@ -12,11 +12,7 @@ var total_deaths: int = 0
 var total_births: int = 0
 var _shipment_counter: int = 0
 
-## Tracking for in-flight caravan shipments. Mirrors economic state of
-## EconomyMove objects with the strategy-layer StrategySquad ids materializing them.
-## shipment_id (String) -> squad_id (String). Engine owns this state so that
-## arrival/defeat/reassignment notifications can keep it consistent.
-var _active_shipments: Dictionary = {}
+var _active_shipments: Dictionary = {} ## shipment_id -> squad_id; owned here so arrival/defeat/reassignment notifications stay consistent
 var _mercenary_demand: MercenaryDemandCalculator = null
 var _route_danger: RouteDangerCalculator = null
 
@@ -86,10 +82,7 @@ func _calculate_guard_count(move: EconomyMove) -> int:
 	return 4
 
 
-## Public entry point used by the strategy layer. The C# engine runs the full
-## per-location pipeline AND the trade-matching greedy match in a single call;
-## GDScript only contributes a precomputed danger matrix and post-tick
-## mercenary-demand evaluation. Two bridge calls total: Tick and SyncBackToGdScript.
+## The C# engine runs the full per-location pipeline and trade-matching in one call; GDScript only contributes the danger matrix and post-tick mercenary-demand evaluation.
 func tick_full(turn: int) -> EconomyTickResult:
 	assert(_mercenary_demand != null and _route_danger != null, "tick_full requires enable_csharp() to have been called")
 	assert(_cs_bridge != null, "C# bridge required — call enable_csharp() first")
@@ -100,8 +93,7 @@ func tick_full(turn: int) -> EconomyTickResult:
 		_cs_initialized = true
 		MyLog.info("Economy", "C# bridge initialized with %d locations, %d goods" % [world.get_economy_locations().size(), world.goods.size(), ])
 
-	## Precompute NxN inter-location danger matrix (0..1). Index order matches
-	## world.get_economy_locations(), which is also the C# Locations[] ordering.
+	## Index order must match world.get_economy_locations(), which is also the C# Locations[] ordering.
 	_route_danger.clear_cache()
 	var locs := world.get_economy_locations()
 	var n := locs.size()
@@ -199,9 +191,6 @@ func sync_full() -> void:
 	_cs_bridge.call("SyncBackToGdScript")
 
 
-## Strategy layer notifies the engine that a materialized caravan has reached
-## its destination. Engine applies the inventory delivery and clears the
-## shipment tracking entry.
 func execute_caravan_delivery(caravan: StrategySquad) -> void:
 	assert(caravan.is_caravan(), "execute_caravan_delivery requires a caravan squad")
 	var dest_loc := world.get_location_by_id(caravan.cargo.destination_id)
@@ -211,14 +200,10 @@ func execute_caravan_delivery(caravan: StrategySquad) -> void:
 	_clear_shipment_for_squad(caravan.squad_id)
 
 
-## Strategy layer registers a shipment_id <-> squad_id binding either at
-## first spawn or when an idle caravan is reassigned to a new dispatch.
 func register_dispatch_to_squad(shipment_id: String, squad_id: String) -> void:
 	_active_shipments[shipment_id] = squad_id
 
 
-## Strategy layer notifies the engine that an idle caravan has been retired
-## without delivering. Engine clears its shipment tracking.
 func clear_shipment_for_squad(squad_id: String) -> void:
 	_clear_shipment_for_squad(squad_id)
 

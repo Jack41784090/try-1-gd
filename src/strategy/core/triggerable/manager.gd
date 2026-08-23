@@ -11,11 +11,7 @@ func register(triggerable: Triggerable) -> void:
 
 
 func get_triggerables_triggered(context: Dictionary, filter: Callable = func(_t): return true) -> Array[Triggerable]:
-	## Checks all registered triggerables against the context and returns those whose conditions pass
-	## Also processes trigger_chains: if a triggerable fires, its chained triggers may also fire (with chance rolls)
-	## e.g., context={location: "salzburg", activity: FORAGE, turn: 5}
-	##   → checks 10 registered triggerables → 2 pass conditions → 1 has a chain trigger (50% chance, passes)
-	##   → returns [event_A, event_B, chain_event_C]
+	# a fired triggerable's trigger_chains may also fire their own chained trigger (subject to a chance roll)
 	var triggered: Array[Triggerable] = []
 
 	for triggerable in registered_triggerables:

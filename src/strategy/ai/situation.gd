@@ -42,7 +42,6 @@ var adjacent_enemies: Array[StrategySquad]:
 var nearest_town: Location:
 	get:
 		if not _nearest_town_computed:
-			## BFS from current location to find nearest CITY or TOWN
 			var found: Location = null
 			if world.travel_graph:
 				var types := [StrategyTypes.LocationType.CITY, StrategyTypes.LocationType.TOWN]
@@ -269,9 +268,7 @@ var _nearest_merchant_location_computed: bool = false
 
 
 func _init(p_squad: StrategySquad, p_world: World, p_faction: Faction, p_directive: FactionDirective) -> void:
-	## Initializes a lazy-evaluated snapshot of the world from this squad's perspective
-	## All computed properties (enemies_here, nearest_town, etc.) are only calculated on first access
-	## e.g., StrategicSituation(squad="Wolves", world, faction="Bandits") → location = world.get_location_by_id("salzburg")
+	## Lazy-evaluated snapshot: computed properties (enemies_here, nearest_town, etc.) are only calculated on first access
 	squad = p_squad
 	world = p_world
 	faction = p_faction
@@ -282,8 +279,7 @@ func _init(p_squad: StrategySquad, p_world: World, p_faction: Faction, p_directi
 
 
 func _compute_can_ambush() -> bool:
-	## Checks if we can ambush any enemy: we have LOCKED contact on them, but they have NONE/SUSPECTED on us
-	## e.g., we have LOCKED on "Raiders" (progress=1.0), Raiders have NONE on us → can ambush!
+	## Ambush requires LOCKED contact on them while they have NONE/SUSPECTED on us
 	_can_ambush_computed = true
 	var tracker = world.contact_tracker
 	var our_contacts = tracker.get_contacts_for(squad.squad_id)

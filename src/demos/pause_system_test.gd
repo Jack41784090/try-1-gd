@@ -1,14 +1,5 @@
 extends Node
-## Pause System Test — Validates pause/unpause behavior with HeadlessStrategyView.
-##
-## Tests:
-## 1. Game starts paused
-## 2. Selecting an activity does NOT auto-unpause
-## 3. Menu-opening handlers auto-pause
-## 4. RESTING banner state tracks activity + pause
-## 5. Explicit unpause via toggle works
-##
-## Usage: godot --headless --path . scenes/demos/pause_system_test.tscn
+## Validates pause/unpause behavior with HeadlessStrategyView. Run: godot --headless --path . scenes/demos/pause_system_test.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -33,14 +24,12 @@ func _ready():
 
 	await presenter.bind_view(mock_view)
 
-	# --- _test_game_starts_paused ---
 	MyLog.info("PauseTest", "--- Test: Game starts paused ---")
 	_assert_true(
 		presenter.game_scenario.world.is_paused,
 		"Game should start paused"
 	)
 
-	# --- _test_activity_does_not_unpause ---
 	MyLog.info("PauseTest", "--- Test: Activity selection does not unpause ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Precondition: game is paused")
@@ -68,7 +57,6 @@ func _ready():
 		"Game should remain paused after selecting REST"
 	)
 
-	# --- _test_pause_toggle ---
 	MyLog.info("PauseTest", "--- Test: Explicit pause toggle ---")
 	presenter.game_clock.pause()
 	_assert_true(presenter.game_scenario.world.is_paused, "Should be paused")
@@ -85,7 +73,6 @@ func _ready():
 		"Should be paused again after second toggle"
 	)
 
-	# --- _test_menu_handlers_pause ---
 	MyLog.info("PauseTest", "--- Test: Menu handlers auto-pause ---")
 
 	presenter.game_clock.unpause()
@@ -132,7 +119,6 @@ func _ready():
 		"Missions menu should auto-pause"
 	)
 
-	# --- _test_resting_banner_state ---
 	MyLog.info("PauseTest", "--- Test: Resting banner state ---")
 	presenter.game_clock.pause()
 	presenter.on_activity_requested(StrategyTypes.ActivityType.REST)

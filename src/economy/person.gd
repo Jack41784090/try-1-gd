@@ -16,10 +16,7 @@ func consume(thing: Thing, qty: float) -> float:
 	return consumed
 
 
-## Direct port of CsPerson.ComputeWants (CsPerson.cs:58-129). Rebuilds `wants`
-## from scratch each call — nobles want less of everything (elasticity 0.5)
-## and peasants more (1.5); price above base_price suppresses want, below
-## it inflates want, per good's own elasticity.
+## Rebuilds `wants` from scratch each call — nobles want less of everything (elasticity 0.5), peasants more (1.5); price above base_price suppresses want, below it inflates it.
 func compute_wants(goods: Array[Thing], inv: LocationInventory) -> void:
 	wants.clear()
 	var class_elasticity_mod := 1.0
@@ -41,7 +38,6 @@ func compute_wants(goods: Array[Thing], inv: LocationInventory) -> void:
 		wants[thing] = base_want
 
 
-## Port of CsPerson.ComputeWants' per-ThingType base-want table (CsPerson.cs:74-113).
 func _base_want_for(thing_type: EconomyTypes.ThingType) -> float:
 	match thing_type:
 		EconomyTypes.ThingType.FOOD:
@@ -75,10 +71,7 @@ func _base_want_for(thing_type: EconomyTypes.ThingType) -> float:
 	return 0.0
 
 
-## Nudges satisfaction toward this person's own wants-weighted fulfillment
-## ratio (last hour's unmet vs. the whole population's demand for each
-## thing they want) — same 0.2 smoothing idiom as _price_update's 0.15
-## adjust_rate, so satisfaction doesn't jump straight to its target.
+## Nudges satisfaction toward a wants-weighted fulfillment ratio using the same 0.2 smoothing idiom as _price_update's adjust_rate, so it doesn't jump straight to target.
 func update_satisfaction(unmet: Dictionary, population_demand: Dictionary) -> void:
 	if wants.is_empty():
 		return

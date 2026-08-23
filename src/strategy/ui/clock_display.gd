@@ -1,6 +1,5 @@
 class_name ClockDisplay
 extends Control
-## Analog clock: SVG face texture + dynamic hands drawn per-hour.
 
 const HOUR_HAND_COLOR := Color(0.95, 0.90, 0.75, 1.0)
 const MINUTE_HAND_COLOR := Color(0.80, 0.75, 0.60, 0.9)

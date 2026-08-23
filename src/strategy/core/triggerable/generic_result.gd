@@ -19,7 +19,7 @@ func _to_string() -> String:
 func _init(_config: Dictionary = { }) -> void:
 	for key in _config.keys():
 		assert(self.get(key) != null)
-## Handle typed dictionaries specially - must iterate and assign
+		# typed Dictionary can't be assigned via set(), so copy entries in manually
 		if key == "squad_stat_changes":
 			var raw_dict = _config[key]
 			for stat_key in raw_dict:

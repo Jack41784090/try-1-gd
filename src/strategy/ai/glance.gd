@@ -19,14 +19,6 @@ extends Resource
 
 
 func evaluate(situation) -> float:
-	## Reads a single world property from the situation, normalizes, inverts, chains, and filters it
-	## Pipeline: raw_value → normalize → inverse → chain additional_glance → comparison gate
-	## e.g., Glance(subject=SQUAD, squad_property=FOOD, normalize_max=100, inverse=true)
-	##   → raw=20 → normalize(20/100)=0.2 → inverse(1.0-0.2)=0.8
-	## e.g., Glance(subject=LOCATION, location_property=ENEMY_COUNT, use_comparison=true, comparison=ABOVE, threshold=0)
-	##   → raw=2 → no normalize → no inverse → check: 2 > 0 → passes → returns 2.0
-
-	## 1. Get the raw numeric value based on subject + property
 	var value := 0.0
 	match subject:
 		StrategicAITypes.GlanceSubject.SQUAD:
@@ -125,18 +117,12 @@ func evaluate(situation) -> float:
 		_:
 			assert(false, "Unknown GlanceSubject: %s" % subject)
 
-	## 2. Normalize to [0,1] if normalize_max is set
-	## e.g., value=20, normalize_max=100 → 0.2
 	if normalize_max > 0.0:
 		value = clamp(value / normalize_max, 0.0, 1.0)
 
-	## 3. Invert: makes "low food" into "high urgency"
-	## e.g., 0.2 → 0.8 (squad with low food gets high forage urgency)
 	if inverse:
 		value = 1.0 - value
 
-	## 4. Chain with another glance using an operation (MUL, ADD, RDC, AVG)
-	## e.g., food_urgency(0.8) MUL has_market(1.0) = 0.8 (both must be true)
 	if additional_glance != null:
 		var other_value = additional_glance.evaluate(situation)
 		match operation_on_other_glance:
@@ -149,8 +135,6 @@ func evaluate(situation) -> float:
 			CsdrTypes.OP.AVG:
 				value = (value + other_value) / 2.0
 
-	## 5. Gate: if use_comparison is on, value must pass the threshold check or return 0
-	## e.g., comparison=ABOVE, threshold=0.5 → value=0.3 → returns 0.0 (below threshold)
 	if use_comparison and not _check_condition(value):
 		value = 0.0
 
@@ -158,9 +142,6 @@ func evaluate(situation) -> float:
 
 
 func _check_condition(value: float) -> bool:
-	## Gates the glance output — returns false if value doesn't meet the threshold
-	## e.g., comparison=ABOVE, threshold=0.5, value=0.3 → false (0.3 is not above 0.5)
-	## e.g., comparison=BELOW, threshold=0.2, value=0.1 → true (0.1 is below 0.2)
 	match comparison:
 		CsdrTypes.DETECTION.EQUAL:
 			return value == threshold

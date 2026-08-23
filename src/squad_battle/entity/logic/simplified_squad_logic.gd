@@ -22,9 +22,7 @@ func update_situation(new_context: Dictionary):
 	return self
 
 
-## Evaluates all considerations in the entity's logic config to pick the best
-## skill. Each consideration scores the situation using Glances and returns a
-## Skill if score > 0; highest score wins. Falls back to default attack.
+## Highest-scoring consideration wins; falls back to default attack if none score > 0.
 func choose_skill() -> Skill:
 	var all_rules: Array[Consideration] = []
 	all_rules.append_array(config.considerations)

@@ -1,15 +1,11 @@
 class_name CinematicGroup extends CinematicInstruction
 
-## A group of cinematic instructions and/or child groups.
-## Groups with duration > 0 run children in parallel (occupation-based timing).
-## Groups with duration <= 0 run children sequentially (auto-calculated start times).
+## duration > 0 runs children in parallel with occupation-based timing; duration <= 0 runs them sequentially with auto-calculated start times.
 
 ## If true, group pauses after all children finish and waits for player input.
 @export var gated_group: bool = false
 
-## Mixed array of CinematicInstruction and CinematicGroup (both Resource).
-## Exported so an authored group round-trips through ResourceSaver/load as a
-## reusable .tres cutscene.
+## Holds both CinematicInstruction and CinematicGroup so an authored group round-trips through ResourceSaver/load as a reusable .tres.
 @export var children: Array[CinematicInstruction] = []
 
 

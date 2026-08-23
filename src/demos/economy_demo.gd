@@ -1,8 +1,5 @@
 extends Node
-## Economy Demo — Uses the real StrategyPresenter + HeadlessStrategyView pipeline.
-##
-## Loads the goetz-official scenario through the same code path as the actual game.
-## Usage: godot-mono --headless --path . scenes/demos/economy_demo.tscn
+## Loads goetz-official through the real StrategyPresenter + HeadlessStrategyView pipeline. Run: godot-mono --headless --path . scenes/demos/economy_demo.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -25,7 +22,6 @@ func _ready() -> void:
 
 	await _setup_presenter()
 
-	# --- resolve food ---
 	for thing: Thing in world.goods:
 		if thing.thing_id == "food":
 			_food_thing = thing

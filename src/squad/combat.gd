@@ -8,11 +8,7 @@ var last_round_received_attack: int = -1
 var _next_local_player_id: int = randi() % 1000 + 1
 
 
-## config: { "name": String, "side": SquadBattleTypes.Side, "entities": Array }
-## Each "entities" element is one of:
-##  - String: a CombatEntityFactory identification, built fresh (demo/scripted squads)
-##  - CombatEntityResource: built fresh via CombatEntityFactory.build_config_from_resource()
-##  - CombatEntity: already fully built (the real CombatBridge route, via Character.enter_battle())
+## Each element of _entities_config is a String identification (built fresh), a CombatEntityResource (built fresh via the factory), or an already-built CombatEntity.
 func _init(_name: String, _side: SquadBattleTypes.Side, _entities_config: Array[Variant]) -> void:
 	squad_name = _name
 	

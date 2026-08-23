@@ -1,8 +1,5 @@
 extends Control
-## Timeline VN System Demo — showcases the cinematic timeline playback system.
-## Demonstrates: gated dialogues, timed camera moves, character movement,
-## speed-up on SPACE, and narrator fallback.
-## Uses the shared VnView scene (which contains its own VnPresenter).
+## Timeline VN system demo: gated dialogues, timed camera moves, character movement, SPACE speed-up, and narrator fallback, via the shared VnView scene.
 
 @export var given_event_chain: EventChain
 
@@ -36,7 +33,6 @@ func _ready() -> void:
 	_update_status("Playing timeline...")
 
 	if _is_headless:
-		# --- run headless test ---
 		print("\n=== HEADLESS TEST START ===")
 
 		assert(
@@ -93,7 +89,6 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_R:
-			# --- restart ---
 			if _presenter.stage_presenter:
 				_presenter.stage_presenter.dismiss_all_speech()
 				_presenter.stage_presenter.return_to_wide()
@@ -147,7 +142,6 @@ func _build_demo_chain() -> EventChain:
 	chain.setting.append(StagePosition.new("heinrich", Vector2(0, 50), 1))
 	chain.setting.append(StagePosition.new("elara", Vector2(100, 50), -1))
 
-	## ===== PART 1: Simple gated dialogue (click-through) =====
 
 	var d1 = DialogueInstruction.new()
 	d1.time = 0.0
@@ -226,7 +220,6 @@ func _build_demo_chain() -> EventChain:
 	g3.wait_for_typewriter = true
 	chain.timeline.append(g3)
 
-	## ===== PART 2: Timed cinematic sequence (auto-advancing) =====
 
 	var m1 = CharacterInstruction.new()
 	m1.time = 0.06
@@ -275,7 +268,6 @@ func _build_demo_chain() -> EventChain:
 	g4.wait_for_typewriter = true
 	chain.timeline.append(g4)
 
-	## ===== PART 3: Camera target override =====
 
 	var cam5 = CameraInstruction.new()
 	cam5.time = 5.01
@@ -296,7 +288,6 @@ func _build_demo_chain() -> EventChain:
 	g5.wait_for_typewriter = true
 	chain.timeline.append(g5)
 
-	## ===== PART 4: Final sequence =====
 
 	var m2 = CharacterInstruction.new()
 	m2.time = 5.03

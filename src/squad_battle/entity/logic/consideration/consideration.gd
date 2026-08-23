@@ -19,14 +19,6 @@ func score_then_return(entity, situation, context) -> CombatEntity:
 
 
 func score(entity, situation, context) -> float:
-	## Core scoring logic: evaluates each entity (self, allies, or enemies) using all glances
-	## Then combines per-entity scores using the OP (ADD/MUL/AVG/RDC) and multiplies by weight
-	## For Target considerations, also tracks the best-scoring entity as the return value
-	##
-	## e.g., entity_limiter="enemies", glances=[HP(inverse, normalize)], op=AVG, weight=1.0
-	##   → enemies: [Fritz(HP=30/100 → 0.3 → inverse=0.7), Karl(HP=80/100 → 0.8 → inverse=0.2)]
-	##   → AVG(0.7, 0.2) = 0.45 × weight(1.0) = 0.45
-	##   → if Target: returning = Fritz (highest entity_score=0.7)
 	assert(entity_limiter in ["self", "allies", "enemies", "all"], "Invalid entity limiter: %s" % entity_limiter)
 	var entities_to_evaluate: Array[CombatEntity] = []
 	match entity_limiter:
@@ -62,7 +54,6 @@ func score(entity, situation, context) -> float:
 			resolved_target = entity_to_check
 			best_score_so_far = entity_score
 
-	## 2. Glance scores is then evaluated into result with regards to the op variable set in the Consideration
 	var result: float
 	match op:
 		CsdrTypes.OP.ADD:
@@ -77,7 +68,6 @@ func score(entity, situation, context) -> float:
 			assert(false, "Unimplemented Operation in Consideration used")
 			result = 0.0
 
-	## 3. Then the result value is multiplied by Consideration's weight.
 	result = result * weight
 	return result
 

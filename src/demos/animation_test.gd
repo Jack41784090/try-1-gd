@@ -1,13 +1,6 @@
 extends Node2D
 
-## Animation test harness for warrior_rig_2.
-## Instances the rig, applies a textured config, and lets you cycle behaviors
-## with the number keys / arrows so skeleton + animation edits in
-## warrior_rig_2.tscn can be verified with F6.
-##
-## Live texture reload: while running, edits to the config's source art files
-## (e.g. the .svg bone textures) OR to the config .tres itself (reassigning a
-## slot) are detected on disk and re-applied immediately — no restart.
+## Animation test harness for warrior_rig_2 (F6) — cycle behaviors with number keys/arrows; edits to the config .tres or its source art files hot-reload with no restart.
 
 const BEHAVIORS: Array[AnimTypes.Behavior] = [
 	AnimTypes.Behavior.IDLE,
@@ -29,9 +22,7 @@ const POLL_INTERVAL := 0.4
 const SVG_RENDER_SCALE := 4.0
 
 @export var config: WarriorRigConfig
-## Expression intents to broadcast with the [E] key. Each face part answers for
-## itself, so what you should see is several parts reacting at once — and
-## &"neutral" always landing back exactly on the baked pose.
+## Expression intents to broadcast with the [E] key; each face part reacts independently, &"neutral" always restores the baked pose.
 @export var expression_ids: Array[String] = ["neutral", "wide", "blink"]
 
 @onready var rig: WarriorRig = $Rig
@@ -50,7 +41,6 @@ func _ready() -> void:
 		_refresh(false)
 	_play(_index)
 
-	# --- print rig debug ---
 	print("=== Rig debug ===")
 	print("rig global_position=%s scale=%s modulate=%s visible=%s" % [rig.global_position, rig.scale, rig.modulate, rig.visible])
 	var sprites := 0
@@ -86,12 +76,10 @@ func _process(delta: float) -> void:
 	if _disk_changed():
 		_refresh(true)
 	elif _config_signature() != _last_sig:
-		## Live edit to the in-memory config (e.g. a bone size tweaked in the
-		## running remote inspector) — no file changed, so re-apply directly.
+		# In-memory-only edit (e.g. remote inspector) with no file change, so re-apply directly.
 		_refresh(false)
 
-## Captures the config's current sizes, offsets, and texture assignments so an
-## inline (no .tres) config edited at runtime still triggers a re-apply.
+## Lets an inline (no .tres) config edited at runtime still trigger a re-apply.
 func _config_signature() -> String:
 	var parts := PackedStringArray()
 	var sizes := config.get_bone_sizes()
@@ -104,10 +92,7 @@ func _config_signature() -> String:
 		parts.append("%s=%s" % [bone_name, tex.resource_path if tex else ""])
 	return "/".join(parts)
 
-## Every texture slot in the baked Face subtree paired with the SVG it came from
-## — a component's own art plus each reaction's swap — so editing any face part
-## hot-reloads like the body textures do. Captured once, because a reload
-## replaces the imported texture with a path-less one rasterized from disk.
+## Captured once: a reload replaces each imported texture with a path-less one rasterized from disk.
 func _snapshot_face_slots() -> void:
 	_face_slots.clear()
 	if not rig.face:
@@ -141,14 +126,14 @@ func _watched_paths() -> Array[String]:
 	return paths
 
 func _refresh(reload_config: bool) -> void:
-	## Re-read the .tres from disk so slot reassignments are picked up.
+	# Re-read the .tres from disk so slot reassignments are picked up.
 	if reload_config and not config.resource_path.is_empty():
 		var fresh := ResourceLoader.load(
 			config.resource_path, "", ResourceLoader.CACHE_MODE_IGNORE)
 		if fresh is WarriorRigConfig:
 			config = fresh
 
-	## Use the config's imported textures directly (skip disk reload for now).
+	# Use the config's imported textures directly (skip disk reload for now).
 	rig.apply_config(config.duplicate())
 	if _face_slots.is_empty():
 		_snapshot_face_slots()
@@ -167,8 +152,7 @@ func _refresh(reload_config: bool) -> void:
 	if reload_config:
 		MyLog.info("AnimationTest", "Textures reloaded from disk")
 
-## Broadcasts expression_ids[idx]. Every face part answers on its own, so one
-## call can move brows, shrink pupils and swap lashes together.
+## Each face part reacts independently, so one call can move brows, shrink pupils and swap lashes together.
 func _apply_expression(idx: int) -> void:
 	if expression_ids.is_empty():
 		return
@@ -234,12 +218,11 @@ func _input(event: InputEvent) -> void:
 	elif key == KEY_E:
 		_apply_expression(_expr_index + 1)
 	elif key == KEY_T:
-		# --- pose rest ---
 		_tpose = true
 		rig.pose_rest()
 		_update_label()
 	elif key == KEY_R:
-		## Re-travel to force one-shot anims (attack/hurt/die) to restart.
+		# Re-travel to force one-shot anims (attack/hurt/die) to restart.
 		rig.play_behavior(AnimTypes.Behavior.IDLE)
 		await get_tree().process_frame
 		_play(_index)

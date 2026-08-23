@@ -1,8 +1,6 @@
 class_name CombatController
 extends RefCounted
-## Controls combat flow between strategic and tactical layers
-## Manages pre-combat intermission, combat execution, and post-combat resolution
-## Integrates with CombatBridge for StrategyEntity↔Entity mapping
+## Bridges strategic and tactical layers: intermission choice, combat execution, post-combat resolution.
 
 signal combat_ended()
 

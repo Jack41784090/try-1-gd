@@ -1,9 +1,6 @@
 extends Node3D
 
-## Battle demo to test combat SFX: sword_hit, combat clink, death,
-## victory_fanfare / defeat. Uses the graphical battle view
-## so sounds actually play through the SFX autoload.
-## Run with F6 in the Godot editor (NOT headless — needs audio output).
+## Tests combat SFX (sword_hit, clink, death, victory/defeat) through the graphical battle view. Run with F6 (NOT headless — needs audio output).
 
 func _ready() -> void:
 	print("\n" + "=".repeat(60))
@@ -11,7 +8,6 @@ func _ready() -> void:
 	print("=".repeat(60))
 	print("Listen for: sword hits, armor clinks, death sounds, victory/defeat fanfare")
 
-	# --- create sfx battle ---
 	var teams: Dictionary[SquadBattleTypes.Side, Array] = {
 		SquadBattleTypes.Side.ATTACKER: [
 			["Player Warband", SquadBattleTypes.Side.ATTACKER, ["landsknecht", "landsknecht", "landsknecht", "healer", "landsknecht"]],

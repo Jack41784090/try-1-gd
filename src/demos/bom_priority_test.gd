@@ -1,10 +1,6 @@
 extends Node
 
-## BOM-explosion / unified-priority-match prototype — regression test for
-## the "hard knot" bug where crafting-guild input demand bypassed the
-## priority-sorted order matcher and grabbed raw stock directly, always
-## losing to whichever guild happened to register first in array order.
-## See /home/ikec/.claude/plans/structured-churning-castle.md for full design.
+## Regression test: crafting-guild input demand must go through the priority-sorted order matcher, not grab raw stock directly by array-registration order.
 
 var test_count := 0
 var passed_count := 0
@@ -37,9 +33,7 @@ func _ready() -> void:
 	_wire_systems()
 
 	clock_system.force_tick() # hour 1: contention resolves + shipment dispatches at the barrier
-	_check_priority_fair_allocation() # must run BEFORE hour 2 — a dispatched shipment from town_b's
-	# surplus arrives at the START of hour 2 (1-turn travel), topping up town_a's Iron before hour 2's
-	# phase column runs, which would otherwise mask the very contention this check exists to prove
+	_check_priority_fair_allocation() # must run BEFORE hour 2 — town_b's shipment lands at hour 2's start and would mask the contention this checks for
 
 	clock_system.force_tick() # hour 2: shipment arrives — smoke-tests the full multi-hour pipeline
 
@@ -103,10 +97,7 @@ func _build_world() -> void:
 		NaturalResource.create(iron, 50.0, EconomyTypes.JobType.FARMER, 10.0),
 	]
 
-	# priorities inverted from registration order — iron_hoe_guild registers
-	# FIRST but has the LOWER priority; iron_sword_guild registers SECOND but
-	# has the HIGHER priority. Under the old bug, array order would decide
-	# the winner; under the fix, priority must.
+	# Priorities deliberately inverted from registration order: hoe_guild registers first but has lower priority.
 	iron_hoe_guild = CraftingGuild.create("hoe_guild", iron_hoe, 5.0, 6.0)
 	iron_sword_guild = CraftingGuild.create("sword_guild", iron_sword, 5.0, 9.0)
 
@@ -138,7 +129,6 @@ func _wire_systems() -> void:
 	systems_root.add_child(caravan_economy_system)
 	caravan_economy_system.setup(world.locations.size())
 
-	# Order matters — see doc-comments on both handlers:
 	clock_system.hour_changed.connect(caravan_economy_system._on_hour_changed)       # 1: advance + deliver arrivals
 	caravan_economy_system.location_arrived.connect(location_economy_system._on_location_arrived)
 	clock_system.hour_changed.connect(location_economy_system._on_hour_changed)      # 2: phase columns (sees delivered cargo)
@@ -158,10 +148,7 @@ func _check_barrier() -> void:
 	var probe := CaravanEconomySystem.new()
 	add_child(probe)
 	probe.setup(2)
-	# Single-element Array, not a plain bool: GDScript lambdas capture outer
-	# locals BY VALUE at creation time, so `probe_dispatched = true` inside a
-	# lambda would only mutate the lambda's own copy, never this scope's
-	# variable. A shared mutable container sidesteps that.
+	# Single-element Array, not a bool: GDScript lambdas capture outer locals by value, so a plain bool couldn't be mutated from inside.
 	var probe_dispatched := [false]
 	probe.shipment_dispatched.connect(func(_m: EconomyMove, _g: int) -> void: probe_dispatched[0] = true)
 

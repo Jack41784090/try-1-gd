@@ -1,11 +1,5 @@
 extends Node
-## Headless test for march walking behavior and VN gesturing logic.
-## Verifies that:
-## 1. Walking animation is properly applied and trackable in march mode
-## 2. Gesturing behavior only targets the speaker, not all warriors
-## 3. State machine is ready before behaviors are applied
-##
-## Run: godot --headless --path . -s src/demos/stage_logic_test.gd
+## Headless test for march walking behavior and VN gesturing logic. Run: godot --headless --path . -s src/demos/stage_logic_test.gd
 
 const BEHAVIOR_MAP: Dictionary = {
 	"idle": AnimTypes.Behavior.IDLE,
@@ -32,7 +26,6 @@ func _ready() -> void:
 	print("STAGE LOGIC TEST — HEADLESS")
 	print("========================================\n")
 
-	# --- _create_test_warriors ---
 	var names = ["goetz", "franz", "hilda", "konrad"]
 	for n in names:
 		var e = StrategyEntity.new()
@@ -45,7 +38,6 @@ func _ready() -> void:
 	_container = Node2D.new()
 	add_child(_container)
 
-	# --- _run_phase_0_create_rigs ---
 	print("\n--- PHASE 0: Create rigs and add to tree ---")
 	for warrior in _warriors:
 		var rig = WarriorRigFactory.create_rig_for_warrior(warrior)
@@ -61,7 +53,6 @@ func _process(_delta: float) -> void:
 	match _test_phase:
 		1:
 			if _frame_count >= 3:
-				# --- _run_phase_1_verify_ready ---
 				print("\n--- PHASE 1: Verify rigs are ready (frame %d) ---" % _frame_count)
 				for id in _rigs:
 					var rig: WarriorRig = _rigs[id]
@@ -78,7 +69,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 2
 		2:
 			if _frame_count >= 6:
-				# --- _run_phase_2_march_behavior ---
 				print("\n--- PHASE 2: Apply WALKING to all rigs via travel() then check start() ---")
 				for id in _rigs:
 					var rig: WarriorRig = _rigs[id]
@@ -99,7 +89,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 3
 		3:
 			if _frame_count >= 15:
-				# --- _run_phase_3_verify_march ---
 				print("\n--- PHASE 3: Verify all rigs are WALKING (frame %d) ---" % _frame_count)
 				for id in _rigs:
 					var rig: WarriorRig = _rigs[id]
@@ -121,7 +110,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 4
 		4:
 			if _frame_count >= 18:
-				# --- _run_phase_4_vn_gesturing ---
 				print("\n--- PHASE 4: Simulate VN dialogue with gesturing (speaker=goetz) ---")
 
 				print("[TEST] Step 1: dismiss_all_speech equivalent — set all to IDLE")
@@ -143,7 +131,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 5
 		5:
 			if _frame_count >= 27:
-				# --- _run_phase_5_verify_gesturing ---
 				print("\n--- PHASE 5: Verify ONLY goetz is GESTURING (frame %d) ---" % _frame_count)
 				for id in _rigs:
 					var rig: WarriorRig = _rigs[id]
@@ -163,7 +150,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 6
 		6:
 			if _frame_count >= 30:
-				# --- _run_phase_6_dismiss_and_remarch ---
 				print("\n--- PHASE 6: Dismiss speech → return to march ---")
 				print("[TEST] Step 1: dismiss_all_speech — set all to IDLE")
 				for id in _rigs:
@@ -179,7 +165,6 @@ func _process(_delta: float) -> void:
 				_test_phase = 7
 		7:
 			if _frame_count >= 39:
-				# --- _run_phase_7_verify_remarch ---
 				print("\n--- PHASE 7: Verify all rigs walking after VN→march transition (frame %d) ---" % _frame_count)
 				for id in _rigs:
 					var rig: WarriorRig = _rigs[id]
@@ -192,7 +177,6 @@ func _process(_delta: float) -> void:
 					_assert("Rig '%s' SM node is 'walking' after re-march" % id, sm_current == "walking")
 					print("[TEST]   '%s' — behavior: %s, SM: '%s'" % [id, AnimTypes.Behavior.keys()[ctrl.current_behavior], sm_current])
 
-				# --- _finish ---
 				_test_phase = 99
 				print("\n========================================")
 				print("TEST COMPLETE: %d passed, %d failed" % [_pass_count, _fail_count])

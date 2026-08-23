@@ -1,8 +1,6 @@
 class_name SceneryInstruction
 extends CinematicInstruction
-## Timeline command that mutates stage set dressing: add/remove/move/tint a prop,
-## toggle its visibility, or swap the backdrop. Fires through GroupPlayback's generic
-## instruction path; dispatched by VnPresenter._execute_scenery onto the StagePresenter.
+## Fires through GroupPlayback's generic instruction path; dispatched by VnPresenter._execute_scenery onto the StagePresenter.
 
 enum Action {ADD, REMOVE, MOVE, MODULATE, SHOW, HIDE, SET_BACKDROP}
 

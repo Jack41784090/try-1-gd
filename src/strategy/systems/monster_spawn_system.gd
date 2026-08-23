@@ -1,20 +1,8 @@
 class_name MonsterSpawnSystem
 extends Node
 
-## Owns "what to spawn" for roaming monster squads — composition/identity
-## only. Never touches World/SquadBeingSystem/SquadAISystem directly; those
-## registration steps happen in main.gd's squad_spawned handler (the
-## composition-root convention documented in AGENTS.md's Systems Layer
-## section — no system may hold a reference to, preload, or call another
-## system directly).
-##
-## Monster warriors are template-only combat entities (Character.new with
-## strategy=null would be enough for combat alone), but a monster squad also
-## lives in the strategic layer — travel/morale read Character.get_speed_kmh()/
-## modify_morale(), both of which assert(strategy != null). So each warrior
-## gets a minimal StrategyEntity (same shape main.gd._build_test_squad() uses)
-## carrying only MV_SPD+MORALE, with combat_identification passed explicitly
-## so combat still resolves off the feral_beast template regardless.
+## Owns "what to spawn" only — registration with World/SquadBeingSystem/SquadAISystem happens in main.gd's squad_spawned handler (composition-root convention, see AGENTS.md's Systems Layer).
+## Each warrior gets a minimal StrategyEntity carrying only MV_SPD+MORALE, since travel/morale assert(strategy != null) even though monsters are template-only combat entities.
 
 signal squad_spawned(squad: StrategySquad)
 
@@ -28,11 +16,7 @@ func setup(_scenario: GameScenario) -> void:
 	scenario = _scenario
 
 
-## Public entry point (also directly unit-testable): resolves near_location_id,
-## picks a random outgoing TownConnection off it, and builds a squad seeded
-## mid-edge along that connection — travel_route/travel_progress_km already
-## populated, no "spawn sitting in a town" step. Returns null (no emit) if the
-## location is unknown or has no outgoing connections.
+## Builds a squad seeded mid-edge on a random outgoing connection — no "spawn sitting in a town" step. Returns null if the location is unknown or has no outgoing connections.
 func spawn_at(near_location_id: String) -> StrategySquad:
 	var loc := scenario.world.get_location_by_id(near_location_id)
 	if loc == null or loc.connections == null or loc.connections.tt.is_empty():
@@ -79,6 +63,5 @@ func spawn_at(near_location_id: String) -> StrategySquad:
 	return squad
 
 
-## Thin wrapper — the slot main.gd wires to SinInheringSystem.spawn_triggered.
 func _on_spawn_triggered(near_location_id: String) -> void:
 	spawn_at(near_location_id)

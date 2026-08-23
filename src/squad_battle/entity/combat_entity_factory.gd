@@ -1,13 +1,10 @@
 class_name CombatEntityFactory
 
-## Folder scanned for entity-template (.tres) identifications. Reassign to point the
-## identification dropdown (CombatEntityResource) at a different folder.
+## Reassign to point the CombatEntityResource identification dropdown at a different folder.
 static var identification_root := "res://resources/combat/classes/"
 
 
-## File stems of the .tres templates in identification_root, sorted — the live list
-## backing CombatEntityResource.identification. Scanned from disk so it reflects the
-## actual folder contents (add/remove a template and the dropdown follows).
+## Scanned from disk (not cached), so add/remove a template and the dropdown follows.
 static func available_identifications() -> PackedStringArray:
 	var out := PackedStringArray()
 	var dir := DirAccess.open(identification_root)
@@ -20,8 +17,6 @@ static func available_identifications() -> PackedStringArray:
 	return out
 
 
-## Loads the CombatEntityResource template named `id` (one of
-## available_identifications()).
 static func get_resource(id: String) -> CombatEntityResource:
 	var path := identification_root.path_join(id + ".tres")
 	var res = load(path)
@@ -30,10 +25,7 @@ static func get_resource(id: String) -> CombatEntityResource:
 	return res
 
 
-## Template-only path — no Character, no StrategyEntity. Used by CombatSquad's
-## scripted/demo-battle path (monsters/bandits, no persistent campaign identity):
-## the template's own base-attribute ReactiveStats are the resolved constants,
-## with nothing from a tier-2 StrategyEntity to override them.
+## Template-only path (monsters/bandits): the template's base-attribute ReactiveStats resolve as-is, with no tier-2 StrategyEntity override.
 static func build_config_from_resource(
 		res: CombatEntityResource,
 		side: SquadBattleTypes.Side,
@@ -46,7 +38,6 @@ static func build_config_from_resource(
 	return CombatEntityConfig.new(res, side, player_id, starting_location, resolved)
 
 
-## Builds a runtime CombatEntity from the template named `id`.
 static func get_by_identification(
 		id: String,
 		side: SquadBattleTypes.Side,

@@ -54,7 +54,6 @@ func _ready():
 		scenario.world.roaming_squads.size()
 	])
 
-	# --- _print_world_map ---
 	MyLog.debug("StressTest", "[WORLD MAP]")
 	for location in scenario.world.locations:
 		var conn_names: Array[String] = []
@@ -75,7 +74,6 @@ func _ready():
 
 	fleet_manager.setup(scenario)
 
-	# --- _assign_profiles ---
 	var profile_base := "res://resources/ai/strategic/profiles/"
 	for squad in scenario.world.roaming_squads:
 		var profile_name = profile_assignments.get(squad.squad_id, "balanced-roamer")

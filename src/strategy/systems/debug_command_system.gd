@@ -1,17 +1,7 @@
 class_name DebugCommandSystem
 extends Node
 
-## Interprets "/command arg arg ..." strings against an authored array of
-## CommandResource definitions (each with optional subcommands), resolves
-## each positional arg to a real value via a small resolver registry keyed
-## by the arg's declared kind (e.g. &"squad" -> StrategySquad), then emits a
-## generic command_dispatched signal. This system never holds refs to
-## sibling Systems directly — main.gd (the sole cross-system wiring point,
-## see load_scenario()) listens for command_dispatched and performs the
-## actual get_node()+emit_signal()/call on whichever System the command
-## named. Keeping dispatch generic here (rather than main.gd hand-wiring
-## one connection per command) is the point of making commands data-driven
-## in the first place: new commands are new .tres files, not new code.
+## Never holds refs to sibling Systems — main.gd listens for command_dispatched and dispatches to whichever System the command named, so new commands are new .tres files, not new code.
 
 signal command_dispatched(target_system_name: StringName, target_signal_name: StringName, args: Array)
 signal command_failed(raw_text: String, reason: String)

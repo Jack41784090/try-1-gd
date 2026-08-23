@@ -1,18 +1,5 @@
 extends Node
-## Battle Royale Demo - Production Pipeline Test
-##
-## Exercises the same classes and execution order as StrategyPresenter,
-## but headless. One squad acts as "player" (driven by SquadBrain
-## instead of human input), the rest managed by AISquadManager.
-##
-## Pipeline per turn (mirrors _on_hour_tick):
-##   1. Player brain decides activity (replaces button press)
-##   2. exec_before/exec_activity/exec_after (ActivityRunner)
-##   3. AI fleet returns decisions (AISquadManager)
-##   4. Contact tracking (ContactTracker.update_all_contacts)
-##   5. Commit AI decisions (AISquadManager)
-##   6. Engagement detection & headless combat
-##   7. Advance turn (# StrategyEventBus.hour_advanced)
+## Headless production-pipeline test: mirrors StrategyPresenter._on_hour_tick's exact class/execution order, with SquadBrain standing in for player input and AISquadManager for the rest.
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/combat-test/combat-test-scenario.tres"
 const MAX_ROUNDS = 20
@@ -30,7 +17,6 @@ func _ready():
 
 	rng.randomize()
 
-	# --- _initialize ---
 	var loaded = ResourceLoader.load(SCENARIO_PATH)
 	assert(
 		loaded is GameScenario,
@@ -88,7 +74,6 @@ func _run_simulation():
 			_count_living_squads(),
 		])
 
-		# --- _execute_one_hour ---
 		var directive = FactionDirective.create_none()
 		var decision = player_brain.decide(
 			scenario.world,
@@ -134,7 +119,6 @@ func _run_simulation():
 			for entry in turn_entries:
 				if entry["is_player"]:
 					var results = actor["exec_%s" % phase].call(activity)
-					# --- _resolve_combat_from_results ---
 					for result in results:
 						if not (result is ActivityResult):
 							continue
@@ -160,7 +144,6 @@ func _run_simulation():
 
 		ai_fleet.cleanup_defeated_squads()
 
-		# --- _update_contacts ---
 		var world = scenario.world
 		var tracker = world.contact_tracker
 
@@ -216,7 +199,6 @@ func _run_simulation():
 				or def_id == player_squad.squad_id
 			)
 			if involves_player:
-				# --- _handle_player_engagement ---
 				var eng_type: StrategyTypes.EngagementType = \
 				engagement["type"]
 
@@ -351,7 +333,6 @@ func _resolve_headless_combat(
 		casualties,
 	])
 
-	# --- _cleanup_dead_squads ---
 	var to_remove: Array[String] = []
 	for squad in scenario.world.roaming_squads:
 		if squad.get_living_warriors().is_empty():

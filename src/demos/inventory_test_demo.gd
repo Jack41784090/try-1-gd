@@ -1,6 +1,5 @@
 extends Node
-## Inventory & Equipment System — Unit Tests
-## Usage: godot --headless --path . scenes/demos/inventory_test_demo.tscn
+## Inventory & Equipment system unit tests. Run: godot --headless --path . scenes/demos/inventory_test_demo.tscn
 
 var _pass_count: int = 0
 var _fail_count: int = 0
@@ -10,7 +9,6 @@ func _ready() -> void:
 	MyLog.set_level(MyLog.Level.WARN)
 	_print("=== INVENTORY & EQUIPMENT UNIT TESTS ===")
 
-	# --- _test_inventory_add_remove ---
 	_print("")
 	_print("--- SquadInventory: add/remove ---")
 	var ar_inv = SquadInventory.new()
@@ -33,7 +31,6 @@ func _ready() -> void:
 	_check(ar_removed3 == true, "remove_armor returns true for existing")
 	_check(ar_inv.armors.size() == 0, "remove_armor decreases count")
 
-	# --- _test_inventory_equip_weapon ---
 	_print("")
 	_print("--- SquadInventory: equip weapon ---")
 	var ew_inv = SquadInventory.new()
@@ -50,7 +47,6 @@ func _ready() -> void:
 	_check(ew_warrior.get_equipped_weapon() == ew_sword, "warrior has weapon after equip")
 	_check(ew_inv.weapons.size() == 0, "weapon removed from inventory after equip")
 
-	# --- _test_inventory_equip_armor_swap ---
 	_print("")
 	_print("--- SquadInventory: equip armor with swap ---")
 	var as_inv = SquadInventory.new()
@@ -69,7 +65,6 @@ func _ready() -> void:
 	_check(as_inv.armors.size() == 1, "old armor swapped back to inventory")
 	_check(as_inv.armors[0] == as_old_armor, "swapped armor is the old one")
 
-	# --- _test_inventory_unequip ---
 	_print("")
 	_print("--- SquadInventory: unequip ---")
 	var ue_inv = SquadInventory.new()
@@ -94,7 +89,6 @@ func _ready() -> void:
 	_check(ue_warrior.get_equipped_armor() == null, "warrior armor null after unequip")
 	_check(ue_inv.armors.size() == 1, "armor moved to inventory")
 
-	# --- _test_inventory_is_empty ---
 	_print("")
 	_print("--- SquadInventory: is_empty ---")
 	var ie_inv = SquadInventory.new()
@@ -107,7 +101,6 @@ func _ready() -> void:
 	ie_inv.remove_weapon(ie_sword)
 	_check(ie_inv.is_empty(), "empty after remove_weapon")
 
-	# --- _test_inventory_get_all_items ---
 	_print("")
 	_print("--- SquadInventory: get_all_items ---")
 	var ga_inv = SquadInventory.new()
@@ -122,7 +115,6 @@ func _ready() -> void:
 	_check(ga_all.has(ga_plate), "all items includes armor")
 	_check(ga_inv.get_item_count() == 2, "get_item_count returns 2")
 
-	# --- _test_default_equipment_assignment ---
 	_print("")
 	_print("--- StrategyEntityFactory: default equipment ---")
 	var de_lk := _make_warrior(EntityClasses.Types.Landsknecht, "TestLK")
@@ -142,7 +134,6 @@ func _ready() -> void:
 	_check(de_arq.get_equipped_weapon() != null, "Arquebusier gets weapon")
 	_check(de_arq.get_equipped_armor() == null, "Arquebusier has no armor")
 
-	# --- _test_loot_collector_dead_enemies ---
 	_print("")
 	_print("--- LootCollector: collect from dead ---")
 	var lcd_enemy_squad := SquadDataFactory.create_squad()
@@ -158,7 +149,6 @@ func _ready() -> void:
 	_check(lcd_loot_armors.size() == 1, "looted 1 armor from dead Landsknecht")
 	_check(lcd_loot_weapons[0].weapon_class == lcd_dead_warrior.get_equipped_weapon().weapon_class, "looted weapon matches source")
 
-	# --- _test_loot_collector_skips_alive ---
 	_print("")
 	_print("--- LootCollector: skips alive ---")
 	var lsa_enemy_squad := SquadDataFactory.create_squad()
@@ -173,7 +163,6 @@ func _ready() -> void:
 	_check(lsa_loot_weapons.size() == 0, "no weapons from alive enemy")
 	_check(lsa_loot_armors.size() == 0, "no armors from alive enemy")
 
-	# --- _test_loot_collector_apply ---
 	_print("")
 	_print("--- LootCollector: apply loot to inventory ---")
 	var lca_inv = SquadInventory.new()
@@ -187,7 +176,6 @@ func _ready() -> void:
 	_check(lca_inv.weapons.size() == 1, "apply adds weapon to inventory")
 	_check(lca_inv.armors.size() == 1, "apply adds armor to inventory")
 
-	# --- _test_loot_collector_duplicates_items ---
 	_print("")
 	_print("--- LootCollector: duplicates equipment ---")
 	var lcdu_enemy_squad := SquadDataFactory.create_squad()

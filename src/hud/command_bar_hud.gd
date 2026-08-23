@@ -1,11 +1,7 @@
 class_name CommandBarHud
 extends Control
 
-## Minimal always-available command bar: a single LineEdit that only reacts
-## to text starting with "/". Knows nothing about commands, systems, or how
-## "/travel 1 beta" gets interpreted — it just hands the raw text to
-## whoever owns it (main.gd), which forwards it to DebugCommandSystem.
-
+## Only reacts to text starting with "/"; knows nothing about how it gets interpreted — just hands the raw text off via command_submitted.
 signal command_submitted(raw_text: String)
 
 const BAR_HEIGHT := 32.0

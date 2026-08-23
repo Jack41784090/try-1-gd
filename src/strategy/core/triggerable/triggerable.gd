@@ -23,8 +23,7 @@ func _to_string() -> String:
 func _init() -> void:
 	pass
 
-## Evaluates all conditions against the provided context dict.
-## ALL conditions must pass (AND logic) for the triggerable to fire.
+# all conditions must pass (AND logic) for the triggerable to fire
 func check_conditions(context: Dictionary) -> bool:
 	MyLog.trace("Triggerable", "Checking conditions for: %s" % trigger_name)
 	for condition in conditions:

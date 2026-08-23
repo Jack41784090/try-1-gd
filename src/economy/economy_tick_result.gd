@@ -8,9 +8,7 @@ var location_snapshots: Array[LocationSnapshot] = []
 var moves_created: Array[EconomyMove] = []
 var moves_completed: Array[EconomyMove] = []
 var shipment_dispatches: Array[ShipmentDispatch] = []
-## Per-location flag: should the location currently offer MERCENARY_WORK activity?
-## Strategy layer applies these onto Location.available_activity_types each tick.
-var mercenary_work_changes: Dictionary = {}
+var mercenary_work_changes: Dictionary = {} ## location_id -> bool; applied onto Location.available_activity_types each tick
 
 
 class ShipmentDispatch:

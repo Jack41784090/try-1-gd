@@ -6,8 +6,7 @@ signal location_changed(old_location: String, new_location: String)
 signal strategy_hour_tick(hour_number: int)
 signal game_ended(ending_name: String)
 
-## HUD display signals — Presenter computes, View renders. Lets any panel
-## subscribe to top-bar state without the Presenter holding a View reference.
+## HUD display signals: lets any panel subscribe to top-bar state without the Presenter holding a View reference.
 signal hud_location_changed(display_text: String)
 signal hud_condition_changed(condition_text: String)
 signal hud_stats_changed(money: float, food: int, karma: float, stability: float, development: int)

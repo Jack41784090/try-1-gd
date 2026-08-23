@@ -1,8 +1,5 @@
 extends Control
-## Headless mock of StrategyView for AIAct testing.
-## Provides no-op UI methods while wiring real game logic components
-## (ActivityRunner, AISquadManager) so StrategyPresenter can run the
-## full production turn pipeline without any rendering.
+## Headless mock of StrategyView: no-op UI methods, but wires real ActivityRunner/AISquadManager so StrategyPresenter runs the full production turn pipeline without rendering.
 
 var actor: ActivityRunner
 var ai_fleet: AISquadManager

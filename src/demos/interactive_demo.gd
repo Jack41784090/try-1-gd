@@ -1,34 +1,5 @@
 extends Node
-## Interactive Terminal Demo — Play CONDOR strategy game from a terminal.
-##
-## Runs the real StrategyPresenter with a headless mock view, accepting
-## text commands from stdin. Displays rich game state after each turn.
-##
-## Usage: godot-mono --headless --path . scenes/demos/interactive_demo.tscn
-##
-## Commands:
-##   status        — Full squad status (food, gold, morale, warriors)
-##   look          — Describe current location, connections, and squads
-##   warriors      — List all warriors with class, position, status
-##   travel <id>   — Travel to a connected location (e.g. "travel oehringen")
-##   rest          — Rest to recover morale
-##   forage        — Forage for food
-##   drill         — Drill to improve combat readiness
-##   patrol        — Patrol for intel (boosts scouting)
-##   heal          — Heal injured warriors (requires town)
-##   buy           — Buy supplies at a shop (requires town with shop)
-##   mercenary     — Do mercenary work for gold
-##   mass          — Hold mass (Feldprediger activity)
-##   recruit       — (Not yet interactive — shows info)
-##   attack <id>   — Attack a squad (requires LOCKED contact)
-##   contacts      — Show contact intel on all known squads
-##   missions      — Show active and completed missions
-##   events        — Show events that have fired
-##   notifications — Active notifications (contacts, resources, missions)
-##   economy       — Show economy state per location
-##   map           — Show all locations and connections
-##   help          — Show available commands
-##   quit          — Exit the game
+## Run via: godot-mono --headless --path . scenes/demos/interactive_demo.tscn — type 'help' for commands.
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -46,7 +17,6 @@ var _stdin_thread: Thread
 var _stdin_mutex: Mutex
 var _stdin_buffer: Array[String] = []
 var _should_quit := false
-
 
 func _ready():
 	MyLog.set_level(MyLog.Level.ERROR)
@@ -106,7 +76,6 @@ func _ready():
 	_cmd_status()
 	_print_prompt()
 
-
 func _process(_delta):
 	if not _initialized:
 		return
@@ -123,7 +92,6 @@ func _process(_delta):
 		var cmd = _command_queue.pop_front()
 		_handle_command(cmd)
 
-
 func _stdin_reader():
 	while not _should_quit:
 		var line := OS.read_string_from_stdin(256).strip_edges()
@@ -133,17 +101,14 @@ func _stdin_reader():
 		_stdin_buffer.append(line)
 		_stdin_mutex.unlock()
 
-
 func _exit_tree():
 	_should_quit = true
 	if _stdin_thread and _stdin_thread.is_started():
 		_stdin_thread.wait_to_finish()
 
-
 func _hook_triggerable_logging():
 	var tm = presenter.game_scenario.triggerable_manager
 	tm.triggerable_fired.connect(_on_triggerable_fired)
-
 
 func _on_triggerable_fired(triggerable, _result):
 	var tid = triggerable.trigger_id
@@ -153,7 +118,6 @@ func _on_triggerable_fired(triggerable, _result):
 	else:
 		_events_fired.append(tid)
 		_print_event("EVENT: %s" % tid)
-
 
 #region Command Dispatch
 
@@ -543,7 +507,6 @@ func _handle_command(input: String):
 
 #endregion
 
-
 #region Commands
 
 func _cmd_help():
@@ -590,7 +553,6 @@ func _cmd_help():
 	_print_line("  CLICK   (x)       Advance/dismiss current dialog")
 	_print_separator()
 
-
 func _cmd_status():
 	_print_separator()
 	var living = player_squad.get_living_warriors()
@@ -612,7 +574,6 @@ func _cmd_status():
 	if dest and dest.has("location") and dest["location"] != null:
 		_print_line("  Traveling: → %s" % dest["location"].location_name)
 	_print_separator()
-
 
 func _cmd_look():
 	var loc_id := player_squad.current_location_id
@@ -661,8 +622,6 @@ func _cmd_look():
 			_print_line("    %s [%s] — %d warriors" % [sq.squad_name, role, sq.get_living_warriors().size()])
 	_print_separator()
 
-
-## Kept as a named function: large handler (38 lines) — inlining would bloat the dispatch.
 func _cmd_travel(destination: String):
 	if destination.is_empty():
 		_print_line("Usage: travel <location_id>")
@@ -702,7 +661,6 @@ func _cmd_travel(destination: String):
 		world.is_paused = true
 	_print_turn_report(snap)
 
-
 func _cmd_activity(type: StrategyTypes.ActivityType, description: String, arg: String = ""):
 	var hours := int(arg) if not arg.is_empty() else 1
 	if hours <= 0:
@@ -721,7 +679,6 @@ func _cmd_activity(type: StrategyTypes.ActivityType, description: String, arg: S
 		while presenter.is_executing_activity:
 			await get_tree().create_timer(0.05).timeout
 	_print_turn_report(snap)
-
 
 var _RECRUIT_COSTS: Dictionary = {
 	EntityClasses.Types.Landsknecht: 100.0,
@@ -753,7 +710,6 @@ var _RECRUIT_POS: Dictionary = {
 	EntityClasses.Types.Gelehrter: SquadBattleTypes.SquadEntityInSquadLocation.Back,
 }
 
-## Kept as a named function: large handler (31 lines) — inlining would bloat the dispatch.
 func _cmd_recruit(arg: String):
 	if arg.is_empty():
 		_print_separator()
@@ -786,9 +742,7 @@ func _cmd_recruit(arg: String):
 	player_squad.money -= cost
 	_print_line("Recruited %s for %d gold! (%.0f gold remaining)" % [new_warrior.display_name, cost, player_squad.money])
 
-
 #endregion
-
 
 #region Turn Report
 
@@ -825,7 +779,6 @@ func _snapshot_state() -> Dictionary:
 		"contacts": contacts_snap,
 		"squads": squad_positions,
 	}
-
 
 func _print_turn_report(before: Dictionary):
 	var after := _snapshot_state()
@@ -935,7 +888,6 @@ func _print_turn_report(before: Dictionary):
 	_print_separator()
 	_cmd_status()
 
-
 func _print_stat_delta(label: String, before_val, after_val, fmt: String):
 	if typeof(before_val) == TYPE_FLOAT and typeof(after_val) == TYPE_FLOAT:
 		if abs(before_val - after_val) < 0.01:
@@ -949,7 +901,6 @@ func _print_stat_delta(label: String, before_val, after_val, fmt: String):
 
 #endregion
 
-
 #region Helpers
 
 func _find_squad(squad_id: String) -> StrategySquad:
@@ -960,31 +911,25 @@ func _find_squad(squad_id: String) -> StrategySquad:
 		return player_squad
 	return null
 
-
 func _get_location_display(loc_id: String) -> String:
 	var loc := world.get_location_by_id(loc_id)
 	if loc:
 		return "%s (%s)" % [loc.location_name, loc_id]
 	return loc_id
 
-
 func _location_type_str(loc_type) -> String:
 	return StrategyTypes.LocationType.keys()[loc_type] if loc_type >= 0 else "UNKNOWN"
-
 
 func _print_line(text: String):
 	print(text)
 
-
 func _print_separator():
 	print("────────────────────────────────────────────────────────")
-
 
 func _print_event(text: String):
 	print("")
 	print("  ★ %s" % text)
 	print("")
-
 
 func _print_prompt():
 	printt("")
@@ -993,9 +938,7 @@ func _print_prompt():
 		player_squad.squad_name,
 		_get_location_display(player_squad.current_location_id)])
 
-
 const SCREENSHOT_PATH := "/tmp/condor_screenshot.jpg"
-
 
 func _cmd_screenshot(arg: String):
 	var path := arg if not arg.is_empty() else SCREENSHOT_PATH
@@ -1021,7 +964,6 @@ func _cmd_screenshot(arg: String):
 			return
 	_print_line("SCREENSHOT_SAVED:%s" % path)
 
-
 func _cmd_debug_activities():
 	_print_line("Current activity type: %s" % StrategyTypes.ActivityType.keys()[player_squad.current_activity_type])
 	var activity = presenter.actor.get_activity(player_squad.current_activity_type)
@@ -1031,11 +973,9 @@ func _cmd_debug_activities():
 		if t is Activity:
 			_print_line("  Activity: %s (type=%s)" % [t.trigger_name, StrategyTypes.ActivityType.keys()[t.activity_type]])
 
-
-## Kept as a named function: large handler (30 lines) — inlining would bloat the dispatch.
 func _cmd_check_missions():
 	_print_line("Checking missions...")
-	## Sync AEM's player_squad location with the actual player_squad
+	# Sync AEM's player_squad location with the actual player_squad — the two must match before mission checks run
 	presenter.actor.aem.player_squad.current_location_id = player_squad.current_location_id
 	var context := {
 		"squad": player_squad,
@@ -1059,10 +999,9 @@ func _cmd_check_missions():
 				if unlocked_mission:
 					unlocked_mission.unlock()
 					_print_line("    → Unlocked: %s" % unlocked_id)
-	## Also run event chains from mission results
+
 	await presenter._check_missions()
 	var snap := _snapshot_state()
 	_print_turn_report(snap)
-
 
 #endregion

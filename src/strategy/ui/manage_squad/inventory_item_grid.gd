@@ -9,7 +9,6 @@ extends PanelContainer
 			setup(_ic)
 @onready var _icon: TextureRect = %Icon
 @onready var _name_label: Label = %NameLabel
-#@onready var _draggable_comp = $DraggableComponent
 
 func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -24,7 +23,6 @@ func setup(item: CombatEquipment) -> void:
 		_name_label.text = ""
 		_icon.texture = load("res://assets/hoi4_icons/divisions.png")
 	else:
-		#_draggable_comp.return_data = { "item": item }
 		_icon.visible = true
 		var icon_tex = item.get("icon")
 		_icon.texture = icon_tex if icon_tex != null else load("res://assets/hoi4_icons/divisions.png")

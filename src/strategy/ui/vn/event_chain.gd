@@ -2,11 +2,7 @@ extends Resource
 
 class_name EventChain
 
-## EventChain: a cinematic timeline of instructions (dialogue, camera, character
-## movement, control gates) fired at absolute timestamps.
-##
-## The "setting" defines initial character positions before the timeline starts.
-## The "timeline" is a flat, time-sorted array of CinematicInstruction subclasses.
+## "setting" holds initial character positions before playback starts; "timeline" is the time-sorted instructions that follow.
 
 @export var chain_id: String = ""
 @export var chain_name: String = ""
@@ -25,16 +21,6 @@ var root_group: CinematicGroup = null
 
 
 func _init(config: Dictionary = { }) -> void:
-	## Constructs an EventChain from a config dict (from .tres @export or JSON parse)
-	## Steps:
-	##   1. Extract chain_id and chain_name from config (supports both "chain_id" and "id" keys)
-	##   2. Build character_ids typed array from raw list (iterative append for type safety)
-	##   3. Build setting array: accepts StagePosition resources or raw dicts → StagePosition.new()
-	##   4. Build timeline array: accepts CinematicInstruction resources or raw dicts → _parse_instruction()
-	##   5. If no character_ids provided, auto-extract from setting + timeline instructions
-	## e.g., config={chain_id:"camp", setting:[{character_id:"Hans", x:100, y:50, face_direction:1}],
-	##                timeline:[{type:"dialogue", speaker_name:"Hans", line:"Hi", time:0}]}
-	##   → EventChain(chain_id="camp", character_ids=["Hans"], setting=[StagePos], timeline=[DialogueInst])
 	if config.is_empty():
 		return
 
@@ -189,8 +175,6 @@ static func _parse_instruction(data: Dictionary) -> CinematicInstruction:
 
 
 static func load_from_json_file(file_path: String) -> EventChain:
-## Loads an EventChain from a JSON file: open → parse JSON → construct EventChain from dict
-## e.g., load_from_json_file("res://resources/jsons/camp_fire.json") → EventChain with timeline of instructions
 	assert(FileAccess.file_exists(file_path), "EventChain JSON file not found: %s" % file_path)
 
 	var file = FileAccess.open(file_path, FileAccess.READ)

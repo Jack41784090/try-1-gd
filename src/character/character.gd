@@ -1,9 +1,7 @@
 class_name Character
 extends Resource
 
-## Mediator composing the persistent campaign entity (StrategyEntity, tier 2)
-## and the ephemeral per-battle entity (CombatEntity, tier 3). The only class
-## that knows about both; the two entity types never reference each other.
+## The only class that knows about both StrategyEntity (tier 2) and CombatEntity (tier 3) — the two never reference each other directly.
 
 @export var strategy: StrategyEntity = null:
 	set(value):
@@ -34,11 +32,7 @@ func get_combat_identification() -> String:
 	return strategy.resource.identification
 
 
-## Tier-2→tier-1 resolution: a persistent character's own (possibly grown) constant
-## stat wins if present; otherwise fall back to the tier-1 class template. Nothing in
-## StrategyEntityResource authors BASE_ATTRIBUTE_STATS entries today, so every lookup
-## currently falls through to the template — this is the extension seam for a future
-## training/growth system, not something this refactor builds.
+## Tier-2 stat wins if present, else falls back to the tier-1 template — currently always the template, since nothing authors tier-2 stats yet.
 func get_constant_stat_value(key: StatName.I) -> Variant:
 	if strategy != null and strategy.get_stat(key) != null:
 		return strategy.get_stat_value(key)

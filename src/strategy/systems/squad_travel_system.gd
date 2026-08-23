@@ -1,12 +1,7 @@
 class_name SquadTravelSystem
 extends Node
 
-## Stateless travel service shared by every squad — player or AI. Unlike the
-## earlier prototype (a per-actor Runner holding its own current_location/
-## walking_towards state), this operates purely on whichever StrategySquad
-## is passed in, reading/writing its own `travel_route`/`travel_segment_index`/
-## `travel_progress_km`/`current_location_id` fields (fields AI squads
-## already used directly). No parallel per-instance state to keep in sync.
+## Stateless: operates purely on whichever StrategySquad is passed in, unlike the earlier per-actor Runner design — no parallel per-instance state to keep in sync.
 
 signal location_changed(squad_id: String, from_id: String, to_id: String)
 signal travel_progress_updated(squad_id: String, current_km: float, total_km: float, destination_name: String)
@@ -18,7 +13,6 @@ func setup(_scenario: GameScenario) -> void:
 	scenario = _scenario
 
 
-## request_travel handoff, wired by main.gd
 func on_request_travel(squad: StrategySquad, _route: Array[String]) -> void:
 	advance_travel(squad)
 
@@ -67,8 +61,6 @@ func get_all_reachable_locations(from_id: Variant, max_hops: int = -1) -> Array[
 	return reachable
 
 
-## Kicks off a new journey: computes the path and seeds the squad's own
-## travel fields. Call once; subsequent hours call advance_travel().
 func begin_travel(squad: StrategySquad, destination_id: String) -> void:
 	var path: Array[String] = scenario.world.travel_graph.find_path(squad.current_location_id, destination_id)
 	if path.size() < 2:
@@ -86,12 +78,7 @@ func begin_travel(squad: StrategySquad, destination_id: String) -> void:
 	travel_progress_updated.emit(squad.squad_id, 0.0, _route_total_km(route), get_location_by_id(destination_id).location_name)
 
 
-## Advances an already-begun journey by one hour. Assumes squad.travel_route
-## is already populated (via begin_travel). Returns the mutated TRAVEL
-## Activity resource (mirrors every other Activity type's execute() shape),
-## with .result.location_changed set to the arrived-at id, or "" mid-journey.
 func advance_travel(squad: StrategySquad) -> Activity:
-	## mirrors TravelHandler.execute(), which this path bypasses
 	if not squad.consume_supplies_by_demand():
 		squad.modify_morale(-5.0)
 	squad.apply_travel_morale_penalty(-2.0)

@@ -44,10 +44,6 @@ func _to_string() -> String:
 
 
 func consume_supplies_by_demand(multiplier: float = 1.0) -> bool:
-	## Consumes food based on each warrior's demand attribute, scaled by multiplier
-	## Returns true if enough food was available, false if squad ran out
-	## e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=10 → food=3, returns true
-	## e.g., 3 warriors with demand [2, 3, 2], multiplier=1.0 → total=7, food=5 → food=0, returns false
 	var total_demand := 0.0
 	for warrior in get_living_warriors():
 		var demand = warrior.get_demand()

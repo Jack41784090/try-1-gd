@@ -1,8 +1,5 @@
 extends Node
-## Bandit System Demo — Tests desperation-driven bandit spawning, route danger,
-## trade suppression, and mercenary demand using the real pipeline.
-##
-## Usage: godot-mono --headless --path . scenes/demos/bandit_demo.tscn
+## Tests desperation-driven bandit spawning, route danger, trade suppression, and mercenary demand via the real pipeline. Run: godot-mono --headless --path . scenes/demos/bandit_demo.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -25,7 +22,6 @@ func _ready() -> void:
 
 	await _setup_presenter()
 
-	# --- _test_bandit_faction_exists ---
 	print("── Test: Bandit faction exists ──")
 	var bf_faction: Faction = null
 	for faction in presenter.game_scenario.factions:
@@ -36,7 +32,6 @@ func _ready() -> void:
 	_assert("Bandit faction name", bf_faction.faction_name == "Bandits" if bf_faction else false)
 	print("")
 
-	# --- _test_pressure_calculation ---
 	print("── Test: Pressure calculation ──")
 	var pc_spawner := BanditSpawner.new()
 	for loc in world.locations:
@@ -52,7 +47,6 @@ func _ready() -> void:
 		_assert("Pressure is bounded", pc_pressure2 <= 3.0)
 	print("")
 
-	# --- _test_forced_spawn ---
 	print("── Test: Forced bandit spawning (low satisfaction) ──")
 	var fs_spawner := BanditSpawner.new()
 	var fs_bandit_faction := _get_bandit_faction()
@@ -83,7 +77,6 @@ func _ready() -> void:
 			fs_squad.squad_name, fs_squad.get_living_warriors().size(), fs_squad.current_location_id])
 	print("")
 
-	# --- _test_route_danger ---
 	print("── Test: Route danger from bandits ──")
 	var rd_danger_calc := RouteDangerCalculator.new()
 	var rd_test_loc := _get_first_economy_location()
@@ -117,7 +110,6 @@ func _ready() -> void:
 				_assert("Route with bandits is less safe", rd_safety_with_bandits < 1.0)
 	print("")
 
-	# --- _test_mercenary_demand ---
 	print("── Test: Mercenary demand calculation ──")
 	var md_demand_calc := MercenaryDemandCalculator.new()
 	var md_test_loc := _get_first_economy_location()
@@ -139,7 +131,6 @@ func _ready() -> void:
 			_assert("No demand without bandits", md_demand == 0.0)
 	print("")
 
-	# --- _test_bandit_lifecycle ---
 	print("── Test: Bandit lifecycle (disband on low morale) ──")
 	var bl_spawner := BanditSpawner.new()
 
@@ -178,7 +169,6 @@ func _ready() -> void:
 	print("  Lifecycle checks passed")
 	print("")
 
-	# --- _print_results ---
 	print("")
 	print("═══════════════════════════════════════════════════════════")
 	print("  Results: %d passed, %d failed" % [_assertions_passed, _assertions_failed])

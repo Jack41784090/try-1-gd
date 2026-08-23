@@ -3,13 +3,7 @@ class_name WarriorRigConfig extends Resource
 
 @export var class_id: String = ""
 
-## Whether this character has a face at all. All characters currently share one
-## baked rig scene, so a missing face can't announce itself the way an absent
-## node would — this answers the one binary question (is the Face subtree this
-## character's?) and hides it outright otherwise, rather than leaving whatever
-## the previous character was showing. Individual FEATURES need no flag: a part
-## a character never composed simply has nothing listening.
-@export var has_face_components: bool = false
+@export var has_face_components: bool = false ## all characters share one rig scene, so this hides the Face subtree outright when false instead of leaving the previous character's face showing
 
 @export_group("Body Textures")
 @export var head_texture: Texture2D
@@ -28,11 +22,7 @@ class_name WarriorRigConfig extends Resource
 @export var right_shin_texture: Texture2D
 @export var right_foot_texture: Texture2D
 
-## Per-bone rendered size in px (x, y) plus draw order (z). Defaults match the
-## rig's BONE_DISPLAY_SIZES, so configs that leave these untouched render
-## identically. The z component is the sprite's z_index — higher draws in front,
-## overriding the rig's BONE_DRAW_ORDER tree order. A zero x/y falls back to the
-## rig constant.
+## Per-bone size in px (x, y) plus z_index draw order (z), overriding the rig's BONE_DRAW_ORDER; a zero x/y falls back to the rig's BONE_DISPLAY_SIZES constant.
 @export_group("Bone Sizes")
 @export var head_size: Vector3 = Vector3(44, 50, 0)
 @export var torso_size: Vector3 = Vector3(34, 28, 0)
@@ -50,9 +40,7 @@ class_name WarriorRigConfig extends Resource
 @export var right_shin_size: Vector3 = Vector3(10, 22, 0)
 @export var right_foot_size: Vector3 = Vector3(20, 10, 0)
 
-## Per-bone pixel offset applied to the sprite relative to its bone. Zero leaves
-## the sprite centred on the bone.
-@export_group("Bone Offsets")
+@export_group("Bone Offsets") ## per-bone pixel offset; zero leaves the sprite centred on the bone
 @export var head_offset: Vector2 = Vector2.ZERO
 @export var torso_offset: Vector2 = Vector2.ZERO
 @export var hips_offset: Vector2 = Vector2.ZERO

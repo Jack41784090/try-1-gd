@@ -1,8 +1,5 @@
 class_name CaravanBridge extends RefCounted
 
-## Factory methods for creating caravan squads from economy moves.
-## cargo_manifest uses thing_id (String) keys.
-
 
 static func create_caravan_squad(
 	move: EconomyMove,

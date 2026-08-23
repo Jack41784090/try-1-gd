@@ -2,8 +2,7 @@
 class_name TypedDock
 extends DockControl
 
-## DockControl that only accepts specific window types. Lives next to the
-## manage-squad UI (not in reuse/) because it references game window classes.
+## Lives next to manage-squad UI, not in reuse/, because it references game window classes.
 
 enum WindowKind { UNIT, WEAPON, ARMOR }
 

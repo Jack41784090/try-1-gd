@@ -2,18 +2,13 @@ class_name Glance
 extends Resource
 
 enum Glanceable {
-	## random
 	RDN,
-
-	## Changeable stats
 	HP,
 	STA,
 	ORG,
 	POS,
 	MAG,
 	LOC,
-
-	## Reality
 	FORCE,
 }
 
@@ -73,12 +68,7 @@ func _to_string() -> String:
 
 
 func evaluate(entity: CombatEntity) -> float:
-	## Reads a single combat stat from an entity, processes it (normalize, inverse, chain, gate)
-	## Pipeline: raw_value → normalize_as_percentage → chain additional_glance → comparison gate
-	## e.g., Glance(property=HP, normalize=true, inverse=true)
-	##   → entity HP=30, max=100 → normalize(30/100)=0.3 → inverse(1.0-0.3)=0.7
-	## e.g., Glance(property=LOC, use_comparison=true, comparison=ABOVE, threshold=2)
-	##   → entity LOC=1 → check: 1 > 2 → false → returns 0.0
+	## Pipeline order: raw_value → normalize_as_percentage → chain additional_glance → comparison gate.
 	var value: float
 	if property in changeables:
 		value = entity.get_changeable_stat_num(_glanceable_translate(property))

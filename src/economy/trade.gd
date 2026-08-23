@@ -1,11 +1,7 @@
 extends RefCounted
 class_name Trade
 
-## One squad <-> location market trade, created the moment the trade is
-## requested and committed later by TradeSystem's hourly barrier. Carries
-## every reference it needs (squad + location), so committing it never
-## requires reaching into World. unit_price is locked at creation time —
-## the trade executes at the price the market showed when it was queued.
+## Carries every reference it needs (squad + location), so committing it never requires reaching into World. unit_price is locked at creation time.
 
 var squad: StrategySquad
 var location: Location
@@ -45,7 +41,7 @@ static func create(
 	return t
 
 
-## Pure validation — no mutation. Empty string means the trade can commit.
+## Empty string means the trade can commit.
 func get_rejection_reason() -> String:
 	if quantity <= 0.0:
 		return "quantity must be positive"
@@ -63,8 +59,7 @@ func get_rejection_reason() -> String:
 	return ""
 
 
-## Applies the trade to squad money/cargo and location inventory. Re-validates
-## first — state may have drifted between queueing and the commit barrier.
+## Re-validates first — state may have drifted between queueing and the commit barrier.
 func commit() -> bool:
 	assert(state == EconomyTypes.TradeState.PENDING)
 	if not get_rejection_reason().is_empty():

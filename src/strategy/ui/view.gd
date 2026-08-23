@@ -80,14 +80,6 @@ func _ready() -> void:
 	combat_ui = CombatUI.create(self , combat_intermission_node, combat_overlay_node, morale_panel, morale_label)
 	rest_button.visible = false
 	_connect_signals()
-	# StrategyEventBus.strategy_hour_tick.connect(update_clock)
-	# StrategyEventBus.squad_morale_changed.connect(update_morale_bar)
-	# StrategyEventBus.hud_location_changed.connect(update_location)
-	# StrategyEventBus.hud_condition_changed.connect(update_condition)
-	# StrategyEventBus.hud_stats_changed.connect(update_stats)
-	# StrategyEventBus.hud_contact_bars_changed.connect(update_contact_bars)
-	# StrategyEventBus.pause_state_changed.connect(update_pause_state)
-	# StrategyEventBus.speed_changed.connect(update_speed_display)
 	var action_btns: Array[Button] = [
 		drill_button,
 		patrol_button,
@@ -413,9 +405,7 @@ func peek_next_vn_transition_type() -> EventChain.TransitionType:
 #region Child GUI Delegation
 
 func setup_child_guis(a: ActivityRunner) -> void:
-	## Passes the ActivityRunner reference to child menu views that need game state access
-	## Called once during _setup_components by the presenter
-	## e.g., travel_view needs actor to get reachable locations, investigation_view needs clues, etc.
+	## Child views need the actor reference for game state (e.g. travel_view for reachable locations, investigation_view for clues).
 	travel_view.setup(a)
 	investigation_view.setup(a)
 	recruitment_view.setup(a)

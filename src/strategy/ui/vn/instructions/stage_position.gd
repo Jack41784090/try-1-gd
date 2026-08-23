@@ -2,25 +2,17 @@ extends Resource
 
 class_name StagePosition
 
-## Initial character position for an EventChain's setting.
-## Read by the presenter to place characters before the timeline starts.
-
-## Which character to place.
 @export var character_id: String = ""
 
-## Where on the stage to place them.
 @export var position: Vector2 = Vector2.ZERO
 
-## Initial facing: -1 = left, 1 = right.
+## -1 = left, 1 = right.
 @export_range(-1, 1) var face_direction: int = 1
 
-## Named anchor for position resolution.
 var anchor: int = 0
 
-## Offset from anchor.
 var anchor_offset: Vector2 = Vector2.ZERO
 
-## Whether the character is initially visible.
 var visible_on_start: bool = true
 
 

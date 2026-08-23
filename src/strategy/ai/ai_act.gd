@@ -1,8 +1,6 @@
 class_name AIAct
 extends Resource
-## A scripted player action for headless game testing.
-## An Array[AIAct] defines a deterministic test sequence that drives
-## the player squad through the production pipeline, one act per turn.
+## A scripted player action for headless testing; an Array[AIAct] drives one deterministic turn sequence.
 
 @export var activity_type: StrategyTypes.ActivityType = StrategyTypes.ActivityType.REST
 @export var destination_id: String = ""

@@ -1,29 +1,5 @@
 extends Control
-## AI SVG Drawing Canvas — Edit .tscn and .svg files, see results via screenshot.
-##
-## Loads a canvas .tscn file, scans Sprite2D children for "svg_path" metadata,
-## loads SVGs at runtime via Image.load_svg_from_string(), and applies as textures.
-## Auto-reloads on file changes. Includes rig preview mode for warrior body parts.
-##
-## Usage: godot-mono --path . scenes/demos/canvas_demo.tscn
-##
-## Commands:
-##   screenshot/ss — Save viewport screenshot to /tmp/condor_screenshot.png
-##   zoom <f>      — Set camera zoom (0.1–10.0)
-##   zoom_in/zi    — Zoom ×1.5
-##   zoom_out/zo   — Zoom ÷1.5
-##   pan <x> <y>   — Set camera position
-##   center        — Reset camera to origin, zoom 1.0
-##   reload/r      — Force reload all SVGs + scene
-##   load <name>   — Load canvas from scenes/demos/canvas/<name>.tscn
-##   info/i        — Print camera state, loaded file, tracked SVGs
-##   tree          — Print node tree of canvas content
-##   bg <hex>      — Change background color (e.g. bg #1a1a2e)
-##   grid          — Toggle reference grid overlay
-##   rig [class]   — Switch to rig preview mode (landsknecht, healer, etc.)
-##   anim <name>   — Play rig animation (idle, walk, attack, defend, hurt, die)
-##   stop          — Stop rig animation
-##   help          — Show commands
+## Run via: godot-mono --path . scenes/demos/canvas_demo.tscn — type 'help' at the stdin prompt for commands.
 
 const SCREENSHOT_PATH := "/tmp/condor_screenshot.png"
 const CANVAS_BASE := "res://scenes/demos/canvas/"
@@ -90,7 +66,6 @@ var _initialized := false
 
 
 func _ready() -> void:
-	# --- _build_scene_tree ---
 	_background = ColorRect.new()
 	_background.color = Color(0.12, 0.12, 0.14, 1.0)
 	_background.set_anchors_preset(PRESET_FULL_RECT)
@@ -131,7 +106,6 @@ func _ready() -> void:
 	_info_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.8))
 	canvas_layer.add_child(_info_label)
 
-	# --- _start_stdin_thread ---
 	_stdin_mutex = Mutex.new()
 	_stdin_thread = Thread.new()
 	_stdin_thread.start(_stdin_reader)
@@ -145,7 +119,6 @@ func _process(delta: float) -> void:
 	if not _initialized:
 		return
 
-	# --- _drain_stdin ---
 	_stdin_mutex.lock()
 	var lines := _stdin_buffer.duplicate()
 	_stdin_buffer.clear()
@@ -153,7 +126,6 @@ func _process(delta: float) -> void:
 	for line in lines:
 		_command_queue.append(line)
 
-	# --- _process_commands ---
 	if not _busy:
 		if _command_queue.size() > 0:
 			var cmd: String = _command_queue.pop_front()
@@ -164,7 +136,6 @@ func _process(delta: float) -> void:
 		if _debounce_timer <= 0.0 and _pending_file_reload and not _busy:
 			_debounce_timer = 0.0
 			_pending_file_reload = false
-			# --- _do_file_reload ---
 			_busy = true
 			if _mode == "rig":
 				_out("Rig SVGs changed, reloading...")
@@ -172,7 +143,6 @@ func _process(delta: float) -> void:
 			else:
 				_out("Files changed, reloading...")
 				_reload_canvas()
-			# --- _reload_changed_shaders ---
 			for shader_path in _shader_mtimes.keys():
 				if not FileAccess.file_exists(shader_path):
 					continue
@@ -193,9 +163,7 @@ func _process(delta: float) -> void:
 	if _watch_timer >= WATCH_INTERVAL:
 		_watch_timer = 0.0
 		if not _busy:
-			# --- _check_file_changes ---
 			if _mode == "rig":
-				# --- _check_rig_svg_changes ---
 				for rig_path in _rig_svg_mtimes.keys():
 					if not FileAccess.file_exists(rig_path):
 						continue
@@ -204,14 +172,12 @@ func _process(delta: float) -> void:
 						_schedule_file_reload()
 						break
 			else:
-				# --- _check_canvas_changes ---
 				if not _loaded_canvas_path.is_empty():
 					var canvas_abs := ProjectSettings.globalize_path(_loaded_canvas_path)
 					if FileAccess.file_exists(canvas_abs):
 						var canvas_mtime := FileAccess.get_modified_time(canvas_abs)
 						if canvas_mtime != _canvas_mtime:
 							_schedule_file_reload()
-				# --- _check_svg_changes ---
 				var svg_changed := false
 				for svg_path in _svg_mtimes.keys():
 					if not FileAccess.file_exists(svg_path):
@@ -222,7 +188,6 @@ func _process(delta: float) -> void:
 						break
 				if svg_changed:
 					_schedule_file_reload()
-			# --- _check_shader_changes ---
 			for watch_path in _shader_mtimes.keys():
 				if not FileAccess.file_exists(watch_path):
 					continue
@@ -231,7 +196,6 @@ func _process(delta: float) -> void:
 					_schedule_file_reload()
 					break
 
-	# --- _update_info_label ---
 	_info_label.text = "%s | %s | zoom:%.2f | pos:(%.0f,%.0f)" % [
 		_mode.to_upper(),
 		_rig_class_name if _mode == "rig" else _loaded_canvas_name,
@@ -274,7 +238,6 @@ func _handle_command(input: String) -> void:
 		"screenshot", "ss":
 			await _cmd_screenshot(arg)
 		"zoom", "z":
-			# --- _cmd_zoom ---
 			if arg.is_empty():
 				_out("Current zoom: %.2f" % _camera.zoom.x)
 			else:
@@ -287,7 +250,6 @@ func _handle_command(input: String) -> void:
 			_cmd_zoom_relative(1.0 / 1.5)
 		"pan":
 			if args.size() >= 2:
-				# --- _cmd_pan ---
 				var px := args[0].to_float()
 				var py := args[1].to_float()
 				_camera.position = Vector2(px, py)
@@ -295,12 +257,10 @@ func _handle_command(input: String) -> void:
 			else:
 				_out("Usage: pan <x> <y>")
 		"center":
-			# --- _cmd_center ---
 			_camera.position = Vector2(960, 540)
 			_camera.zoom = Vector2(1.0, 1.0)
 			_out("Camera centered, zoom 1.0")
 		"reload", "r":
-			# --- _cmd_reload ---
 			_busy = true
 			if _mode == "rig":
 				_reload_rig_svgs()
@@ -309,7 +269,6 @@ func _handle_command(input: String) -> void:
 			_busy = false
 			_out("Reloaded.")
 		"load":
-			# --- _cmd_load ---
 			if arg.is_empty():
 				_out("Usage: load <name>  (loads scenes/demos/canvas/<name>.tscn)")
 			else:
@@ -318,7 +277,6 @@ func _handle_command(input: String) -> void:
 				_load_canvas(arg)
 				_busy = false
 		"info", "i":
-			# --- _cmd_info ---
 			_out("── Canvas Info ──")
 			_out("  Mode: %s" % _mode)
 			if _mode == "rig":
@@ -334,7 +292,6 @@ func _handle_command(input: String) -> void:
 			_out("  Grid: %s" % ("ON" if _grid_visible else "OFF"))
 			_out("  Shaders tracked: %d" % _shader_mtimes.size())
 		"tree":
-			# --- _cmd_tree ---
 			_out("── Node Tree ──")
 			if _mode == "rig" and _rig:
 				_print_tree_recursive(_rig, 0, 3)
@@ -343,7 +300,6 @@ func _handle_command(input: String) -> void:
 			else:
 				_out("  (no content loaded)")
 		"bg":
-			# --- _cmd_bg ---
 			if arg.is_empty():
 				_out("Usage: bg <hex>  (e.g. bg #1a1a2e)")
 			else:
@@ -353,9 +309,7 @@ func _handle_command(input: String) -> void:
 				_background.color = Color.from_string(hex, Color(0.12, 0.12, 0.14, 1.0))
 				_out("Background: %s" % hex)
 		"grid":
-			# --- _cmd_grid ---
 			_grid_visible = not _grid_visible
-			# --- _rebuild_grid ---
 			for child in _grid_node.get_children():
 				child.queue_free()
 			if _grid_visible:
@@ -387,7 +341,6 @@ func _handle_command(input: String) -> void:
 			_grid_node.visible = _grid_visible
 			_out("Grid: %s" % ("ON" if _grid_visible else "OFF"))
 		"rig":
-			# --- _cmd_rig ---
 			var cn := arg.to_lower() if not arg.is_empty() else "landsknecht"
 			_busy = true
 			_exit_rig_mode()
@@ -399,7 +352,6 @@ func _handle_command(input: String) -> void:
 			assert(scene, "Failed to load warrior_rig.tscn")
 			_rig = scene.instantiate() as WarriorRig
 			_rig.position = Vector2(960, 700)
-			# --- _class_name_to_id ---
 			var class_id: EntityClasses.Types
 			match cn:
 				"landsknecht": class_id = EntityClasses.Types.Landsknecht
@@ -422,13 +374,11 @@ func _handle_command(input: String) -> void:
 			_out("  Bone SVGs: %d / %d loaded" % [_rig_svg_mtimes.size(), BONE_NAMES.size()])
 			_out("  Use 'anim idle', 'anim walk', etc. to animate")
 		"anim":
-			# --- _cmd_anim ---
 			if not _rig:
 				_out("No rig loaded. Use 'rig <class>' first.")
 			elif arg.is_empty():
 				_out("Usage: anim <name>  (idle, walk, attack, defend, hurt, die, talk, gesture)")
 			else:
-				# --- _anim_name_to_behavior ---
 				var behavior: int
 				match arg.to_lower():
 					"idle": behavior = AnimTypes.Behavior.IDLE
@@ -446,7 +396,6 @@ func _handle_command(input: String) -> void:
 					_rig.play_behavior(behavior as AnimTypes.Behavior)
 					_out("Playing: %s" % arg)
 		"stop":
-			# --- _cmd_stop ---
 			if not _rig:
 				_out("No rig loaded.")
 			else:
@@ -454,9 +403,7 @@ func _handle_command(input: String) -> void:
 				_out("Stopped (idle)")
 		"shader":
 			if args.size() >= 3:
-				# --- _cmd_shader ---
 				var target: Node = null
-				# --- _find_content_node ---
 				if _mode == "rig" and _rig:
 					target = _rig.get_node_or_null(NodePath(args[0]))
 				elif _canvas_node:
@@ -471,7 +418,6 @@ func _handle_command(input: String) -> void:
 						_out("Node has no ShaderMaterial: %s" % args[0])
 					else:
 						var mat := ci.material as ShaderMaterial
-						# --- _parse_shader_value ---
 						var val
 						var sv := args[2]
 						if sv.begins_with("#"):
@@ -495,7 +441,6 @@ func _handle_command(input: String) -> void:
 			else:
 				_out("Usage: shader <node_path> <param> <value>")
 		"sizes":
-			# --- _cmd_sizes ---
 			_out("── Bone Display Sizes (base px, ×%d for SVG) ──" % int(SVG_RENDER_SCALE))
 			for bone_name in BONE_NAMES:
 				var s: Vector2 = WarriorRig.BONE_DISPLAY_SIZES[bone_name]
@@ -586,7 +531,6 @@ func _reload_rig_svgs() -> void:
 			continue
 
 		_rig_svg_mtimes[abs_path] = FileAccess.get_modified_time(abs_path)
-		# --- _set_config_texture ---
 		match bone_name:
 			"Head": config.head_texture = tex
 			"Torso": config.torso_texture = tex

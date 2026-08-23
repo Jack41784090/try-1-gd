@@ -1,15 +1,6 @@
 extends Node2D
 
-## Phase B spike: turn the NEUTRAL left sclera into a deformable Polygon2D mesh built
-## from the artwork's actual vector paths, rimmed with one bone per vertex, and animate
-## it two ways that sprite transforms CANNOT do non-affinely:
-##   A) WIDEN  -- stretch the eye-white rim open vertically (Y * WIDEN_Y)
-##   B) BLINK  -- collapse the rim shut vertically (Y * BLINK_Y)
-## Timeline loops: neutral -> wide -> neutral -> blink -> neutral. The blue accent
-## (path1) rides along, weighted per-vertex the same way. The eye-white body (path0)
-## is identical across the artist's neutral/wide frames, so widening/blinking is authored
-## procedurally here around the eye centroid. Right eye stays a sprite to compare.
-## Headless prints verification; run normally (--gui) to view.
+## Phase B spike: rigs the left sclera as a per-vertex-boned Polygon2D mesh so it can WIDEN/BLINK non-affinely (vertical scale around the eye centroid) — something a sprite transform can't do. Right eye stays a sprite for comparison; run with --gui to view, headless just prints verification.
 
 const FACE := "Skeleton2D/Root/Hips/Torso/Head/Face/"
 const WHITE_PATH := FACE + "Eyes/EyeL/White"
@@ -19,8 +10,7 @@ const BONE_BASE := WHITE_PATH + "/ScleraSkeleton/"
 const WIDEN_Y := 1.35  # eye-white vertical stretch at "wide"
 const BLINK_Y := 0.06  # eye-white vertical collapse at "blink"
 
-## Sampled from eye_l_white_sclera_neutral.svg (texture space, 200x200 viewBox).
-## path0 = eye-white body outline (the rim); path1 = blue accent feature.
+## Sampled from eye_l_white_sclera_neutral.svg (texture space, 200x200 viewBox): path0 = rim outline, path1 = blue accent.
 const PATH0_N := [Vector2(106.181, 143.557), Vector2(106.051, 137.495), Vector2(106.515, 131.527), Vector2(107.906, 125.837), Vector2(110.558, 120.606), Vector2(114.804, 116.020), Vector2(120.978, 112.259), Vector2(122.498, 112.038), Vector2(126.488, 111.562), Vector2(132.095, 111.116), Vector2(138.465, 110.984), Vector2(144.744, 111.450), Vector2(150.078, 112.798), Vector2(152.642, 114.806), Vector2(155.076, 116.970), Vector2(157.278, 119.349), Vector2(159.149, 121.998), Vector2(160.588, 124.976), Vector2(161.494, 128.338), Vector2(161.333, 131.664), Vector2(161.323, 134.433), Vector2(161.417, 136.826), Vector2(161.565, 139.019), Vector2(161.719, 141.190), Vector2(161.830, 143.519), Vector2(159.934, 152.106), Vector2(156.449, 158.981), Vector2(152.178, 164.258), Vector2(147.926, 168.051), Vector2(144.498, 170.474), Vector2(142.699, 171.641), Vector2(137.455, 170.280), Vector2(129.876, 166.422), Vector2(121.461, 160.943), Vector2(113.708, 154.721), Vector2(108.116, 148.633)]
 const PATH1_N := [Vector2(80.547, 113.865), Vector2(82.456, 113.240), Vector2(84.390, 112.829), Vector2(86.571, 112.748), Vector2(88.705, 113.046), Vector2(90.494, 113.775), Vector2(90.965, 114.089), Vector2(91.398, 114.416), Vector2(91.781, 114.754), Vector2(92.100, 115.099), Vector2(92.986, 116.420), Vector2(93.542, 117.601), Vector2(93.829, 118.451), Vector2(93.911, 118.777), Vector2(89.870, 118.425), Vector2(86.547, 117.372), Vector2(83.564, 115.793)]
 
@@ -83,8 +73,7 @@ func _ready() -> void:
 		w[k] = 1.0
 		poly_accent.add_bone(NodePath("B%d" % k), w)
 
-	# add_bone() does not request a redraw, but skeleton attachment happens in
-	# NOTIFICATION_DRAW -- so force a redraw now that bones/weights are present.
+	# add_bone() doesn't request a redraw, but skeleton attachment happens in NOTIFICATION_DRAW.
 	poly_iris.queue_redraw()
 	poly_accent.queue_redraw()
 
@@ -111,8 +100,7 @@ func _make_bone(bname: String, pos: Vector2) -> Bone2D:
 	var b := Bone2D.new()
 	b.name = bname
 	b.position = pos
-	# Bind pose == current transform so deformation is identity at rest
-	# (final_xform = accum_transform * rest_inverse). Default rest is a zero transform.
+	# Bind pose == current transform so deformation is identity at rest (default rest is a zero transform).
 	b.rest = Transform2D(0.0, pos)
 	b.set_autocalculate_length_and_angle(false)
 	return b

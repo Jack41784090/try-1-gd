@@ -1,20 +1,8 @@
 extends RefCounted
 class_name EconomyOrderMatcher
 
-## Priority-sorted greedy demand/supply matcher — GDScript port of
-## CsOrderMatcher.Match's shape (src/economy/csharp/CsOrderMatcher.cs:7-31),
-## used by BOTH settle_base and settle_finished. This is the single unified
-## pass that fixes the "hard knot" bug: consumer demand for a raw good and
-## crafting-guild derived demand for that same good are both just
-## EconomyOrder entries in the same array by the time this runs, so they
-## compete on `.priority` alone — there is no longer a separate, unordered
-## mechanism for either side.
-##
-## Tie-break note: ties in priority break by post-sort array order, same
-## caveat CsOrderMatcher.Match itself has (Array.sort_custom is not
-## guaranteed stable). This is intentional and NOT a regression: the bug
-## this fixes was demand that never entered ANY priority-sorted pass at
-## all, not tie-breaking within one already-sorted pass.
+## Fixes the "hard knot" bug: consumer demand and crafting-guild derived demand for the same good are both just EconomyOrder entries here, competing on `.priority` alone instead of via separate unordered mechanisms.
+## Tie-break note: ties break by post-sort array order (sort_custom isn't guaranteed stable) — intentional, since the fixed bug was demand skipping the priority pass entirely, not tie-breaking within it.
 static func match(demands: Array[EconomyOrder], supplies: Array[EconomyOrder], loc: Location) -> Dictionary:
 	var sorted_demands := demands.duplicate()
 	sorted_demands.sort_custom(func(a: EconomyOrder, b: EconomyOrder) -> bool: return a.priority > b.priority)

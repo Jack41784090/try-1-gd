@@ -1,6 +1,5 @@
-extends Resource
-
 class_name World
+extends Resource
 
 @export var locations: Array[Location] = []
 @export var current_hour: int = 0

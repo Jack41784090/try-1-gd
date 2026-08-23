@@ -44,8 +44,7 @@ const BONE_OFFSETS: Dictionary = {
 	"RightFoot": Vector2(0, 0),
 }
 
-## Draw order back-to-front for right-facing character:
-## Right* = far (profile edge), Left* = near (viewer side)
+## Draw order back-to-front for right-facing character: Right* = far (profile edge), Left* = near (viewer side).
 const BONE_DRAW_ORDER: Array[String] = [
 	"RightArm", "RightForearm", "RightHand",
 	"RightLeg", "RightShin", "RightFoot",
@@ -56,19 +55,13 @@ const BONE_DRAW_ORDER: Array[String] = [
 	"LeftArm", "LeftForearm", "LeftHand",
 ]
 
-## Inspector-driven texturing. Drop a fully-authored config here to replace the
-## placeholder body outright. `character_name` + `emotion` (auto-derived dropdowns,
-## see _get_property_list) instead texture the rig from an asset folder by name;
-## when a config is ALSO set, its bone sizes/offsets are kept and only the textures
-## are overlaid (build a config purely for warrior_rig_2 proportions, pick a look).
+## `character_name` + `emotion` (see _get_property_list) texture the rig from an asset folder by name instead; when a config is ALSO set, its bone sizes/offsets are kept and only the textures are overlaid.
 @export var config: WarriorRigConfig:
 	set(value):
 		config = value
 		_on_rig_source_changed()
 
-## Backing storage for the auto-derived dropdowns (see _get_property_list). Not
-## @export — the property list supplies the live PROPERTY_HINT_ENUM of folder /
-## emotion names so the inspector dropdowns update as assets are added.
+## Not @export — the property list supplies the live PROPERTY_HINT_ENUM of folder/emotion names so the inspector dropdowns update as assets are added.
 var character_name: String = "":
 	set(value):
 		character_name = value
@@ -90,17 +83,13 @@ var _applied_config: WarriorRigConfig
 var _baked_z: Dictionary = {}
 
 @onready var skeleton: Skeleton2D = $Skeleton2D
-## The composable face, baked under the Head bone on warrior_rig_2. Null on the
-## legacy rig, which has no face parts — every call site treats that as "this rig
-## has nothing to express with", not as an error.
+## Null on the legacy rig, which has no face parts — every call site treats that as "this rig has nothing to express with", not as an error.
 @onready var face: Face = find_child("Face", true, false) as Face
 @onready var anim_player: AnimationPlayer = $AnimPlayer
 @onready var anim_tree: AnimationTree = $AnimTree
 @onready var anim_controller: WarriorAnimController = $WarriorAnimController
 
-## Exposes `character_name` + `emotion` as live PROPERTY_HINT_ENUM dropdowns whose
-## options are scanned from the asset folders, so they auto-update as characters /
-## emotions are added. Requires @tool to be queried by the editor inspector.
+## Options are scanned from the asset folders, so dropdowns auto-update as characters/emotions are added. Requires @tool to be queried by the editor inspector.
 func _get_property_list() -> Array[Dictionary]:
 	return [
 		{
@@ -108,8 +97,7 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT,
 			"hint": PROPERTY_HINT_ENUM,
-			## Leading comma = a blank "(none)" option, so leaving it unset falls
-			## back to the `config` resource.
+			## Leading comma = a blank "(none)" option, so leaving it unset falls back to the `config` resource.
 			"hint_string": "," + ",".join(RigTextureLibrary.character_names()),
 		},
 		{
@@ -122,17 +110,13 @@ func _get_property_list() -> Array[Dictionary]:
 	]
 
 func _ready() -> void:
-	## @tool: in the editor, live-preview the inspector dropdowns on baked rigs so
-	## picking a character/emotion retextures immediately. Legacy rigs are skipped
-	## (their placeholders rely on the per-frame _process sync, off in the editor).
+	## @tool: live-preview the inspector dropdowns on baked rigs; legacy rigs are skipped since their placeholders rely on the per-frame _process sync, off in the editor.
 	if Engine.is_editor_hint():
 		if _has_baked_sprites():
 			_apply_inspector_config()
 		return
 	anim_controller.setup(anim_tree, anim_player)
-	## warrior_rig_2 ships textures baked as Sprite2D children of each bone (for
-	## editor pose feedback). When those exist, skip the runtime placeholder body —
-	## apply_config updates the baked sprites in place instead.
+	## When baked Sprite2D children already exist on bones (warrior_rig_2), skip the runtime placeholder body — apply_config updates them in place instead.
 	if not _has_baked_sprites():
 		var p := {
 			"torso": Color(0.80, 0.20, 0.20),
@@ -142,8 +126,7 @@ func _ready() -> void:
 			"legs": Color(0.47, 0.38, 0.31),
 			"boots": Color(0.48, 0.35, 0.25),
 		}
-		## Z-order: back-to-front for right-facing SD character
-		## Left side = NEAR (viewer side), Right side = FAR (profile edge)
+		## Z-order: back-to-front for right-facing SD character; Left = NEAR (viewer side), Right = FAR (profile edge).
 		_add_part("RightArm", _make_rect(Vector2(0, 8), 6, 14), p.arms)
 		_add_part("RightForearm", _make_rect(Vector2(0, 6), 5, 11), p.arms)
 		_add_part("RightHand", _make_circle(Vector2(0, 2), 3), SKIN_COLOR)
@@ -204,8 +187,7 @@ func apply_config(p_config: WarriorRigConfig) -> void:
 		return
 	_apply_config_internal(p_config)
 
-## Re-resolves and applies the inspector source (config and/or character_name +
-## emotion). Called from the property setters at runtime once the node is ready.
+## Called from the property setters at runtime once the node is ready.
 func _on_rig_source_changed() -> void:
 	if not is_node_ready():
 		return
@@ -214,27 +196,19 @@ func _on_rig_source_changed() -> void:
 		return
 	_apply_inspector_config()
 
-## Resolves the effective config from the inspector fields: a named character
-## folder textures the rig (using `config` as a size/offset base when present);
-## otherwise the `config` resource is applied directly. No-op when neither is set.
+## A named character folder textures the rig (using `config` as a size/offset base when present); otherwise the `config` resource is applied directly. No-op when neither is set.
 func _apply_inspector_config() -> void:
 	var resolved: WarriorRigConfig = null
 	if RigTextureLibrary.has_character(character_name):
-		## Keep the rig's proportions when retexturing by name: prefer the explicit
-		## `config` as the size/offset base, else reuse the last-applied config so an
-		## emotion change doesn't reset limbs to the default sizes.
+		## Reuse the last-applied config as size base (when `config` isn't explicit) so an emotion change doesn't reset limbs to default sizes.
 		var size_base: WarriorRigConfig = config if config else _applied_config
 		resolved = RigTextureLibrary.build_config(character_name, size_base)
-		## build_config hands back a private copy, so this can't leak into the base:
-		## the baked face parts are one character's, and picking a different
-		## character must not leave that character wearing them.
 		resolved.has_face_components = face != null and character_name == face.character
 	elif config:
 		resolved = config
 	if resolved:
 		_apply_config_internal(resolved)
-		## The emotion dropdown is just an intent by another name, so picking one
-		## exercises the same path a cutscene does.
+		## The emotion dropdown is just an intent by another name, exercising the same path a cutscene does.
 		if resolved.has_face_components and face:
 			face.express(StringName(emotion))
 
@@ -283,10 +257,7 @@ func _apply_config_internal(cfg: WarriorRigConfig) -> void:
 					add_child(sprite)
 					_limb_nodes[bone_name] = [sprite]
 					_synced_parts.append({"node": sprite, "bone": bone, "display_scale": display_scale})
-	## The Face subtree belongs to whichever character it was baked from, and every
-	## character shares this one scene — so a config that isn't that character's
-	## hides it outright. Without this the face of whoever was rigged last bleeds
-	## through onto everyone else.
+	## Hides the Face subtree when the config isn't that character's, else the face of whoever was rigged last bleeds through onto everyone else.
 	if face:
 		face.visible = cfg.has_face_components
 
@@ -295,7 +266,6 @@ func play_behavior(behavior: AnimTypes.Behavior) -> void:
 		anim_tree.active = true
 	anim_controller.play_behavior(behavior)
 
-## Freezes the rig in its skeleton rest (bind) pose with no animation driving it.
 ## For a rig authored in a T-pose, this shows that T-pose.
 func pose_rest() -> void:
 	if anim_tree:
@@ -310,8 +280,6 @@ func _apply_rest_recursive(node: Node) -> void:
 			child.apply_rest()
 		_apply_rest_recursive(child)
 
-## Broadcasts an expression intent to the face. What it looks like is each face
-## part's own business (see FaceComponent); an intent no part answers is a no-op.
 ## Entry point for the EXPRESSION cinematic action.
 func set_expression_by_name(expression_id: String) -> void:
 	if expression_id.is_empty() or not face:
@@ -325,8 +293,7 @@ func get_head_position() -> Vector2:
 			return head.global_position
 	return global_position + Vector2(0, -80)
 
-## Rendered px size of a limb sprite — config size (x, y), falling back to the rig
-## constant when zero. Shared by the runtime apply and the bake tool.
+## Falls back to the rig constant when config size is zero. Shared by the runtime apply and the bake tool.
 func limb_target_size(bone_name: String, size_override: Vector3) -> Vector2:
 	var target_size := Vector2(size_override.x, size_override.y)
 	if target_size == Vector2.ZERO and BONE_DISPLAY_SIZES.has(bone_name):
@@ -342,11 +309,7 @@ func limb_display_scale(texture: Texture2D, target_size: Vector2) -> Vector2:
 		return Vector2.ONE
 	return Vector2(target_size.x / tex_size.x, target_size.y / tex_size.y)
 
-## Absolute z_index per bone for baked (bone-child) sprites. Bone-child sprites
-## paint in skeleton-tree order, which is NOT the desired draw order, so we assign
-## an explicit z. The order reproduces the legacy scheme: sort by (config z, then
-## BONE_DRAW_ORDER rank) and use that ranking as the absolute z_index. Shared with
-## the bake tool so runtime retexturing keeps the baked layering.
+## Bone-child sprites paint in skeleton-tree order, not the desired draw order, so this assigns an explicit z: sort by (config z, then BONE_DRAW_ORDER rank) and use that ranking as the absolute z_index.
 func _compute_baked_z_order(bone_sizes: Dictionary) -> Dictionary:
 	var entries: Array[Dictionary] = []
 	for i in BONE_DRAW_ORDER.size():

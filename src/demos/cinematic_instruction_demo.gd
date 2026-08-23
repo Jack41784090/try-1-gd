@@ -1,6 +1,5 @@
 extends Node
-## Headless test for CinematicInstruction and GroupPlayback.
-## Run: godot --headless --path . scenes/demos/cinematic_instruction_demo.tscn 2>&1
+## Headless test for CinematicInstruction and GroupPlayback. Run: godot --headless --path . scenes/demos/cinematic_instruction_demo.tscn 2>&1
 
 var _pass_count: int = 0
 var _fail_count: int = 0
@@ -9,7 +8,6 @@ var _fail_count: int = 0
 func _ready() -> void:
 	print("\n=== CINEMATIC INSTRUCTION DEMO ===\n")
 
-	# --- _test_basic_after_id_resolution ---
 	print("--- Test: Basic after_id resolution ---")
 	var chain = EventChain.new()
 	chain.chain_id = "test_basic"
@@ -34,7 +32,6 @@ func _ready() -> void:
 	_assert_float("d1.time unchanged", d1.time, 0.5)
 	print("")
 
-	# --- _test_chained_after_id_resolution ---
 	print("--- Test: Chained after_id (A → B → C) ---")
 	var chain2 = EventChain.new()
 	chain2.chain_id = "test_chained"
@@ -67,7 +64,6 @@ func _ready() -> void:
 	_assert_float("c.time resolved", c.time, 2.5)
 	print("")
 
-	# --- _test_mixed_absolute_and_after_id ---
 	print("--- Test: Mixed absolute time and after_id ---")
 	var chain3 = EventChain.new()
 	chain3.chain_id = "test_mixed"
@@ -105,7 +101,6 @@ func _ready() -> void:
 	_assert_float("d2.time resolved", md2.time, 2.0)
 	print("")
 
-	# --- _test_after_offset ---
 	print("--- Test: after_offset precision ---")
 	var chain4 = EventChain.new()
 	chain4.chain_id = "test_offset"
@@ -130,7 +125,6 @@ func _ready() -> void:
 	_assert_float("d3 with offset 0.0", od3.time, 1.0)
 	print("")
 
-	# --- _test_circular_detection ---
 	print("--- Test: No-op when no after_ids present ---")
 	var chain5 = EventChain.new()
 	chain5.chain_id = "test_noop"
@@ -148,7 +142,6 @@ func _ready() -> void:
 	_assert_float("d2 unchanged", nd2.time, 1.0)
 	print("")
 
-	# --- _test_timeline_playback_firing_order ---
 	print("--- Test: GroupPlayback firing order ---")
 
 	var chain6 = EventChain.new()
@@ -213,7 +206,6 @@ func _ready() -> void:
 	_assert_eq("playback state COMPLETE", playback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
-	# --- _test_timeline_playback_gate_pausing ---
 	print("--- Test: GroupPlayback gate pausing ---")
 
 	var gd1 = DialogueInstruction.new()
@@ -264,7 +256,6 @@ func _ready() -> void:
 	_assert_eq("playback completed", gplayback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
-	# --- _test_load_tutorial_travel_chain ---
 	_test_load_chain(
 		"tutorial_first_travel_chain",
 		"res://resources/strategy/scenarios/goetz-official/event-chains/tutorials/tutorial_first_travel_chain.tres",
@@ -272,7 +263,6 @@ func _ready() -> void:
 		["franz", "goetz"]
 	)
 
-	# --- _test_load_tutorial_rest_chain ---
 	_test_load_chain(
 		"tutorial_first_rest_chain",
 		"res://resources/strategy/scenarios/goetz-official/event-chains/tutorials/tutorial_first_rest_chain.tres",
@@ -280,7 +270,6 @@ func _ready() -> void:
 		["franz", "goetz"]
 	)
 
-	# --- _test_load_tutorial_morale_chain ---
 	_test_load_chain(
 		"tutorial_low_morale_chain",
 		"res://resources/strategy/scenarios/goetz-official/event-chains/tutorials/tutorial_low_morale_chain.tres",
@@ -288,7 +277,6 @@ func _ready() -> void:
 		["franz", "goetz"]
 	)
 
-	# --- _test_load_tutorial_combat_chain ---
 	_test_load_chain(
 		"tutorial_first_combat_chain",
 		"res://resources/strategy/scenarios/goetz-official/event-chains/tutorials/tutorial_first_combat_chain.tres",
@@ -296,7 +284,6 @@ func _ready() -> void:
 		["franz", "goetz"]
 	)
 
-	# --- _test_group_playback_sequential ---
 	print("--- Test: GroupPlayback sequential group ---")
 
 	var sd1 = DialogueInstruction.new()
@@ -339,7 +326,6 @@ func _ready() -> void:
 	_assert_eq("state COMPLETE", splayback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
-	# --- _test_group_playback_auto_gate ---
 	print("--- Test: GroupPlayback auto_gate pausing ---")
 
 	var agd1 = DialogueInstruction.new()
@@ -392,7 +378,6 @@ func _ready() -> void:
 	_assert_eq("state COMPLETE", agplayback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
-	# --- _test_group_playback_parallel ---
 	print("--- Test: GroupPlayback parallel group ---")
 
 	var pard1 = DialogueInstruction.new()
@@ -427,7 +412,6 @@ func _ready() -> void:
 	_assert_eq("state COMPLETE", parplayback.state, GroupPlayback.State.COMPLETE)
 	print("")
 
-	# --- _test_cinematic_group_from_dict ---
 	print("--- Test: CinematicGroup.from_dict ---")
 
 	var data = {
@@ -468,7 +452,6 @@ func _ready() -> void:
 		_assert_eq("inner children count", child2.children.size(), 1)
 	print("")
 
-	# --- _test_load_json_chain ---
 	print("--- Test: Load g0_intro.json ---")
 
 	var json_path = "res://resources/strategy/scenarios/goetz-official/event-chains/g0_intro.json"

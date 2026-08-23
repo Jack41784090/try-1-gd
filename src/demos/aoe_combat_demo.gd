@@ -3,7 +3,6 @@ extends Node
 func _ready():
 	print("\n=== AOE COMBAT DEMO (Gelehrter + Splash) ===\n")
 
-	# --- run aoe battle ---
 	print("Setting up squads with Gelehrter mage units...\n")
 
 	var attacker_entities = [

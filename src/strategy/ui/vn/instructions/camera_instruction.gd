@@ -2,8 +2,7 @@ extends CinematicInstruction
 
 class_name CameraInstruction
 
-## Camera control instruction in the timeline. Multiple CameraInstructions at the
-## same timestamp compose naturally (e.g. clear includes + start a pan simultaneously).
+## Multiple CameraInstructions at the same timestamp compose naturally (e.g. clear includes + start a pan simultaneously).
 
 enum Action {
 	FOCUS_CHARACTER, ## Zoom onto a specific character
@@ -15,22 +14,15 @@ enum Action {
 
 @export var action: Action = Action.FOCUS_CHARACTER
 
-## Target character for FOCUS_CHARACTER.
 @export var target_character_id: String = ""
 
-## Characters to keep in frame for INCLUDE_CHARACTERS.
-## Empty array = release tracking (free camera).
 @export var include_character_ids: Array[String] = []
 
-## Relative pixel offset for MOVE action.
 @export var move_offset: Vector2 = Vector2.ZERO
 
-## Target zoom level for ZOOM or FOCUS_CHARACTER.
 @export var zoom_level: float = 1.0
 
-## Normalized screen position (0.0=left, 1.0=right) for character-relative camera.
-## Used with target_character_id: pans until character appears at this screen fraction.
-## -1 = not set.
+## Normalized screen fraction (0=left, 1=right) the camera pans target_character_id to; -1 = not set.
 @export var target_screen_position: float = -1.0
 
 

@@ -1,9 +1,6 @@
 class_name GroupPlayback
 extends RefCounted
-## Group-based cinematic playback engine. Replaces TimelinePlayback.
-## Processes a tree of CinematicGroups and CinematicInstructions.
-## Groups with duration > 0 run children in parallel (occupation-based).
-## Groups with duration <= 0 run children sequentially.
+## Groups with duration > 0 run children in parallel (occupation-based); duration <= 0 runs them sequentially.
 
 enum State {IDLE, PLAYING, WAITING_FOR_GATE, FAST_FORWARDING, COMPLETE}
 

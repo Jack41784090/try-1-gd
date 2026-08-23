@@ -1,8 +1,6 @@
 class_name CalculationTerm extends Resource
 
-## Curve domain convention: every curve here is authored with min_domain=0.0,
-## max_domain=5.0, sampling the raw stat/reality value directly (no normalization).
-## See AGENTS.md combat section.
+## Curves here are authored with domain [0.0, 5.0] sampling the raw stat/reality value directly (no normalization).
 enum InputSource { STAT, REALITY }
 
 @export var source: InputSource = InputSource.STAT

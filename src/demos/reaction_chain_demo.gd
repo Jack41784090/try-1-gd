@@ -7,7 +7,6 @@ var _fail_count: int = 0
 func _ready():
 	print("\n=== REACTION CHAIN DEMO ===\n")
 
-	# --- test: cancel at on cast ---
 	print("--- Test: CANCEL at ON_CAST produces zero damage ---")
 	var attacker := _build_entity(1, SquadBattleTypes.Side.ATTACKER)
 	var target := _build_entity(2, SquadBattleTypes.Side.DEFENDER)
@@ -33,7 +32,6 @@ func _ready():
 	_assert(hp_changes == 0, "no HP changes after ON_CAST cancel (got %d)" % hp_changes)
 	_assert(target.get_changeable_stat_num(SquadBattleTypes.EntityChangeable.HP) > 0, "target still alive")
 
-	# --- test: redirect to self ---
 	print("--- Test: REDIRECT_TO_SELF moves damage to reactor ---")
 	var attacker2 := _build_entity(3, SquadBattleTypes.Side.ATTACKER)
 	var target2 := _build_entity(4, SquadBattleTypes.Side.DEFENDER)
@@ -70,7 +68,6 @@ func _ready():
 		_assert(not target_damaged, "target took no damage (HP %.1f→%.1f)" % [hp_before_target, hp_after_target])
 		_assert(protector_damaged, "protector took damage (HP %.1f→%.1f)" % [hp_before_protector, hp_after_protector])
 
-	# --- test: max depth enforcement ---
 	print("--- Test: MAX_DEPTH stops infinite chains ---")
 	var attacker3 := _build_entity(6, SquadBattleTypes.Side.ATTACKER)
 	var target3 := _build_entity(7, SquadBattleTypes.Side.DEFENDER)
@@ -97,7 +94,6 @@ func _ready():
 	_assert(proc_count <= ClashResolver.MAX_DEPTH, "chain depth bounded (procs=%d, max=%d)" % [proc_count, ClashResolver.MAX_DEPTH])
 	print("  (chain produced %d PROCs)" % proc_count)
 
-	# --- test: duration exhaustion ---
 	print("--- Test: duration=1 prevents repeat firing across the battle ---")
 	var attacker4 := _build_entity(8, SquadBattleTypes.Side.ATTACKER)
 	var target4 := _build_entity(9, SquadBattleTypes.Side.DEFENDER)
@@ -127,7 +123,6 @@ func _ready():
 			proc_in_second += 1
 	_assert(proc_in_second == 0, "reaction did not fire again after exhausting duration (procs=%d)" % proc_in_second)
 
-	# --- test: carry-over duration survives multiple root actions ---
 	print("--- Test: duration=2 reaction fires once per root action (carry-over) ---")
 	var attacker5 := _build_entity(10, SquadBattleTypes.Side.ATTACKER)
 	var target5 := _build_entity(11, SquadBattleTypes.Side.DEFENDER)
@@ -154,7 +149,6 @@ func _ready():
 				total_procs += 1
 	_assert(total_procs == 2, "duration=2 fired exactly twice across 3 root actions (got %d)" % total_procs)
 
-	# --- test: STA gates reactions ---
 	print("--- Test: unaffordable STA cost suppresses reaction ---")
 	var attacker6 := _build_entity(12, SquadBattleTypes.Side.ATTACKER)
 	var target6 := _build_entity(13, SquadBattleTypes.Side.DEFENDER)

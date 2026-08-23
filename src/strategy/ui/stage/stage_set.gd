@@ -1,8 +1,6 @@
 class_name StageSet
 extends Resource
-## Static set dressing for a scene: a backdrop plus a list of props. Applied once
-## by StageView.apply_stage_set(); cutscenes can still mutate props afterward via
-## SceneryInstruction. Round-trips as a standalone .tres.
+## A backdrop plus a list of props, applied once but still mutable afterward by cutscenes; round-trips as a standalone .tres.
 
 @export var backdrop_svg_path: String = ""
 @export var backdrop_position: Vector2 = Vector2.ZERO

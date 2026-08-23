@@ -1,13 +1,5 @@
 extends Node
-## AI Flee + Notification Demo — Tests contact notifications when an AI squad
-## constantly flees from the player.
-##
-## Boots the Goetz scenario via StrategyPresenter + HeadlessStrategyView,
-## injects a fleeing AI squad ("Retreating Scouts") at oehringen,
-## then drives player actions to build/lose contact while checking
-## CONTACT_DETECTED, CONTACT_DECAYING, and CONTACT_LOST notifications.
-##
-## Usage: godot-mono --headless --path . scenes/demos/ai_flee_notification_demo.tscn
+## Tests contact notifications (CONTACT_DETECTED/DECAYING/LOST) against a fleeing AI squad injected into the Goetz scenario. Run: godot-mono --headless --path . scenes/demos/ai_flee_notification_demo.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -37,7 +29,6 @@ func _ready():
 
 	player_squad = presenter.actor.player_squad
 
-	# --- _inject_fleeing_squad ---
 	var runner := SquadDataFactory.create_squad(
 		"retreating_scouts",
 		"Retreating Scouts",
@@ -62,7 +53,6 @@ func _ready():
 	presenter.game_scenario.world.add_roaming_squad(runner)
 	MyLog.info("FleeDmo", "Injected '%s' at oehringen with %d warriors" % [runner.squad_name, runner.warriors.size()])
 
-	# --- _assign_flee_profile ---
 	var flee_action = StrategicAction.new()
 	flee_action.action_name = "always-flee"
 	flee_action.activity_type = StrategyTypes.ActivityType.TRAVEL
@@ -103,7 +93,6 @@ func _ready():
 	MyLog.info("FleeDmo", "AI squads: %d" % presenter.ai_fleet.get_ai_squad_count())
 	_log_all_squad_positions()
 
-	# --- _run_test_sequence ---
 	var T := StrategyTypes.ActivityType
 
 	MyLog.info("FleeDmo", "\n=== PHASE 1: Travel to Öhringen (runner's location) ===")
@@ -141,7 +130,6 @@ func _ready():
 			MyLog.info("FleeDmo", "CONTACT_DECAYING detected at patrol %d" % (i + 1))
 
 	MyLog.info("FleeDmo", "\n=== PHASE 4: Chase runner to try to regain contact ===")
-	# --- _get_runner_location ---
 	var runner_loc := ""
 	for sq in presenter.game_scenario.world.roaming_squads:
 		if sq.squad_id == "retreating_scouts":

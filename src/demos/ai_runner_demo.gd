@@ -1,12 +1,10 @@
 extends Node
 
-## Demo script to test SquadBrain decision-making logic
-## Tests various scenarios with data-driven consideration scoring
+## Tests SquadBrain decision-making across scenarios using data-driven consideration scoring.
 
 func _ready():
 	print("\n=== SQUAD BRAIN DECISION-MAKING DEMO ===\n")
 
-	# --- test_survival_low_food ---
 	print("TEST 1: LOW FOOD - Should forage or travel to town")
 
 	var scenario = create_test_scenario()
@@ -32,7 +30,6 @@ func _ready():
 
 	print("\n" + "=".repeat(60) + "\n")
 
-	# --- test_survival_low_money ---
 	print("TEST 2: LOW MONEY - Should attack, patrol, or take mercenary work")
 
 	scenario = create_test_scenario()
@@ -63,7 +60,6 @@ func _ready():
 
 	print("\n" + "=".repeat(60) + "\n")
 
-	# --- test_achievement_with_enemies ---
 	print("TEST 3: ENEMIES PRESENT - Should attack when resources are good")
 
 	scenario = create_test_scenario()
@@ -96,7 +92,6 @@ func _ready():
 
 	print("\n" + "=".repeat(60) + "\n")
 
-	# --- test_achievement_with_clues ---
 	print("TEST 4: CLUES PRESENT - Should investigate")
 
 	scenario = create_test_scenario()
@@ -132,7 +127,6 @@ func _ready():
 
 	print("\n" + "=".repeat(60) + "\n")
 
-	# --- test_score_comparison ---
 	print("TEST 5: SCORE COMPARISON - Low food + enemies")
 	print("Expected: forage-when-hungry should outscore attack")
 

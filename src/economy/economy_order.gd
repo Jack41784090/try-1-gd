@@ -1,11 +1,7 @@
 extends RefCounted
 class_name EconomyOrder
 
-## GDScript-only demand/supply line, prototype-scoped equivalent of CsOrder
-## (src/economy/csharp/CsOrder.cs) — CsOrder is C#-only and this prototype
-## must not touch C#. Mutable `quantity` is decremented in place during
-## matching; `original_quantity` is fixed at creation so later phases can
-## compute how much an order actually secured.
+## `quantity` is decremented in place during matching; `original_quantity` is fixed at creation so later phases can compute how much was actually secured.
 
 var thing: Thing
 var quantity: float

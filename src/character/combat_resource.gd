@@ -2,9 +2,7 @@
 class_name CombatEntityResource
 extends Resource
 
-## `identification` is a live dropdown (see _get_property_list) whose options are
-## scanned from CombatEntityFactory's folder, so it auto-updates as templates are
-## added/removed. Not @export — the property list supplies the PROPERTY_HINT_ENUM.
+## Not @export — _get_property_list below supplies the live PROPERTY_HINT_ENUM dropdown instead.
 var identification: String = ""
 
 @export var codename: String
@@ -16,9 +14,6 @@ var identification: String = ""
 @export var rs_array: Array[ReactiveStat] = []   ## 12 base-attribute ReactiveStats, inline per-class
 
 
-## Exposes `identification` as a live PROPERTY_HINT_ENUM dropdown sourced from the
-## on-disk template folder (CombatEntityFactory), mirroring the rig config scene.
-## Requires @tool so the editor inspector queries it.
 func _get_property_list() -> Array[Dictionary]:
 	return [
 		{

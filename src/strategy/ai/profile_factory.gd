@@ -3,9 +3,7 @@ class_name AIProfileFactory extends RefCounted
 const PROFILES: Registry = preload("res://resources/registries/profile_registry.tres")
 
 const DEFAULT_SQUAD_PROFILE_PATH = "balanced_roamer"
-# caravan-courier.tres currently fails to load (its considerations ext_resource
-# points at a missing res://resources/ai/strategic/considerations/caravan-rest-when-out-of-food.tres),
-# so it isn't registered — kept as a raw path so it still resolves once that's fixed.
+# caravan-courier.tres fails to load (missing considerations ext_resource) so it isn't in PROFILES; kept as a raw path.
 const CARAVAN_PROFILE_PATH = "res://resources/ai/strategic/profiles/caravan-courier.tres"
 
 static func get_squad_profile(id_or_path: String) -> SquadBrainConfig:

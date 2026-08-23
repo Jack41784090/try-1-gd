@@ -1,11 +1,5 @@
 extends Node
-## Economy Stress Test — Uses the real StrategyPresenter + HeadlessStrategyView pipeline.
-##
-## Loads the goetz-official scenario through the same code path as the actual game:
-## GameScenario._setup_economy() → EconomyEngine.tick_full() (called from StrategyPresenter._run_economy_tick)
-## → TradeMatcher → CaravanBridge → full hourly tick pipeline.
-##
-## Usage: godot-mono --headless --path . scenes/demos/economy_stress_test.tscn
+## Loads goetz-official through the real game's code path (GameScenario._setup_economy() → EconomyEngine.tick_full() → TradeMatcher → CaravanBridge) via StrategyPresenter + HeadlessStrategyView. Run: godot-mono --headless --path . scenes/demos/economy_stress_test.tscn
 
 const SCENARIO_PATH := "res://resources/strategy/scenarios/goetz-official/scenario.tres"
 const HeadlessView = preload("res://src/demos/headless_strategy_view.gd")
@@ -49,7 +43,6 @@ func _ready() -> void:
 
 	await _setup_presenter()
 
-	# --- _resolve_goods ---
 	for thing: Thing in world.goods:
 		match thing.thing_id:
 			"food": _food_thing = thing
@@ -133,7 +126,6 @@ func _run_simulation() -> void:
 			economy_turn += 1
 			_turn_times.append(elapsed_ms)
 
-			# --- _record_metrics ---
 			var all_money: Array[float] = []
 			var starving := 0
 			var total := 0
@@ -165,7 +157,6 @@ func _run_simulation() -> void:
 							class_counts["noble"] += 1
 							wealth_by_class["noble"] += p.money
 
-			# --- _calculate_gini ---
 			var gini_value := 0.0
 			if not all_money.is_empty():
 				var n := all_money.size()
@@ -236,7 +227,6 @@ func _run_simulation() -> void:
 
 	print("")
 
-	# --- _print_final_analysis ---
 	print("╔══════════════════════════════════════════════════════════╗")
 	print("║                   FINAL ANALYSIS                       ║")
 	print("╚══════════════════════════════════════════════════════════╝")
@@ -393,7 +383,6 @@ func _run_simulation() -> void:
 	print("")
 	print("── INTERESTING PHENOMENA ──")
 
-	# --- _detect_phenomena ---
 	if _gini_history.back() > 0.6:
 		print("  ⚠ EXTREME INEQUALITY: Gini %.3f suggests oligarchic wealth concentration" % _gini_history.back())
 	elif _gini_history.back() > 0.4:

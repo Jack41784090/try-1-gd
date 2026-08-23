@@ -1,20 +1,10 @@
 extends Node2D
 
-## Face-emotion switcher demo. The expression clips and the AnimationTree blend
-## graph are BAKED into this scene by tools/bake_face_emotions.gd (see
-## docs/refactors/animation-tree-unification.md §5 for the validated graph shape);
-## this script only drives the tree's parameters. Brows + mouth are Blend2 crossfades;
-## eyes decompose into three composable controls merged by an Add2 chain:
-##   lid      (BlendSpace1D: -1 closed, 0 neutral, +1 wide)  -> White.scale + Lashes
-##   gaze     (BlendSpace2D: look direction as a Vector2)    -> Pupil/Sclera position
-##   dilation (BlendSpace1D: -1 constrict, 0, +1 dilate)     -> Pupil/Sclera scale
-## Run: F6, or  godot --path . scenes/demos/face_emotion_switcher.tscn  (--gui to see it).
-## Headless runs a self-test that cycles every emotion and prints the result.
+## Face-emotion demo driving clips/blend graph baked by tools/bake_face_emotions.gd (see docs/refactors/animation-tree-unification.md §5): brows/mouth are Blend2 crossfades, eyes are lid/gaze/dilation merged by an Add2 chain. Run: F6 or --gui to view; headless self-tests every emotion.
 
 const FADE := 0.25
 
-## Each emotion drives every part: brows/mouth are 0..1 blend amounts; lid/dilation are
-## -1..+1 blend-space positions; gaze is a Vector2 look direction.
+## brows/mouth are 0..1 blend amounts; lid/dilation are -1..+1 blend-space positions; gaze is a look-direction Vector2.
 const EMOTIONS := {
 	&"neutral": {"brows": 0.0, "mouth": 0.0, "lid": 0.0, "gaze": Vector2.ZERO, "dilation": 0.0},
 	&"happy": {"brows": 0.0, "mouth": 1.0, "lid": 0.3, "gaze": Vector2.ZERO, "dilation": 0.4},

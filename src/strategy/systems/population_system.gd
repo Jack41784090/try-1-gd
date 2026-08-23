@@ -1,16 +1,7 @@
 class_name PopulationSystem
 extends Node
 
-## Owns the hourly recompute of every Location's Population — wants and
-## satisfaction, per individual. Holds Array[Location] directly (like
-## LocationEconomySystem), since population is long-lived per-location
-## state, not a transient event; mutates loc.population in place.
-##
-## Connected to ClockSystem.hour_changed BEFORE LocationEconomySystem by the
-## composition root, so LocationEconomySystem._generate_intents() reads
-## this hour's freshly recomputed wants, not last hour's. Never references
-## LocationEconomySystem directly — caches its trade_offer broadcast via
-## _on_trade_offer, same pattern TradeSystem/CaravanEconomySystem use.
+## Must connect to ClockSystem.hour_changed BEFORE LocationEconomySystem so _generate_intents() reads this hour's freshly recomputed wants, not last hour's.
 
 var locations: Array[Location] = []
 var _goods: Array[Thing] = []
@@ -22,12 +13,10 @@ func setup(world: World) -> void:
 	_goods = world.goods
 
 
-## Connected to LocationEconomySystem.trade_offer by the composition root.
 func _on_trade_offer(location_id: String, _surplus: Dictionary, unmet: Dictionary) -> void:
 	_last_unmet_by_location[location_id] = unmet
 
 
-## Connected to ClockSystem.hour_changed by the composition root.
 func _on_hour_changed(_hour: int) -> void:
 	for loc in locations:
 		if loc.population == null or loc.population.people.is_empty():

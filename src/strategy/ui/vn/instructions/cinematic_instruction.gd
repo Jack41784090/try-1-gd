@@ -1,9 +1,5 @@
 class_name CinematicInstruction extends Resource
 
-## Base class for all timeline instructions in an EventChain.
-## Each instruction fires at a specific point in the timeline and optionally
-## takes a duration to complete (camera pans, character walks, etc.).
-
 const SEQUENTIAL_CHILDREN: float = 0.0
 const OCCUPATION_FILL: float = -2.0
 const OCCUPATION_UNSET: float = -1.0
@@ -17,15 +13,13 @@ const OCCUPATION_UNSET: float = -1.0
 ## How long the action takes in seconds. 0 = instant.
 @export var duration: float = 0.0
 
-## If set, this instruction fires after the referenced instruction ends.
-## The time field is overwritten during resolution: time = ref.time + ref.duration + after_offset.
+## If set, resolution overwrites time to ref.time + ref.duration + after_offset.
 @export var after_id: String = ""
 
 ## Additional delay in seconds after the referenced instruction ends.
 @export var after_offset: float = 0.0
 
-## Fraction of parent group's duration this child occupies (parallel mode).
-## -1 = unset. -2 = FILL (takes remaining time).
+## Fraction of parent group's duration this child occupies (parallel mode). -1 = unset, -2 = FILL (takes remaining time).
 @export var occupation: float = OCCUPATION_UNSET
 
 

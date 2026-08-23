@@ -81,14 +81,12 @@ func bind_view(v) -> void:
 	combat_orch.setup(game_scenario.world.contact_tracker)
 	contact_orch = ContactOrchestrator.new()
 	game_clock = GameClock.new(game_scenario.world)
-	# StrategyEventBus.strategy_hour_tick.connect(_on_hour_tick)
 	game_clock.pause()
 	view.setup_child_guis(actor)
 	ai_fleet.setup(game_scenario)
 	_bind_scouting_data()
 	MyLog.info("Presenter", "Orchestrators initialized")
 	MyLog.info("Presenter", "AISquadManager initialized with %d AI squads" % ai_fleet.get_ai_squad_count())
-	# StrategyEventBus.squad_morale_changed.emit(actor.player_squad.get_morale())
 	if not game_scenario._initialized:
 		game_scenario.initialize(actor.aem._build_context())
 	_update_ui()
@@ -188,10 +186,6 @@ func on_travel_confirmed(location_id: String) -> void:
 	squad.current_activity_type = StrategyTypes.ActivityType.TRAVEL
 	actor.walking_towards = location_id
 
-	# StrategyEventBus.hud_location_changed.emit(
-	# 	"Travelling to %s" % walking_towards.location_name if walking_towards
-	# 	else current_location.location_name
-	# )
 	view.hide_travel_menu()
 	view.set_travel_mode_autopilot()
 	_update_activity_buttons()
@@ -502,7 +496,6 @@ func _process_encounter_choice(choice: CombatController.IntermissionChoice) -> v
 			view.log_squad_event("  Morale %.0f" % morale_delta, Color(1.0, 0.3, 0.3))
 	await view.show_combat_result_overlay(result, outcome["morale_before"], outcome["morale_after"])
 	if outcome["game_over"]:
-		# StrategyEventBus.game_ended.emit("Squad Annihilated")
 		view.show_game_over("DEFEAT", "Your entire squad has perished.")
 		return
 	encounter_resolved.emit(result)
@@ -574,30 +567,13 @@ func _update_ui() -> void:
 		squad = actor.player_squad
 		if squad.is_traveling():
 			var total_km = world.travel_graph.get_path_distance_km(squad.travel_route)
-			# StrategyEventBus.hud_location_changed.emit("Travelling to %s (%.0f/%.0f km)" % [dest.location_name, squad.travel_progress_km, total_km])
 			pass
 		else:
-			# StrategyEventBus.hud_location_changed.emit("Travelling to %s" % dest.location_name)
 			pass
 	else:
-		# StrategyEventBus.hud_location_changed.emit(
-		# 	"%s (%s)" % [
-		# 		location.location_name if location else "Unknown",
-		# 		_location_type_to_string(location.type) if location else "",
-		# 	],
-		# )
 		pass
 
-	# StrategyEventBus.hud_condition_changed.emit(
-	# 	"Excellent" if squad.get_morale() >= 90.0
-	# 	else "Good" if squad.get_morale() >= 70.0
-	# 	else "Fair" if squad.get_morale() >= 50.0
-	# 	else "Poor" if squad.get_morale() >= 30.0
-	# 	else "Critical"
-	# )
-	# StrategyEventBus.squad_morale_changed.emit(squad.get_morale())
 	if not world.contact_tracker:
-		# StrategyEventBus.hud_contact_bars_changed.emit([])
 		pass
 	else:
 		var our_contacts = world.contact_tracker.get_contacts_for(squad.squad_id)
@@ -629,15 +605,6 @@ func _update_ui() -> void:
 				},
 			)
 		bars.sort_custom(func(a, b): return a["progress"] > b["progress"])
-		# StrategyEventBus.hud_contact_bars_changed.emit(bars)
-
-	# StrategyEventBus.hud_stats_changed.emit(
-	# 	squad.money,
-	# 	squad.food,
-	# 	squad.karma,
-	# 	location.stability if location else 0.0,
-	# 	location.development if location else 0,
-	# )
 
 	_update_activity_buttons()
 
@@ -937,7 +904,6 @@ func _on_hour_tick(hour: int) -> void:
 		location.decay_clues()
 
 	if CombatOrchestrator.check_game_over(actor.player_squad):
-		# StrategyEventBus.game_ended.emit("Squad Annihilated")
 		view.show_game_over("DEFEAT", "Your entire squad has perished.")
 		is_executing_activity = false
 		tick_completed.emit()

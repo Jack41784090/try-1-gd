@@ -1,15 +1,7 @@
 class_name LocationEconomySystem
 extends Node
 
-## Owns every Location's economy-prototype phase column and broadcasts one
-## signal per phase boundary (Location + Phase level decomposition). Location
-## itself never emits signals (Resource, no precedent for that in this
-## codebase — ReactiveStat.changed is the only simple-Resource-signal
-## precedent, and it's a plain state-announce signal, not multi-arg cross-
-## object flow); this System is the sole emitter, mirroring SquadBeingSystem
-## owning squads and broadcasting squad_turn on their behalf. Never
-## references CaravanEconomySystem directly — all cross-system wiring is
-## done by the demo driver.
+## Sole emitter of phase-boundary signals for every Location (a Resource, which never emits); never references CaravanEconomySystem directly — wiring is done by the demo driver.
 
 signal spoiled(location_id: String, amount_lost: float)
 signal price_updated(location_id: String, prices: Dictionary)
@@ -26,9 +18,9 @@ signal snapshot_taken(location_id: String, snapshot: Dictionary)
 signal trade_offer(location_id: String, surplus: Dictionary, unmet: Dictionary)
 
 var locations: Array[Location] = []
-var _guilds_by_location: Dictionary = {}            # location_id -> Array[CraftingGuild]
-var _consumer_demand_by_location: Dictionary = {}   # location_id -> Dictionary[Thing, {"qty":float, "priority":float}]
-var _last_demand_by_location: Dictionary = {}       # location_id -> Dictionary[Thing, float]
+var _guilds_by_location: Dictionary[StringName, Array] = {}            		# location_id -> Array[CraftingGuild]
+var _consumer_demand_by_location: Dictionary[StringName, Dictionary] = {}   # location_id -> Dictionary[Thing, {"qty":float, "priority":float}]
+var _last_demand_by_location: Dictionary[StringName, Dictionary] = {}
 
 
 func setup(world: World) -> void:
@@ -40,21 +32,12 @@ func register_location(location: Location, guilds: Array[CraftingGuild], consume
 	_guilds_by_location[location.location_id] = guilds
 	_consumer_demand_by_location[location.location_id] = consumer_demand
 
-
-## Connected to CaravanEconomySystem.location_arrived by the demo driver.
-## Broadcast-and-self-filter-by-id: loops every location, mutates only the
-## one whose id matches (same shape as SquadBeingSystem.squad_turn being
-## broadcast to every listener, each of which decides relevance itself).
 func _on_location_arrived(location_id: String, thing: Thing, qty: float) -> void:
 	for loc in locations:
 		if loc.location_id == location_id:
 			loc.inventory.add(thing, qty)
 			return
 
-
-## Connected to ClockSystem.hour_changed by the demo driver — must be
-## connected AFTER CaravanEconomySystem's own hour_changed handler so this
-## hour's arrivals are already in inventory before the phase column reads it.
 func _on_hour_changed(_hour: int) -> void:
 	for loc in locations:
 		_run_phase_column(loc)
@@ -105,19 +88,12 @@ func _run_phase_column(loc: Location) -> void:
 
 
 func _spoil(loc: Location) -> void:
-	# No FOOD-type good in this prototype's synthetic dataset, so this is a
-	# documented no-op. Port CsEconomyEngine.cs:175-180's food-spoilage rule
-	# here verbatim if a future demo adds a spoilable Thing.
+	# No FOOD-type good in this dataset, so this is a no-op — port CsEconomyEngine.cs:175-180's spoilage rule if a spoilable Thing is added.
 	spoiled.emit(loc.location_id, 0.0)
 
 
 func _price_update(loc: Location) -> void:
-	# Direct port of CsEconomyEngine.cs:182-208's per-good imbalance formula
-	# (imbalance=(demand-supply)/(demand+supply), adjustRate=0.15,
-	# clamp 0.5x-3x base_price), operating on loc.inventory.prices/
-	# get_price() + Thing.base_price instead of CsLocationData.Prices[]/
-	# ThingDef.BasePrice. Demand = _last_demand_by_location[loc.location_id]
-	# from the PREVIOUS tick (mirrors LastDemand[]/LastSupply[]).
+	# Port of CsEconomyEngine.cs:182-208's imbalance formula; demand is read from the PREVIOUS tick's _last_demand_by_location.
 	var last_demand: Dictionary = _last_demand_by_location.get(loc.location_id, {})
 	for thing in loc.inventory.stocks:
 		var demand: float = last_demand.get(thing, 0.0)
@@ -133,19 +109,14 @@ func _price_update(loc: Location) -> void:
 func _generate_intents(loc: Location) -> Dictionary:
 	var consumer_demands: Array[EconomyOrder] = []
 	if loc.population != null and not loc.population.people.is_empty():
-		# Population-sourced demand: real per-individual wants, recomputed
-		# this same hour by PopulationSystem (connected BEFORE this System's
-		# own hour_changed handler — see main.gd's ordering comment) replace
-		# the hand-authored _consumer_demand_by_location rules for any
-		# location with a live Population.
+		# Population-sourced demand overrides the hand-authored rules below — PopulationSystem recomputes it this same hour, connected BEFORE this handler.
 		for thing: Thing in loc.inventory.stocks:
 			var qty := loc.population.get_total_demand(thing)
 			if qty <= 0.0:
 				continue
 			consumer_demands.append(EconomyOrder.create(thing, qty, _consumer_priority_for(thing), "consumer"))
 	else:
-		# Fallback for locations with no Population wired up yet: the
-		# original hand-authored rules dict, unchanged.
+		# Fallback for locations with no Population wired up yet.
 		var rules: Dictionary = _consumer_demand_by_location.get(loc.location_id, {})
 		for thing in rules:
 			var rule: Dictionary = rules[thing]
@@ -159,8 +130,7 @@ func _generate_intents(loc: Location) -> Dictionary:
 	return {"consumer_demands": consumer_demands, "crafting_intents": crafting_intents}
 
 
-## Port of CsPerson.GenerateOrders' priority-by-ThingType table
-## (CsPerson.cs:162-167): food outranks weapons outranks everything else.
+## Port of CsPerson.GenerateOrders' priority table (CsPerson.cs:162-167): food outranks weapons outranks everything else.
 func _consumer_priority_for(thing: Thing) -> float:
 	match thing.thing_type:
 		EconomyTypes.ThingType.FOOD:
@@ -180,9 +150,7 @@ func _explode_boms(loc: Location, crafting_intents: Array[EconomyOrder]) -> Arra
 	return derived
 
 
-## NOTE: ignores NaturalResource.worker_job/workers_needed — no Population
-## in this prototype, so extraction is uncapped by workforce, unlike the
-## real CsGuildSpecialization.Produce's efficiency-ratio scaling.
+## Ignores NaturalResource.worker_job/workers_needed — no Population in this prototype, so extraction is uncapped by workforce, unlike CsGuildSpecialization.Produce's efficiency scaling.
 func _always_produce(loc: Location) -> Array[EconomyOrder]:
 	var supply: Array[EconomyOrder] = []
 	for nr: NaturalResource in loc.natural_resources:
@@ -199,12 +167,7 @@ func _settle_base(loc: Location, demands: Array[EconomyOrder], supplies: Array[E
 	return result
 
 
-## Caps output by what was ACTUALLY secured in settle_base — the behavior
-## change from today's LimitByInputs/ConsumeInputs, which peek Stocks[]
-## directly (CsGuildSpecialization.cs:133-149). Note this method does NOT
-## consume raw materials itself: consumption already happened inside
-## EconomyOrderMatcher.match() at the moment each derived leaf order was
-## matched in settle_base — this is the structural fix.
+## Caps output by what was ACTUALLY secured in settle_base; does not consume raw materials itself — that already happened inside EconomyOrderMatcher.match() when each derived leaf order was matched.
 func _produce_crafted(loc: Location, crafting_intents: Array[EconomyOrder], derived: Array[EconomyOrder]) -> Array[EconomyOrder]:
 	var secured_by_guild: Dictionary = {}   # CraftingGuild -> Dictionary[Thing, float]
 	for order in derived:
@@ -248,10 +211,7 @@ func _settle_finished(loc: Location, finished_consumer_demands: Array[EconomyOrd
 
 
 func _pay_workers(loc: Location) -> void:
-	# No-op: no Population/worker roster wired into this prototype's
-	# synthetic dataset. Phase + signal kept for pipeline-shape fidelity —
-	# port CsGuildSpecialization.PayWorkers (CsGuildSpecialization.cs:98-112)
-	# here when this migrates past prototype stage.
+	# No-op: no Population/worker roster in this prototype — port CsGuildSpecialization.PayWorkers (CsGuildSpecialization.cs:98-112) here later.
 	workers_paid.emit(loc.location_id, 0.0)
 
 
@@ -271,8 +231,7 @@ func _collect_revenue(loc: Location, crafted_supply: Array[EconomyOrder]) -> voi
 
 
 func _geist_update(loc: Location) -> void:
-	# No-op: Geist/unrest depends on Population.satisfaction, not part of
-	# this prototype. Phase + signal kept for pipeline-shape fidelity.
+	# No-op: Geist/unrest depends on Population.satisfaction, not part of this prototype.
 	geist_updated.emit(loc.location_id, 0.0)
 
 

@@ -1,12 +1,7 @@
 extends Resource
 class_name CraftingGuild
 
-## Prototype-scoped stand-in for CsGuildSpecialization (src/economy/csharp/
-## CsGuildSpecialization.cs) — deliberately does NOT model workers/wages
-## (no Population wired into this prototype's synthetic locations; see
-## LocationEconomySystem._pay_workers's no-op). Distinct from the existing
-## GuildSpecialization/GuildConfig classes, which configure the real C#
-## engine's guild setup — unrelated, no naming collision.
+## Deliberately does NOT model workers/wages (no Population wired into this prototype). Distinct from GuildSpecialization/GuildConfig, which configure the real C# engine's guild setup.
 
 @export var guild_id: String = ""
 @export var output_thing: Thing

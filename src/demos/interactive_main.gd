@@ -1,24 +1,5 @@
 extends Node
-## Interactive Systems-Layer Driver — play main.tscn from a terminal.
-##
-## Instantiates scenes/main.tscn (the Systems composition root), loads the
-## prototype alpha/beta scenario paused, and accepts text commands from
-## stdin. Lines starting with "/" are forwarded through the full HUD
-## command-bar pipeline (CommandBarHud -> DebugCommandSystem -> dispatch in
-## main.gd), exactly like typing into the GUI LineEdit.
-##
-## Usage: godot-mono --headless --path . scenes/demos/interactive_main.tscn
-##
-## Commands:
-##   status        — Clock state + every squad (location, activity, travel, cargo)
-##   market [loc]  — Market report: stocks, prices, unmet demand (all or one location)
-##   tick [n]      — Advance n hours via ClockSystem.force_tick() (default 1)
-##   pause         — Pause the clock
-##   unpause       — Resume the clock
-##   speed <n>     — Set clock speed in hours/second (GUI/real-time mode)
-##   /<cmd> ...    — DebugCommandSystem command (e.g. "/travel commander beta")
-##   help          — Show available commands
-##   quit          — Exit the game
+## Run via: godot-mono --headless --path . scenes/demos/interactive_main.tscn — type 'help' for commands. Lines starting with "/" are forwarded through the real HUD command-bar pipeline (CommandBarHud -> DebugCommandSystem -> main.gd), same as typing into the GUI LineEdit.
 
 const MainGame = preload("res://src/main.gd")
 

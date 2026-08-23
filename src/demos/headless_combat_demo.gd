@@ -1,12 +1,10 @@
 extends Node
 
-## Demo script to test headless combat execution
-## Attach this to a Node in a scene and run to see headless battle results
+## Attach to a Node and run to see headless battle results.
 
 func _ready():
 	print("\n=== HEADLESS COMBAT DEMO ===\n")
 
-	# --- test basic headless combat ---
 	print("Creating test battle configuration...")
 	
 	var attacker_entities: Array[String] = []

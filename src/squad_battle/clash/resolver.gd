@@ -36,7 +36,6 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 			_stack.pop_back()
 			continue
 
-		# --- _commit ---
 		var attacker := top.caster
 		var targeted := top.target
 		var skill := top.skill
@@ -61,7 +60,6 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 		execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_CAST), top, attacker)
 
 		if skill.roll_for_damage:
-			# --- _roll_for_hit ---
 			var chosen_weapon = attacker.weapon
 			var try_hit = chosen_weapon.get_total_hit_value(attacker)
 			var skill_level := _get_skill_level(attacker)
@@ -83,7 +81,6 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 				raise_window(SquadBattleTypes.ReactionWindow.ON_HIT, top)
 				execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_HIT), top, attacker)
 
-				# --- _roll_for_pierce ---
 				var armour = targeted.get_armour()
 				var try_pierce: float
 				var pierce_def: float
@@ -110,7 +107,6 @@ func resolve(root: ClashIntent) -> Array[EntityUpdate]:
 					raise_window(SquadBattleTypes.ReactionWindow.ON_PIERCE, top)
 					execute_effects(skill.effects.filter(func(e): return e.window == SquadBattleTypes.ReactionWindow.ON_PIERCE), top, attacker)
 					if top.phase != ClashIntent.Phase.CANCELLED:
-						# --- _apply_damage ---
 						var skill_bonus := skill_level * 0.5
 						var raw_damage = chosen_weapon.get_potency_array_damage(attacker)
 						var base_dm = armour.get_raw_damage_taken(raw_damage) + skill_bonus
@@ -239,7 +235,6 @@ func _subscribe_all_reactions() -> void:
 	var subs: Array[Dictionary] = []
 	for entity in _all_entities:
 		if not entity.is_dead():
-			# default Retreat reaction
 			for reaction in entity.reactions:
 				subs.append({"reaction": reaction, "entity": entity})
 
