@@ -1,5 +1,5 @@
-extends RefCounted
 class_name Population
+extends Resource
 
 var people: Array[EconPerson] = []
 var _by_class: Dictionary = {}

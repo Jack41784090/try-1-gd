@@ -1,24 +1,26 @@
-extends Resource
 class_name Location
+extends Resource
+
+#region pointless vars
+@export var development: int = 50
+@export var stability: float = 100.0
+@export var available_activity_types: Array[StrategyTypes.ActivityType] = []
+@export var clues: Array[Clue] = []
+@export var consumer_demand: Dictionary = {} ## Thing -> {"qty": float, "priority": float} — hourly consumer orders for LocationEconomySystem
+@export var is_imperial: bool = false
+@export var government_config: GovernmentConfig
+#endregion
 
 @export var location_id: String = ""
 @export var location_name: String = ""
 @export var type: StrategyTypes.LocationType = StrategyTypes.LocationType.VILLAGE
-@export var development: int = 50
-@export var stability: float = 100.0
 @export var connections: TownConnections
-@export var available_activity_types: Array[StrategyTypes.ActivityType] = []
 @export var shop: Shop
-@export var clues: Array[Clue] = []
 @export var natural_resources: Array[NaturalResource] = []
-@export var consumer_demand: Dictionary = {} ## Thing -> {"qty": float, "priority": float} — hourly consumer orders for LocationEconomySystem
 @export var inventory: LocationInventory
 @export var population_config: PopulationConfig
-@export var government_config: GovernmentConfig
 @export var guild_configs: Array[GuildConfig] = []
-@export var is_imperial: bool = false
-
-var population: Population
+@export var population: Population
 
 func is_connected_to(location_id_check: String) -> bool:
 	return get_connection_to(location_id_check) != null
@@ -28,7 +30,6 @@ func get_distance_km(to_location: Location) -> float:
 	if conn == null:
 		return -1.0
 	return conn.distance_km
-
 
 func get_travel_hours(to_location: Location, base_speed_kmh: float) -> float:
 	var dist := get_distance_km(to_location)
@@ -65,7 +66,6 @@ func has_shop() -> bool:
 		return false
 	assert(inventory != null, "Location '%s' has a shop but no inventory — shops require economy" % location_id)
 	return true
-
 
 func has_economy() -> bool:
 	assert(inventory != null, "Location '%s' (%s) is missing inventory but economy is mandatory" % [location_id, StrategyTypes.LocationType.keys()[type]])
