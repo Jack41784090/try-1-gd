@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_attack"]
 script = ExtResource("3_csdr")
 skill = ExtResource("4_fireball")
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+metadata/_custom_type_script = "uid://dla3lvktxswvk"
 
 [resource]
 script = ExtResource("1_config")

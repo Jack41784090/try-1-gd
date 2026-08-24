@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://b006sp1fbp8ro"
 script = ExtResource("4_fie37")
 glances = Array[ExtResource("3_glyfu")]([SubResource("Resource_12406")])
 entity_limiter = "enemies"
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+metadata/_custom_type_script = "uid://dla3lvktxswvk"
 
 [resource]
 script = ExtResource("1_skill")

@@ -3,13 +3,13 @@
 [ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="1_config"]
 [ext_resource type="Resource" uid="uid://cds4shncbtjre" path="res://resources/combat/considerations/consider_moving_to_backline_if_not.tres" id="2_moveback"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_183p5"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_csdr"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_csdr"]
 [ext_resource type="Resource" uid="uid://cmytclt13jaur" path="res://resources/combat/logic/skills/ranged-attack-skill.tres" id="4_ranged"]
 
 [sub_resource type="Resource" id="Resource_attack"]
 script = ExtResource("3_csdr")
 skill = ExtResource("4_ranged")
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+metadata/_custom_type_script = "uid://dla3lvktxswvk"
 
 [resource]
 script = ExtResource("1_config")

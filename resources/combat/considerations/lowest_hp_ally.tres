@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="1_rtjfs"]
 [ext_resource type="Resource" uid="uid://cfkuq04gtb14b" path="res://resources/combat/logic/glances/hp_proportional.tres" id="2_i7xhw"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_niuij"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="3_niuij"]
 
 [resource]
 script = ExtResource("3_niuij")
 glances = Array[ExtResource("1_rtjfs")]([ExtResource("2_i7xhw")])
 entity_limiter = "allies"
 limited_by_weapon_loc = false
-metadata/_custom_type_script = "uid://dsjjbtklokbwv"
+metadata/_custom_type_script = "uid://dla3lvktxswvk"

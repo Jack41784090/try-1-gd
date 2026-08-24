@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bbbgoilqfygt0" path="res://src/squad_battle/entity/logic/config.gd" id="1_config"]
 [ext_resource type="Resource" uid="uid://cds4shncbtjre" path="res://resources/combat/considerations/consider_moving_to_backline_if_not.tres" id="2_8ulir"]
-[ext_resource type="Script" uid="uid://dsjjbtklokbwv" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="2_consideration"]
+[ext_resource type="Script" uid="uid://dla3lvktxswvk" path="res://src/squad_battle/entity/logic/consideration/consideration.gd" id="2_consideration"]
 [ext_resource type="Script" uid="uid://b006sp1fbp8ro" path="res://src/squad_battle/entity/logic/consideration/glance.gd" id="3_glance"]
 [ext_resource type="Resource" uid="uid://c3y4n5o6p7q8r" path="res://resources/combat/logic/skills/example-heal-skill.tres" id="6_heal_skill"]
 
