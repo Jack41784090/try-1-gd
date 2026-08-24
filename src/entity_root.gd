@@ -7,18 +7,18 @@ var loc_vis_scene: PackedScene = preload("res://scenes/location.tscn")
 var loc_vis_cache: Dictionary[String, Node2D] = {}
 
 func load_vs_cache(loc_dict: Dictionary[StringName, Location]):
-    var loc_arr = loc_dict.values()
-    var main_loc: Location = loc_arr.pop_front()
-    while main_loc != null:
-        if not loc_vis_cache.has(main_loc.location_id):
-            loc_vis_cache[main_loc.location_id] = loc_vis_scene.instantiate()
-        
-        for __loc: TownConnection in main_loc.connections:
-            var loc_neigh_id = __loc.to_location_id
-            if not loc_vis_cache.has(loc_neigh_id):
-                var neigh_loc: Location = loc_dict[loc_neigh_id]
-                loc_vis_cache[neigh_loc.location_id] = loc_vis_scene.instantiate()
-        main_loc = loc_arr.pop_front()
+	var loc_arr = loc_dict.values()
+	var main_loc: Location = loc_arr.pop_front()
+	while main_loc != null:
+		if not loc_vis_cache.has(main_loc.location_id):
+			loc_vis_cache[main_loc.location_id] = loc_vis_scene.instantiate()
+		
+		for __loc: TownConnection in main_loc.connections:
+			var loc_neigh_id = __loc.to_location_id
+			if not loc_vis_cache.has(loc_neigh_id):
+				var neigh_loc: Location = loc_dict[loc_neigh_id]
+				loc_vis_cache[neigh_loc.location_id] = loc_vis_scene.instantiate()
+		main_loc = loc_arr.pop_front()
 
 
 # func _shipment_dispatched(move: EconomyMove, __: int) -> void:
