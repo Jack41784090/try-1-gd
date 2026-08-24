@@ -1,0 +1,1858 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/maps/location_marker.tscn" id="1_pwp5r"]
+[ext_resource type="Script" path="res://src/strategy/ui/travel/location_marker.gd" id="2_lfvib"]
+
+[node name="StressTestMap" type="Node2D" unique_id=234848817]
+
+[node name="Road_loc00_loc01" type="Line2D" parent="." unique_id=31879490]
+points = PackedVector2Array(1360, 540, 1359.2107, 565.1162)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc00_loc50" type="Line2D" parent="." unique_id=1167315604]
+points = PackedVector2Array(1360, 540, 560, 540)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc00_loc99" type="Line2D" parent="." unique_id=1379309269]
+points = PackedVector2Array(1360, 540, 1359.2107, 514.8838)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc01_loc02" type="Line2D" parent="." unique_id=217108816]
+points = PackedVector2Array(1359.2107, 565.1162, 1356.846, 590.1333)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc02_loc03" type="Line2D" parent="." unique_id=1998796747]
+points = PackedVector2Array(1356.846, 590.1333, 1352.9149, 614.9525)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc03_loc04" type="Line2D" parent="." unique_id=1524253314]
+points = PackedVector2Array(1352.9149, 614.9525, 1347.4332, 639.47595)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc04_loc05" type="Line2D" parent="." unique_id=351019356]
+points = PackedVector2Array(1347.4332, 639.47595, 1340.4226, 663.6068)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc04_loc54" type="Line2D" parent="." unique_id=1961184569]
+points = PackedVector2Array(1347.4332, 639.47595, 572.5668, 440.52405)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc05_loc06" type="Line2D" parent="." unique_id=341733741]
+points = PackedVector2Array(1340.4226, 663.6068, 1331.9106, 687.2498)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc06_loc07" type="Line2D" parent="." unique_id=930932863]
+points = PackedVector2Array(1331.9106, 687.2498, 1321.9308, 710.3117)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc06_loc56" type="Line2D" parent="." unique_id=595992391]
+points = PackedVector2Array(1331.9106, 687.2498, 588.0894, 392.75018)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc07_loc08" type="Line2D" parent="." unique_id=1429966454]
+points = PackedVector2Array(1321.9308, 710.3117, 1310.5227, 732.7015)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc08_loc09" type="Line2D" parent="." unique_id=1600221211]
+points = PackedVector2Array(1310.5227, 732.7015, 1297.7312, 754.3307)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc09_loc10" type="Line2D" parent="." unique_id=1600372112]
+points = PackedVector2Array(1297.7312, 754.3307, 1283.6068, 775.11414)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc10_loc11" type="Line2D" parent="." unique_id=764746689]
+points = PackedVector2Array(1283.6068, 775.11414, 1268.2053, 794.9696)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc10_loc60" type="Line2D" parent="." unique_id=105074147]
+points = PackedVector2Array(1283.6068, 775.11414, 636.3932, 304.8859)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc11_loc12" type="Line2D" parent="." unique_id=1376660243]
+points = PackedVector2Array(1268.2053, 794.9696, 1251.5874, 813.81885)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc12_loc13" type="Line2D" parent="." unique_id=151840501]
+points = PackedVector2Array(1251.5874, 813.81885, 1233.8188, 831.58746)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc12_loc62" type="Line2D" parent="." unique_id=1593891070]
+points = PackedVector2Array(1251.5874, 813.81885, 668.41254, 266.18115)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc13_loc14" type="Line2D" parent="." unique_id=1446612548]
+points = PackedVector2Array(1233.8188, 831.58746, 1214.9696, 848.2053)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc14_loc15" type="Line2D" parent="." unique_id=1848839334]
+points = PackedVector2Array(1214.9696, 848.2053, 1195.1141, 863.6068)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc15_loc16" type="Line2D" parent="." unique_id=165022261]
+points = PackedVector2Array(1195.1141, 863.6068, 1174.3307, 877.7312)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc16_loc17" type="Line2D" parent="." unique_id=72845436]
+points = PackedVector2Array(1174.3307, 877.7312, 1152.7014, 890.5227)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc16_loc66" type="Line2D" parent="." unique_id=1021877214]
+points = PackedVector2Array(1174.3307, 877.7312, 745.6693, 202.26883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc17_loc18" type="Line2D" parent="." unique_id=23667282]
+points = PackedVector2Array(1152.7014, 890.5227, 1130.3118, 901.9308)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc18_loc19" type="Line2D" parent="." unique_id=1633909151]
+points = PackedVector2Array(1130.3118, 901.9308, 1107.2498, 911.9106)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc18_loc68" type="Line2D" parent="." unique_id=1947625660]
+points = PackedVector2Array(1130.3118, 901.9308, 789.6883, 178.06918)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc19_loc20" type="Line2D" parent="." unique_id=610392351]
+points = PackedVector2Array(1107.2498, 911.9106, 1083.6068, 920.4226)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc20_loc21" type="Line2D" parent="." unique_id=707280437]
+points = PackedVector2Array(1083.6068, 920.4226, 1059.476, 927.4332)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc21_loc22" type="Line2D" parent="." unique_id=1110734998]
+points = PackedVector2Array(1059.476, 927.4332, 1034.9525, 932.9149)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc22_loc23" type="Line2D" parent="." unique_id=137518273]
+points = PackedVector2Array(1034.9525, 932.9149, 1010.1333, 936.8459)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc22_loc72" type="Line2D" parent="." unique_id=225849541]
+points = PackedVector2Array(1034.9525, 932.9149, 885.0475, 147.08511)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc23_loc24" type="Line2D" parent="." unique_id=753829478]
+points = PackedVector2Array(1010.1333, 936.8459, 985.1162, 939.2107)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc24_loc25" type="Line2D" parent="." unique_id=397033944]
+points = PackedVector2Array(985.1162, 939.2107, 960, 940)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc24_loc74" type="Line2D" parent="." unique_id=1684395295]
+points = PackedVector2Array(985.1162, 939.2107, 934.8838, 140.7893)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc25_loc26" type="Line2D" parent="." unique_id=118638189]
+points = PackedVector2Array(960, 940, 934.8838, 939.2107)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc26_loc27" type="Line2D" parent="." unique_id=1332931025]
+points = PackedVector2Array(934.8838, 939.2107, 909.8667, 936.8459)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc27_loc28" type="Line2D" parent="." unique_id=950215099]
+points = PackedVector2Array(909.8667, 936.8459, 885.0475, 932.9149)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc28_loc29" type="Line2D" parent="." unique_id=2114774214]
+points = PackedVector2Array(885.0475, 932.9149, 860.52405, 927.4332)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc28_loc78" type="Line2D" parent="." unique_id=1838993758]
+points = PackedVector2Array(885.0475, 932.9149, 1034.9525, 147.08511)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc29_loc30" type="Line2D" parent="." unique_id=1930174489]
+points = PackedVector2Array(860.52405, 927.4332, 836.3932, 920.4226)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc30_loc31" type="Line2D" parent="." unique_id=794213039]
+points = PackedVector2Array(836.3932, 920.4226, 812.7502, 911.9106)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc30_loc80" type="Line2D" parent="." unique_id=1817304364]
+points = PackedVector2Array(836.3932, 920.4226, 1083.6068, 159.5774)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc31_loc32" type="Line2D" parent="." unique_id=278781494]
+points = PackedVector2Array(812.7502, 911.9106, 789.6883, 901.9308)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc32_loc33" type="Line2D" parent="." unique_id=452218846]
+points = PackedVector2Array(789.6883, 901.9308, 767.2985, 890.5227)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc33_loc34" type="Line2D" parent="." unique_id=1404909116]
+points = PackedVector2Array(767.2985, 890.5227, 745.6693, 877.7312)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc34_loc35" type="Line2D" parent="." unique_id=1867488951]
+points = PackedVector2Array(745.6693, 877.7312, 724.88586, 863.6068)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc34_loc84" type="Line2D" parent="." unique_id=1499942903]
+points = PackedVector2Array(745.6693, 877.7312, 1174.3307, 202.26883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc35_loc36" type="Line2D" parent="." unique_id=1068330129]
+points = PackedVector2Array(724.88586, 863.6068, 705.0304, 848.2053)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc36_loc37" type="Line2D" parent="." unique_id=1329087085]
+points = PackedVector2Array(705.0304, 848.2053, 686.18115, 831.58746)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc36_loc86" type="Line2D" parent="." unique_id=438925781]
+points = PackedVector2Array(705.0304, 848.2053, 1214.9696, 231.79471)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc37_loc38" type="Line2D" parent="." unique_id=1660058002]
+points = PackedVector2Array(686.18115, 831.58746, 668.41254, 813.81885)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc38_loc39" type="Line2D" parent="." unique_id=359501135]
+points = PackedVector2Array(668.41254, 813.81885, 651.7947, 794.9696)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc39_loc40" type="Line2D" parent="." unique_id=1846285785]
+points = PackedVector2Array(651.7947, 794.9696, 636.3932, 775.11414)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc40_loc41" type="Line2D" parent="." unique_id=1436736280]
+points = PackedVector2Array(636.3932, 775.11414, 622.2688, 754.3307)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc40_loc90" type="Line2D" parent="." unique_id=1304388436]
+points = PackedVector2Array(636.3932, 775.11414, 1283.6068, 304.8859)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc41_loc42" type="Line2D" parent="." unique_id=1390170220]
+points = PackedVector2Array(622.2688, 754.3307, 609.4773, 732.7015)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc42_loc43" type="Line2D" parent="." unique_id=410920681]
+points = PackedVector2Array(609.4773, 732.7015, 598.0692, 710.3117)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc42_loc92" type="Line2D" parent="." unique_id=749575671]
+points = PackedVector2Array(609.4773, 732.7015, 1310.5227, 347.29852)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc43_loc44" type="Line2D" parent="." unique_id=957009732]
+points = PackedVector2Array(598.0692, 710.3117, 588.0894, 687.2498)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc44_loc45" type="Line2D" parent="." unique_id=761288598]
+points = PackedVector2Array(588.0894, 687.2498, 579.5774, 663.6068)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc45_loc46" type="Line2D" parent="." unique_id=2108111181]
+points = PackedVector2Array(579.5774, 663.6068, 572.5668, 639.47595)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc46_loc47" type="Line2D" parent="." unique_id=1133411216]
+points = PackedVector2Array(572.5668, 639.47595, 567.0851, 614.9525)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc46_loc96" type="Line2D" parent="." unique_id=1071481889]
+points = PackedVector2Array(572.5668, 639.47595, 1347.4332, 440.52405)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc47_loc48" type="Line2D" parent="." unique_id=1175392668]
+points = PackedVector2Array(567.0851, 614.9525, 563.1541, 590.1333)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc48_loc49" type="Line2D" parent="." unique_id=1620667212]
+points = PackedVector2Array(563.1541, 590.1333, 560.7893, 565.1162)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc48_loc98" type="Line2D" parent="." unique_id=372766895]
+points = PackedVector2Array(563.1541, 590.1333, 1356.846, 489.8667)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc49_loc50" type="Line2D" parent="." unique_id=1024990534]
+points = PackedVector2Array(560.7893, 565.1162, 560, 540)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc50_loc51" type="Line2D" parent="." unique_id=1143916423]
+points = PackedVector2Array(560, 540, 560.7893, 514.8838)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc51_loc52" type="Line2D" parent="." unique_id=434599255]
+points = PackedVector2Array(560.7893, 514.8838, 563.1541, 489.8667)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc52_loc53" type="Line2D" parent="." unique_id=251479711]
+points = PackedVector2Array(563.1541, 489.8667, 567.0851, 465.0475)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc53_loc54" type="Line2D" parent="." unique_id=1135404197]
+points = PackedVector2Array(567.0851, 465.0475, 572.5668, 440.52405)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc54_loc55" type="Line2D" parent="." unique_id=1770776389]
+points = PackedVector2Array(572.5668, 440.52405, 579.5774, 416.3932)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc55_loc56" type="Line2D" parent="." unique_id=1248977208]
+points = PackedVector2Array(579.5774, 416.3932, 588.0894, 392.75018)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc56_loc57" type="Line2D" parent="." unique_id=993285777]
+points = PackedVector2Array(588.0894, 392.75018, 598.0692, 369.6883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc57_loc58" type="Line2D" parent="." unique_id=1660699717]
+points = PackedVector2Array(598.0692, 369.6883, 609.4773, 347.29852)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc58_loc59" type="Line2D" parent="." unique_id=699090246]
+points = PackedVector2Array(609.4773, 347.29852, 622.2688, 325.66928)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc59_loc60" type="Line2D" parent="." unique_id=773207071]
+points = PackedVector2Array(622.2688, 325.66928, 636.3932, 304.8859)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc60_loc61" type="Line2D" parent="." unique_id=655202835]
+points = PackedVector2Array(636.3932, 304.8859, 651.7947, 285.0304)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc61_loc62" type="Line2D" parent="." unique_id=2067141245]
+points = PackedVector2Array(651.7947, 285.0304, 668.41254, 266.18115)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc62_loc63" type="Line2D" parent="." unique_id=158977679]
+points = PackedVector2Array(668.41254, 266.18115, 686.18115, 248.41254)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc63_loc64" type="Line2D" parent="." unique_id=438024683]
+points = PackedVector2Array(686.18115, 248.41254, 705.0304, 231.79471)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc64_loc65" type="Line2D" parent="." unique_id=1345907035]
+points = PackedVector2Array(705.0304, 231.79471, 724.88586, 216.39319)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc65_loc66" type="Line2D" parent="." unique_id=789808609]
+points = PackedVector2Array(724.88586, 216.39319, 745.6693, 202.26883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc66_loc67" type="Line2D" parent="." unique_id=996144445]
+points = PackedVector2Array(745.6693, 202.26883, 767.2985, 189.47733)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc67_loc68" type="Line2D" parent="." unique_id=228685367]
+points = PackedVector2Array(767.2985, 189.47733, 789.6883, 178.06918)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc68_loc69" type="Line2D" parent="." unique_id=1551003476]
+points = PackedVector2Array(789.6883, 178.06918, 812.7502, 168.08942)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc69_loc70" type="Line2D" parent="." unique_id=1246241515]
+points = PackedVector2Array(812.7502, 168.08942, 836.3932, 159.5774)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc70_loc71" type="Line2D" parent="." unique_id=497902206]
+points = PackedVector2Array(836.3932, 159.5774, 860.52405, 152.56674)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc71_loc72" type="Line2D" parent="." unique_id=2029616263]
+points = PackedVector2Array(860.52405, 152.56674, 885.0475, 147.08511)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc72_loc73" type="Line2D" parent="." unique_id=598329849]
+points = PackedVector2Array(885.0475, 147.08511, 909.8667, 143.15411)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc73_loc74" type="Line2D" parent="." unique_id=1789466984]
+points = PackedVector2Array(909.8667, 143.15411, 934.8838, 140.7893)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc74_loc75" type="Line2D" parent="." unique_id=2070572277]
+points = PackedVector2Array(934.8838, 140.7893, 960, 140)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc75_loc76" type="Line2D" parent="." unique_id=1033218075]
+points = PackedVector2Array(960, 140, 985.1162, 140.7893)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc76_loc77" type="Line2D" parent="." unique_id=87136538]
+points = PackedVector2Array(985.1162, 140.7893, 1010.1333, 143.15411)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc77_loc78" type="Line2D" parent="." unique_id=979850702]
+points = PackedVector2Array(1010.1333, 143.15411, 1034.9525, 147.08511)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc78_loc79" type="Line2D" parent="." unique_id=1873007637]
+points = PackedVector2Array(1034.9525, 147.08511, 1059.476, 152.56674)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc79_loc80" type="Line2D" parent="." unique_id=1792187419]
+points = PackedVector2Array(1059.476, 152.56674, 1083.6068, 159.5774)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc80_loc81" type="Line2D" parent="." unique_id=1608162123]
+points = PackedVector2Array(1083.6068, 159.5774, 1107.2498, 168.08942)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc81_loc82" type="Line2D" parent="." unique_id=601334990]
+points = PackedVector2Array(1107.2498, 168.08942, 1130.3118, 178.06918)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc82_loc83" type="Line2D" parent="." unique_id=1688742973]
+points = PackedVector2Array(1130.3118, 178.06918, 1152.7014, 189.47733)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc83_loc84" type="Line2D" parent="." unique_id=1601515340]
+points = PackedVector2Array(1152.7014, 189.47733, 1174.3307, 202.26883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc84_loc85" type="Line2D" parent="." unique_id=863617821]
+points = PackedVector2Array(1174.3307, 202.26883, 1195.1141, 216.39319)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc85_loc86" type="Line2D" parent="." unique_id=1792101461]
+points = PackedVector2Array(1195.1141, 216.39319, 1214.9696, 231.79471)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc86_loc87" type="Line2D" parent="." unique_id=497748444]
+points = PackedVector2Array(1214.9696, 231.79471, 1233.8188, 248.41254)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc87_loc88" type="Line2D" parent="." unique_id=1625477315]
+points = PackedVector2Array(1233.8188, 248.41254, 1251.5874, 266.18115)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc88_loc89" type="Line2D" parent="." unique_id=111255794]
+points = PackedVector2Array(1251.5874, 266.18115, 1268.2053, 285.0304)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc89_loc90" type="Line2D" parent="." unique_id=748425958]
+points = PackedVector2Array(1268.2053, 285.0304, 1283.6068, 304.8859)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc90_loc91" type="Line2D" parent="." unique_id=244929298]
+points = PackedVector2Array(1283.6068, 304.8859, 1297.7312, 325.66928)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc91_loc92" type="Line2D" parent="." unique_id=489189312]
+points = PackedVector2Array(1297.7312, 325.66928, 1310.5227, 347.29852)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc92_loc93" type="Line2D" parent="." unique_id=275421693]
+points = PackedVector2Array(1310.5227, 347.29852, 1321.9308, 369.6883)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc93_loc94" type="Line2D" parent="." unique_id=978952086]
+points = PackedVector2Array(1321.9308, 369.6883, 1331.9106, 392.75018)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc94_loc95" type="Line2D" parent="." unique_id=2072810447]
+points = PackedVector2Array(1331.9106, 392.75018, 1340.4226, 416.3932)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc95_loc96" type="Line2D" parent="." unique_id=1346040490]
+points = PackedVector2Array(1340.4226, 416.3932, 1347.4332, 440.52405)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc96_loc97" type="Line2D" parent="." unique_id=160862666]
+points = PackedVector2Array(1347.4332, 440.52405, 1352.9149, 465.0475)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc97_loc98" type="Line2D" parent="." unique_id=1883307340]
+points = PackedVector2Array(1352.9149, 465.0475, 1356.846, 489.8667)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Road_loc98_loc99" type="Line2D" parent="." unique_id=201687160]
+points = PackedVector2Array(1356.846, 489.8667, 1359.2107, 514.8838)
+width = 2.0
+default_color = Color(0.55, 0.45, 0.3, 0.3)
+
+[node name="Loc 00" type="Area2D" parent="." unique_id=803333712 instance=ExtResource("1_pwp5r")]
+position = Vector2(1360, 540)
+script = ExtResource("2_lfvib")
+location_id = "loc00"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 00" unique_id=1841612112]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 01" type="Area2D" parent="." unique_id=458590713 instance=ExtResource("1_pwp5r")]
+position = Vector2(1359.2107, 565.1162)
+script = ExtResource("2_lfvib")
+location_id = "loc01"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 01" unique_id=124568176]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 02" type="Area2D" parent="." unique_id=1293672435 instance=ExtResource("1_pwp5r")]
+position = Vector2(1356.846, 590.1333)
+script = ExtResource("2_lfvib")
+location_id = "loc02"
+
+[node name="Label" type="Label" parent="Loc 02" unique_id=671543641]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 03" type="Area2D" parent="." unique_id=1041939565 instance=ExtResource("1_pwp5r")]
+position = Vector2(1352.9149, 614.9525)
+script = ExtResource("2_lfvib")
+location_id = "loc03"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 03" unique_id=579178381]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 04" type="Area2D" parent="." unique_id=179397619 instance=ExtResource("1_pwp5r")]
+position = Vector2(1347.4332, 639.47595)
+script = ExtResource("2_lfvib")
+location_id = "loc04"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 04" unique_id=877477353]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 05" type="Area2D" parent="." unique_id=1202058051 instance=ExtResource("1_pwp5r")]
+position = Vector2(1340.4226, 663.6068)
+script = ExtResource("2_lfvib")
+location_id = "loc05"
+
+[node name="Label" type="Label" parent="Loc 05" unique_id=673346676]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 06" type="Area2D" parent="." unique_id=307973969 instance=ExtResource("1_pwp5r")]
+position = Vector2(1331.9106, 687.2498)
+script = ExtResource("2_lfvib")
+location_id = "loc06"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 06" unique_id=1244700628]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 07" type="Area2D" parent="." unique_id=2143142908 instance=ExtResource("1_pwp5r")]
+position = Vector2(1321.9308, 710.3117)
+script = ExtResource("2_lfvib")
+location_id = "loc07"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 07" unique_id=1517781943]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 08" type="Area2D" parent="." unique_id=369593611 instance=ExtResource("1_pwp5r")]
+position = Vector2(1310.5227, 732.7015)
+script = ExtResource("2_lfvib")
+location_id = "loc08"
+
+[node name="Label" type="Label" parent="Loc 08" unique_id=290420198]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 09" type="Area2D" parent="." unique_id=2089828297 instance=ExtResource("1_pwp5r")]
+position = Vector2(1297.7312, 754.3307)
+script = ExtResource("2_lfvib")
+location_id = "loc09"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 09" unique_id=222527902]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 10" type="Area2D" parent="." unique_id=341998715 instance=ExtResource("1_pwp5r")]
+position = Vector2(1283.6068, 775.11414)
+script = ExtResource("2_lfvib")
+location_id = "loc10"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 10" unique_id=1362559524]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 11" type="Area2D" parent="." unique_id=1468486810 instance=ExtResource("1_pwp5r")]
+position = Vector2(1268.2053, 794.9696)
+script = ExtResource("2_lfvib")
+location_id = "loc11"
+
+[node name="Label" type="Label" parent="Loc 11" unique_id=1193873901]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 12" type="Area2D" parent="." unique_id=1884717889 instance=ExtResource("1_pwp5r")]
+position = Vector2(1251.5874, 813.81885)
+script = ExtResource("2_lfvib")
+location_id = "loc12"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 12" unique_id=1838835905]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 13" type="Area2D" parent="." unique_id=351898496 instance=ExtResource("1_pwp5r")]
+position = Vector2(1233.8188, 831.58746)
+script = ExtResource("2_lfvib")
+location_id = "loc13"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 13" unique_id=1271682097]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 14" type="Area2D" parent="." unique_id=811172736 instance=ExtResource("1_pwp5r")]
+position = Vector2(1214.9696, 848.2053)
+script = ExtResource("2_lfvib")
+location_id = "loc14"
+
+[node name="Label" type="Label" parent="Loc 14" unique_id=133841187]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 15" type="Area2D" parent="." unique_id=278572973 instance=ExtResource("1_pwp5r")]
+position = Vector2(1195.1141, 863.6068)
+script = ExtResource("2_lfvib")
+location_id = "loc15"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 15" unique_id=975199923]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 16" type="Area2D" parent="." unique_id=1793288170 instance=ExtResource("1_pwp5r")]
+position = Vector2(1174.3307, 877.7312)
+script = ExtResource("2_lfvib")
+location_id = "loc16"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 16" unique_id=490764581]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 17" type="Area2D" parent="." unique_id=2089329841 instance=ExtResource("1_pwp5r")]
+position = Vector2(1152.7014, 890.5227)
+script = ExtResource("2_lfvib")
+location_id = "loc17"
+
+[node name="Label" type="Label" parent="Loc 17" unique_id=1359456375]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 18" type="Area2D" parent="." unique_id=719658648 instance=ExtResource("1_pwp5r")]
+position = Vector2(1130.3118, 901.9308)
+script = ExtResource("2_lfvib")
+location_id = "loc18"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 18" unique_id=46891330]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 19" type="Area2D" parent="." unique_id=1142663486 instance=ExtResource("1_pwp5r")]
+position = Vector2(1107.2498, 911.9106)
+script = ExtResource("2_lfvib")
+location_id = "loc19"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 19" unique_id=1902335229]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 20" type="Area2D" parent="." unique_id=2120581931 instance=ExtResource("1_pwp5r")]
+position = Vector2(1083.6068, 920.4226)
+script = ExtResource("2_lfvib")
+location_id = "loc20"
+
+[node name="Label" type="Label" parent="Loc 20" unique_id=170902163]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 21" type="Area2D" parent="." unique_id=1327104753 instance=ExtResource("1_pwp5r")]
+position = Vector2(1059.476, 927.4332)
+script = ExtResource("2_lfvib")
+location_id = "loc21"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 21" unique_id=1594478825]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 22" type="Area2D" parent="." unique_id=25402723 instance=ExtResource("1_pwp5r")]
+position = Vector2(1034.9525, 932.9149)
+script = ExtResource("2_lfvib")
+location_id = "loc22"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 22" unique_id=1524916230]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 23" type="Area2D" parent="." unique_id=74441769 instance=ExtResource("1_pwp5r")]
+position = Vector2(1010.1333, 936.8459)
+script = ExtResource("2_lfvib")
+location_id = "loc23"
+
+[node name="Label" type="Label" parent="Loc 23" unique_id=262189420]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 24" type="Area2D" parent="." unique_id=83152124 instance=ExtResource("1_pwp5r")]
+position = Vector2(985.1162, 939.2107)
+script = ExtResource("2_lfvib")
+location_id = "loc24"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 24" unique_id=30915939]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 25" type="Area2D" parent="." unique_id=20926722 instance=ExtResource("1_pwp5r")]
+position = Vector2(960, 940)
+script = ExtResource("2_lfvib")
+location_id = "loc25"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 25" unique_id=1227357244]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 26" type="Area2D" parent="." unique_id=1879581007 instance=ExtResource("1_pwp5r")]
+position = Vector2(934.8838, 939.2107)
+script = ExtResource("2_lfvib")
+location_id = "loc26"
+
+[node name="Label" type="Label" parent="Loc 26" unique_id=254719617]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 27" type="Area2D" parent="." unique_id=1242939058 instance=ExtResource("1_pwp5r")]
+position = Vector2(909.8667, 936.8459)
+script = ExtResource("2_lfvib")
+location_id = "loc27"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 27" unique_id=634198192]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 28" type="Area2D" parent="." unique_id=1214702743 instance=ExtResource("1_pwp5r")]
+position = Vector2(885.0475, 932.9149)
+script = ExtResource("2_lfvib")
+location_id = "loc28"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 28" unique_id=98042913]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 29" type="Area2D" parent="." unique_id=1569061356 instance=ExtResource("1_pwp5r")]
+position = Vector2(860.52405, 927.4332)
+script = ExtResource("2_lfvib")
+location_id = "loc29"
+
+[node name="Label" type="Label" parent="Loc 29" unique_id=1327242555]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 30" type="Area2D" parent="." unique_id=1962762726 instance=ExtResource("1_pwp5r")]
+position = Vector2(836.3932, 920.4226)
+script = ExtResource("2_lfvib")
+location_id = "loc30"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 30" unique_id=1263712359]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 31" type="Area2D" parent="." unique_id=794021447 instance=ExtResource("1_pwp5r")]
+position = Vector2(812.7502, 911.9106)
+script = ExtResource("2_lfvib")
+location_id = "loc31"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 31" unique_id=636548546]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 32" type="Area2D" parent="." unique_id=189136701 instance=ExtResource("1_pwp5r")]
+position = Vector2(789.6883, 901.9308)
+script = ExtResource("2_lfvib")
+location_id = "loc32"
+
+[node name="Label" type="Label" parent="Loc 32" unique_id=1010416322]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 33" type="Area2D" parent="." unique_id=1220173630 instance=ExtResource("1_pwp5r")]
+position = Vector2(767.2985, 890.5227)
+script = ExtResource("2_lfvib")
+location_id = "loc33"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 33" unique_id=1833998641]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 34" type="Area2D" parent="." unique_id=616483111 instance=ExtResource("1_pwp5r")]
+position = Vector2(745.6693, 877.7312)
+script = ExtResource("2_lfvib")
+location_id = "loc34"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 34" unique_id=1069169683]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 35" type="Area2D" parent="." unique_id=51354802 instance=ExtResource("1_pwp5r")]
+position = Vector2(724.88586, 863.6068)
+script = ExtResource("2_lfvib")
+location_id = "loc35"
+
+[node name="Label" type="Label" parent="Loc 35" unique_id=1810050524]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 36" type="Area2D" parent="." unique_id=2020949131 instance=ExtResource("1_pwp5r")]
+position = Vector2(705.0304, 848.2053)
+script = ExtResource("2_lfvib")
+location_id = "loc36"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 36" unique_id=603041084]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 37" type="Area2D" parent="." unique_id=698981516 instance=ExtResource("1_pwp5r")]
+position = Vector2(686.18115, 831.58746)
+script = ExtResource("2_lfvib")
+location_id = "loc37"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 37" unique_id=1710854903]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 38" type="Area2D" parent="." unique_id=104600457 instance=ExtResource("1_pwp5r")]
+position = Vector2(668.41254, 813.81885)
+script = ExtResource("2_lfvib")
+location_id = "loc38"
+
+[node name="Label" type="Label" parent="Loc 38" unique_id=617489191]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 39" type="Area2D" parent="." unique_id=1211054748 instance=ExtResource("1_pwp5r")]
+position = Vector2(651.7947, 794.9696)
+script = ExtResource("2_lfvib")
+location_id = "loc39"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 39" unique_id=2144919149]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 40" type="Area2D" parent="." unique_id=1274897506 instance=ExtResource("1_pwp5r")]
+position = Vector2(636.3932, 775.11414)
+script = ExtResource("2_lfvib")
+location_id = "loc40"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 40" unique_id=1446864697]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 41" type="Area2D" parent="." unique_id=978055777 instance=ExtResource("1_pwp5r")]
+position = Vector2(622.2688, 754.3307)
+script = ExtResource("2_lfvib")
+location_id = "loc41"
+
+[node name="Label" type="Label" parent="Loc 41" unique_id=533108487]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 42" type="Area2D" parent="." unique_id=1752015828 instance=ExtResource("1_pwp5r")]
+position = Vector2(609.4773, 732.7015)
+script = ExtResource("2_lfvib")
+location_id = "loc42"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 42" unique_id=1813981564]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 43" type="Area2D" parent="." unique_id=563467120 instance=ExtResource("1_pwp5r")]
+position = Vector2(598.0692, 710.3117)
+script = ExtResource("2_lfvib")
+location_id = "loc43"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 43" unique_id=1069761801]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 44" type="Area2D" parent="." unique_id=1669627363 instance=ExtResource("1_pwp5r")]
+position = Vector2(588.0894, 687.2498)
+script = ExtResource("2_lfvib")
+location_id = "loc44"
+
+[node name="Label" type="Label" parent="Loc 44" unique_id=1225586408]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 45" type="Area2D" parent="." unique_id=1868366831 instance=ExtResource("1_pwp5r")]
+position = Vector2(579.5774, 663.6068)
+script = ExtResource("2_lfvib")
+location_id = "loc45"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 45" unique_id=1385368868]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 46" type="Area2D" parent="." unique_id=287190509 instance=ExtResource("1_pwp5r")]
+position = Vector2(572.5668, 639.47595)
+script = ExtResource("2_lfvib")
+location_id = "loc46"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 46" unique_id=22656864]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 47" type="Area2D" parent="." unique_id=1187933512 instance=ExtResource("1_pwp5r")]
+position = Vector2(567.0851, 614.9525)
+script = ExtResource("2_lfvib")
+location_id = "loc47"
+
+[node name="Label" type="Label" parent="Loc 47" unique_id=109493691]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 48" type="Area2D" parent="." unique_id=1380824850 instance=ExtResource("1_pwp5r")]
+position = Vector2(563.1541, 590.1333)
+script = ExtResource("2_lfvib")
+location_id = "loc48"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 48" unique_id=801840438]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 49" type="Area2D" parent="." unique_id=1619887597 instance=ExtResource("1_pwp5r")]
+position = Vector2(560.7893, 565.1162)
+script = ExtResource("2_lfvib")
+location_id = "loc49"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 49" unique_id=607387611]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 50" type="Area2D" parent="." unique_id=656793622 instance=ExtResource("1_pwp5r")]
+position = Vector2(560, 540)
+script = ExtResource("2_lfvib")
+location_id = "loc50"
+
+[node name="Label" type="Label" parent="Loc 50" unique_id=483363237]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 51" type="Area2D" parent="." unique_id=864109023 instance=ExtResource("1_pwp5r")]
+position = Vector2(560.7893, 514.8838)
+script = ExtResource("2_lfvib")
+location_id = "loc51"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 51" unique_id=172066304]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 52" type="Area2D" parent="." unique_id=1797950347 instance=ExtResource("1_pwp5r")]
+position = Vector2(563.1541, 489.8667)
+script = ExtResource("2_lfvib")
+location_id = "loc52"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 52" unique_id=1055903981]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 53" type="Area2D" parent="." unique_id=1111054835 instance=ExtResource("1_pwp5r")]
+position = Vector2(567.0851, 465.0475)
+script = ExtResource("2_lfvib")
+location_id = "loc53"
+
+[node name="Label" type="Label" parent="Loc 53" unique_id=1150537959]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 54" type="Area2D" parent="." unique_id=1418165055 instance=ExtResource("1_pwp5r")]
+position = Vector2(572.5668, 440.52405)
+script = ExtResource("2_lfvib")
+location_id = "loc54"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 54" unique_id=1757333909]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 55" type="Area2D" parent="." unique_id=1856328884 instance=ExtResource("1_pwp5r")]
+position = Vector2(579.5774, 416.3932)
+script = ExtResource("2_lfvib")
+location_id = "loc55"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 55" unique_id=1304540571]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 56" type="Area2D" parent="." unique_id=814426848 instance=ExtResource("1_pwp5r")]
+position = Vector2(588.0894, 392.75018)
+script = ExtResource("2_lfvib")
+location_id = "loc56"
+
+[node name="Label" type="Label" parent="Loc 56" unique_id=173528006]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 57" type="Area2D" parent="." unique_id=599785211 instance=ExtResource("1_pwp5r")]
+position = Vector2(598.0692, 369.6883)
+script = ExtResource("2_lfvib")
+location_id = "loc57"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 57" unique_id=736620675]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 58" type="Area2D" parent="." unique_id=1182956130 instance=ExtResource("1_pwp5r")]
+position = Vector2(609.4773, 347.29852)
+script = ExtResource("2_lfvib")
+location_id = "loc58"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 58" unique_id=946481542]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 59" type="Area2D" parent="." unique_id=1004375831 instance=ExtResource("1_pwp5r")]
+position = Vector2(622.2688, 325.66928)
+script = ExtResource("2_lfvib")
+location_id = "loc59"
+
+[node name="Label" type="Label" parent="Loc 59" unique_id=1108779440]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 60" type="Area2D" parent="." unique_id=398423263 instance=ExtResource("1_pwp5r")]
+position = Vector2(636.3932, 304.8859)
+script = ExtResource("2_lfvib")
+location_id = "loc60"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 60" unique_id=541226610]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 61" type="Area2D" parent="." unique_id=1057124896 instance=ExtResource("1_pwp5r")]
+position = Vector2(651.7947, 285.0304)
+script = ExtResource("2_lfvib")
+location_id = "loc61"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 61" unique_id=1593802076]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 62" type="Area2D" parent="." unique_id=409751116 instance=ExtResource("1_pwp5r")]
+position = Vector2(668.41254, 266.18115)
+script = ExtResource("2_lfvib")
+location_id = "loc62"
+
+[node name="Label" type="Label" parent="Loc 62" unique_id=1541336213]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 63" type="Area2D" parent="." unique_id=1838908726 instance=ExtResource("1_pwp5r")]
+position = Vector2(686.18115, 248.41254)
+script = ExtResource("2_lfvib")
+location_id = "loc63"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 63" unique_id=1517897852]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 64" type="Area2D" parent="." unique_id=1885520423 instance=ExtResource("1_pwp5r")]
+position = Vector2(705.0304, 231.79471)
+script = ExtResource("2_lfvib")
+location_id = "loc64"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 64" unique_id=1937440559]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 65" type="Area2D" parent="." unique_id=789160629 instance=ExtResource("1_pwp5r")]
+position = Vector2(724.88586, 216.39319)
+script = ExtResource("2_lfvib")
+location_id = "loc65"
+
+[node name="Label" type="Label" parent="Loc 65" unique_id=869912442]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 66" type="Area2D" parent="." unique_id=166852712 instance=ExtResource("1_pwp5r")]
+position = Vector2(745.6693, 202.26883)
+script = ExtResource("2_lfvib")
+location_id = "loc66"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 66" unique_id=1734887579]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 67" type="Area2D" parent="." unique_id=1014446684 instance=ExtResource("1_pwp5r")]
+position = Vector2(767.2985, 189.47733)
+script = ExtResource("2_lfvib")
+location_id = "loc67"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 67" unique_id=2069584955]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 68" type="Area2D" parent="." unique_id=918812134 instance=ExtResource("1_pwp5r")]
+position = Vector2(789.6883, 178.06918)
+script = ExtResource("2_lfvib")
+location_id = "loc68"
+
+[node name="Label" type="Label" parent="Loc 68" unique_id=932894653]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 69" type="Area2D" parent="." unique_id=1545291963 instance=ExtResource("1_pwp5r")]
+position = Vector2(812.7502, 168.08942)
+script = ExtResource("2_lfvib")
+location_id = "loc69"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 69" unique_id=1371365227]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 70" type="Area2D" parent="." unique_id=493942796 instance=ExtResource("1_pwp5r")]
+position = Vector2(836.3932, 159.5774)
+script = ExtResource("2_lfvib")
+location_id = "loc70"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 70" unique_id=947739079]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 71" type="Area2D" parent="." unique_id=1857268205 instance=ExtResource("1_pwp5r")]
+position = Vector2(860.52405, 152.56674)
+script = ExtResource("2_lfvib")
+location_id = "loc71"
+
+[node name="Label" type="Label" parent="Loc 71" unique_id=1724423118]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 72" type="Area2D" parent="." unique_id=1172122586 instance=ExtResource("1_pwp5r")]
+position = Vector2(885.0475, 147.08511)
+script = ExtResource("2_lfvib")
+location_id = "loc72"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 72" unique_id=690216154]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 73" type="Area2D" parent="." unique_id=1178120981 instance=ExtResource("1_pwp5r")]
+position = Vector2(909.8667, 143.15411)
+script = ExtResource("2_lfvib")
+location_id = "loc73"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 73" unique_id=577240372]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 74" type="Area2D" parent="." unique_id=1604071434 instance=ExtResource("1_pwp5r")]
+position = Vector2(934.8838, 140.7893)
+script = ExtResource("2_lfvib")
+location_id = "loc74"
+
+[node name="Label" type="Label" parent="Loc 74" unique_id=1692717720]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 75" type="Area2D" parent="." unique_id=1239854984 instance=ExtResource("1_pwp5r")]
+position = Vector2(960, 140)
+script = ExtResource("2_lfvib")
+location_id = "loc75"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 75" unique_id=654986925]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 76" type="Area2D" parent="." unique_id=1879402684 instance=ExtResource("1_pwp5r")]
+position = Vector2(985.1162, 140.7893)
+script = ExtResource("2_lfvib")
+location_id = "loc76"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 76" unique_id=196611821]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 77" type="Area2D" parent="." unique_id=1392851895 instance=ExtResource("1_pwp5r")]
+position = Vector2(1010.1333, 143.15411)
+script = ExtResource("2_lfvib")
+location_id = "loc77"
+
+[node name="Label" type="Label" parent="Loc 77" unique_id=2053077711]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 78" type="Area2D" parent="." unique_id=159794357 instance=ExtResource("1_pwp5r")]
+position = Vector2(1034.9525, 147.08511)
+script = ExtResource("2_lfvib")
+location_id = "loc78"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 78" unique_id=1023571003]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 79" type="Area2D" parent="." unique_id=1666850856 instance=ExtResource("1_pwp5r")]
+position = Vector2(1059.476, 152.56674)
+script = ExtResource("2_lfvib")
+location_id = "loc79"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 79" unique_id=261161468]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 80" type="Area2D" parent="." unique_id=793724272 instance=ExtResource("1_pwp5r")]
+position = Vector2(1083.6068, 159.5774)
+script = ExtResource("2_lfvib")
+location_id = "loc80"
+
+[node name="Label" type="Label" parent="Loc 80" unique_id=1501773329]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 81" type="Area2D" parent="." unique_id=1262763511 instance=ExtResource("1_pwp5r")]
+position = Vector2(1107.2498, 168.08942)
+script = ExtResource("2_lfvib")
+location_id = "loc81"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 81" unique_id=931130779]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 82" type="Area2D" parent="." unique_id=1712728534 instance=ExtResource("1_pwp5r")]
+position = Vector2(1130.3118, 178.06918)
+script = ExtResource("2_lfvib")
+location_id = "loc82"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 82" unique_id=719869423]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 83" type="Area2D" parent="." unique_id=873359340 instance=ExtResource("1_pwp5r")]
+position = Vector2(1152.7014, 189.47733)
+script = ExtResource("2_lfvib")
+location_id = "loc83"
+
+[node name="Label" type="Label" parent="Loc 83" unique_id=2013504396]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 84" type="Area2D" parent="." unique_id=1737585476 instance=ExtResource("1_pwp5r")]
+position = Vector2(1174.3307, 202.26883)
+script = ExtResource("2_lfvib")
+location_id = "loc84"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 84" unique_id=1100757608]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 85" type="Area2D" parent="." unique_id=1109198422 instance=ExtResource("1_pwp5r")]
+position = Vector2(1195.1141, 216.39319)
+script = ExtResource("2_lfvib")
+location_id = "loc85"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 85" unique_id=898520936]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 86" type="Area2D" parent="." unique_id=2015914004 instance=ExtResource("1_pwp5r")]
+position = Vector2(1214.9696, 231.79471)
+script = ExtResource("2_lfvib")
+location_id = "loc86"
+
+[node name="Label" type="Label" parent="Loc 86" unique_id=1765205969]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 87" type="Area2D" parent="." unique_id=1494821017 instance=ExtResource("1_pwp5r")]
+position = Vector2(1233.8188, 248.41254)
+script = ExtResource("2_lfvib")
+location_id = "loc87"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 87" unique_id=1168946453]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 88" type="Area2D" parent="." unique_id=2038785936 instance=ExtResource("1_pwp5r")]
+position = Vector2(1251.5874, 266.18115)
+script = ExtResource("2_lfvib")
+location_id = "loc88"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 88" unique_id=864653102]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 89" type="Area2D" parent="." unique_id=1262951934 instance=ExtResource("1_pwp5r")]
+position = Vector2(1268.2053, 285.0304)
+script = ExtResource("2_lfvib")
+location_id = "loc89"
+
+[node name="Label" type="Label" parent="Loc 89" unique_id=635584792]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 90" type="Area2D" parent="." unique_id=1703674719 instance=ExtResource("1_pwp5r")]
+position = Vector2(1283.6068, 304.8859)
+script = ExtResource("2_lfvib")
+location_id = "loc90"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 90" unique_id=191344163]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 91" type="Area2D" parent="." unique_id=1796524892 instance=ExtResource("1_pwp5r")]
+position = Vector2(1297.7312, 325.66928)
+script = ExtResource("2_lfvib")
+location_id = "loc91"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 91" unique_id=1461126240]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 92" type="Area2D" parent="." unique_id=1629052269 instance=ExtResource("1_pwp5r")]
+position = Vector2(1310.5227, 347.29852)
+script = ExtResource("2_lfvib")
+location_id = "loc92"
+
+[node name="Label" type="Label" parent="Loc 92" unique_id=962682558]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 93" type="Area2D" parent="." unique_id=1676628177 instance=ExtResource("1_pwp5r")]
+position = Vector2(1321.9308, 369.6883)
+script = ExtResource("2_lfvib")
+location_id = "loc93"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 93" unique_id=448675450]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 94" type="Area2D" parent="." unique_id=95961798 instance=ExtResource("1_pwp5r")]
+position = Vector2(1331.9106, 392.75018)
+script = ExtResource("2_lfvib")
+location_id = "loc94"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 94" unique_id=192056127]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 95" type="Area2D" parent="." unique_id=242004603 instance=ExtResource("1_pwp5r")]
+position = Vector2(1340.4226, 416.3932)
+script = ExtResource("2_lfvib")
+location_id = "loc95"
+
+[node name="Label" type="Label" parent="Loc 95" unique_id=256020414]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 96" type="Area2D" parent="." unique_id=135307989 instance=ExtResource("1_pwp5r")]
+position = Vector2(1347.4332, 440.52405)
+script = ExtResource("2_lfvib")
+location_id = "loc96"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 96" unique_id=83816943]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 97" type="Area2D" parent="." unique_id=206115415 instance=ExtResource("1_pwp5r")]
+position = Vector2(1352.9149, 465.0475)
+script = ExtResource("2_lfvib")
+location_id = "loc97"
+location_type = 1
+
+[node name="Label" type="Label" parent="Loc 97" unique_id=1337457262]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 98" type="Area2D" parent="." unique_id=1660183264 instance=ExtResource("1_pwp5r")]
+position = Vector2(1356.846, 489.8667)
+script = ExtResource("2_lfvib")
+location_id = "loc98"
+
+[node name="Label" type="Label" parent="Loc 98" unique_id=1579716109]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+
+[node name="Loc 99" type="Area2D" parent="." unique_id=1504338989 instance=ExtResource("1_pwp5r")]
+position = Vector2(1359.2107, 514.8838)
+script = ExtResource("2_lfvib")
+location_id = "loc99"
+location_type = 2
+
+[node name="Label" type="Label" parent="Loc 99" unique_id=95740505]
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 40.0
+horizontal_alignment = 1

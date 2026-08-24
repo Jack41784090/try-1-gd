@@ -10,64 +10,130 @@ const TOKEN_SCENE: PackedScene = preload("res://scenes/ui/maps/squad_token.tscn"
 
 @export var map_scene: PackedScene
 
+@export var tween_speed: float = 1.0
+
 var squad_resolver: Callable ## (squad_id: String) -> StrategySquad
 var distance_resolver: Callable ## (from_id: String, to_id: String) -> float
 
-var _marker_by_id: Dictionary = {}
-var _token_by_squad_id: Dictionary = {}
+@export var _marker_by_id: Dictionary = {}
+@export var _token_by_squad_id: Dictionary = {}
 
 
 func _ready() -> void:
 	assert(map_scene != null, "SquadMapView requires a map_scene")
+	
+	if get_parent() == get_tree().root:
+		LogGd.set_log_level(LogGd.Levels.DEBUG)
+
+	
 	var map := map_scene.instantiate()
 	add_child(map)
 	for child in map.get_children():
 		if child is LocationMarker:
 			_marker_by_id[child.location_id] = child
 
+#region On Visual Events
+func _on_squad_fights(attacker: StrategySquad, defender: StrategySquad, attacker_won: bool) -> void:
+	var attacker_token: SquadToken = _token_by_squad_id.get(attacker.squad_id)
+	var defender_token: SquadToken = _token_by_squad_id.get(defender.squad_id)
+	if attacker_token == null or defender_token == null:
+		return
+
+	var winner_token: SquadToken = attacker_token if attacker_won else defender_token
+	var loser_token: SquadToken = defender_token if attacker_won else attacker_token
+
+	var loser_tween := _flash_red_and_recoil(loser_token, winner_token.position)
+	var winner_tween := _lunge_and_return(winner_token, loser_token.position)
+	await loser_tween.finished
+	await winner_tween.finished
 
 func _on_squad_registered(squad: StrategySquad) -> void:
-	_refresh_token(squad)
+	var token = _create_token(squad)
+	token.position = _point_along_route(squad.travel_route, _route_covered_km(squad), _route_total_km(squad))
 
 
 func _on_squad_unregistered(squad_id: String) -> void:
 	var token: Node2D = _token_by_squad_id.get(squad_id)
-	if token != null:
+	if token:
+		var tween = get_tree().create_tween()
+		tween.tween_property(token, "modulate", Color.TRANSPARENT, tween_speed)
+		await tween.finished
 		token.queue_free()
 		_token_by_squad_id.erase(squad_id)
 
 
 func _on_travel_progress(squad_id: String, current_km: float, total_km: float, _destination_name: String) -> void:
 	var squad := squad_resolver.call(squad_id) as StrategySquad
-	if squad != null:
-		_refresh_token(squad, current_km, total_km)
+	if squad: _refresh_token(squad, current_km, total_km)
 
 
 func _on_location_changed(squad_id: String, _from_id: String, _to_id: String) -> void:
 	var squad := squad_resolver.call(squad_id) as StrategySquad
 	if squad != null:
 		_refresh_token(squad)
+#endregion
+
+#region Token Manipulations
+func _tween_movement(token: SquadToken, new_pos: Vector2) -> void:
+	var tween = get_tree().create_tween()
+	tween.tween_property(token, "position", new_pos, tween_speed)
+	await tween.finished
 
 
-func _refresh_token(squad: StrategySquad, covered_km: float = -1.0, total_km: float = -1.0) -> void:
-	if not squad.is_traveling():
-		_on_squad_unregistered(squad.squad_id)
-		return
+func _flash_red_and_recoil(token: SquadToken, opponent_pos: Vector2) -> Tween:
+	var original_pos := token.position
+	var away_dir := (original_pos - opponent_pos).normalized()
+	if away_dir.is_zero_approx():
+		away_dir = Vector2.RIGHT
+	var recoil_pos := original_pos + away_dir * 30.0
+	var original_modulate := token.sprite.modulate
 
+	var tween := get_tree().create_tween()
+	tween.set_parallel()
+	tween.tween_property(token.sprite, "modulate", Color.RED, tween_speed * 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(token, "position", recoil_pos, tween_speed * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.chain()
+	tween.tween_property(token.sprite, "modulate", original_modulate, tween_speed * 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(token, "position", original_pos, tween_speed * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	return tween
+
+
+func _lunge_and_return(token: SquadToken, opponent_pos: Vector2) -> Tween:
+	var original_pos := token.position
+	var toward_dir := (opponent_pos - original_pos).normalized()
+	if toward_dir.is_zero_approx():
+		toward_dir = Vector2.LEFT
+	var lunge_pos := original_pos + toward_dir * 20.0
+
+	var tween := get_tree().create_tween()
+	tween.tween_property(token, "position", lunge_pos, tween_speed * 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(token, "position", original_pos, tween_speed * 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	return tween
+
+
+func _create_token(squad: StrategySquad) -> SquadToken:
 	var token: SquadToken = _token_by_squad_id.get(squad.squad_id)
 	if token == null:
 		token = TOKEN_SCENE.instantiate()
 		add_child(token)
 		token.setup(squad)
 		_token_by_squad_id[squad.squad_id] = token
-
-	if covered_km < 0.0:
-		covered_km = _route_covered_km(squad)
-	if total_km < 0.0:
-		total_km = _route_total_km(squad)
-	token.position = _point_along_route(squad.travel_route, covered_km, total_km)
+	return token;
 
 
+func _refresh_token(squad: StrategySquad, covered_km: float = -1.0, total_km: float = -1.0) -> void:
+	if squad.is_traveling():
+		var token = _create_token(squad)
+		if covered_km < 0.0:
+			covered_km = _route_covered_km(squad)
+		if total_km < 0.0:
+			total_km = _route_total_km(squad)
+		_tween_movement(token, _point_along_route(squad.travel_route, covered_km, total_km))
+	else:
+		_on_squad_unregistered(squad.squad_id)
+#endregion
+
+#region Calculations
 func _route_total_km(squad: StrategySquad) -> float:
 	var total := 0.0
 	for i in range(squad.travel_route.size() - 1):
@@ -103,3 +169,4 @@ func _point_along_route(route: Array[String], covered_km: float, total_km: float
 			return pts[i].lerp(pts[i + 1], target / seg if seg > 0.0 else 0.0)
 		target -= seg
 	return pts[-1]
+#endregion

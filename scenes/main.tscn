@@ -7,9 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://c807f6rc0ad8f" path="res://scenes/comp.timer_system.tscn" id="4_jyhfs"]
 [ext_resource type="Script" uid="uid://cjx0nu84jgyen" path="res://src/entity_root.gd" id="4_tefeu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/maps/squad_map_view.tscn" id="5_mapview"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_tefeu"]
-load_path = "res://.godot/imported/icon.svg-56083ea2a1f1a4f1e49773bdc6d7826c.s3tc.ctex"
+[ext_resource type="PackedScene" path="res://scenes/ui/maps/stress_test_map.tscn" id="6_stressmap"]
 
 [node name="MainGame" type="Node" unique_id=303385126]
 process_mode = 3
@@ -27,11 +25,8 @@ script = ExtResource("3_tbgi4")
 [node name="EntityRoot" type="Node2D" parent="World" unique_id=1044873089]
 script = ExtResource("4_tefeu")
 
-[node name="Map" parent="World/EntityRoot" instance=ExtResource("5_mapview")]
-
-[node name="Sprite2D" type="Sprite2D" parent="World/EntityRoot" unique_id=276661081]
-position = Vector2(1498, 690)
-texture = SubResource("CompressedTexture2D_tefeu")
+[node name="Map" parent="World/EntityRoot" unique_id=289382006 instance=ExtResource("5_mapview")]
+map_scene = ExtResource("6_stressmap")
 
 [node name="EffectsRoot" type="Node2D" parent="World" unique_id=1706420378]
 
@@ -51,6 +46,8 @@ grow_vertical = 2
 [node name="TimerHud" parent="HudLayer/Root" unique_id=456885018 instance=ExtResource("4_jyhfs")]
 layout_mode = 0
 anchors_preset = 0
+anchor_right = 0.0
+grow_horizontal = 1
 
 [node name="PauseLayer" type="CanvasLayer" parent="." unique_id=1139956645]
 process_mode = 2
