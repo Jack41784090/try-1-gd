@@ -1,3 +1,4 @@
+@tool
 extends Node
 @onready var level_root: Node2D = $World/LevelRoot
 @onready var entity_root: Node2D = $World/EntityRoot
@@ -9,15 +10,35 @@ extends Node
 @onready var systems: SystemsRoot = $Systems
 @onready var hud_layer: HudLayerRoot = $HudLayer
 
+## Boots main.tscn straight into debug_scenario's data on _ready(). Off by default so
+## main.tscn stays inert until a production caller drives load_scenario() with real data.
+@export var DEBUG: bool = false:
+	set(value):
+		DEBUG = value
+		notify_property_list_changed()
+
+## Which scenario to load when DEBUG is on. Swap for a different DebugScenario Resource to
+## boot a different debug setup — e.g. prototype-sandbox.tres (small 2-location sandbox) instead
+## of this 100-location trade-network stress test. Only shown in the Inspector while DEBUG is on
+## — see _validate_property().
+@export var debug_scenario: DebugScenario = preload("res://resources/strategy/scenarios/debug/stress-test-trade.tres")
+
 var scenario: GameScenario
 
 
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "debug_scenario" and not DEBUG:
+		property.usage &= ~PROPERTY_USAGE_EDITOR
+
+
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
 	systems.setup()
 	hud_layer.setup()
 	systems.debug_command_system.command_dispatched.connect(_on_debug_command_dispatched)
-	#_run_prototype_tests()
-	load_prototype_scenario()
+	if DEBUG:
+		load_debug_scenario()
 
 
 func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad]) -> void:
@@ -40,6 +61,11 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 		systems.location_eco_system.register_location(loc, _build_crafting_guilds(loc), loc.consumer_demand)
 	#endregion
 
+	#region trivial connections
+	systems.clock_system.speed_changed.connect(func(_new_hps: float):
+		map_view.tween_speed = 1 / _new_hps
+		pass)
+	#endregion
 	systems.clock_system.hour_changed.connect(systems.caravan_eco_system._on_hour_changed)
 	systems.caravan_eco_system.location_arrived.connect(systems.location_eco_system._on_location_arrived)
 	# The composition root is the only place allowed to know both sides: the
@@ -88,10 +114,16 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 	systems.squad_acting_system.squad_unregistered.connect(map_view._on_squad_unregistered)
 	systems.travel_system.travel_progress_updated.connect(map_view._on_travel_progress)
 	systems.travel_system.location_changed.connect(map_view._on_location_changed)
+	systems.battle_resolution_system.battle_resolved.connect(
+		func(attacker: StrategySquad, defender: StrategySquad, result: CombatController.CombatResult) -> void:
+			map_view._on_squad_fights(attacker, defender, result.victory)
+	)
 	#endregion
 
 	systems.sin_inhering_system.spawn_triggered.connect(systems.monster_spawn_system._on_spawn_triggered)
-	systems.monster_spawn_system.squad_spawned.connect(_on_monster_squad_spawned)
+	systems.monster_spawn_system.squad_spawned.connect(func(_s: StrategySquad):
+		scenario.world.add_roaming_squad(_s)
+		systems.squad_acting_system.register_squad(_s))
 	systems.clock_system.hour_changed.connect(systems.sin_inhering_system.on_hour_pass)
 	systems.debug_command_system.setup(_load_default_commands(), {
 		&"squad": func(token: String) -> StrategySquad: return systems.squad_acting_system.get_squad(token),
@@ -118,19 +150,12 @@ func load_scenario(scenario_to_load: GameScenario, squads: Array[StrategySquad])
 	
 	LogGd.info("load done")
 
-func load_prototype_scenario() -> Array[StrategySquad]:
-	var squads: Array[StrategySquad] = [
-		_build_test_squad("wanderer", "Wanderer Squad", "alpha"),
-		_build_test_squad("forager", "Forager Squad", "alpha"),
-		_build_test_squad("commander", "Commander Squad", "alpha"),
-		ResourceLoader.load("res://resources/strategy/squads-presets/test-player-squad-full.tres"),
-		ResourceLoader.load("res://resources/strategy/squads-presets/test-squad-bandits.tres"),
-	]
-	load_scenario(_build_test_scenario(), squads)
-	# Provisions a multi-day trading session so food never interrupts (3 warriors eat 15/hour).
-	squads[3].food = 1500
-	# Preset squads carry no current_location_id (only the factory-built ones do).
-	squads[3].current_location_id = "alpha"
+## Thin wrapper: debug_scenario owns fixing up what a .tres can't round-trip (see
+## DebugScenario.prepare()), so this production script never depends on test-only data.
+func load_debug_scenario() -> Array[StrategySquad]:
+	assert(debug_scenario != null, "DEBUG is on but no debug_scenario Resource is assigned")
+	var squads := debug_scenario.prepare()
+	load_scenario(debug_scenario.scenario, squads)
 	# systems.clock_system.pause()
 	return squads
 
@@ -165,182 +190,3 @@ func _on_debug_command_dispatched(target_system_name: StringName, target_signal_
 		target.callv(target_signal_name, args)
 	else:
 		LogGd.warn("[Main] debug command target '%s' has no signal or method '%s'" % [target_system_name, target_signal_name])
-
-
-func _on_monster_squad_spawned(squad: StrategySquad) -> void:
-	scenario.world.add_roaming_squad(squad)
-	# One registration step: the squad already carries its brain (attached by
-	# MonsterSpawnSystem), so SquadActingSystem.register_squad() covers both
-	# the being-map entry and AI control.
-	systems.squad_acting_system.register_squad(squad)
-
-
-
-
-#region Prototype tests (no demo files/scenes — run inline against main.tscn)
-
-var _test_failures: Array[String] = []
-
-
-func _run_prototype_tests() -> void:
-	LogGd.info("=== Systems prototype test (ClockSystem -> SquadActingSystem -> ActivityRunSystem -> {SquadTravelSystem, BattleResolutionSystem}) ===")
-
-	var squads := load_prototype_scenario()
-	var wanderer := squads[0]
-	var forager := squads[1]
-	var commander := squads[2]
-	var attacker := squads[3]
-	var bandits := squads[4]
-
-	systems.travel_system.location_changed.connect(
-		func(squad_id, from_id, to_id): LogGd.info("[Test] location_changed: %s %s -> %s" % [squad_id, from_id, to_id])
-	)
-	systems.activity_run_system.activity_resolved.connect(
-		func(squad, activity, results): LogGd.info("[Test] activity_resolved: %s ran %s -> %d result(s)" % [
-			squad.squad_name, StrategyTypes.ActivityType.keys()[activity.activity_type], results.size(),
-		])
-	)
-	systems.battle_system.battle_resolved.connect(
-		func(a, d, result): LogGd.info("[Test] battle_resolved: %s vs %s -> %s" % [a.squad_name, d.squad_name, result])
-	)
-	wanderer.current_activity_type = StrategyTypes.ActivityType.TRAVEL
-	systems.travel_system.begin_travel(wanderer, "beta")
-
-	forager.current_activity_type = StrategyTypes.ActivityType.FORAGE
-	var food_before := forager.food
-
-	# Same journey as `wanderer`, but driven through the HUD -> DebugCommandSystem pipeline to prove the command bar's full round trip.
-	LogGd.info("[Test] issuing debug command: /travel commander beta")
-	hud_layer.command_bar_hud.command_submitted.emit("/travel commander beta")
-
-	# Tick 1 only registers the journey; arrival lands on hour 3 (10km/h, 20km apart, after two advance_travel calls).
-	for i in range(3):
-		systems.clock_system.force_tick()
-		await get_tree().process_frame
-
-	_check("wanderer arrived at beta", wanderer.current_location_id == "beta")
-	_check("forager gained food while foraging at a VILLAGE", forager.food > food_before)
-	_check("commander arrived at beta via /travel debug command", commander.current_location_id == "beta")
-
-	LogGd.info("[Test] resolving direct battle: %s vs %s" % [attacker.squad_name, bandits.squad_name])
-	var result: CombatController.CombatResult = await systems.battle_system.resolve_combat(attacker, bandits)
-	_check("battle produced a CombatResult", result != null)
-	_check("battle ran at least one turn or ended in flee/negotiate", result.turns_elapsed > 0 or result.fled or result.negotiated)
-
-	if _test_failures.is_empty():
-		LogGd.info("[Test] ALL PASSED")
-	else:
-		LogGd.error("[Test] %d FAILURE(S): %s" % [_test_failures.size(), _test_failures])
-
-	if OS.has_feature("headless"):
-		get_tree().quit(0 if _test_failures.is_empty() else 1)
-
-
-func _check(label: String, condition: bool) -> void:
-	if condition:
-		LogGd.info("[Test]   ok: %s" % label)
-	else:
-		_test_failures.append(label)
-		LogGd.error("[Test]   FAIL: %s" % label)
-
-
-## Bypasses GameScenario._setup(), which has a pre-existing bug calling .set_location() on the typed-as-Resource starting_player_squad; unneeded here since squads are owned by SquadActingSystem instead.
-func _build_test_scenario() -> GameScenario:
-	var scenario := GameScenario.new()
-	scenario.world = _build_test_world()
-	scenario.starting_location_id = "alpha"
-	scenario.triggerable_manager = TriggerableManager.new()
-	## ACTIVITY_REGISTRY.load_all_blocking() hits stale UIDs here (pre-existing YARD headless bug); loading the two needed resources directly by path sidesteps it.
-	scenario.triggerable_manager.register(load("res://resources/strategy/generic-activities/travelling/travel.tres"))
-	scenario.triggerable_manager.register(load("res://resources/strategy/generic-activities/forage/forage.tres"))
-	return scenario
-
-
-func _build_test_world() -> World:
-	var world := World.new()
-	world.current_hour = 0
-
-	# Merchant-sandbox economy: Alpha is a farming village (grain surplus, tools-starved), Beta a craft city (the reverse) — price gaps emerge from the hourly supply/demand formula.
-	var grain := Thing.create("grain", "Grain", EconomyTypes.ThingType.FOOD, 2.0)
-	var tools := Thing.create("tools", "Tools", EconomyTypes.ThingType.TOOLS, 10.0)
-	world.goods = [grain, tools]
-
-	var alpha := Location.new()
-	alpha.location_id = "alpha"
-	alpha.location_name = "Alpha"
-	alpha.type = StrategyTypes.LocationType.VILLAGE
-	alpha.development = 30
-	alpha.stability = 60.0
-	alpha.inventory = LocationInventory.new() ## LocationEconomySystem reads loc.inventory each hour
-	alpha.natural_resources = [
-		NaturalResource.create(grain, 13.0),
-		NaturalResource.create_craft(tools, 1.0),
-	]
-	alpha.consumer_demand = {
-		grain: {"qty": 12.0, "priority": 8.0},
-		tools: {"qty": 5.0, "priority": 8.0},
-	}
-	alpha.inventory.init_thing(grain, 40.0)
-	alpha.inventory.init_thing(tools, 0.0)
-	alpha.add_connection("beta", 20.0)
-	# PopulationSystem drives consumer demand from real individuals — mostly peasants with a couple of landlords, matching Alpha's farming-village type.
-	alpha.population_config = PopulationConfig.new()
-	alpha.population_config.groups = [
-		PopulationGroup.create(10, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.FARMER, 2.0),
-		PopulationGroup.create(2, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 20.0),
-	]
-	alpha.population = alpha.population_config.build_population(alpha.location_id)
-
-	var beta := Location.new()
-	beta.location_id = "beta"
-	beta.location_name = "Beta"
-	beta.type = StrategyTypes.LocationType.CITY
-	beta.development = 50
-	beta.stability = 80.0
-	beta.inventory = LocationInventory.new()
-	beta.natural_resources = [
-		NaturalResource.create_craft(tools, 5.0),
-		NaturalResource.create(grain, 2.0),
-	]
-	beta.consumer_demand = {
-		grain: {"qty": 10.0, "priority": 8.0},
-		tools: {"qty": 3.0, "priority": 8.0},
-	}
-	beta.inventory.init_thing(tools, 12.0)
-	beta.inventory.init_thing(grain, 0.0)
-	beta.add_connection("alpha", 20.0)
-	# Bourgeois-heavy population, matching Beta's craft-city type — should show up hungrier and more elastic on Tools than Alpha's.
-	beta.population_config = PopulationConfig.new()
-	beta.population_config.groups = [
-		PopulationGroup.create(8, EconomyTypes.SocialClass.BOURGEOIS, EconomyTypes.JobType.CRAFTSMAN, 10.0),
-		PopulationGroup.create(3, EconomyTypes.SocialClass.PEASANT, EconomyTypes.JobType.LABORER, 1.0),
-		PopulationGroup.create(1, EconomyTypes.SocialClass.NOBLE, EconomyTypes.JobType.LANDLORD, 30.0),
-	]
-	beta.population = beta.population_config.build_population(beta.location_id)
-
-	world.add_location(alpha)
-	world.add_location(beta)
-	world.build_travel_graph()
-	return world
-
-
-func _build_test_squad(squad_id: String, squad_name: String, location_id: String) -> StrategySquad:
-	var res := StrategyEntityResource.new()
-	res.name = "%s Warrior" % squad_name
-	res.social_class = StrategyTypes.SocialClass.SOLDIER
-
-	var speed_stat := ReactiveStat.new()
-	speed_stat.stat_name = StatName.I.MV_SPD
-	speed_stat.stat_value = 10.0
-	var morale_stat := ReactiveStat.new()
-	morale_stat.stat_name = StatName.I.MORALE
-	morale_stat.stat_value = 1.0
-	res.rs_array = [speed_stat, morale_stat]
-
-	var warrior := Character.new(StrategyEntity.new(res))
-
-	var squad := SquadDataFactory.create_squad(squad_id, squad_name, 100.0, 10, 5, 0.0, location_id, location_id)
-	squad.add_warrior(warrior)
-	return squad
-
-#endregion

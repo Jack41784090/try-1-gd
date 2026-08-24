@@ -1,0 +1,562 @@
+[gd_resource type="Resource" script_class="DebugScenario" format=3 uid="uid://dysdfx4n4c6ju"]
+
+[ext_resource type="Script" uid="uid://b1oewsug2c7mh" path="res://src/strategy/core/triggerable/ending/script.gd" id="1_y07n7"]
+[ext_resource type="Script" uid="uid://bcbf28h1wrvnl" path="res://src/strategy/core/faction.gd" id="2_1pna3"]
+[ext_resource type="Script" uid="uid://b8v78nfsqo6fm" path="res://src/strategy/core/scenario.gd" id="3_sa4io"]
+[ext_resource type="Script" uid="uid://ducmw8b2bkj4x" path="res://src/economy/thing.gd" id="4_ibb1l"]
+[ext_resource type="Script" uid="uid://br8diy4ooe5b3" path="res://src/economy/thing_input.gd" id="5_n4pje"]
+[ext_resource type="Script" uid="uid://cwpisdrfllwik" path="res://src/strategy/core/town/location.gd" id="6_ecp5x"]
+[ext_resource type="Script" uid="uid://bdqv2c0e2xsvs" path="res://src/strategy/core/clue.gd" id="7_0x17x"]
+[ext_resource type="Script" uid="uid://vgwgx2k2ibcn" path="res://src/strategy/core/town/connections.gd" id="8_uo8mj"]
+[ext_resource type="Script" uid="uid://6qv6kwo7x3vm" path="res://src/strategy/core/town/connection.gd" id="9_2bkem"]
+[ext_resource type="Script" uid="uid://cd5tc80ro1kvg" path="res://src/economy/guild_config.gd" id="10_dx77s"]
+[ext_resource type="Script" uid="uid://c600uhd2rh4ps" path="res://src/economy/stock_entry.gd" id="11_l1ox5"]
+[ext_resource type="Script" uid="uid://sp4ar6jpaygh" path="res://src/economy/location_inventory.gd" id="12_t56ch"]
+[ext_resource type="Script" uid="uid://c8huja3ryjk0f" path="res://src/economy/natural_resource.gd" id="13_5rjcw"]
+[ext_resource type="Script" uid="uid://55odovcve3k4" path="res://src/economy/population.gd" id="14_27jjq"]
+[ext_resource type="Script" uid="uid://duuy6w3kwwcl" path="res://src/economy/population_group.gd" id="15_5cx2a"]
+[ext_resource type="Script" uid="uid://b1vg7skgpphff" path="res://src/economy/population_config.gd" id="16_oeeub"]
+[ext_resource type="Script" uid="uid://c7nmmrwqy6hlh" path="res://src/strategy/core/world.gd" id="17_ausdm"]
+[ext_resource type="Script" uid="uid://dp8ksmxelb3v0" path="res://src/debug_scenario.gd" id="18_w8hny"]
+[ext_resource type="Script" uid="uid://cjilk34mc47ja" path="res://src/squad/social.gd" id="19_1pdgr"]
+[ext_resource type="Script" uid="uid://cmp8q7xe0kf7r" path="res://src/squad_battle/items/armor/resource.gd" id="20_cq207"]
+[ext_resource type="Script" uid="uid://bhskd5mgwjl6k" path="res://src/strategy/core/inventory.gd" id="21_2pp8n"]
+[ext_resource type="Script" uid="uid://bbuqprgu6l833" path="res://src/squad_battle/items/weapon/resource.gd" id="22_j5id2"]
+[ext_resource type="Script" uid="uid://bvueo5thigtj3" path="res://src/character/character.gd" id="23_ycpy2"]
+[ext_resource type="Script" uid="uid://d2htk7jkqyc8k" path="res://src/test_reactive_stat.gd" id="24_c3o42"]
+[ext_resource type="Script" uid="uid://caiy8nrf8p8cv" path="res://src/character/strat_resource.gd" id="25_ywmdq"]
+[ext_resource type="Script" uid="uid://daf2liv8hyncx" path="res://src/character/strat.gd" id="26_tx0ue"]
+[ext_resource type="Resource" uid="uid://cob1exkhexah3" path="res://resources/strategy/warrior-presets/test-Siegmund.tres" id="27_jpq8j"]
+[ext_resource type="Resource" uid="uid://b1ky46cluj0on" path="res://resources/combat/weapon/config/flammenschwert.tres" id="28_ct6du"]
+[ext_resource type="Resource" uid="uid://bkwp3mnh5rxjd" path="res://resources/combat/armor/leather-armor.tres" id="29_whrr4"]
+
+[sub_resource type="Resource" id="Resource_hbt6v"]
+script = ExtResource("4_ibb1l")
+thing_id = "grain"
+thing_name = "Grain"
+base_price = 2.0
+
+[sub_resource type="Resource" id="Resource_kgcln"]
+script = ExtResource("4_ibb1l")
+thing_id = "tools"
+thing_name = "Tools"
+thing_type = 3
+base_price = 10.0
+
+[sub_resource type="Resource" id="Resource_0inxq"]
+script = ExtResource("9_2bkem")
+from_location_id = "alpha"
+to_location_id = "beta"
+distance_km = 20.0
+
+[sub_resource type="Resource" id="Resource_0qiuq"]
+script = ExtResource("8_uo8mj")
+tt = Array[ExtResource("9_2bkem")]([SubResource("Resource_0inxq")])
+
+[sub_resource type="Resource" id="Resource_7qv2v"]
+script = ExtResource("12_t56ch")
+
+[sub_resource type="Resource" id="Resource_wt6aj"]
+script = ExtResource("13_5rjcw")
+thing = SubResource("Resource_hbt6v")
+base_capacity = 13.0
+
+[sub_resource type="Resource" id="Resource_728sx"]
+script = ExtResource("13_5rjcw")
+thing = SubResource("Resource_kgcln")
+base_capacity = 1.0
+worker_job = 3
+workers_needed = 20.0
+
+[sub_resource type="Resource" id="Resource_53a70"]
+script = ExtResource("14_27jjq")
+
+[sub_resource type="Resource" id="Resource_krhy4"]
+script = ExtResource("15_5cx2a")
+count = 10
+starting_money = 2.0
+
+[sub_resource type="Resource" id="Resource_ul0na"]
+script = ExtResource("15_5cx2a")
+count = 2
+social_class = 2
+job = 2
+starting_money = 20.0
+
+[sub_resource type="Resource" id="Resource_wc7mg"]
+script = ExtResource("16_oeeub")
+groups = Array[ExtResource("15_5cx2a")]([SubResource("Resource_krhy4"), SubResource("Resource_ul0na")])
+
+[sub_resource type="Resource" id="Resource_vrrw7"]
+script = ExtResource("6_ecp5x")
+development = 30
+stability = 60.0
+consumer_demand = {
+SubResource("Resource_hbt6v"): {
+"priority": 8.0,
+"qty": 12.0
+},
+SubResource("Resource_kgcln"): {
+"priority": 8.0,
+"qty": 5.0
+}
+}
+location_id = "alpha"
+location_name = "Alpha"
+connections = SubResource("Resource_0qiuq")
+natural_resources = Array[ExtResource("13_5rjcw")]([SubResource("Resource_wt6aj"), SubResource("Resource_728sx")])
+inventory = SubResource("Resource_7qv2v")
+population_config = SubResource("Resource_wc7mg")
+population = SubResource("Resource_53a70")
+
+[sub_resource type="Resource" id="Resource_sdpag"]
+script = ExtResource("9_2bkem")
+from_location_id = "beta"
+to_location_id = "alpha"
+distance_km = 20.0
+
+[sub_resource type="Resource" id="Resource_orvvt"]
+script = ExtResource("8_uo8mj")
+tt = Array[ExtResource("9_2bkem")]([SubResource("Resource_sdpag")])
+
+[sub_resource type="Resource" id="Resource_wxcv2"]
+script = ExtResource("12_t56ch")
+
+[sub_resource type="Resource" id="Resource_8b6bt"]
+script = ExtResource("13_5rjcw")
+thing = SubResource("Resource_kgcln")
+base_capacity = 5.0
+worker_job = 3
+workers_needed = 20.0
+
+[sub_resource type="Resource" id="Resource_1x2s4"]
+script = ExtResource("13_5rjcw")
+thing = SubResource("Resource_hbt6v")
+base_capacity = 2.0
+
+[sub_resource type="Resource" id="Resource_122b3"]
+script = ExtResource("14_27jjq")
+
+[sub_resource type="Resource" id="Resource_kb7fe"]
+script = ExtResource("15_5cx2a")
+count = 8
+social_class = 1
+job = 3
+starting_money = 10.0
+
+[sub_resource type="Resource" id="Resource_4og3i"]
+script = ExtResource("15_5cx2a")
+count = 3
+job = 4
+starting_money = 1.0
+
+[sub_resource type="Resource" id="Resource_3ef48"]
+script = ExtResource("15_5cx2a")
+count = 1
+social_class = 2
+job = 2
+starting_money = 30.0
+
+[sub_resource type="Resource" id="Resource_qe33x"]
+script = ExtResource("16_oeeub")
+groups = Array[ExtResource("15_5cx2a")]([SubResource("Resource_kb7fe"), SubResource("Resource_4og3i"), SubResource("Resource_3ef48")])
+
+[sub_resource type="Resource" id="Resource_xmjhn"]
+script = ExtResource("6_ecp5x")
+stability = 80.0
+consumer_demand = {
+SubResource("Resource_hbt6v"): {
+"priority": 8.0,
+"qty": 10.0
+},
+SubResource("Resource_kgcln"): {
+"priority": 8.0,
+"qty": 3.0
+}
+}
+location_id = "beta"
+location_name = "Beta"
+type = 0
+connections = SubResource("Resource_orvvt")
+natural_resources = Array[ExtResource("13_5rjcw")]([SubResource("Resource_8b6bt"), SubResource("Resource_1x2s4")])
+inventory = SubResource("Resource_wxcv2")
+population_config = SubResource("Resource_qe33x")
+population = SubResource("Resource_122b3")
+
+[sub_resource type="Resource" id="Resource_bb3bq"]
+script = ExtResource("17_ausdm")
+locations = Array[ExtResource("6_ecp5x")]([SubResource("Resource_vrrw7"), SubResource("Resource_xmjhn")])
+goods = Array[ExtResource("4_ibb1l")]([SubResource("Resource_hbt6v"), SubResource("Resource_kgcln")])
+
+[sub_resource type="Resource" id="Resource_2jon8"]
+script = ExtResource("3_sa4io")
+starting_location_id = "alpha"
+world = SubResource("Resource_bb3bq")
+
+[sub_resource type="Resource" id="Resource_1l6ij"]
+script = ExtResource("21_2pp8n")
+
+[sub_resource type="Resource" id="Resource_3fcjg"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_p3lg7"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_artcs"]
+script = ExtResource("25_ywmdq")
+name = "Wanderer Squad Warrior"
+social_class = 1
+rs_array = Array[ExtResource("24_c3o42")]([SubResource("Resource_3fcjg"), SubResource("Resource_p3lg7")])
+
+[sub_resource type="Resource" id="Resource_pc6wy"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_aqi58"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_1c55c"]
+script = ExtResource("26_tx0ue")
+display_name = "Wanderer Squad Warrior"
+resource = SubResource("Resource_artcs")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_pc6wy"),
+1: SubResource("Resource_aqi58")
+})
+id = "1001336_2975555387"
+
+[sub_resource type="Resource" id="Resource_foa5c"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_1c55c")
+
+[sub_resource type="Resource" id="Resource_r5tr3"]
+script = ExtResource("19_1pdgr")
+squad_id = "wanderer"
+squad_name = "Wanderer Squad"
+warriors = Array[ExtResource("23_ycpy2")]([SubResource("Resource_foa5c")])
+food = 10
+formation = Array[int]([1])
+starting_location_id = "alpha"
+inventory = SubResource("Resource_1l6ij")
+
+[sub_resource type="Resource" id="Resource_gxlrr"]
+script = ExtResource("21_2pp8n")
+
+[sub_resource type="Resource" id="Resource_5ouxm"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_onve2"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_hyyqv"]
+script = ExtResource("25_ywmdq")
+name = "Forager Squad Warrior"
+social_class = 1
+rs_array = Array[ExtResource("24_c3o42")]([SubResource("Resource_5ouxm"), SubResource("Resource_onve2")])
+
+[sub_resource type="Resource" id="Resource_10ul1"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_f3u2l"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_qhtib"]
+script = ExtResource("26_tx0ue")
+display_name = "Forager Squad Warrior"
+resource = SubResource("Resource_hyyqv")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_10ul1"),
+1: SubResource("Resource_f3u2l")
+})
+id = "1001403_2318950707"
+
+[sub_resource type="Resource" id="Resource_koixn"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_qhtib")
+
+[sub_resource type="Resource" id="Resource_kjmui"]
+script = ExtResource("19_1pdgr")
+squad_id = "forager"
+squad_name = "Forager Squad"
+warriors = Array[ExtResource("23_ycpy2")]([SubResource("Resource_koixn")])
+food = 10
+formation = Array[int]([1])
+starting_location_id = "alpha"
+inventory = SubResource("Resource_gxlrr")
+
+[sub_resource type="Resource" id="Resource_tlerh"]
+script = ExtResource("21_2pp8n")
+
+[sub_resource type="Resource" id="Resource_yba7t"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_b5374"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_5ilyc"]
+script = ExtResource("25_ywmdq")
+name = "Commander Squad Warrior"
+social_class = 1
+rs_array = Array[ExtResource("24_c3o42")]([SubResource("Resource_yba7t"), SubResource("Resource_b5374")])
+
+[sub_resource type="Resource" id="Resource_uhkyd"]
+script = ExtResource("24_c3o42")
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_s7nac"]
+script = ExtResource("24_c3o42")
+stat_value = 10.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_3t2bx"]
+script = ExtResource("26_tx0ue")
+display_name = "Commander Squad Warrior"
+resource = SubResource("Resource_5ilyc")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_uhkyd"),
+1: SubResource("Resource_s7nac")
+})
+id = "1001464_4151509956"
+
+[sub_resource type="Resource" id="Resource_tjw3j"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_3t2bx")
+
+[sub_resource type="Resource" id="Resource_hfceq"]
+script = ExtResource("19_1pdgr")
+squad_id = "commander"
+squad_name = "Commander Squad"
+warriors = Array[ExtResource("23_ycpy2")]([SubResource("Resource_tjw3j")])
+food = 10
+formation = Array[int]([1])
+starting_location_id = "alpha"
+inventory = SubResource("Resource_tlerh")
+
+[sub_resource type="Resource" id="Resource_w4v87"]
+script = ExtResource("21_2pp8n")
+
+[sub_resource type="Resource" id="Resource_6agfa"]
+script = ExtResource("24_c3o42")
+stat_value = 0.8
+
+[sub_resource type="Resource" id="Resource_rrcm5"]
+script = ExtResource("24_c3o42")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_hxxtk"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("28_ct6du")
+stat_name = 2
+
+[sub_resource type="Resource" id="Resource_xb4nt"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("29_whrr4")
+stat_name = 3
+
+[sub_resource type="Resource" id="Resource_0giti"]
+script = ExtResource("26_tx0ue")
+display_name = "Siegmund"
+resource = ExtResource("27_jpq8j")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_6agfa"),
+1: SubResource("Resource_rrcm5"),
+2: SubResource("Resource_hxxtk"),
+3: SubResource("Resource_xb4nt")
+})
+id = "999823_3049618117"
+
+[sub_resource type="Resource" id="Resource_26ytx"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_0giti")
+
+[sub_resource type="Resource" id="Resource_cbx3s"]
+script = ExtResource("24_c3o42")
+stat_value = 0.8
+
+[sub_resource type="Resource" id="Resource_dcwos"]
+script = ExtResource("24_c3o42")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_opf4w"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("28_ct6du")
+stat_name = 2
+
+[sub_resource type="Resource" id="Resource_syueg"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("29_whrr4")
+stat_name = 3
+
+[sub_resource type="Resource" id="Resource_0q3y4"]
+script = ExtResource("26_tx0ue")
+display_name = "Siegmund"
+resource = ExtResource("27_jpq8j")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_cbx3s"),
+1: SubResource("Resource_dcwos"),
+2: SubResource("Resource_opf4w"),
+3: SubResource("Resource_syueg")
+})
+id = "999951_1478048950"
+
+[sub_resource type="Resource" id="Resource_fn6fa"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_0q3y4")
+
+[sub_resource type="Resource" id="Resource_kq240"]
+script = ExtResource("24_c3o42")
+stat_value = 0.8
+
+[sub_resource type="Resource" id="Resource_5sssh"]
+script = ExtResource("24_c3o42")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_4tb8e"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("28_ct6du")
+stat_name = 2
+
+[sub_resource type="Resource" id="Resource_jxaie"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("29_whrr4")
+stat_name = 3
+
+[sub_resource type="Resource" id="Resource_4shym"]
+script = ExtResource("26_tx0ue")
+display_name = "Siegmund"
+resource = ExtResource("27_jpq8j")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_kq240"),
+1: SubResource("Resource_5sssh"),
+2: SubResource("Resource_4tb8e"),
+3: SubResource("Resource_jxaie")
+})
+id = "1000040_145968747"
+
+[sub_resource type="Resource" id="Resource_0btcb"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_4shym")
+
+[sub_resource type="Resource" id="Resource_o1kh8"]
+script = ExtResource("19_1pdgr")
+squad_id = "test-player"
+squad_name = "Player's Squad"
+warriors = Array[ExtResource("23_ycpy2")]([SubResource("Resource_26ytx"), SubResource("Resource_fn6fa"), SubResource("Resource_0btcb")])
+food = 1500
+travel_tools = 3
+formation = Array[int]([1, 2, 2])
+starting_location_id = "camp"
+inventory = SubResource("Resource_w4v87")
+metadata/_custom_type_script = "uid://cjilk34mc47ja"
+
+[sub_resource type="Resource" id="Resource_241le"]
+script = ExtResource("21_2pp8n")
+
+[sub_resource type="Resource" id="Resource_4fh0t"]
+script = ExtResource("24_c3o42")
+stat_value = 0.8
+
+[sub_resource type="Resource" id="Resource_utnfe"]
+script = ExtResource("24_c3o42")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_b7vjv"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("28_ct6du")
+stat_name = 2
+
+[sub_resource type="Resource" id="Resource_68yjs"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("29_whrr4")
+stat_name = 3
+
+[sub_resource type="Resource" id="Resource_efgbh"]
+script = ExtResource("26_tx0ue")
+display_name = "Siegmund"
+resource = ExtResource("27_jpq8j")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_4fh0t"),
+1: SubResource("Resource_utnfe"),
+2: SubResource("Resource_b7vjv"),
+3: SubResource("Resource_68yjs")
+})
+id = "1000876_824839938"
+
+[sub_resource type="Resource" id="Resource_eo6r7"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_efgbh")
+
+[sub_resource type="Resource" id="Resource_iq03g"]
+script = ExtResource("24_c3o42")
+stat_value = 0.8
+
+[sub_resource type="Resource" id="Resource_ra1gg"]
+script = ExtResource("24_c3o42")
+stat_value = 5.0
+stat_name = 1
+
+[sub_resource type="Resource" id="Resource_e0lx0"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("28_ct6du")
+stat_name = 2
+
+[sub_resource type="Resource" id="Resource_vjnkt"]
+script = ExtResource("24_c3o42")
+stat_value = ExtResource("29_whrr4")
+stat_name = 3
+
+[sub_resource type="Resource" id="Resource_pelea"]
+script = ExtResource("26_tx0ue")
+display_name = "Siegmund"
+resource = ExtResource("27_jpq8j")
+rs_arr = Dictionary[int, ExtResource("24_c3o42")]({
+0: SubResource("Resource_iq03g"),
+1: SubResource("Resource_ra1gg"),
+2: SubResource("Resource_e0lx0"),
+3: SubResource("Resource_vjnkt")
+})
+id = "1000958_684504584"
+
+[sub_resource type="Resource" id="Resource_q0kex"]
+script = ExtResource("23_ycpy2")
+strategy = SubResource("Resource_pelea")
+
+[sub_resource type="Resource" id="Resource_ovw71"]
+script = ExtResource("19_1pdgr")
+squad_id = "bandit_squad_1"
+squad_name = "Forest Bandits"
+warriors = Array[ExtResource("23_ycpy2")]([SubResource("Resource_eo6r7"), SubResource("Resource_q0kex")])
+money = 50.0
+karma = -20.0
+food = 5
+travel_tools = 2
+formation = Array[int]([1, 1, 2])
+starting_location_id = "camp"
+inventory = SubResource("Resource_241le")
+
+[resource]
+script = ExtResource("18_w8hny")
+scenario = SubResource("Resource_2jon8")
+squads = Array[ExtResource("19_1pdgr")]([SubResource("Resource_r5tr3"), SubResource("Resource_kjmui"), SubResource("Resource_hfceq"), SubResource("Resource_o1kh8"), SubResource("Resource_ovw71")])
+location_overrides = Dictionary[String, String]({
+"bandit_squad_1": "",
+"test-player": "alpha"
+})

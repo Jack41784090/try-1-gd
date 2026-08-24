@@ -27,8 +27,9 @@ func _ready():
 	print("")
 
 	main = load("res://scenes/main.tscn").instantiate()
+	main.DEBUG = false
 	add_child(main)
-	main.load_prototype_scenario()
+	main.load_debug_scenario()
 
 	var systems := main.systems
 	systems.debug_command_system.command_failed.connect(
