@@ -2,8 +2,10 @@ class_name Population
 extends Resource
 
 var people: Array[EconPerson] = []
-var _by_class: Dictionary = {}
-var _by_job: Dictionary = {}
+var _by_class: Dictionary[EconomyTypes.SocialClass, Array] = {}
+var _by_job: Dictionary[EconomyTypes.JobType, Array] = {}
+
+@export var last_unmet: Dictionary[Thing, float] = {}
 
 func add_person(person: EconPerson) -> void:
 	people.append(person)
@@ -17,6 +19,20 @@ func add_person(person: EconPerson) -> void:
 		var arr: Array[EconPerson] = []
 		_by_job[job] = arr
 	(_by_job[job] as Array[EconPerson]).append(person)
+
+func set_round_demand(goods: Array[Thing], inv: LocationInventory) -> void:
+	for p: EconPerson in people:
+		p.compute_wants(goods, inv)
+		for thing: Thing in p.wants:
+			last_unmet.set(thing, last_unmet.get(thing, 0.0) + p.wants[thing])
+
+func update_satisfaction() -> void:
+	for p: EconPerson in people:
+		for thing: Thing in p.wants:
+			last_unmet.set(thing, last_unmet.get(thing, 0.0) + p.wants[thing])
+			# population_demand[thing] = population_demand.get(thing, 0.0) + p.wants[thing]
+	for p: EconPerson in people:
+		p.update_satisfaction(last_unmet, population_demand)
 
 func get_by_class(social_class: EconomyTypes.SocialClass) -> Array[EconPerson]:
 	if _by_class.has(social_class):

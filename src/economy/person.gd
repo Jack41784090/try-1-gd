@@ -1,12 +1,12 @@
-extends RefCounted
 class_name EconPerson
+extends RefCounted
 
 var person_name: String
 var social_class: EconomyTypes.SocialClass
 var job: EconomyTypes.JobType
 var money: float
-var inventory: Dictionary = {}
-var wants: Dictionary = {}
+var inventory: Dictionary[Thing, float] = {}
+var wants: Dictionary[Thing, float] = {}
 var satisfaction: float = 50.0
 
 func consume(thing: Thing, qty: float) -> float:
@@ -16,26 +16,24 @@ func consume(thing: Thing, qty: float) -> float:
 	return consumed
 
 
-## Rebuilds `wants` from scratch each call — nobles want less of everything (elasticity 0.5), peasants more (1.5); price above base_price suppresses want, below it inflates it.
 func compute_wants(goods: Array[Thing], inv: LocationInventory) -> void:
 	wants.clear()
 	var class_elasticity_mod := 1.0
-	match social_class:
-		EconomyTypes.SocialClass.NOBLE:
-			class_elasticity_mod = 0.5
-		EconomyTypes.SocialClass.PEASANT:
-			class_elasticity_mod = 1.5
+	# match social_class:
+	# 	EconomyTypes.SocialClass.NOBLE:
+	# 		class_elasticity_mod = 0.5
+	# 	EconomyTypes.SocialClass.PEASANT:
+	# 		class_elasticity_mod = 1.5
 
 	for thing: Thing in goods:
 		var base_want := _base_want_for(thing.thing_type)
-		if base_want <= 0.0:
-			continue
-		if inv != null and thing.base_price > 0.0:
-			var current_price := inv.get_price(thing)
-			if current_price > 0.0:
-				var modifier := pow(thing.base_price / current_price, thing.get_elasticity() * class_elasticity_mod)
-				base_want *= clampf(modifier, 0.2, 3.0)
-		wants[thing] = base_want
+		if base_want > 0.0:
+			if inv != null and thing.base_price > 0.0:
+				var current_price := inv.get_price(thing)
+				if current_price > 0.0:
+					var modifier := pow(thing.base_price / current_price, thing.get_elasticity() * class_elasticity_mod)
+					base_want *= clampf(modifier, 0.2, 3.0)
+			wants[thing] = base_want
 
 
 func _base_want_for(thing_type: EconomyTypes.ThingType) -> float:
@@ -71,25 +69,21 @@ func _base_want_for(thing_type: EconomyTypes.ThingType) -> float:
 	return 0.0
 
 
-## Nudges satisfaction toward a wants-weighted fulfillment ratio using the same 0.2 smoothing idiom as _price_update's adjust_rate, so it doesn't jump straight to target.
-func update_satisfaction(unmet: Dictionary, population_demand: Dictionary) -> void:
-	if wants.is_empty():
-		return
+func update_satisfaction(unmet: Dictionary[Thing, float], population_demand: Dictionary[Thing, float]) -> void:
 	var weighted_fulfillment := 0.0
 	var total_weight := 0.0
 	for thing: Thing in wants:
 		var wanted: float = wants[thing]
-		if wanted <= 0.0:
-			continue
-		var total_demand: float = population_demand.get(thing, wanted)
-		var thing_unmet: float = unmet.get(thing, 0.0)
-		var fulfillment_ratio := clampf(1.0 - thing_unmet / maxf(total_demand, 0.01), 0.0, 1.0)
-		weighted_fulfillment += fulfillment_ratio * wanted
-		total_weight += wanted
-	if total_weight <= 0.0:
-		return
-	var target := (weighted_fulfillment / total_weight) * 100.0
-	satisfaction = lerpf(satisfaction, target, 0.2)
+		if wanted > 0.0:
+			var total_demand: float = population_demand.get(thing, wanted)
+			var thing_unmet: float = unmet.get(thing, 0.0)
+			var fulfillment_ratio := clampf(1.0 - thing_unmet / maxf(total_demand, 0.01), 0.0, 1.0)
+			weighted_fulfillment += fulfillment_ratio * wanted
+			total_weight += wanted
+	if total_weight > 0.0:
+		var target := (weighted_fulfillment / total_weight) * 100.0
+		satisfaction = lerpf(satisfaction, target, 0.2)
+
 
 func _to_string() -> String:
 	return "%s (%s, %s)" % [
@@ -97,6 +91,7 @@ func _to_string() -> String:
 		EconomyTypes.SocialClass.keys()[social_class],
 		EconomyTypes.JobType.keys()[job],
 	]
+
 
 static func create(
 	p_name: String,
