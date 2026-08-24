@@ -8,7 +8,6 @@
 [sub_resource type="Resource" id="ReactiveStat_sieg_morale"]
 script = ExtResource("2_rs")
 stat_value = 0.8
-stat_name = 0
 
 [sub_resource type="Resource" id="ReactiveStat_sieg_mvspd"]
 script = ExtResource("2_rs")
