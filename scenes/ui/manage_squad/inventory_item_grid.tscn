@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bi16xap1m3oub"]
 
-[ext_resource type="Script" uid="uid://ck0060tnon8ib" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
+[ext_resource type="Script" uid="uid://ch5i3kg768epd" path="res://src/strategy/ui/manage_squad/inventory_item_grid.gd" id="2_4tjuw"]
 [ext_resource type="Texture2D" uid="uid://03bk01ppl6ba" path="res://assets/hoi4_icons/divisions.png" id="2_7jw1u"]
 [ext_resource type="StyleBox" uid="uid://dmybtq0pts027" path="res://resources/theme/styles/blackrim.tres" id="2_qj7u1"]
 

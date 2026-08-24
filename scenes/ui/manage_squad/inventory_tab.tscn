@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dsmu7hiqtycgd"]
 
-[ext_resource type="Script" uid="uid://dfabrq8mfoyci" path="res://src/strategy/ui/manage_squad/inventory_tab.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://1lpjb3q4sv7u3" path="res://src/strategy/ui/manage_squad/inventory_tab.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cxa3h371mpkys" path="res://scenes/ui/manage_squad/inventory_panel.tscn" id="2_8ml84"]
 [ext_resource type="PackedScene" uid="uid://dawgk6h3vruux" path="res://scenes/ui/manage_squad/units_panel.tscn" id="3_cidog"]
 
